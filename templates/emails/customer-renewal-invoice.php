@@ -1,0 +1,70 @@
+<?php
+/**
+ * Customer renewal invoice email
+ *
+ * @author	Brent Shepherd
+ * @package WooCommerce_Subscriptions/Templates/Emails
+ * @version 1.4
+ */
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+?>
+
+<?php do_action( 'woocommerce_email_header', $email_heading ); ?>
+
+<?php if ( $order->status == 'pending' ) : ?>
+	<p>
+		<?php
+		// translators: %1$s: name of the blog, %2$s: link to checkout payment url, note: no full stop due to url at the end
+		echo wp_kses( sprintf( _x( 'An invoice has been created for you to renew your subscription with %1$s. To pay for this invoice please use the following link: %2$s', 'In customer renewal invoice email', 'woocommerce-subscriptions' ), esc_html( get_bloginfo( 'name' ) ), '<a href="' . esc_url( $order->get_checkout_payment_url() ) . '">' . esc_html__( 'Pay Now &raquo;', 'woocommerce-subscriptions' ) . '</a>' ), array( 'a' => array( 'href' => true ) ) );
+		?>
+	</p>
+<?php elseif ( 'failed' == $order->status ) : ?>
+	<p>
+		<?php
+		// translators: %1$s: name of the blog, %2$s: link to checkout payment url, note: no full stop due to url at the end
+		echo wp_kses( sprintf( _x( 'The automatic payment to renew your subscription with %1$s has failed. To reactivate the subscription, please login and pay for the renewal from your account page: %2$s', 'In customer renewal invoice email', 'woocommerce-subscriptions' ), esc_html( get_bloginfo( 'name' ) ), '<a href="' . esc_url( $order->get_checkout_payment_url() ) . '">' . esc_html__( 'Pay Now &raquo;', 'woocommerce-subscriptions' ) . '</a>' ), array( 'a' => array( 'href' => true ) ) ); ?></p>
+<?php endif; ?>
+
+<?php do_action( 'woocommerce_email_before_order_table', $order, false, false ); ?>
+
+<h2>
+	<?php
+	// translators: placeholder is the order's number
+	printf( esc_html__( 'Order: %s', 'woocommerce-subscriptions' ), esc_html( $order->get_order_number() ) );
+	?>
+</h2>
+
+<table cellspacing="0" cellpadding="6" style="width: 100%; border: 1px solid #eee;" border="1" bordercolor="#eee">
+	<thead>
+		<tr>
+			<th scope="col" style="text-align:left; border: 1px solid #eee;"><?php echo esc_html_x( 'Product', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
+			<th scope="col" style="text-align:left; border: 1px solid #eee;"><?php echo esc_html_x( 'Quantity', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
+			<th scope="col" style="text-align:left; border: 1px solid #eee;"><?php echo esc_html_x( 'Price', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
+		</tr>
+	</thead>
+	<tbody>
+		<?php echo wp_kses_post( WC_Subscriptions_Email::email_order_items_table( $order, array( 'show_download_links' => false, 'show_sku' => true, 'show_purchase_note' => false ) ) ); ?>
+	</tbody>
+	<tfoot>
+		<?php
+		if ( $totals = $order->get_order_item_totals() ) {
+			$i = 0;
+			foreach ( $totals as $total ) {
+				$i++;
+				?>
+				<tr>
+					<th scope="row" colspan="2" style="text-align:left; border: 1px solid #eee; <?php if ( 1 == $i ) { echo 'border-top-width: 4px;'; } ?>"><?php echo esc_html( $total['label'] ); ?></th>
+					<td style="text-align:left; border: 1px solid #eee; <?php if ( 1 == $i ) { echo 'border-top-width: 4px;'; } ?>"><?php echo wp_kses_post( $total['value'] ); ?></td>
+				</tr>
+				<?php
+			}
+		}
+		?>
+	</tfoot>
+</table>
+
+<?php do_action( 'woocommerce_email_after_order_table', $order, false, false ); ?>
+
+<?php do_action( 'woocommerce_email_footer' ); ?>

@@ -1,0 +1,21 @@
+{
+	"name"       : "markjaquith/wp-tlc-transients",
+	"description": "A WP transients interface with support for soft-expiration, background updating of the transients.",
+	"keywords"   : ["wordpress", "cache"],
+	"homepage"   : "https://github.com/markjaquith/WP-TLC-Transients",
+	"license"    : "GPL-2.0+",
+	"authors"    : [
+		{
+			"name"    : "Mark Jaquith",
+			"homepage": "http://markjaquith.com/"
+		}
+	],
+	"support"    : {
+		"issues": "https://github.com/markjaquith/WP-TLC-Transients/issues",
+		"source": "https://github.com/markjaquith/WP-TLC-Transients"
+	},
+	"autoload"   : {
+		"classmap": ["class-tlc-transient.php", "class-tlc-transient-update-server.php"],
+		"files"   : ["functions.php"]
+	}
+}
