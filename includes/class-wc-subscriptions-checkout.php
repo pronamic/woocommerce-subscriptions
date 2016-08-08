@@ -223,7 +223,7 @@ class WC_Subscriptions_Checkout {
 
 		foreach ( $cart->get_shipping_packages() as $package_index => $base_package ) {
 
-			$package = WC()->shipping->calculate_shipping_for_package( $base_package );
+			$package = WC_Subscriptions_Cart::get_calculated_shipping_for_package( $base_package );
 
 			$recurring_shipping_package_key = WC_Subscriptions_Cart::get_recurring_shipping_package_key( $cart->recurring_cart_key, $package_index );
 

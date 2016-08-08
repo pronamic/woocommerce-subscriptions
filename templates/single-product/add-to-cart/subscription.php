@@ -4,7 +4,7 @@
  *
  * @author 		WooThemes
  * @package 	WooCommerce-Subscriptions/Templates
- * @version     1.5.4
+ * @version     2.0.18
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -37,9 +37,9 @@ if ( ! $product->is_in_stock() ) : ?>
 
 	<?php if ( ! $product->is_purchasable() && 0 != $user_id && 'no' != $product->limit_subscriptions && ( ( 'active' == $product->limit_subscriptions && wcs_user_has_subscription( $user_id, $product->id, 'on-hold' ) ) || $user_has_subscription = wcs_user_has_subscription( $user_id, $product->id, $product->limit_subscriptions ) ) ) : ?>
 		<?php if ( 'any' == $product->limit_subscriptions && $user_has_subscription && ! wcs_user_has_subscription( $user_id, $product->id, 'active' ) && ! wcs_user_has_subscription( $user_id, $product->id, 'on-hold' ) ) : // customer has an inactive subscription, maybe offer the renewal button ?>
-			<?php $renewal_link = wcs_get_users_resubscribe_link_for_product( $product->id ); ?>
-			<?php if ( ! empty( $renewal_link ) ) : ?>
-				<a href="<?php echo esc_url( $renewal_link ); ?>" class="button product-renewal-link"><?php esc_html_e( 'Renew', 'woocommerce-subscriptions' ); ?></a>
+			<?php $resubscribe_link = wcs_get_users_resubscribe_link_for_product( $product->id ); ?>
+			<?php if ( ! empty( $resubscribe_link ) ) : ?>
+				<a href="<?php echo esc_url( $resubscribe_link ); ?>" class="button product-resubscribe-link"><?php esc_html_e( 'Resubscribe', 'woocommerce-subscriptions' ); ?></a>
 			<?php endif; ?>
 		<?php else : ?>
 		<p class="limited-subscription-notice notice"><?php esc_html_e( 'You have an active subscription to this product already.', 'woocommerce-subscriptions' ); ?></p>

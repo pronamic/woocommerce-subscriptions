@@ -1,5 +1,32 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2016.07.22 - version 2.0.18
+ * Tweak: cache shipping package rates to prevent multiple re-calculations per request. (PR#1485)
+ * Tweak: remove multiple, redundant calls to $subscription->get_items() and WP_Posts_List->__construct() on admin subscriptions screen. (PR#1524)
+ * Tweak: support translation for subscription shortcode. (PR#1504)
+ * Tweak: add new 'woocommerce_subscriptions_after_recurring_shipping_rates' hook after displaying recurring shipping rates. (PR#1517)
+ * Tweak: use default nonce action for change payment URL so 3rd party code can use custom URLs is needed. (PR#1529)
+ * Tweak: remove duplicate PayPal log calls. (PR#1527)
+ * Tweak: slightly improve efficiency of wcs_can_user_resubscribe_to(). (PR#1501)
+ * Tweak: refactor wcs_user_has_subscription() to accept an array for statuses. (PR#1496)
+ * Tweak: update _paid_date post meta flag for manual / failed payment original / renewal orders. (PR#1488)
+ * Tweak: use WooCommerce's decimal place setting for rounding switch prorations. (PR#1483)
+ * Fix: recurring coupons with WooCommerce 2.6.3 (issue does not exist with WC 2.6.2 or 2.6.4+). (PR#1546)
+ * Fix: grant new product download file permissions to existing subscriptions for product which were not marked as downloadable or did not have downloadable files associated with them at the time the subscription was created. (PR#1533)
+ * Fix: show cancel button for on-hold subscriptions with empty next payment. (PR#1515)
+ * Fix: select the correct way to apply tax rates based on the 'woocommerce_adjust_non_base_location_prices' filter. (PR#1500)
+ * Fix: display price string for one payment subscriptions consistently between cart/checkout and my account. e.g. display "$100 for 1 year" everywhere, instead of "$100 for 1 year" on cart/checkout and "$100 / year" on My Account. (PR#1451)
+ * Fix: do not allow a customer with an active and cancelled subscription to a product limited to active status to resubscribe to the inactive subscription. (PR#1482)
+ * Fix: updates resubscribe button displayed on the limited simple subscriptoin product pages text from the old "Renew" terminology. (PR#1487)
+ * Fix: calculate correct renewal/resubscribe cart item taxes rates. (PR#1476)
+ * Fix: honour chosen shipping method as default method. (PR#1480)
+ * Fix: remove the mock trial added to switches with no prorated inital switch costs when creating the grouping key dates to fix incorrect "the next_payment date must occur after the trial end date" error in the rare case where the first renewal payment for the new subscription is scheduled less than 1 billing period in the future. (PR#1519)
+ * Fix: always allow subscription status updates while processing PayPal IPNs to avoid issues when processing renewals for PayPal accounts issuing out-of-odate subscription IDs that begin with S-. (PR#1526)
+ * Fix: responsiveness of Subscriptions administration screen list table to improve display on small screens. (PR#1502)
+ * Fix: do not use variable references ot fix 'nested by-reference foreach loop' notice with PHP7. (PR#1522)
+ * Fix: tab order of billing period and interval on Edit Product screen for subscription variations. (PR#1543)
+ * Fix: deviation calculations in wcs_estimate_period_between(). (PR#1455)
+
 2016.06.24 - version 2.0.17
  * Tweak: add support for bulk editing subscription variation prices using relative increase or decrease from existing price (either fixed amount or per cent). (PR#1425)
  * Tweak: use filterable helper function when validating switch request to improve compatibilty with Name Your Price and other plugins. (PR#1453)

@@ -80,6 +80,9 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 		$subscription            = wcs_get_subscription( $subscription_id_and_key['order_id'] );
 		$subscription_key        = $subscription_id_and_key['order_key'];
 
+		// For the purposes of processing the IPN, we need to force the ability to update subscription statuses by unhooking the function enforcing strict PayPal support on S- prefixed subscription ids
+		remove_filter( 'woocommerce_subscription_payment_gateway_supports', 'WCS_PayPal_Supports::add_feature_support_for_subscription', 10 );
+
 		// We have an invalid $subscription, probably because invoice_prefix has changed since the subscription was first created, so get the subscription by order key
 		if ( ! isset( $subscription->id ) ) {
 			$subscription = wcs_get_subscription( wc_get_order_id_by_order_key( $subscription_key ) );
@@ -159,9 +162,6 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 				exit;
 			}
 		}
-
-		WC_Gateway_Paypal::log( 'Subscription transaction details: ' . print_r( $transaction_details, true ) );
-		WC_Gateway_Paypal::log( 'Subscription Transaction Type: ' . $transaction_details['txn_type'] );
 
 		$is_renewal_sign_up_after_failure = false;
 
