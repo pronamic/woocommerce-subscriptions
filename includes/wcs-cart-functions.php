@@ -50,7 +50,8 @@ function wcs_cart_totals_shipping_html() {
 
 				$product_names = array();
 
-				$package = WC()->shipping->calculate_shipping_for_package( $base_package );
+				$package = WC_Subscriptions_Cart::get_calculated_shipping_for_package( $base_package );
+				$index   = sprintf( '%1$s_%2$d', $recurring_cart_key, $i );
 
 				if ( $show_package_details ) {
 					foreach ( $package['contents'] as $item_id => $values ) {
@@ -73,7 +74,6 @@ function wcs_cart_totals_shipping_html() {
 						<td>
 							<?php echo wp_kses_post( wcs_cart_totals_shipping_method_price_label( $shipping_method, $recurring_cart ) ); ?>
 							<?php if ( 1 === count( $package['rates'] ) ) : ?>
-								<?php $index = sprintf( '%1$s_%2$d', $recurring_cart_key, $i ); ?>
 								<?php wcs_cart_print_shipping_input( $index, $shipping_method ); ?>
 								<?php do_action( 'woocommerce_after_shipping_rate', $shipping_method, $index ); ?>
 							<?php endif; ?>
@@ -99,7 +99,7 @@ function wcs_cart_totals_shipping_html() {
 							'show_package_details' => $show_package_details,
 							'package_details'      => $package_details,
 							'package_name'         => $package_name,
-							'index'                => sprintf( '%1$s_%2$d', $recurring_cart_key, $i ),
+							'index'                => $index,
 							'chosen_method'        => $chosen_recurring_method,
 							'recurring_cart_key'   => $recurring_cart_key,
 							'recurring_cart'       => $recurring_cart,
@@ -109,6 +109,7 @@ function wcs_cart_totals_shipping_html() {
 					);
 					$show_package_name = false;
 				}
+				do_action( 'woocommerce_subscriptions_after_recurring_shipping_rates', $index, $base_package, $recurring_cart );
 			}
 		}
 	}

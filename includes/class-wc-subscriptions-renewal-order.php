@@ -90,6 +90,7 @@ class WC_Subscriptions_Renewal_Order {
 			);
 
 			wp_update_post( $update_post_data );
+			update_post_meta( $order_id, '_paid_date', current_time( 'mysql', true ) );
 		}
 
 		foreach ( $subscriptions as $subscription ) {

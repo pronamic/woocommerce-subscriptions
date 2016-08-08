@@ -184,7 +184,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 
 			$subscription = wcs_get_subscription( absint( $_GET['change_payment_method'] ) );
 
-			if ( wp_verify_nonce( $_GET['_wpnonce'], __FILE__ ) === false ) {
+			if ( wp_verify_nonce( $_GET['_wpnonce'] ) === false ) {
 
 				WC_Subscriptions::add_notice( __( 'There was an error with your request. Please try again.', 'woocommerce-subscriptions' ), 'error' );
 
@@ -255,7 +255,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 		if ( $subscription->can_be_updated_to( 'new-payment-method' ) ) {
 
 			$actions['change_payment_method'] = array(
-				'url'  => wp_nonce_url( add_query_arg( array( 'change_payment_method' => $subscription->id ), $subscription->get_checkout_payment_url() ), __FILE__ ),
+				'url'  => wp_nonce_url( add_query_arg( array( 'change_payment_method' => $subscription->id ), $subscription->get_checkout_payment_url() ) ),
 				'name' => _x( 'Change Payment', 'label on button, imperative', 'woocommerce-subscriptions' ),
 			);
 

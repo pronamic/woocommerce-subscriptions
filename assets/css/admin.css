@@ -248,7 +248,7 @@ p._subscription_trial_length_field input,
 }
 .variable_subscription_pricing_2_3 .wc_input_subscription_period_interval {
 	max-width: 41%;
-	float: right;
+	float: left;
 }
 .variable_subscription_pricing_2_3 .wc_input_subscription_period {
 	max-width: 32%;
@@ -486,11 +486,30 @@ body.post-type-shop_subscription .add-items .description.tips,
 body.post-type-shop_subscription .add-items .button.refund-items {
 	display: none;
 }
-@media screen and (max-width: 782px) {
+@media only screen and (max-width: 782px) {
 	#woocommerce-subscription-schedule .wcs-date-input input[type="text"]:first-of-type {
 		width: 45%;
 	}
 	#woocommerce-subscription-schedule .wcs-date-input input[type="text"]:not(:first-of-type) {
 		width: 19%;
 	}
+
+	.post-type-shop_subscription .wp-list-table .column-status {
+		display: none;
+		text-align: left;
+		padding-bottom: 0;
+	}
+
+	.post-type-shop_subscription .wp-list-table .column-status mark {
+		margin: 0;
+	}
+
+	.post-type-shop_subscription .wp-list-table .column-status:before {
+		display: none !important;
+	}
+
+	.post-type-shop_subscription .wp-list-table .column-orders {
+		text-align: left !important;
+	}
+
 }
