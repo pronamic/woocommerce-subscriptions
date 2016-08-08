@@ -136,3 +136,25 @@ function wcs_array_insert_after( $needle, $haystack, $new_key, $new_value) {
 
 	return $haystack;
 }
+
+/**
+ * Helper function to get around WooCommerce version 2.6.3 which removed the constant WC_ROUNDING_PRECISION and
+ * introduced the function wc_get_rounding_precision. Every version 2.6.2 and earlier has the constant. Every version
+ * 2.6.4 and later (hopefully) will also have the constant AND the wc_get_rounding_precision function. 2.6.3 only has
+ * the function however.
+ *
+ * @see https://github.com/Prospress/woocommerce-subscriptions/issues/1545
+ *
+ * @return int rounding precision
+ */
+function wcs_get_rounding_precision() {
+	if ( function_exists( 'wc_get_rounding_precision' ) ) {
+		$precision = wc_get_rounding_precision();
+	} elseif ( defined( 'WC_ROUNDING_PRECISION' ) ) {
+		$precision = WC_ROUNDING_PRECISION;
+	} else {
+		$precision = wc_get_price_decimals() + 2;
+	}
+
+	return $precision;
+}

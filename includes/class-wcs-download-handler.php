@@ -33,6 +33,8 @@ class WCS_Download_Handler {
 		add_action( 'woocommerce_process_shop_order_meta', __CLASS__ . '::repair_permission_data', 60, 1 );
 
 		add_action( 'deleted_post', __CLASS__ . '::delete_subscription_permissions' );
+
+		add_action( 'woocommerce_process_product_file_download_paths', __CLASS__ . '::grant_new_file_product_permissions', 11, 3 );
 	}
 
 	/**
@@ -188,6 +190,45 @@ class WCS_Download_Handler {
 
 		if ( 'shop_subscription' == get_post_type( $post_id ) ) {
 			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->prefix}woocommerce_downloadable_product_permissions WHERE order_id = %d", $post_id ) );
+		}
+	}
+
+	/**
+	 * Grant downloadable file access to any newly added files on any existing subscriptions
+	 * which don't have existing permissions.
+	 *
+	 * @param int $product_id
+	 * @param int $variation_id
+	 * @param array $downloadable_files product downloadable files
+	 * @since 2.0.18
+	 */
+	public static function grant_new_file_product_permissions( $product_id, $variation_id, $downloadable_files ) {
+		global $wpdb;
+
+		$product_id            = ( $variation_id ) ? $variation_id : $product_id;
+		$product               = wc_get_product( $product_id );
+		$existing_download_ids = array_keys( (array) $product->get_files() );
+		$downloadable_ids      = array_keys( (array) $downloadable_files );
+		$new_download_ids      = array_filter( array_diff( $downloadable_ids, $existing_download_ids ) );
+
+		if ( ! empty( $new_download_ids ) ) {
+
+			$existing_permissions = $wpdb->get_col( $wpdb->prepare( "SELECT order_id from {$wpdb->prefix}woocommerce_downloadable_product_permissions WHERE product_id = %d GROUP BY order_id", $product_id ) );
+			$subscriptions        = wcs_get_subscriptions_for_product( $product_id );
+
+			foreach ( $subscriptions as $subscription_id ) {
+
+				// only grant permissions to subscriptions which have no permissions for this product
+				if ( ! in_array( $subscription_id, $existing_permissions ) ) {
+					$subscription = wcs_get_subscription( $subscription_id );
+
+					foreach ( $new_download_ids as $download_id ) {
+						if ( $subscription && apply_filters( 'woocommerce_process_product_file_download_paths_grant_access_to_new_file', true, $download_id, $product_id, $subscription ) ) {
+							wc_downloadable_file_permission( $download_id, $product_id, $subscription );
+						}
+					}
+				}
+			}
 		}
 	}
 }

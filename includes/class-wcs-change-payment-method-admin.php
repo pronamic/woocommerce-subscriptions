@@ -115,14 +115,14 @@ class WCS_Change_Payment_Method_Admin {
 
 		if ( ! empty( $payment_method_meta ) ) {
 
-			foreach ( $payment_method_meta as $meta_table => &$meta ) {
+			foreach ( $payment_method_meta as $meta_table => $meta ) {
 
 				if ( ! is_array( $meta ) ) {
 					continue;
 				}
 
-				foreach ( $meta as $meta_key => &$meta_data ) {
-					$meta_data['value'] = isset( $_POST['_payment_method_meta'][ $meta_table ][ $meta_key ] ) ? $_POST['_payment_method_meta'][ $meta_table ][ $meta_key ] : '';
+				foreach ( $meta as $meta_key => $meta_data ) {
+					$payment_method_meta[ $meta_table ][ $meta_key ]['value'] = isset( $_POST['_payment_method_meta'][ $meta_table ][ $meta_key ] ) ? $_POST['_payment_method_meta'][ $meta_table ][ $meta_key ] : '';
 				}
 			}
 		}

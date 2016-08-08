@@ -401,12 +401,12 @@ function wcs_estimate_period_between( $last_date, $second_date, $interval = 1 ) 
 	$possible_periods  = array();
 
 	// check for months
-	$full_months = wcs_find_full_months_between( $earlier_timestamp, $later_timestamp );
+	$full_months = wcs_find_full_months_between( $earlier_timestamp, $later_timestamp, $interval );
 
 	$possible_periods['month'] = array(
-		'intervals'         => $full_months['months'],
-		'remainder'         => $remainder = $full_months['remainder'],
-		'fraction'          => $remainder / ( 30 * DAY_IN_SECONDS ),
+		'intervals'         => floor( $full_months['months'] / $interval ),
+		'remainder'         => $full_months['remainder'],
+		'fraction'          => $full_months['remainder'] / ( 30 * DAY_IN_SECONDS ),
 		'period'            => 'month',
 		'days_in_month'     => $days_in_month,
 		'original_interval' => $interval,
@@ -416,8 +416,8 @@ function wcs_estimate_period_between( $last_date, $second_date, $interval = 1 ) 
 	foreach ( array( 'year' => YEAR_IN_SECONDS, 'week' => WEEK_IN_SECONDS, 'day' => DAY_IN_SECONDS ) as $time => $seconds ) {
 		$possible_periods[ $time ] = array(
 			'intervals'         => floor( $period_in_seconds / $seconds ),
-			'remainder'         => $remainder = $period_in_seconds % $seconds,
-			'fraction'          => $remainder / $seconds,
+			'remainder'         => $period_in_seconds % $seconds,
+			'fraction'          => ($period_in_seconds % $seconds) / $seconds,
 			'period'            => $time,
 			'days_in_month'     => $days_in_month,
 			'original_interval' => $interval,
@@ -473,27 +473,38 @@ function wcs_estimate_period_between( $last_date, $second_date, $interval = 1 ) 
  * @param  numeric $end_timestamp   unix timestamp of an end date
  * @return array                    with keys 'months' (integer) and 'remainder' (seconds, integer)
  */
-function wcs_find_full_months_between( $start_timestamp, $end_timestamp ) {
+function wcs_find_full_months_between( $start_timestamp, $end_timestamp, $interval = 1 ) {
 	$number_of_months = 0;
-	$remainder = null;
-	$previous_remainder = null;
+	$remainder = 0;
+	$previous_remainder = 0;
+	$months_in_period = 0;
+	$remainder_in_period = 0;
 
 	while ( 0 <= $remainder ) {
 		$previous_timestamp = $start_timestamp;
 		$start_timestamp = wcs_add_months( $start_timestamp, 1 );
 		$previous_remainder = $remainder;
 		$remainder = $end_timestamp - $start_timestamp;
+		$remainder_in_period += $start_timestamp - $previous_timestamp;
 
 		if ( $remainder >= 0 ) {
 			$number_of_months++;
-		} elseif ( null === $previous_remainder ) {
+			$months_in_period++;
+		} elseif ( 0 === $previous_remainder ) {
 			$previous_remainder = $end_timestamp - $previous_timestamp;
+		}
+
+		if ( $months_in_period >= $interval ) {
+			$months_in_period = 0;
+			$remainder_in_period = 0;
 		}
 	}
 
+	$remainder_in_period += $remainder;
+
 	$time_difference = array(
 		'months' => $number_of_months,
-		'remainder' => $previous_remainder,
+		'remainder' => $remainder_in_period,
 	);
 
 	return $time_difference;
@@ -511,10 +522,10 @@ function wcs_discard_zero_intervals( $array ) {
 
 /**
  * Used in an array_filter, discards high deviation elements.
- * - for days it's 1/24th
- * - for week it's 1/7th
- * - for year it's 1/300th
- * - for month it's 1/($days_in_months-2)
+ * - 10 days for a year (10/365th)
+ * - 4 days for a month (4/(days_in_month))
+ * - 1 day for week (i.e. 1/7th)
+ * - 1 hour for days (i.e. 1/24th)
  *
  * @param  array $array elements of the filtered array
  * @return bool        true if value is within deviation limit
@@ -522,10 +533,10 @@ function wcs_discard_zero_intervals( $array ) {
 function wcs_discard_high_deviations( $array ) {
 	switch ( $array['period'] ) {
 		case 'year':
-			return $array['fraction'] < ( 1 / 300 );
+			return $array['fraction'] < ( 10 / 365 );
 			break;
 		case 'month':
-			return $array['fraction'] < ( 1 / ( $array['days_in_month'] - 2 ) );
+			return $array['fraction'] < ( 4 / $array['days_in_month'] );
 			break;
 		case 'week':
 			return $array['fraction'] < ( 1 / 7 );
@@ -556,7 +567,11 @@ function wcs_match_intervals( $array ) {
  */
 function wcs_sort_by_intervals( $a, $b ) {
 	if ( $a['intervals'] == $b['intervals'] ) {
-		return 0;
+		if ( $a['fraction'] == $b['fraction'] ) {
+			return 0;
+		}
+		return ( $a['fraction'] < $b['fraction'] ) ? -1 : 1;
+
 	}
 	return ( $a['intervals'] < $b['intervals'] ) ? -1 : 1;
 }

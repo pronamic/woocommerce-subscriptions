@@ -109,7 +109,7 @@ function wcs_get_new_user_role_names( $role_new ) {
  *
  * @param int (optional) The ID of a user in the store. If left empty, the current user's ID will be used.
  * @param int (optional) The ID of a product in the store. If left empty, the function will see if the user has any subscription.
- * @param string (optional) A valid subscription status. If left empty, the function will see if the user has a subscription of any status.
+ * @param mixed (optional) A valid subscription status string or array. If left empty, the function will see if the user has a subscription of any status.
  * @since 2.0
  */
 function wcs_user_has_subscription( $user_id = 0, $product_id = '', $status = 'any' ) {
@@ -122,7 +122,7 @@ function wcs_user_has_subscription( $user_id = 0, $product_id = '', $status = 'a
 
 		if ( ! empty( $status ) && 'any' != $status ) { // We need to check for a specific status
 			foreach ( $subscriptions as $subscription ) {
-				if ( $subscription->get_status() == $status ) {
+				if ( $subscription->has_status( $status ) ) {
 					$has_subscription = true;
 					break;
 				}
@@ -133,7 +133,7 @@ function wcs_user_has_subscription( $user_id = 0, $product_id = '', $status = 'a
 	} else {
 
 		foreach ( $subscriptions as $subscription ) {
-			if ( $subscription->has_product( $product_id ) && ( empty( $status ) || 'any' == $status || $subscription->get_status() == $status ) ) {
+			if ( $subscription->has_product( $product_id ) && ( empty( $status ) || 'any' == $status || $subscription->has_status( $status ) ) ) {
 				$has_subscription = true;
 				break;
 			}
@@ -281,7 +281,8 @@ function wcs_get_all_user_actions_for_subscription( $subscription, $user_id ) {
 		}
 
 		// Show button for subscriptions which can be cancelled and which may actually require cancellation (i.e. has a future payment)
-		if ( $subscription->can_be_updated_to( 'cancelled' ) && $subscription->get_time( 'next_payment' ) > 0 ) {
+		$next_payment = $subscription->get_time( 'next_payment' );
+		if ( $subscription->can_be_updated_to( 'cancelled' ) && ! $subscription->is_one_payment() && ( $next_payment > 0 || ( $subscription->has_status( 'on-hold' ) && empty( $next_payment ) ) ) ) {
 			$actions['cancel'] = array(
 				'url'  => wcs_get_users_change_status_link( $subscription->id, 'cancelled', $current_status ),
 				'name' => _x( 'Cancel', 'an action on a subscription', 'woocommerce-subscriptions' ),

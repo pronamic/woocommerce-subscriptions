@@ -1072,7 +1072,9 @@ class WC_Subscription extends WC_Order {
 			return '';
 		}
 
-		if ( 'excl' == $tax_display ) {
+		if ( $this->is_one_payment() ) {
+			$subtotal = parent::get_formatted_line_subtotal( $item, $tax_display );
+		} else if ( 'excl' == $tax_display ) {
 			$display_ex_tax_label = $this->prices_include_tax ? 1 : 0;
 			$subtotal = wcs_price_string( $this->get_price_string_details( $this->get_line_subtotal( $item ) ), $display_ex_tax_label );
 		} else {
@@ -1090,7 +1092,7 @@ class WC_Subscription extends WC_Order {
 	 * @return string
 	 */
 	public function get_formatted_order_total( $tax_display = '', $display_refunded = true ) {
-		if ( $this->get_total() > 0 && ! empty( $this->billing_period ) ) {
+		if ( $this->get_total() > 0 && ! empty( $this->billing_period ) && ! $this->is_one_payment() ) {
 			$formatted_order_total = wcs_price_string( $this->get_price_string_details( $this->get_total() ) );
 		} else {
 			$formatted_order_total = parent::get_formatted_order_total();
@@ -1728,5 +1730,43 @@ class WC_Subscription extends WC_Order {
 		}
 
 		return apply_filters( 'woocommerce_get_item_downloads', $files, $item, $this );
+	}
+
+	/**
+	 *  Determine if the subscription is for one payment only.
+	 *
+	 * @return bool whether the subscription is for only one payment
+	 * @since 2.0.17
+	 */
+	public function is_one_payment() {
+
+		$is_one_payment = false;
+
+		if ( 0 != ( $end_time = $this->get_time( 'end' ) ) ) {
+
+			$from_timestamp = $this->get_time( 'start' );
+
+			if ( 0 != $this->get_time( 'trial_end' ) || WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $this ) ) {
+
+				$subscription_order_count = count( $this->get_related_orders() );
+
+				// when we have a sync'd subscription before its 1st payment, we need to base the calculations for the next payment on the first/next payment timestamp.
+				if ( $subscription_order_count < 2 && 0 != ( $next_payment_timestamp = $this->get_time( 'next_payment' ) )  ) {
+					$from_timestamp = $next_payment_timestamp;
+
+				// when we have a sync'd subscription after its 1st payment, we need to base the calculations for the next payment on the last payment timestamp.
+				} else if ( ! ( $subscription_order_count > 2 ) && 0 != ( $last_payment_timestamp = $this->get_time( 'last_payment' ) ) ) {
+					$from_timestamp = $last_payment_timestamp;
+				}
+			}
+
+			$next_payment_timestamp = wcs_add_time( $this->billing_interval, $this->billing_period, $from_timestamp );
+
+			if ( ( $next_payment_timestamp + DAY_IN_SECONDS - 1 ) > $end_time ) {
+				$is_one_payment = true;
+			}
+		}
+
+		return apply_filters( 'woocommerce_subscription_is_one_payment', $is_one_payment, $this );
 	}
 }

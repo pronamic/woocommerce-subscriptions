@@ -51,6 +51,9 @@ class WCS_Admin_Post_Types {
 
 		add_action( 'restrict_manage_posts', array( $this, 'restrict_by_product' ) );
 		add_action( 'restrict_manage_posts', array( $this, 'restrict_by_payment_method' ) );
+
+		add_action( 'list_table_primary_column', array( $this, 'list_table_primary_column' ), 10, 2 );
+		add_filter( 'post_row_actions', array( $this, 'shop_subscription_row_actions' ), 10, 2 );
 	}
 
 
@@ -330,7 +333,7 @@ class WCS_Admin_Post_Types {
 	 * @param  string $column
 	 */
 	public function render_shop_subscription_columns( $column ) {
-		global $post, $the_subscription;
+		global $post, $the_subscription, $wp_list_table;
 
 		if ( empty( $the_subscription ) || $the_subscription->id != $post->ID ) {
 			$the_subscription = wcs_get_subscription( $post->ID );
@@ -343,8 +346,6 @@ class WCS_Admin_Post_Types {
 				// The status label
 				$column_content = sprintf( '<mark class="%s tips" data-tip="%s">%s</mark>', sanitize_title( $the_subscription->get_status() ), wcs_get_subscription_status_name( $the_subscription->get_status() ), wcs_get_subscription_status_name( $the_subscription->get_status() ) );
 
-				// Inline actions
-				$wp_list_table    = _get_list_table( 'WP_Posts_List_Table' );
 				$post_type_object = get_post_type_object( $post->post_type );
 
 				$actions = array();
@@ -459,6 +460,8 @@ class WCS_Admin_Post_Types {
 
 				$column_content .= '</div>';
 
+				$column_content .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details', 'woocommerce-subscriptions' ) . '</span></button>';
+
 				break;
 			case 'order_items' :
 				// Display either the item name or item count with a collapsed list of items
@@ -468,7 +471,7 @@ class WCS_Admin_Post_Types {
 						$column_content .= '&ndash;';
 						break;
 					case 1 :
-						foreach ( $the_subscription->get_items() as $item ) {
+						foreach ( $subscription_items as $item ) {
 							$_product       = apply_filters( 'woocommerce_order_item_product', $the_subscription->get_product_from_item( $item ), $item );
 							$item_meta      = wcs_get_order_item_meta( $item, $_product );
 							$item_meta_html = $item_meta->display( true, true );
@@ -562,7 +565,7 @@ class WCS_Admin_Post_Types {
 				break;
 		}
 
-		echo wp_kses( apply_filters( 'woocommerce_subscription_list_table_column_content', $column_content, $the_subscription, $column ), array( 'a' => array( 'class' => array(), 'href' => array(), 'data-tip' => array(), 'title' => array() ), 'time' => array( 'class' => array(), 'title' => array() ), 'mark' => array( 'class' => array(), 'data-tip' => array() ), 'small' => array( 'class' => array() ), 'table' => array( 'class' => array(), 'cellspacing' => array(), 'cellpadding' => array() ), 'tr' => array( 'class' => array() ), 'td' => array( 'class' => array() ), 'div' => array( 'class' => array(), 'data-tip' => array() ), 'br' => array(), 'strong' => array(), 'span' => array( 'class' => array() ), 'p' => array( 'class' => array() ) ) );
+		echo wp_kses( apply_filters( 'woocommerce_subscription_list_table_column_content', $column_content, $the_subscription, $column ), array( 'a' => array( 'class' => array(), 'href' => array(), 'data-tip' => array(), 'title' => array() ), 'time' => array( 'class' => array(), 'title' => array() ), 'mark' => array( 'class' => array(), 'data-tip' => array() ), 'small' => array( 'class' => array() ), 'table' => array( 'class' => array(), 'cellspacing' => array(), 'cellpadding' => array() ), 'tr' => array( 'class' => array() ), 'td' => array( 'class' => array() ), 'div' => array( 'class' => array(), 'data-tip' => array() ), 'br' => array(), 'strong' => array(), 'span' => array( 'class' => array() ), 'p' => array( 'class' => array() ), 'button' => array( 'type' => array(), 'class' => array() ) ) );
 	}
 
 	/**
@@ -880,6 +883,39 @@ class WCS_Admin_Post_Types {
 			echo '<option value="' . esc_attr( $gateway_id ) . '"' . ( $selected_gateway_id == $gateway_id  ? 'selected' : '' ) . '>' . esc_html( $gateway->title ) . '</option>';
 		}?>
 		</select> <?php
+	}
+
+	/**
+	 * Sets post table primary column subscriptions.
+	 *
+	 * @param string $default
+	 * @param string $screen_id
+	 * @return string
+	 */
+	public function list_table_primary_column( $default, $screen_id ) {
+
+		if ( 'edit-shop_subscription' == $screen_id ) {
+			$default = 'order_title';
+		}
+
+		return $default;
+	}
+
+	/**
+	 * Don't display default Post actions on Subscription post types (we display our own set of
+	 * actions when rendering the column content).
+	 *
+	 * @param array $actions
+	 * @param object $post
+	 * @return array
+	 */
+	public function shop_subscription_row_actions( $actions, $post ) {
+
+		if ( 'shop_subscription' == $post->post_type ) {
+			$actions = array();
+		}
+
+		return $actions;
 	}
 }
 

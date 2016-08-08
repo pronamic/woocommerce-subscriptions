@@ -188,7 +188,7 @@ class WC_Subscriptions_Coupon {
 		}
 
 		// Round - consistent with WC approach
-		$discount_amount = round( $discount_amount, WC_ROUNDING_PRECISION );
+		$discount_amount = round( $discount_amount, wcs_get_rounding_precision() );
 
 		return $discount_amount;
 	}

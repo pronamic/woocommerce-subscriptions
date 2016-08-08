@@ -311,16 +311,16 @@ class WC_API_Subscriptions extends WC_API_Orders {
 
 				if ( ! empty( $payment_method_meta ) ) {
 
-					foreach ( $payment_method_meta as $meta_table => &$meta ) {
+					foreach ( $payment_method_meta as $meta_table => $meta ) {
 
 						if ( ! is_array( $meta ) ) {
 							continue;
 						}
 
-						foreach ( $meta as $meta_key => &$meta_data ) {
+						foreach ( $meta as $meta_key => $meta_data ) {
 
 							if ( isset( $payment_details[ $meta_table ][ $meta_key ] ) ) {
-								$meta_data['value'] = $payment_details[ $meta_table ][ $meta_key ];
+								$payment_method_meta[ $meta_table ][ $meta_key ]['value'] = $payment_details[ $meta_table ][ $meta_key ];
 							}
 						}
 					}
