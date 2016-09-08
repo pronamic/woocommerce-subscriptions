@@ -167,8 +167,9 @@ class WC_Subscriptions_Switcher {
 			foreach ( $switch_items as $cart_item_key => $switch_item ) {
 
 				$subscription = wcs_get_subscription( $switch_item['subscription_id'] );
+				$line_item    = wcs_get_order_item( $switch_item['item_id'], $subscription );
 
-				if ( ! is_object( $subscription ) || ! current_user_can( 'switch_shop_subscription', $subscription->id ) || ! wcs_is_product_switchable_type( WC()->cart->cart_contents[ $cart_item_key ]['data'] ) ) {
+				if ( ! is_object( $subscription ) || empty( $line_item ) || ! self::can_item_be_switched_by_user( $line_item, $subscription ) ) {
 					WC()->cart->remove_cart_item( $cart_item_key );
 					$removed_item_count++;
 				}
@@ -214,7 +215,7 @@ class WC_Subscriptions_Switcher {
 						}
 
 						// If the product is limited
-						if ( 'any' == $limitation || $subscription->has_status( $limitation ) || ( 'active' == $limitation && $subscription->has_status( 'on-hold' ) ) ) {
+						if ( 'any' == $limitation || $subscription->has_status( $limitation ) ) {
 
 							$subscribed_notice = __( 'You have already subscribed to this product and it is limited to one per customer. You can not purchase the product again.', 'woocommerce-subscriptions' );
 
@@ -247,8 +248,10 @@ class WC_Subscriptions_Switcher {
 										}
 									}
 
-									wp_redirect( add_query_arg( 'auto-switch', 'true', self::get_switch_url( $item_id, $item, $subscription ) ) );
-									exit;
+									if ( self::can_item_be_switched_by_user( $item, $subscription ) ) {
+										wp_redirect( add_query_arg( 'auto-switch', 'true', self::get_switch_url( $item_id, $item, $subscription ) ) );
+										exit;
+									}
 								}
 							} else {
 

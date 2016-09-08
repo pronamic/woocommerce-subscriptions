@@ -272,7 +272,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 			}
 		} catch ( Exception $e ) {
 			// translators: placeholder is error message from the payment gateway or subscriptions when updating the status
-			wcs_add_admin_notice( sprintf( __( 'Error updating subscription: %s', 'woocommerce-subscriptions' ), $e->getMessage() ), 'error' );
+			wcs_add_admin_notice( sprintf( __( 'Error updating some information: %s', 'woocommerce-subscriptions' ), $e->getMessage() ), 'error' );
 		}
 
 		do_action( 'woocommerce_process_shop_subscription_meta', $post_id, $post );
