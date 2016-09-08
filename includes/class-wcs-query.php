@@ -62,7 +62,7 @@ class WCS_Query extends WC_Query {
 	 */
 	public function change_endpoint_title( $title ) {
 
-		if ( in_the_loop() ) {
+		if ( in_the_loop() && is_account_page() ) {
 			foreach ( $this->query_vars as $key => $query_var ) {
 				if ( $this->is_query( $query_var ) ) {
 					$title = $this->get_endpoint_title( $key );

@@ -1,5 +1,18 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2016.08.12 - version 2.0.19
+ * Tweak: require new manually added subscriptions to have a customer to avoid issues with subscriptions created without a customer. (PR#1486)
+ * Tweak: set expiration on caching transients to avoid them being autoloaded on every request and unnecessarily using memory on those requests. (PR#1540)
+ * Fix: update Action Scheduler to apply timezone fixes and avoid dupilcate payments when a store's timezone is changed: https://github.com/Prospress/action-scheduler/pull/43 (PR#1569)
+ * Fix: incompatibility with WooCommerce 2.6.2+ which prevented the General tab on the WooCommerce > Edit Product administration screen from being displayed correctly. (PR#1571)
+ * Fix: shipping rate caching introduced in v2.0.18 for carts containing only products which are synchronised or have a free trial. (PR#1584)
+ * Fix: displaly appropriate notice when there is no recurring shipping method available because the customer's location has not been set. (PR#1579)
+ * Fix: page title conflict with bbPress subscription pages. (PR#1581)
+ * Fix: undefined index error when using variation bulk actions (PR#1561)
+ * Fix: redirect loop on product page when auto-switching a limited subscription that is on-hold. (PR#1557)
+ * Fix: issues on WP Engine and potentially other hosts when filtering orders displayed on the WooCoommerce > Orders administration screen to only show renewal orders as a result of WP Engine limiting query length. (PR#1555)
+ * Fix: undefined variable notice when checking if a product is limited. (PR#1552)
+
 2016.07.22 - version 2.0.18
  * Tweak: cache shipping package rates to prevent multiple re-calculations per request. (PR#1485)
  * Tweak: remove multiple, redundant calls to $subscription->get_items() and WP_Posts_List->__construct() on admin subscriptions screen. (PR#1524)

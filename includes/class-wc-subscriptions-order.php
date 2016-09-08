@@ -50,8 +50,8 @@ class WC_Subscriptions_Order {
 		// Add dropdown to admin orders screen to filter on order type
 		add_action( 'restrict_manage_posts', __CLASS__ . '::restrict_manage_subscriptions', 50 );
 
-		// Add filer to queries on admin orders screen to filter on order type
-		add_filter( 'request', __CLASS__ . '::orders_by_type_query' );
+		// Add filter to queries on admin orders screen to filter on order type. To avoid WC overriding our query args, we need to hook on after them on 10.
+		add_filter( 'request', __CLASS__ . '::orders_by_type_query', 11 );
 
 		// Don't display migrated order item meta on the Edit Order screen
 		add_filter( 'woocommerce_hidden_order_itemmeta', __CLASS__ . '::hide_order_itemmeta' );
@@ -673,26 +673,16 @@ class WC_Subscriptions_Order {
 		if ( 'shop_order' == $typenow && isset( $_GET['shop_order_subtype'] ) ) {
 
 			if ( 'Original' == $_GET['shop_order_subtype'] ) {
-				$key = 'post__not_in';
+				$compare_operator = 'NOT EXISTS';
 			} elseif ( 'Renewal' == $_GET['shop_order_subtype'] ) {
-				$key = 'post__in';
+				$compare_operator = 'EXISTS';
 			}
 
-			if ( ! empty( $key ) ) {
-				$vars[ $key ] = get_posts( array(
-					'posts_per_page' => -1,
-					'post_type'      => 'shop_order',
-					'post_status'    => 'any',
-					'fields'         => 'ids',
-					'orderby'        => 'date',
-					'order'          => 'DESC',
-					'meta_query'     => array(
-						array(
-							'key'     => '_subscription_renewal',
-							'compare' => 'EXISTS',
-						),
-					),
-				) );
+			if ( ! empty( $compare_operator ) ) {
+				$vars['meta_query'][] = array(
+					'key'     => '_subscription_renewal',
+					'compare' => $compare_operator,
+				);
 			}
 		}
 

@@ -50,18 +50,16 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 	 * @param string $key The key to cache the data with
 	 * @param string|array $callback name of function, or array of class - method that fetches the data
 	 * @param array $params arguments passed to $callback
+	 * @param integer $expires number of seconds for how long to keep the cache. Don't set it to 0, as the cache will be autoloaded. Default is a week.
 	 *
 	 * @return bool|mixed
 	 */
-	public function cache_and_get( $key, $callback, $params = array(), $expires = 0 ) {
+	public function cache_and_get( $key, $callback, $params = array(), $expires = WEEK_IN_SECONDS ) {
 		$expires = absint( $expires );
 
 		$transient = tlc_transient( $key )
-			->updates_with( $callback, $params );
-
-		if ( $expires ) {
-			$transient->expires_in( $expires );
-		}
+			->updates_with( $callback, $params )
+			->expires_in( $expires );
 
 		return $transient->get();
 	}

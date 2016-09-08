@@ -301,7 +301,9 @@ class WC_Subscription extends WC_Order {
 
 		if ( $new_status !== $old_status || ! in_array( $old_status_key, array_keys( wcs_get_subscription_statuses() ) ) ) {
 
-			// Only update is possible
+			do_action( 'woocommerce_subscription_pre_update_status', $old_status, $new_status, $this );
+
+			// Only update if possible
 			if ( ! $this->can_be_updated_to( $new_status ) ) {
 
 				$message = sprintf( __( 'Unable to change subscription status to "%s".', 'woocommerce-subscriptions' ), $new_status );

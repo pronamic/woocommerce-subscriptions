@@ -266,6 +266,125 @@ jQuery(document).ready(function($){
 
 			return value;
 		},
+		disableEnableOneTimeShipping: function() {
+			var is_synced_or_has_trial = false;
+
+			if ( 'variable-subscription' == $( 'select#product-type' ).val() ) {
+				var variations = $( '.woocommerce_variations .woocommerce_variation' ),
+					variations_checked = {},
+					number_of_pages = $( '.woocommerce_variations' ).attr( 'data-total_pages' );
+
+				$(variations).each(function() {
+					var period_field = $( this ).find( '.wc_input_subscription_period' ),
+						variation_index = $( period_field ).attr( 'name' ).match(/\[(.*?)\]/),
+						variation_id = $( '[name="variable_post_id['+variation_index[1]+']"]' ).val(),
+						period = period_field.val(),
+						trial  = $( this ).find( '.wc_input_subscription_trial_length' ).val(),
+						sync_date = 0;
+
+					if ( 0 != trial ) {
+						is_synced_or_has_trial = true;
+
+						// break
+						return false;
+					}
+
+					if ( $( this ).find( '.variable_subscription_sync' ).length ) {
+						if ( 'month' == period || 'week' == period ) {
+							sync_date = $( '[name="variable_subscription_payment_sync_date['+variation_index[1]+']"]' ).val();
+						} else if ( 'year' == period ) {
+							sync_date = $( '[name="variable_subscription_payment_sync_date_day['+variation_index[1]+']"]' ).val();
+						}
+
+						if ( 0 != sync_date ) {
+							is_synced_or_has_trial = true;
+
+							// break
+							return false;
+						}
+					}
+
+					variations_checked[ variation_index[1] ] = variation_id;
+				});
+
+				// if we haven't found a variation synced or with a trial at this point check the backend for other product variations
+				if ( ( number_of_pages > 1 ||  0 == variations.size() ) && false == is_synced_or_has_trial ) {
+
+					var data = {
+						action:    'wcs_product_has_trial_or_is_synced',
+						product_id: woocommerce_admin_meta_boxes_variations.post_id,
+						variations_checked: variations_checked,
+						nonce:      WCSubscriptions.oneTimeShippingCheckNonce,
+					};
+
+					$.ajax({
+						url:  WCSubscriptions.ajaxUrl,
+						data: data,
+						type: 'POST',
+						success : function( response ) {
+							$( '#_subscription_one_time_shipping' ).prop( 'disabled', response.is_synced_or_has_trial );
+							// trigger an event now we have determined the one time shipping availability, in case we need to update the backend
+							$( '#_subscription_one_time_shipping' ).trigger( 'subscription_one_time_shipping_updated', [ response.is_synced_or_has_trial ] );
+						}
+					});
+				} else {
+					// trigger an event now we have determined the one time shipping availability, in case we need to update the backend
+					$( '#_subscription_one_time_shipping' ).trigger( 'subscription_one_time_shipping_updated', [ is_synced_or_has_trial ] );
+				}
+			} else {
+				var trial = $( '#general_product_data #_subscription_trial_length' ).val();
+
+				if ( 0 != trial ) {
+					is_synced_or_has_trial = true;
+				}
+
+				if ( $( '.subscription_sync' ).length && false == is_synced_or_has_trial ) {
+					var period = $( '#_subscription_period' ).val(),
+						sync_date = 0;
+
+					if ( 'month' == period || 'week' == period ) {
+						sync_date = $( '#_subscription_payment_sync_date' ).val();
+					} else if ( 'year' == period ) {
+						sync_date = $( '#_subscription_payment_sync_date_day' ).val();
+					}
+
+					if ( 0 != sync_date ) {
+						is_synced_or_has_trial = true;
+					}
+				}
+			}
+
+			$( '#_subscription_one_time_shipping' ).prop( 'disabled', is_synced_or_has_trial );
+		},
+		show_hidden_panels: function() {
+			// WooCommerce's show_hidden_panels() function introduced a change in WC 2.6.2 which would hide the general panel for variable subscriptions, this fixes that by running the show_hidden_panels() logic again after variable fields have been show/hidden for variable subscriptions
+			$( '.woocommerce_options_panel' ).each( function() {
+
+				if ( 'none' != $( this ).css( 'display' ) ) {
+					return;
+				}
+
+				var $children = $( this ).children( '.options_group' );
+
+				if ( 0 === $children.length ) {
+					return;
+				}
+
+				var $invisble = $children.filter( function() {
+					return 'none' === $( this ).css( 'display' );
+				});
+
+				// Show panel if it's been mistakenly hidden panel
+				if ( $invisble.length != $children.length ) {
+					var $id = $( this ).prop( 'id' );
+					$( '.product_data_tabs' ).find( 'li a[href="#' + $id + '"]' ).parent().show();
+				}
+
+			});
+
+			// Now select the first panel in case it's changed
+			$( 'ul.wc-tabs li:visible' ).eq( 0 ).find( 'a' ).click();
+		},
 	});
 
 	$('.options_group.pricing ._sale_price_field .description').prepend('<span id="sale-price-period" style="display: none;"></span>');
@@ -293,6 +412,8 @@ jQuery(document).ready(function($){
 		$.setSubscriptionLengths();
 		$.setTrialPeriods();
 		$.showHideSyncOptions();
+		$.disableEnableOneTimeShipping();
+		$.show_hidden_panels();
 	}
 
 	// Update subscription ranges when subscription period or interval is changed
@@ -301,6 +422,7 @@ jQuery(document).ready(function($){
 		$.showHideSyncOptions();
 		$.setSyncOptions( $(this) );
 		$.setSalePeriod();
+		$.disableEnableOneTimeShipping();
 	});
 
 	$('#woocommerce-product-data').on('propertychange keyup input paste change','[name^="_subscription_trial_length"], [name^="variable_subscription_trial_length"]',function(){
@@ -311,6 +433,7 @@ jQuery(document).ready(function($){
 		$.showHideSubscriptionMeta();
 		$.showHideVariableSubscriptionMeta();
 		$.showHideSyncOptions();
+		$.show_hidden_panels();
 	});
 
 	$('input#_downloadable, input#_virtual').change(function(){
@@ -406,7 +529,14 @@ jQuery(document).ready(function($){
 
 	// WC 2.4+ variation bulk edit handling
 	$('select.variation_actions').on('variable_subscription_sign_up_fee_ajax_data variable_subscription_period_interval_ajax_data variable_subscription_period_ajax_data variable_subscription_trial_period_ajax_data variable_subscription_trial_length_ajax_data variable_subscription_length_ajax_data', function(event, data) {
-		value = $.getVariationBulkEditValue(event.type.replace(/_ajax_data/g,''));
+		bulk_action = event.type.replace(/_ajax_data/g,'');
+		value = $.getVariationBulkEditValue( bulk_action );
+
+		if ( 'variable_subscription_trial_length' == bulk_action ) {
+			// After variations have their trial length bulk updated in the backend, flag the One Time Shipping field as needing to be updated
+			$( '#_subscription_one_time_shipping' ).addClass( 'wcs_ots_needs_update' );
+		}
+
 		if ( value != null ) {
 			data.value = value;
 		}
@@ -487,4 +617,45 @@ jQuery(document).ready(function($){
 		$('#wcs_' + payment_method + '_fields').show();
 	});
 
+	// After variations have been saved/updated in the backend, flag the One Time Shipping field as needing to be updated
+	$( '#woocommerce-product-data' ).on( 'woocommerce_variations_saved', function() {
+		$( '#_subscription_one_time_shipping' ).addClass( 'wcs_ots_needs_update' );
+	});
+
+	// After variations have been loaded and if the One Time Shipping field needs updating, check if One Time Shipping is still available
+	$( '#woocommerce-product-data' ).on( 'woocommerce_variations_loaded', function() {
+		if ( $( '.wcs_ots_needs_update' ).length ) {
+			$.disableEnableOneTimeShipping();
+		}
+	});
+
+	// Triggered by $.disableEnableOneTimeShipping() after One Time shipping has been enabled or disabled for variations.
+	// If the One Time Shipping field needs updating, send the ajax request to update the product setting in the backend
+	$( '#_subscription_one_time_shipping' ).on( 'subscription_one_time_shipping_updated', function( event, is_synced_or_has_trial ) {
+
+		if ( $( '.wcs_ots_needs_update' ).length ) {
+			var data = {
+				action: 'wcs_update_one_time_shipping',
+				product_id: woocommerce_admin_meta_boxes_variations.post_id,
+				one_time_shipping_enabled: ! is_synced_or_has_trial,
+				one_time_shipping_selected: $( '#_subscription_one_time_shipping' ).prop( 'checked' ),
+				nonce: WCSubscriptions.oneTimeShippingCheckNonce,
+			};
+
+			$.ajax({
+				url:  WCSubscriptions.ajaxUrl,
+				data: data,
+				type: 'POST',
+				success : function( response ) {
+					// remove the flag requiring the one time shipping field to be updated
+					$( '#_subscription_one_time_shipping' ).removeClass( 'wcs_ots_needs_update' );
+					$( '#_subscription_one_time_shipping' ).prop( 'checked', response.one_time_shipping == 'yes' ? true : false );
+				}
+			});
+		}
+	});
+
+	$( '#general_product_data, #variable_product_options' ).on( 'change', '[class^="wc_input_subscription_payment_sync"], [class^="wc_input_subscription_trial_length"]', function() {
+		$.disableEnableOneTimeShipping();
+	});
 });
