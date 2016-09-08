@@ -20,7 +20,7 @@ class ActionScheduler_CronSchedule implements ActionScheduler_Schedule {
 	 * @return DateTime|null
 	 */
 	public function next( DateTime $after = NULL ) {
-		$after = empty($after) ? clone($this->start) : clone($after);
+		$after = empty($after) ? clone $this->start : clone $after;
 		return $this->cron->getNextRunDate($after, 0, TRUE);
 	}
 
@@ -38,7 +38,7 @@ class ActionScheduler_CronSchedule implements ActionScheduler_Schedule {
 	}
 
 	public function __wakeup() {
-		$this->start = new DateTime('@'.$this->start_timestamp);
+		$this->start = as_get_datetime_object($this->start_timestamp);
 	}
 }
  

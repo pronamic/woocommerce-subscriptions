@@ -56,7 +56,7 @@ class ActionScheduler_QueueRunner {
 		if ( $this->store->get_claim_count() < apply_filters( 'action_scheduler_queue_runner_concurrent_batches', 5 ) ) {
 			$batch_size = apply_filters( 'action_scheduler_queue_runner_batch_size', 25 );
 			$this->monitor = new ActionScheduler_FatalErrorMonitor( $this->store );
-			$actions_run = $this->do_batch( $batch_size );
+			$count = $this->do_batch( $batch_size );
 			unset( $this->monitor );
 		}
 
@@ -105,7 +105,7 @@ class ActionScheduler_QueueRunner {
 	}
 
 	protected function schedule_next_instance( ActionScheduler_Action $action ) {
-		$next = $action->get_schedule()->next( new DateTime() );
+		$next = $action->get_schedule()->next( as_get_datetime_object() );
 		if ( $next ) {
 			$this->store->save_action( $action, $next );
 		}
