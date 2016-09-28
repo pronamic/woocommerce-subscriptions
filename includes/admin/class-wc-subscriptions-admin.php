@@ -688,7 +688,8 @@ class WC_Subscriptions_Admin {
 
 			$dependencies = array( 'jquery' );
 
-			$woocommerce_admin_script_handle = 'wc-admin-meta-boxes';
+			$woocommerce_admin_script_handle     = 'wc-admin-meta-boxes';
+			$trashing_subscription_order_warning = __( 'Trashing this order will also trash the subscriptions purchased with the order.', 'woocommerce-subscriptions' );
 
 			if ( $screen->id == 'product' ) {
 				$dependencies[] = $woocommerce_admin_script_handle;
@@ -709,6 +710,7 @@ class WC_Subscriptions_Admin {
 			} else if ( 'edit-shop_order' == $screen->id ) {
 				$script_params = array(
 					'bulkTrashWarning' => __( "You are about to trash one or more orders which contain a subscription.\n\nTrashing the orders will also trash the subscriptions purchased with these orders.", 'woocommerce-subscriptions' ),
+					'trashWarning'     => $trashing_subscription_order_warning,
 				);
 			} else if ( 'shop_order' == $screen->id ) {
 				$dependencies[] = $woocommerce_admin_script_handle;
@@ -719,7 +721,7 @@ class WC_Subscriptions_Admin {
 				}
 
 				$script_params = array(
-					'bulkTrashWarning'  => __( 'Trashing this order will also trash the subscription purchased with the order.', 'woocommerce-subscriptions' ),
+					'trashWarning'      => $trashing_subscription_order_warning,
 					'changeMetaWarning' => __( "WARNING: Bad things are about to happen!\n\nThe payment gateway used to purchase this subscription does not support modifying a subscription's details.\n\nChanges to the billing period, recurring discount, recurring tax or recurring total may not be reflected in the amount charged by the payment gateway.", 'woocommerce-subscriptions' ),
 					'removeItemWarning' => __( 'You are deleting a subscription item. You will also need to manually cancel and trash the subscription on the Manage Subscriptions screen.', 'woocommerce-subscriptions' ),
 					'roundAtSubtotal'   => esc_attr( get_option( 'woocommerce_tax_round_at_subtotal' ) ),

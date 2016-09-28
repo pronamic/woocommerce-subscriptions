@@ -96,11 +96,11 @@ class WC_Product_Subscription_Variation extends WC_Product_Variation {
 	 *
 	 * @return string
 	 */
-	public function get_sign_up_fee_including_tax( $qty = 1 ) {
+	public function get_sign_up_fee_including_tax( $qty = 1, $price = '' ) {
 
 		add_filter( 'woocommerce_get_price', array( &$this, 'get_sign_up_fee' ), 100, 0 );
 
-		$sign_up_fee_including_tax = parent::get_price_including_tax( $qty );
+		$sign_up_fee_including_tax = parent::get_price_including_tax( $qty, $price );
 
 		remove_filter( 'woocommerce_get_price', array( &$this, 'get_sign_up_fee' ), 100, 0 );
 
@@ -113,11 +113,11 @@ class WC_Product_Subscription_Variation extends WC_Product_Variation {
 	 *
 	 * @return string
 	 */
-	public function get_sign_up_fee_excluding_tax( $qty = 1 ) {
+	public function get_sign_up_fee_excluding_tax( $qty = 1, $price = '' ) {
 
 		add_filter( 'woocommerce_get_price', array( &$this, 'get_sign_up_fee' ), 100, 0 );
 
-		$sign_up_fee_excluding_tax = parent::get_price_excluding_tax( $qty );
+		$sign_up_fee_excluding_tax = parent::get_price_excluding_tax( $qty, $price );
 
 		remove_filter( 'woocommerce_get_price', array( &$this, 'get_sign_up_fee' ), 100, 0 );
 

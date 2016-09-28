@@ -153,6 +153,16 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 				$child_price       = ( '' === $child_price ) ? 0 : $child_price;
 				$child_sign_up_fee = ( '' === $child_sign_up_fee ) ? 0 : $child_sign_up_fee;
 
+				// Take taxes into a account to avoid displaying a variation with a lower price pre-tax, but higher price post-tax, in the case of variations having different tax classes (see: https://github.com/Prospress/woocommerce-subscriptions/pull/1602#issuecomment-241330131)
+				if ( $variation = $this->get_child( $child ) ) {
+					if ( $child_price > 0 ) {
+						$child_price = ( 'incl' == get_option( 'woocommerce_tax_display_shop' ) ) ? $variation->get_price_including_tax( 1, $child_price ) : $variation->get_price_excluding_tax( 1, $child_price );
+					}
+					if ( $child_sign_up_fee > 0 ) {
+						$child_sign_up_fee = ( 'incl' == get_option( 'woocommerce_tax_display_shop' ) ) ? $variation->get_sign_up_fee_including_tax( 1, $child_sign_up_fee ) : $variation->get_sign_up_fee_excluding_tax( 1, $child_sign_up_fee );
+					}
+				}
+
 				$has_free_trial = ( '' !== $child_free_trial_length && $child_free_trial_length > 0 ) ? true : false;
 
 				// Determine some recurring price flags
@@ -219,7 +229,7 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 						$longest_trial_length = $child_free_trial_length;
 					}
 
-					// If the current cheapest variation is also free then the shortest trial period is the most expensive
+					// If the current cheapest variation is also free, then the shortest trial period is the most expensive
 					if ( 0 == $lowest_price || '' === $lowest_price ) {
 
 						if ( '' === $shortest_trial_period ) {
@@ -411,6 +421,35 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 
 		}
 
+	}
+
+	/**
+	 * Get the min or max variation (active) price.
+	 *
+	 * This is a copy of WooCommerce < 2.4's get_variation_price() method, because 2.4.0 introduced a new
+	 * transient caching system which assumes asort() on prices yields correct results for min/max prices
+	 * (which it does for prices alone, but that's not the full story for subscription prices). Unfortunately,
+	 * the new caching system is also hard to hook into so we'll just use the old system instead as the
+	 * @see self::variable_product_sync() uses the old method also.
+	 *
+	 * @param  string $min_or_max - min or max
+	 * @param  boolean  $display Whether the value is going to be displayed
+	 * @return string
+	 */
+	public function get_variation_price( $min_or_max = 'min', $display = false ) {
+		$variation_id = get_post_meta( $this->id, '_' . $min_or_max . '_price_variation_id', true );
+
+		if ( $display ) {
+			if ( $variation = $this->get_child( $variation_id ) ) {
+				$price = ( 'incl' == get_option( 'woocommerce_tax_display_shop' ) ) ? $variation->get_price_including_tax() : $variation->get_price_excluding_tax();
+			} else {
+				$price = '';
+			}
+		} else {
+			$price = get_post_meta( $variation_id, '_price', true );
+		}
+
+		return apply_filters( 'woocommerce_get_variation_price', $price, $this, $min_or_max, $display );
 	}
 
 	/**

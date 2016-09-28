@@ -1,5 +1,26 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2016.09.23 - version 2.0.20
+ * Tweak: add new 'woocommerce_subscription_before_actions' and 'woocommerce_subscription_after_actions' hooks to the view-subscription.php template. (PR#1608)
+ * Tweak: use WC_Subscriptions_Product::is_subscription() when checking if a product is sync'd instead of checking the product type directly so that the 'woocommerce_is_subscription' filter is applied and additional product types can add support for synchronisation. (PR#1635)
+ * Tweak: warn administrators when trashing subscription parent orders from row actions that the related subscriptions will also be trashed. (PR#1647)
+ * Tweak: add new 'woocommerce_subscriptions_admin_related_orders_to_display' filter to make it easier to manipulate the list of related orders on the Edit Subscription and Edit Order screens. (PR#1631)
+ * Tweak: add new 'woocommerce_subscriptions_switch_is_identical_product ' filter provide a simple way for 3rd party extensions to determine whether a product should be considered as identical or not, for the purposes of a switch. (PR#1659)
+ * Tweak: add new 'wcs_paypal_ipn_note' filter to make it easier to modify the order notes logged when processing PayPal IPN requests. @props David Marín (PR#1657)
+ * Tweak: display a link to Paypal's subscription page in the  Subscription Billing Information section of the Edit Subscription administration screen. @props David Marín (PR#1658)
+ * Fix: display tax correctly for carts with only sync/trials products. (PR#1599)
+ * Fix: calcaulte tax correctly for prorated sign-up fee during 2...n switch. (PR#1607)
+ * Fix: remove duplicate call to get items from a subscription on the view-subscription.php template. (PR#1615)
+ * Fix: guard against fatal errors when 3rd party code calls WordPress' current_user_can() function with invalid parameters. (PR#1652)
+ * Fix: replace show_hidden_panels Javascript function which was inadvertently displaying 3rd party panels on Edit Product screen. (PR#1637)
+ * Fix: add the chosen recurring shipping method variable to the parameters passed to callbacks on 'woocommerce_subscriptions_after_recurring_shipping_rates'. (PR#1643)
+ * Fix: make sure non-logged in users can buy limited subscriptions by avoiding the call to get_posts() in wcs_get_users_subscriptions() when no user ID is specified and no user is logged in. (PR#1649)
+ * Fix: recalculate free shipping availability based on recurring cart object when applicable to fix issues with free shipping being available for the initial order but not recurring order, either becuase of price requirements or coupons. (PR#1549)
+ * Fix: make sure 'woocommerce_scheduled_subscription_end_of_prepaid_term' hook is unscheduled when a subscription with the  pending cancellation status is trashed. (PR#1589)
+ * Fix: only get downloadable files from directly related subscriptions, not old subscriptions for subscriptions created by resubscribing. (PR#1612)
+ * Fix: variable subscription "From:" price when one variation with a higher ID has a longer free trial than the lower priced variation. (PR#1602)
+ * Fix: remove unused "Email Subject (paid)" and "Email Heading (paid)" fields from the Customer Renewal Invoice email settings page. (PR#1601)
+
 2016.08.12 - version 2.0.19
  * Tweak: require new manually added subscriptions to have a customer to avoid issues with subscriptions created without a customer. (PR#1486)
  * Tweak: set expiration on caching transients to avoid them being autoloaded on every request and unnecessarily using memory on those requests. (PR#1540)
