@@ -50,6 +50,7 @@ wc_print_notices();
 			</tr>
 		<?php endif; ?>
 	<?php endforeach; ?>
+	<?php do_action( 'woocommerce_subscription_before_actions', $subscription ); ?>
 	<?php $actions = wcs_get_all_user_actions_for_subscription( $subscription, get_current_user_id() ); ?>
 	<?php if ( ! empty( $actions ) ) : ?>
 		<tr>
@@ -61,6 +62,7 @@ wc_print_notices();
 			</td>
 		</tr>
 	<?php endif; ?>
+	<?php do_action( 'woocommerce_subscription_after_actions', $subscription ); ?>
 </table>
 <?php if ( $notes = $subscription->get_customer_order_notes() ) :
 	?>
@@ -96,9 +98,9 @@ wc_print_notices();
 	</thead>
 	<tbody>
 		<?php
-		if ( sizeof( $subscription->get_items() ) > 0 ) {
+		if ( sizeof( $subscription_items = $subscription->get_items() ) > 0 ) {
 
-			foreach ( $subscription->get_items() as $item_id => $item ) {
+			foreach ( $subscription_items as $item_id => $item ) {
 				$_product  = apply_filters( 'woocommerce_subscriptions_order_item_product', $subscription->get_product_from_item( $item ), $item );
 				$item_meta = wcs_get_order_item_meta( $item, $_product );
 				if ( apply_filters( 'woocommerce_order_item_visible', true, $item ) ) {

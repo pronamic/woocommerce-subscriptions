@@ -136,8 +136,8 @@ class WCS_Download_Handler {
 	public static function get_item_downloads( $files, $item, $order ) {
 		global $wpdb;
 
-		if ( wcs_order_contains_subscription( $order, 'any' ) ) {
-			$subscriptions = wcs_get_subscriptions_for_order( $order, array( 'order_type' => array( 'any' ) ) );
+		if ( wcs_order_contains_subscription( $order, array( 'parent', 'renewal', 'switch' ) ) ) {
+			$subscriptions = wcs_get_subscriptions_for_order( $order, array( 'order_type' => array( 'parent', 'renewal', 'switch' ) ) );
 		} else {
 			return $files;
 		}

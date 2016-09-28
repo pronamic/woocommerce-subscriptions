@@ -109,7 +109,7 @@ function wcs_cart_totals_shipping_html() {
 					);
 					$show_package_name = false;
 				}
-				do_action( 'woocommerce_subscriptions_after_recurring_shipping_rates', $index, $base_package, $recurring_cart );
+				do_action( 'woocommerce_subscriptions_after_recurring_shipping_rates', $index, $base_package, $recurring_cart, $chosen_recurring_method );
 			}
 		}
 	}
