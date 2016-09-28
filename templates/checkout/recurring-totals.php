@@ -57,14 +57,14 @@ $display_th = true;
 		<?php if ( WC()->cart->tax_display_cart === 'excl' ) : ?>
 			<?php if ( get_option( 'woocommerce_tax_total_display' ) === 'itemized' ) : ?>
 
-				<?php foreach ( WC()->cart->get_tax_totals() as $code => $tax ) : ?>
+				<?php foreach ( WC()->cart->get_taxes() as $tax_id => $tax_total ) : ?>
 					<?php foreach ( $recurring_carts as $recurring_cart_key => $recurring_cart ) : ?>
 						<?php if ( 0 == $recurring_cart->next_payment_date ) : ?>
 							<?php continue; ?>
 						<?php endif; ?>
 						<?php foreach ( $recurring_cart->get_tax_totals() as $recurring_code => $recurring_tax ) : ?>
-							<?php if ( $recurring_code !== $code ) { continue; } ?>
-							<tr class="tax-rate tax-rate-<?php echo esc_attr( sanitize_title( $code ) ); ?> recurring-total">
+							<?php if ( ! isset( $recurring_tax->tax_rate_id ) || $recurring_tax->tax_rate_id !== $tax_id ) { continue; } ?>
+							<tr class="tax-rate tax-rate-<?php echo esc_attr( sanitize_title( $recurring_code ) ); ?> recurring-total">
 								<?php if ( $display_th ) : $display_th = false; ?>
 									<th><?php echo esc_html( $recurring_tax->label ); ?></th>
 								<?php else : ?>

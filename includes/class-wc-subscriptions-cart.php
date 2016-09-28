@@ -47,6 +47,13 @@ class WC_Subscriptions_Cart {
 	 */
 	 private static $shipping_rates = array();
 
+	 /**
+	 * A cache of the current recurring cart being calculated
+	 *
+	 * @since 2.0.20
+	 */
+	 private static $cached_recurring_cart = null;
+
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
@@ -110,6 +117,9 @@ class WC_Subscriptions_Cart {
 
 		// Validate chosen recurring shipping methods
 		add_action( 'woocommerce_after_checkout_validation', __CLASS__ . '::validate_recurring_shipping_methods' );
+
+		// WooCommerce determines if free shipping is available using the WC->cart total and coupons, we need to recalculate its availability when obtaining shipping methods for a recurring cart
+		add_filter( 'woocommerce_shipping_free_shipping_is_available', __CLASS__ . '::maybe_recalculate_shipping_method_availability', 10, 2 );
 	}
 
 	/**
@@ -255,6 +265,9 @@ class WC_Subscriptions_Cart {
 			$recurring_cart->trial_end_date     = apply_filters( 'wcs_recurring_cart_trial_end_date', WC_Subscriptions_Product::get_trial_expiration_date( $product, $recurring_cart->start_date ), $recurring_cart, $product );
 			$recurring_cart->next_payment_date  = apply_filters( 'wcs_recurring_cart_next_payment_date', WC_Subscriptions_Product::get_first_renewal_payment_date( $product, $recurring_cart->start_date ), $recurring_cart, $product );
 			$recurring_cart->end_date           = apply_filters( 'wcs_recurring_cart_end_date', WC_Subscriptions_Product::get_expiration_date( $product, $recurring_cart->start_date ), $recurring_cart, $product );
+
+			// Before calculating recurring cart totals, store this recurring cart object
+			self::$cached_recurring_cart = $recurring_cart;
 
 			// No fees recur (yet)
 			$recurring_cart->fees = array();
@@ -484,7 +497,7 @@ class WC_Subscriptions_Cart {
 			$default_method = $chosen_methods[ $recurring_cart_package_key ];
 
 		// Set the chosen shipping method (if available) to workaround WC_Shipping::get_default_method() setting the default shipping method whenever method count changes
-		} elseif ( isset( $chosen_methods[ $package_index ] ) && $default_method !== $chosen_methods[ $package_index ] ) {
+		} elseif ( isset( $chosen_methods[ $package_index ] ) && $default_method !== $chosen_methods[ $package_index ] && isset( $available_methods[ $chosen_methods[ $package_index ] ] ) ) {
 			$default_method = $chosen_methods[ $package_index ];
 		}
 
@@ -1148,14 +1161,47 @@ class WC_Subscriptions_Cart {
 	}
 
 	/**
-	 * Generate a unqiue package key for a given shipping package to be used for caching package rates.
+	 * Generate a unique package key for a given shipping package to be used for caching package rates.
 	 *
 	 * @param array $package A shipping package in the form returned by WC_Cart->get_shipping_packages().
 	 * @return string key hash
 	 * @since 2.0.18
 	 */
 	private static function get_package_shipping_rates_cache_key( $package ) {
-		return md5( implode( array_keys( $package['contents'] ) ) );
+		return md5( json_encode( array( array_keys( $package['contents'] ), $package['contents_cost'], $package['applied_coupons'] ) ) );
+	}
+
+	/**
+	 * When calculating the free shipping method availability, WC uses the WC->cart object. During shipping calculations for
+	 * recurring carts we need the recurring cart's total and coupons to be the base for checking its availability
+	 *
+	 * @param bool $is_available
+	 * @param array $package
+	 * @return bool $is_available a revised version of is_available based off the recurring cart object
+	 *
+	 * @since 2.0.20
+	 */
+	public static function maybe_recalculate_shipping_method_availability( $is_available, $package ) {
+
+		if ( isset( $package['recurring_cart_key'] ) && isset( self::$cached_recurring_cart ) && $package['recurring_cart_key'] == self::$cached_recurring_cart->recurring_cart_key ) {
+
+			// Take a copy of the WC global cart object so we can temporarily set it to base shipping method availability on the cached recurring cart
+			$global_cart = WC()->cart;
+			WC()->cart   = self::$cached_recurring_cart;
+
+			foreach ( WC()->shipping->get_shipping_methods() as $shipping_method ) {
+				if ( $shipping_method->id == 'free_shipping' ) {
+					remove_filter( 'woocommerce_shipping_free_shipping_is_available', __METHOD__ );
+					$is_available = $shipping_method->is_available( $package );
+					add_filter( 'woocommerce_shipping_free_shipping_is_available', __METHOD__, 10, 2 );
+					break;
+				}
+			}
+
+			WC()->cart = $global_cart;
+		}
+
+		return $is_available;
 	}
 
 	/* Deprecated */

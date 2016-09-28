@@ -407,7 +407,7 @@ class WC_Subscriptions_Synchroniser {
 			$product = wc_get_product( $product );
 		}
 
-		if ( ! is_object( $product ) || ! self::is_syncing_enabled() || 'day' == $product->subscription_period || ! $product->is_type( array( 'subscription', 'variable-subscription', 'subscription_variation' ) ) ) {
+		if ( ! is_object( $product ) || ! self::is_syncing_enabled() || 'day' == $product->subscription_period || ! WC_Subscriptions_Product::is_subscription( $product ) ) {
 			return false;
 		}
 

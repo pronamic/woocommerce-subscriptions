@@ -356,35 +356,6 @@ jQuery(document).ready(function($){
 
 			$( '#_subscription_one_time_shipping' ).prop( 'disabled', is_synced_or_has_trial );
 		},
-		show_hidden_panels: function() {
-			// WooCommerce's show_hidden_panels() function introduced a change in WC 2.6.2 which would hide the general panel for variable subscriptions, this fixes that by running the show_hidden_panels() logic again after variable fields have been show/hidden for variable subscriptions
-			$( '.woocommerce_options_panel' ).each( function() {
-
-				if ( 'none' != $( this ).css( 'display' ) ) {
-					return;
-				}
-
-				var $children = $( this ).children( '.options_group' );
-
-				if ( 0 === $children.length ) {
-					return;
-				}
-
-				var $invisble = $children.filter( function() {
-					return 'none' === $( this ).css( 'display' );
-				});
-
-				// Show panel if it's been mistakenly hidden panel
-				if ( $invisble.length != $children.length ) {
-					var $id = $( this ).prop( 'id' );
-					$( '.product_data_tabs' ).find( 'li a[href="#' + $id + '"]' ).parent().show();
-				}
-
-			});
-
-			// Now select the first panel in case it's changed
-			$( 'ul.wc-tabs li:visible' ).eq( 0 ).find( 'a' ).click();
-		},
 	});
 
 	$('.options_group.pricing ._sale_price_field .description').prepend('<span id="sale-price-period" style="display: none;"></span>');
@@ -392,6 +363,7 @@ jQuery(document).ready(function($){
 	// Move the subscription pricing section to the same location as the normal pricing section
 	$('.options_group.subscription_pricing').not('.variable_subscription_pricing .options_group.subscription_pricing').insertBefore($('.options_group.pricing:first'));
 	$('.show_if_subscription.clear').insertAfter($('.options_group.subscription_pricing'));
+	$( '.show_if_variable' ).addClass( 'show_if_variable-subscription' );
 
 	// Move the subscription variation pricing section to a better location in the DOM on load
 	if($('#variable_product_options .variable_subscription_pricing').length > 0) {
@@ -413,7 +385,6 @@ jQuery(document).ready(function($){
 		$.setTrialPeriods();
 		$.showHideSyncOptions();
 		$.disableEnableOneTimeShipping();
-		$.show_hidden_panels();
 	}
 
 	// Update subscription ranges when subscription period or interval is changed
@@ -433,7 +404,6 @@ jQuery(document).ready(function($){
 		$.showHideSubscriptionMeta();
 		$.showHideVariableSubscriptionMeta();
 		$.showHideSyncOptions();
-		$.show_hidden_panels();
 	});
 
 	$('input#_downloadable, input#_virtual').change(function(){
@@ -484,7 +454,16 @@ jQuery(document).ready(function($){
 
 	$('.order_actions .submitdelete').click(function(){
 		if($('[name="contains_subscription"]').val()=='true'){
-			return confirm(WCSubscriptions.bulkTrashWarning);
+			return confirm(WCSubscriptions.trashWarning);
+		}
+	});
+
+	// Notify the store manager that trashing an order via the admin orders table row action also deletes the associated subscription if it exists
+	$( '.row-actions .submitdelete' ).click( function() {
+		var order = $( this ).closest( '.type-shop_order' ).attr( 'id' );
+
+		if ( true === $( '.contains_subscription', $( '#' + order ) ).data( 'contains_subscription' ) ) {
+			return confirm( WCSubscriptions.trashWarning );
 		}
 	});
 

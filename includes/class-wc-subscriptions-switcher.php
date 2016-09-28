@@ -93,7 +93,7 @@ class WC_Subscriptions_Switcher {
 		add_filter( 'woocommerce_email_order_items_table', __CLASS__ . '::add_print_switch_link' );
 
 		// Make sure sign-up fees paid on switch orders are accounted for in an items sign-up fee
-		add_filter( 'woocommerce_subscription_items_sign_up_fee', __CLASS__ . '::subscription_items_sign_up_fee', 10, 3 );
+		add_filter( 'woocommerce_subscription_items_sign_up_fee', __CLASS__ . '::subscription_items_sign_up_fee', 10, 4 );
 
 		// Make sure switch orders are included in related orders returned for a subscription
 		add_filter( 'woocommerce_subscription_related_orders', __CLASS__ . '::add_related_orders', 10, 4 );
@@ -936,6 +936,14 @@ class WC_Subscriptions_Switcher {
 				}
 
 				if ( $product_id == $item['product_id'] && ( empty( $variation_id ) || ( $variation_id == $item['variation_id'] && true == $identical_attributes ) ) && $quantity == $item['qty'] ) {
+					$is_identical_product = true;
+				} else {
+					$is_identical_product = false;
+				}
+
+				$is_identical_product = apply_filters( 'woocommerce_subscriptions_switch_is_identical_product', $is_identical_product, $product_id, $quantity, $variation_id, $subscription, $item );
+
+				if ( $is_identical_product ) {
 					throw new Exception( __( 'You can not switch to the same subscription.', 'woocommerce-subscriptions' ) );
 				}
 
@@ -1042,10 +1050,11 @@ class WC_Subscriptions_Switcher {
 	 * Make sure the sign-up fee on a subscription line item takes into account sign-up fees paid for switching.
 	 *
 	 * @param WC_Subscription $subscription
+	 * @param string $tax_inclusive_or_exclusive Defaults to the value tax setting stored on the subscription.
 	 * @return array $cart_item Details of an item in WC_Cart for a switch
 	 * @since 2.0
 	 */
-	public static function subscription_items_sign_up_fee( $sign_up_fee, $line_item, $subscription ) {
+	public static function subscription_items_sign_up_fee( $sign_up_fee, $line_item, $subscription, $tax_inclusive_or_exclusive = '' ) {
 
 		// This item has never been switched, no need to add anything
 		if ( ! isset( $line_item['switched_subscription_item_id'] ) ) {
@@ -1055,9 +1064,14 @@ class WC_Subscriptions_Switcher {
 		// First add any sign-up fees for previously switched items
 		$switched_line_items = $subscription->get_items( 'line_item_switched' );
 
+		// Default tax inclusive or exclusive to the value set on the subscription. This is for backwards compatibility
+		if ( empty( $tax_inclusive_or_exclusive ) ) {
+			$tax_inclusive_or_exclusive = ( 'yes' == $subscription->prices_include_tax ) ? 'inclusive_of_tax' : 'exclusive_of_tax';
+		}
+
 		foreach ( $switched_line_items as $switched_line_item_id => $switched_line_item ) {
 			if ( $line_item['switched_subscription_item_id'] == $switched_line_item_id ) {
-				$sign_up_fee += $subscription->get_items_sign_up_fee( $switched_line_item ); // Recursion: get the sign up fee for this item's old item and the sign up fee for that item's old item and the sign up fee for that item's old item and the sign up fee for that item's old item ...
+				$sign_up_fee += $subscription->get_items_sign_up_fee( $switched_line_item, $tax_inclusive_or_exclusive ); // Recursion: get the sign up fee for this item's old item and the sign up fee for that item's old item and the sign up fee for that item's old item and the sign up fee for that item's old item ...
 				break; // Each item can only be switched once
 			}
 		}
@@ -1078,7 +1092,13 @@ class WC_Subscriptions_Switcher {
 						$sign_up_proportion = 1;
 					}
 
-					$sign_up_fee += round( $order_item['line_total'] * $sign_up_proportion, 2 );
+					$order_total = $order_item['line_total'];
+
+					if ( 'inclusive_of_tax' == $tax_inclusive_or_exclusive && 'yes' == $order->prices_include_tax ) {
+						$order_total += $order_item['line_tax'];
+					}
+
+					$sign_up_fee += round( $order_total * $sign_up_proportion, 2 );
 				}
 			}
 		}

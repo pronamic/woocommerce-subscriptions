@@ -110,6 +110,8 @@ class WCS_Meta_Box_Related_Orders {
 			}
 		}
 
+		$orders = apply_filters( 'woocommerce_subscriptions_admin_related_orders_to_display', $orders, $subscriptions, $post );
+
 		foreach ( $orders as $order ) {
 			if ( $order->id == $post->ID ) {
 				continue;

@@ -159,8 +159,11 @@ class WC_Subscriptions_Email {
 				'new_renewal_order',
 				'customer_processing_renewal_order',
 				'customer_completed_renewal_order',
-				'customer_renewal_invoice',
 			);
+
+			if ( $theorder->needs_payment() ) {
+				array_push( $available_emails, 'customer_renewal_invoice' );
+			}
 		}
 
 		return $available_emails;

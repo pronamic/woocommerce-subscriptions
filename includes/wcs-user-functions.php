@@ -157,7 +157,7 @@ function wcs_get_users_subscriptions( $user_id = 0 ) {
 
 	$subscriptions = apply_filters( 'wcs_pre_get_users_subscriptions', array(), $user_id );
 
-	if ( empty( $subscriptions ) ) {
+	if ( empty( $subscriptions ) && 0 !== $user_id && ! empty( $user_id ) ) {
 
 		$post_ids = get_posts( array(
 			'posts_per_page' => -1,
@@ -309,7 +309,7 @@ function wcs_user_has_capability( $allcaps, $caps, $args ) {
 				$user_id  = $args[1];
 				$subscription = wcs_get_subscription( $args[2] );
 
-				if ( $user_id === $subscription->get_user_id() ) {
+				if ( $subscription && $user_id === $subscription->get_user_id() ) {
 					$allcaps['edit_shop_subscription_payment_method'] = true;
 				}
 			break;

@@ -35,8 +35,8 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 		$this->subject        = __( 'Invoice for renewal order {order_number} from {order_date}', 'woocommerce-subscriptions' );
 		$this->heading        = __( 'Invoice for renewal order {order_number}', 'woocommerce-subscriptions' );
 
-		$this->subject_paid   = __( 'Your {blogname} renewal order from {order_date}', 'woocommerce-subscriptions' );
-		$this->heading_paid   = __( 'Renewal order {order_number} details', 'woocommerce-subscriptions' );
+		$this->subject_paid = null;
+		$this->heading_paid = null;
 
 		// Triggers for this email
 		add_action( 'woocommerce_generated_manual_renewal_order_renewal_notification', array( $this, 'trigger' ) );
@@ -159,6 +159,14 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 	function init_form_fields() {
 
 		parent::init_form_fields();
+
+		if ( isset( $this->form_fields['heading_paid'] ) ) {
+			unset( $this->form_fields['heading_paid'] );
+		}
+
+		if ( isset( $this->form_fields['subject_paid'] ) ) {
+			unset( $this->form_fields['subject_paid'] );
+		}
 
 		$this->form_fields = array_merge(
 			array(
