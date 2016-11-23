@@ -235,7 +235,7 @@ function wcs_can_user_put_subscription_on_hold( $subscription, $user = '' ) {
 		if ( $user->ID == $subscription->get_user_id() ) {
 
 			// Make sure subscription suspension count hasn't been reached
-			$suspension_count    = $subscription->suspension_count;
+			$suspension_count    = intval( $subscription->suspension_count );
 			$allowed_suspensions = get_option( WC_Subscriptions_Admin::$option_prefix . '_max_customer_suspensions', 0 );
 
 			if ( 'unlimited' === $allowed_suspensions || $allowed_suspensions > $suspension_count ) { // 0 not > anything so prevents a customer ever being able to suspend
@@ -345,8 +345,21 @@ function wcs_user_has_capability( $allcaps, $caps, $args ) {
 					$allcaps['subscribe_again'] = true;
 				}
 			break;
+			case 'pay_for_order' :
+				$user_id = $args[1];
+				$order   = wc_get_order( $args[2] );
+
+				if ( $order && wcs_order_contains_subscription( $order, 'any' ) ) {
+
+					if ( $user_id === $order->get_user_id() ) {
+						$allcaps['pay_for_order'] = true;
+					} else {
+						unset( $allcaps['pay_for_order'] );
+					}
+				}
+			break;
 		}
 	}
 	return $allcaps;
 }
-add_filter( 'user_has_cap', 'wcs_user_has_capability', 10, 3 );
+add_filter( 'user_has_cap', 'wcs_user_has_capability', 15, 3 );

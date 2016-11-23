@@ -142,19 +142,7 @@ class WC_Product_Subscription_Variation extends WC_Product_Variation {
 	 */
 	function is_purchasable() {
 
-		$purchasable = $this->parent->is_purchasable();
-
-		// if we have a limited subscription product, make sure the customer doesn't already have another variation for the same variable product in their cart, but only if we're not on the order received or PayPal return pages (we can't use is_order_received_page() to check that becuase get_cart_from_session() is called before the query vars are setup)
-		if ( 'no' != $this->parent->limit_subscriptions && ! empty( WC()->cart->cart_contents ) && ! wcs_is_order_received_page() && ! wcs_is_paypal_api_page() ) {
-
-			foreach ( WC()->cart->cart_contents as $cart_item ) { // can't use WC()->cart->get_cart() because it will trigger an infinite loop when this is called within WC_Cart::get_cart_from_session()
-
-				if ( $this->id == $cart_item['data']->id && $this->variation_id != $cart_item['data']->variation_id ) {
-					$purchasable = false;
-					break;
-				}
-			}
-		}
+		$purchasable = WCS_Limiter::is_purchasable( $this->parent->is_purchasable(), $this );
 
 		return apply_filters( 'woocommerce_subscription_variation_is_purchasable', $purchasable, $this );
 	}

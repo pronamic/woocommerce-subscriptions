@@ -66,6 +66,9 @@ class WCS_Query extends WC_Query {
 			foreach ( $this->query_vars as $key => $query_var ) {
 				if ( $this->is_query( $query_var ) ) {
 					$title = $this->get_endpoint_title( $key );
+
+					// unhook after we've returned our title to prevent it from overriding others
+					remove_filter( 'the_title', array( $this, __FUNCTION__ ), 11 );
 				}
 			}
 		}

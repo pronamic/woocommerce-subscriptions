@@ -66,7 +66,7 @@ class WCS_Meta_Box_Schedule {
 					continue;
 				}
 
-				$dates[ $date_key ] = date( 'Y-m-d H:i:s', $datetime );
+				$dates[ $date_key ] = gmdate( 'Y-m-d H:i:s', $datetime );
 			}
 
 			try {

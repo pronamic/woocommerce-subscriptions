@@ -64,9 +64,9 @@ class WCS_Email_Completed_Renewal_Order extends WC_Email_Customer_Completed_Orde
 			$order_date_index = array_search( '{order_date}', $this->find );
 			if ( false === $order_date_index ) {
 				$this->find[] = '{order_date}';
-				$this->replace[] = date_i18n( wc_date_format(), strtotime( $this->object->order_date ) );
+				$this->replace[] = date_i18n( wc_date_format(), wcs_date_to_time( $this->object->order_date ) );
 			} else {
-				$this->replace[ $order_date_index ] = date_i18n( wc_date_format(), strtotime( $this->object->order_date ) );
+				$this->replace[ $order_date_index ] = date_i18n( wc_date_format(), wcs_date_to_time( $this->object->order_date ) );
 			}
 
 			$order_number_index = array_search( '{order_number}', $this->find );
@@ -118,6 +118,9 @@ class WCS_Email_Completed_Renewal_Order extends WC_Email_Customer_Completed_Orde
 			array(
 				'order'         => $this->object,
 				'email_heading' => $this->get_heading(),
+				'sent_to_admin' => false,
+				'plain_text'    => false,
+				'email'         => $this,
 			),
 			'',
 			$this->template_base
@@ -138,6 +141,9 @@ class WCS_Email_Completed_Renewal_Order extends WC_Email_Customer_Completed_Orde
 			array(
 				'order'         => $this->object,
 				'email_heading' => $this->get_heading(),
+				'sent_to_admin' => false,
+				'plain_text'    => true,
+				'email'         => $this,
 			),
 			'',
 			$this->template_base

@@ -633,30 +633,6 @@ class WC_Subscriptions_Coupon {
 	}
 
 	/**
-	 * Determines if cart contains a recurring fee discount code
-	 *
-	 * Does not check if the code is valid, etc
-	 *
-	 * @since 1.2
-	 */
-	public static function cart_contains_recurring_discount() {
-		_deprecated_function( __METHOD__, '1.3.5', __CLASS__ .'::cart_contains_discount( "recurring_fee" )' );
-		return self::cart_contains_discount( 'recurring_fee' );
-	}
-
-	/**
-	 * Determines if cart contains a sign up fee discount code
-	 *
-	 * Does not check if the code is valid, etc
-	 *
-	 * @since 1.2
-	 */
-	public static function cart_contains_sign_up_discount() {
-		_deprecated_function( __METHOD__, '1.3.5', __CLASS__ .'::cart_contains_discount( "sign_up_fee" )' );
-		return self::cart_contains_discount( 'sign_up_fee' );
-	}
-
-	/**
 	 * Restores discount coupons which had been removed for special subscription calculations.
 	 *
 	 * @since 1.3.5

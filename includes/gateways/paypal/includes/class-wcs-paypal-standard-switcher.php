@@ -39,7 +39,7 @@ class WCS_PayPal_Standard_Switcher {
 		add_action( 'woocommerce_checkout_update_order_meta', __CLASS__ . '::save_old_paypal_meta', 15, 2 );
 
 		// Try to cancel a paypal once the switch has been successfully completed
-		add_action( 'woocommerce_order_status_changed', __CLASS__ . '::maybe_cancel_paypal_after_switch', 10, 3 );
+		add_action( 'woocommerce_subscriptions_switch_completed', __CLASS__ . '::cancel_paypal_standard_after_switch', 10, 1 );
 
 		// Do not allow subscriptions to be switched using PayPal Standard as the payment method
 		add_filter( 'woocommerce_available_payment_gateways', __CLASS__ . '::get_available_payment_gateways', 12, 1 );
@@ -174,22 +174,18 @@ class WCS_PayPal_Standard_Switcher {
 	/**
 	 * Cancel subscriptions with PayPal Standard after the order has been successfully switched.
 	 *
-	 * @param int $order_id
-	 * @param string $old_status
-	 * @param string $new_status
-	 * @since 2.0.15
+	 * @param WC_Order $order
+	 * @since 2.1
 	 */
-	public static function maybe_cancel_paypal_after_switch( $order_id, $old_status, $new_status ) {
+	public static function cancel_paypal_standard_after_switch( $order ) {
 
-		$order_completed    = in_array( $new_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id ), 'processing', 'completed' ) ) && in_array( $old_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ) ) );
+		if ( 'paypal_standard' == get_post_meta( $order->id, '_old_payment_method', true ) ) {
 
-		if ( $order_completed && wcs_order_contains_switch( $order_id ) && 'paypal_standard' == get_post_meta( $order_id, '_old_payment_method', true ) ) {
-
-			$old_profile_id = get_post_meta( $order_id, '_old_paypal_subscription_id', true );
+			$old_profile_id = get_post_meta( $order->id, '_old_paypal_subscription_id', true );
 
 			if ( ! empty( $old_profile_id ) ) {
 
-				$subscriptions  = wcs_get_subscriptions_for_order( $order_id, array( 'order_type' => 'switch' ) );
+				$subscriptions = wcs_get_subscriptions_for_order( $order->id, array( 'order_type' => 'switch' ) );
 
 				foreach ( $subscriptions as $subscription ) {
 
@@ -228,5 +224,27 @@ class WCS_PayPal_Standard_Switcher {
 		}
 
 		return $available_gateways;
+	}
+
+	/** Deprecated Methods **/
+
+	/**
+	 * Cancel subscriptions with PayPal Standard after the order has been successfully switched.
+	 *
+	 * @param int $order_id
+	 * @param string $old_status
+	 * @param string $new_status
+	 * @since 2.0.15
+	 */
+	public static function maybe_cancel_paypal_after_switch( $order_id, $old_status, $new_status ) {
+
+		_deprecated_function( __METHOD__, '2.1', __CLASS__ . 'cancel_paypal_standard_after_switch( $order )' );
+
+		$order_completed = in_array( $new_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id ), 'processing', 'completed' ) ) && in_array( $old_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ) ) );
+
+		if ( $order_completed && wcs_order_contains_switch( $order_id ) ) {
+			$order = wc_get_order( $order_id );
+			self::cancel_paypal_standard_after_switch( $order );
+		}
 	}
 }

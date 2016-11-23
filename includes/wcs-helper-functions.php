@@ -116,7 +116,7 @@ function wcs_json_encode( $data ) {
  * @param $new_value An value to insert
  * @return The new array if the $needle key exists, otherwise an unmodified $haystack
  */
-function wcs_array_insert_after( $needle, $haystack, $new_key, $new_value) {
+function wcs_array_insert_after( $needle, $haystack, $new_key, $new_value ) {
 
 	if ( array_key_exists( $needle, $haystack ) ) {
 

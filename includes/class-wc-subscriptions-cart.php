@@ -91,7 +91,7 @@ class WC_Subscriptions_Cart {
 		add_action( 'woocommerce_cart_totals_after_order_total', __CLASS__ . '::display_recurring_totals' );
 		add_action( 'woocommerce_review_order_after_order_total', __CLASS__ . '::display_recurring_totals' );
 
-		add_action( 'woocommerce_add_to_cart_validation', __CLASS__ . '::check_valid_add_to_cart', 10, 3 );
+		add_action( 'woocommerce_add_to_cart_validation', __CLASS__ . '::check_valid_add_to_cart', 10, 6 );
 
 		add_filter( 'woocommerce_cart_needs_shipping', __CLASS__ . '::cart_needs_shipping', 11, 1 );
 
@@ -309,10 +309,6 @@ class WC_Subscriptions_Cart {
 		WC()->cart->recurring_carts = $recurring_carts;
 
 		$total = max( 0, round( WC()->cart->cart_contents_total + WC()->cart->tax_total + WC()->cart->shipping_tax_total + WC()->cart->shipping_total + WC()->cart->fee_total, WC()->cart->dp ) );
-
-		if ( isset( WC()->cart->discount_total ) && 0 !== WC()->cart->discount_total ) { // WC < 2.3, deduct deprecated after tax discount total
-			$total = max( 0, round( $total - WC()->cart->discount_total, WC()->cart->dp ) );
-		}
 
 		if ( ! self::charge_shipping_up_front() ) {
 			$total = max( 0, $total - WC()->cart->shipping_tax_total - WC()->cart->shipping_total );
@@ -948,7 +944,7 @@ class WC_Subscriptions_Cart {
 		$cart_key = '';
 
 		$product      = $cart_item['data'];
-		$product_id   = ! empty( $product->variation_id ) ? $product->variation_id : $product->id;
+		$product_id   = wcs_get_canonical_product_id( $product );
 		$renewal_time = ! empty( $renewal_time ) ? $renewal_time : WC_Subscriptions_Product::get_first_renewal_payment_time( $product_id );
 		$interval     = WC_Subscriptions_Product::get_interval( $product );
 		$period       = WC_Subscriptions_Product::get_period( $product );
@@ -957,7 +953,7 @@ class WC_Subscriptions_Cart {
 		$trial_length = WC_Subscriptions_Product::get_trial_length( $product );
 
 		if ( $renewal_time > 0 ) {
-			$cart_key .= date( 'Y_m_d_', $renewal_time );
+			$cart_key .= gmdate( 'Y_m_d_', $renewal_time );
 		}
 
 		// First start with the billing interval and period
@@ -996,13 +992,13 @@ class WC_Subscriptions_Cart {
 	}
 
 	/**
-	 * Don't allow other subscriptions to be added to the cart while it contains a renewal
+	 * Don't allow new subscription products to be added to the cart if it contains a subscription renewal already.
 	 *
 	 * @since 2.0
 	 */
-	public static function check_valid_add_to_cart( $is_valid, $product, $quantity ) {
+	public static function check_valid_add_to_cart( $is_valid, $product_id, $quantity, $variation_id = '', $variations = array(), $item_data = array() ) {
 
-		if ( $is_valid && wcs_cart_contains_renewal() && WC_Subscriptions_Product::is_subscription( $product ) ) {
+		if ( $is_valid && ! isset( $item_data['subscription_renewal'] ) && wcs_cart_contains_renewal() && WC_Subscriptions_Product::is_subscription( $product_id ) ) {
 
 			wc_add_notice( __( 'That subscription product can not be added to your cart as it already contains a subscription renewal.', 'woocommerce-subscriptions' ), 'error' );
 			$is_valid = false;
@@ -1205,197 +1201,6 @@ class WC_Subscriptions_Cart {
 	}
 
 	/* Deprecated */
-
-	/**
-	 * Returns the formatted subscription price string for an item
-	 *
-	 * @since 1.0
-	 */
-	public static function get_cart_item_price_html( $price_string, $cart_item ) {
-
-		_deprecated_function( __METHOD__, '1.2' );
-
-		return $price_string;
-	}
-
-	/**
-	 * Returns either the total if prices include tax because this doesn't include tax, or the
-	 * subtotal if prices don't includes tax, because this doesn't include tax.
-	 *
-	 * @return string formatted price
-	 *
-	 * @since 1.0
-	 */
-	public static function get_cart_contents_total( $cart_contents_total ) {
-
-		_deprecated_function( __METHOD__, '1.2' );
-
-		return $cart_contents_total;
-	}
-
-	/**
-	 * Calculate totals for the sign-up fees in the cart, based on @see WC_Cart::calculate_totals()
-	 *
-	 * @since 1.0
-	 */
-	public static function calculate_sign_up_fee_totals() {
-		_deprecated_function( __METHOD__, '1.2' );
-	}
-
-	/**
-	 * Function to apply discounts to a product and get the discounted price (before tax is applied)
-	 *
-	 * @param mixed $values
-	 * @param mixed $price
-	 * @param bool $add_totals (default: false)
-	 * @return float price
-	 * @since 1.0
-	 */
-	public static function get_discounted_price( $values, $price, $add_totals = false ) {
-
-		_deprecated_function( __METHOD__, '1.2' );
-
-		return $price;
-	}
-
-	/**
-	 * Function to apply product discounts after tax
-	 *
-	 * @param mixed $values
-	 * @param mixed $price
-	 * @since 1.0
-	 */
-	public static function apply_product_discounts_after_tax( $values, $price ) {
-		_deprecated_function( __METHOD__, '1.2' );
-	}
-
-	/**
-	 * Function to apply cart discounts after tax
-	 *
-	 * @since 1.0
-	 */
-	public static function apply_cart_discounts_after_tax() {
-		_deprecated_function( __METHOD__, '1.2' );
-	}
-
-	/**
-	 * Get tax row amounts with or without compound taxes includes
-	 *
-	 * @return float price
-	 */
-	public static function get_sign_up_taxes_total( $compound = true ) {
-		_deprecated_function( __METHOD__, '1.2' );
-		return 0;
-	}
-
-	public static function get_sign_up_fee_fields() {
-		_deprecated_function( __METHOD__, '1.2' );
-
-		return array(
-			'cart_contents_sign_up_fee_total',
-			'cart_contents_sign_up_fee_count',
-			'sign_up_fee_total',
-			'sign_up_fee_subtotal',
-			'sign_up_fee_subtotal_ex_tax',
-			'sign_up_fee_tax_total',
-			'sign_up_fee_taxes',
-			'sign_up_fee_discount_cart',
-			'sign_up_fee_discount_total',
-		);
-	}
-
-	/**
-	 * Returns the subtotal for a cart item including the subscription period and duration details
-	 *
-	 * @since 1.0
-	 */
-	public static function get_product_subtotal( $product_subtotal, $product ) {
-		_deprecated_function( __METHOD__, '1.2', __CLASS__ .'::get_formatted_product_subtotal( $product_subtotal, $product )' );
-		return self::get_formatted_product_subtotal( $product_subtotal, $product );
-	}
-
-	/**
-	 * Returns a string with the cart discount and subscription period.
-	 *
-	 * @deprecated 1.2
-	 * @since 1.0
-	 */
-	public static function get_discounts_before_tax( $discount, $cart ) {
-		_deprecated_function( __METHOD__, '1.2', __CLASS__ .'::get_formatted_discounts_before_tax( $discount )' );
-		return self::get_formatted_discounts_before_tax( $discount );
-	}
-
-	/**
-	 * Gets the order discount amount - these are applied after tax
-	 *
-	 * @deprecated 1.2
-	 * @since 1.0
-	 */
-	public static function get_discounts_after_tax( $discount, $cart ) {
-		_deprecated_function( __METHOD__, '1.2', __CLASS__ .'::get_formatted_discounts_after_tax( $discount )' );
-		return self::get_formatted_discounts_after_tax( $discount );
-	}
-
-	/**
-	 * Includes the sign-up fee subtotal in the subtotal displayed in the cart.
-	 *
-	 * @deprecated 1.2
-	 * @since 1.0
-	 */
-	public static function get_cart_subtotal( $cart_subtotal, $compound, $cart ) {
-		_deprecated_function( __METHOD__, '1.2', __CLASS__ .'::get_formatted_cart_subtotal( $cart_subtotal, $compound, $cart )' );
-		return self::get_formatted_cart_subtotal( $cart_subtotal, $compound, $cart );
-	}
-
-	/**
-	 * Appends the cart subscription string to a cart total using the @see self::get_cart_subscription_string and then returns it.
-	 *
-	 * @deprecated 1.2
-	 * @since 1.0
-	 */
-	public static function get_total( $total ) {
-		_deprecated_function( __METHOD__, '1.2', __CLASS__ .'::get_formatted_total( $total )' );
-		return self::get_formatted_total( $total );
-	}
-
-	/**
-	 * Appends the cart subscription string to a cart total using the @see self::get_cart_subscription_string and then returns it.
-	 *
-	 * @deprecated 1.2
-	 * @since 1.0
-	 */
-	public static function get_total_ex_tax( $total_ex_tax ) {
-		_deprecated_function( __METHOD__, '1.2', __CLASS__ .'::get_formatted_total_ex_tax( $total_ex_tax )' );
-		return self::get_formatted_total_ex_tax( $total_ex_tax );
-	}
-
-	/**
-	 * Displays each cart tax in a subscription string and calculates the sign-up fee taxes (if any)
-	 * to display in the string.
-	 *
-	 * @since 1.2
-	 */
-	public static function get_formatted_taxes( $formatted_taxes, $cart ) {
-		_deprecated_function( __METHOD__, '1.4.9', __CLASS__ .'::get_recurring_tax_totals( $total_ex_tax )' );
-
-		if ( self::cart_contains_subscription() ) {
-
-			$recurring_taxes = self::get_recurring_taxes();
-
-			foreach ( $formatted_taxes as $tax_id => $tax_amount ) {
-				$formatted_taxes[ $tax_id ] = self::get_cart_subscription_string( $tax_amount, $recurring_taxes[ $tax_id ] );
-			}
-
-			// Add any recurring tax not already handled - when a subscription has a free trial and a sign-up fee, we get a recurring shipping tax with no initial shipping tax
-			foreach ( $recurring_taxes as $tax_id => $tax_amount ) {
-				if ( ! array_key_exists( $tax_id, $formatted_taxes ) ) {
-					$formatted_taxes[ $tax_id ] = self::get_cart_subscription_string( '', $tax_amount );
-				}
-			}
-		}
-
-		return $formatted_taxes;
-	}
 
 	/**
 	 * Checks the cart to see if it contains a subscription product renewal.

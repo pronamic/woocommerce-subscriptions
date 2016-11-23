@@ -73,19 +73,98 @@ class WCS_Admin_Post_Types {
 			return $pieces;
 		}
 
-		// we need to name ID again due to name conflict if we don't
-		$pieces['fields'] .= ", {$wpdb->posts}.ID AS original_id, {$wpdb->posts}.post_parent AS original_parent, CASE (SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key = '_subscription_renewal' AND meta_value = original_id)
-			WHEN 0 THEN CASE (SELECT COUNT(*) FROM {$wpdb->posts} WHERE ID = original_parent)
-				WHEN 0 THEN 0
-				ELSE (SELECT post_date_gmt FROM {$wpdb->posts} WHERE ID = original_parent)
-				END
-			ELSE (SELECT p.post_date_gmt FROM {$wpdb->postmeta} pm LEFT JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = '_subscription_renewal' AND meta_value = original_id ORDER BY p.post_date_gmt DESC LIMIT 1)
-			END
-			AS last_payment";
+		// Let's check whether we even have the privileges to do the things we want to do
+		if ( $this->is_db_user_privileged() ) {
+			$pieces = self::posts_clauses_high_performance( $pieces );
+		} else {
+			$pieces = self::posts_clauses_low_performance( $pieces );
+		}
 
 		$order = strtoupper( $query->query['order'] );
 
-		$pieces['orderby'] = "CAST(last_payment AS DATETIME) {$order}";
+		// fields and order are identical in both cases
+		$pieces['fields'] .= ', COALESCE(lp.last_payment, o.post_date_gmt, 0) as lp';
+		$pieces['orderby'] = "CAST(lp AS DATETIME) {$order}";
+
+		return $pieces;
+	}
+
+	/**
+	 * Check is database user is capable of doing high performance things, such as creating temporary tables,
+	 * indexing them, and then dropping them after.
+	 *
+	 * @return bool
+	 */
+	public function is_db_user_privileged() {
+		$permissions = $this->get_special_database_privileges();
+
+		return ( in_array( 'CREATE TEMPORARY TABLES', $permissions ) && in_array( 'INDEX', $permissions ) && in_array( 'DROP', $permissions ) );
+	}
+
+	/**
+	 * Return the privileges a database user has out of CREATE TEMPORARY TABLES, INDEX and DROP. This is so we can use
+	 * these discrete values on a debug page.
+	 *
+	 * @return array
+	 */
+	public function get_special_database_privileges() {
+		global $wpdb;
+
+		$permissions = $wpdb->get_col( "SELECT PRIVILEGE_TYPE FROM information_schema.user_privileges WHERE GRANTEE = CONCAT( '''', REPLACE( CURRENT_USER(), '@', '''@''' ), '''' ) AND PRIVILEGE_TYPE IN ('CREATE TEMPORARY TABLES', 'INDEX', 'DROP')" );
+
+		return $permissions;
+	}
+
+	/**
+	 * Modifies the query for a slightly faster, yet still pretty slow query in case the user does not have
+	 * the necessary privileges to run
+	 *
+	 * @param $pieces
+	 *
+	 * @return mixed
+	 */
+	private function posts_clauses_low_performance( $pieces ) {
+		global $wpdb;
+
+		$pieces['join'] .= "LEFT JOIN
+				(SELECT
+					MAX( p.post_date_gmt ) as last_payment,
+					pm.meta_value
+				FROM {$wpdb->postmeta} pm
+				LEFT JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+				WHERE pm.meta_key = '_subscription_renewal'
+				GROUP BY pm.meta_value) lp
+			ON {$wpdb->posts}.ID = lp.meta_value
+			LEFT JOIN {$wpdb->posts} o on {$wpdb->posts}.post_parent = o.ID";
+
+		return $pieces;
+	}
+
+	/**
+	 * Modifies the query in such a way that makes use of the CREATE TEMPORARY TABLE, DROP and INDEX
+	 * MySQL privileges.
+	 *
+	 * @param array $pieces
+	 *
+	 * @return array $pieces
+	 */
+	private function posts_clauses_high_performance( $pieces ) {
+		global $wpdb;
+
+		// in case multiple users sort at the same time
+		$session = wp_get_session_token();
+
+		$table_name = substr( "{$wpdb->prefix}tmp_{$session}_lastpayment", 0, 64 );
+
+		// Let's create a temporary table, drop the previous one, because otherwise this query is hella slow
+		$wpdb->query( "DROP TEMPORARY TABLE IF EXISTS {$table_name}" );
+
+		$wpdb->query( "CREATE TEMPORARY TABLE {$table_name} (id INT, INDEX USING BTREE (id), last_payment DATETIME) AS SELECT pm.meta_value as id, MAX( p.post_date_gmt ) as last_payment FROM {$wpdb->postmeta} pm LEFT JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = '_subscription_renewal' GROUP BY pm.meta_value" );
+		// Magic ends here
+
+		$pieces['join'] .= "LEFT JOIN {$table_name} lp
+			ON {$wpdb->posts}.ID = lp.id
+			LEFT JOIN {$wpdb->posts} o on {$wpdb->posts}.post_parent = o.ID";
 
 		return $pieces;
 	}
@@ -295,6 +374,8 @@ class WCS_Admin_Post_Types {
 					echo '<div class="error"><p>' . esc_html( $message ) . '</p></div>';
 				}
 
+				$_SERVER['REQUEST_URI'] = remove_query_arg( array( 'error_count', 'marked_active' ), $_SERVER['REQUEST_URI'] );
+
 				break;
 			}
 		}
@@ -481,26 +562,25 @@ class WCS_Admin_Post_Types {
 							if ( wc_product_sku_enabled() && $_product && $_product->get_sku() ) {
 								$item_name .= $_product->get_sku() . ' - ';
 							}
-							$item_name .= $item['name'];
 
-							$item_name = apply_filters( 'woocommerce_order_item_name', $item_name, $item );
-							$item_name = esc_html( $item_name );
+							$item_name .= apply_filters( 'woocommerce_order_item_name', $item['name'], $item );
+							$item_name  = esc_html( $item_name );
+
 							if ( $item_quantity > 1 ) {
 								$item_name = sprintf( '%s &times; %s', absint( $item_quantity ), $item_name );
 							}
 							if ( $_product ) {
 								$item_name = sprintf( '<a href="%s">%s</a>', get_edit_post_link( $_product->id ), $item_name );
 							}
-							ob_start();
-							?>
-							<div class="order-item">
-								<?php echo wp_kses( $item_name, array( 'a' => array( 'href' => array() ) ) ); ?>
-								<?php if ( $item_meta_html ) : ?>
-								<a class="tips" href="#" data-tip="<?php echo esc_attr( $item_meta_html ); ?>">[?]</a>
-								<?php endif; ?>
-							</div>
-							<?php
-							$column_content .= ob_get_clean();
+
+							$column_content .= '<div class="order-item">';
+							$column_content .= wp_kses( $item_name, array( 'a' => array( 'href' => array() ) ) );
+
+							if ( $item_meta_html ) {
+								$column_content .= wcs_help_tip( $item_meta_html );
+							}
+
+							$column_content .= '</div>';
 						}
 						break;
 					default :
@@ -517,13 +597,22 @@ class WCS_Admin_Post_Types {
 								<td class="qty"><?php echo absint( $item['qty'] ); ?></td>
 								<td class="name">
 									<?php
+									$item_name = '';
 									if ( wc_product_sku_enabled() && $_product && $_product->get_sku() ) {
-										echo esc_html( $_product->get_sku() ) . ' - ';
+										$item_name .= $_product->get_sku() . ' - ';
 									}
-									echo esc_html( apply_filters( 'woocommerce_order_item_name', $item['name'], $item ) );
-									if ( $item_meta_html ) { ?>
-										<a class="tips" href="#" data-tip="<?php echo esc_attr( $item_meta_html ); ?>">[?]</a>
-									<?php } ?>
+
+									$item_name .= apply_filters( 'woocommerce_order_item_name', $item['name'], $item );
+									$item_name  = esc_html( $item_name );
+
+									if ( $_product ) {
+										$item_name = sprintf( '<a href="%s">%s</a>', get_edit_post_link( $_product->id ), $item_name );
+									}
+
+									echo wp_kses( $item_name, array( 'a' => array( 'href' => array() ) ) );
+									if ( $item_meta_html ) {
+										echo wcs_help_tip( $item_meta_html );
+									} ?>
 								</td>
 							</tr>
 							<?php
@@ -565,7 +654,8 @@ class WCS_Admin_Post_Types {
 				break;
 		}
 
-		echo wp_kses( apply_filters( 'woocommerce_subscription_list_table_column_content', $column_content, $the_subscription, $column ), array( 'a' => array( 'class' => array(), 'href' => array(), 'data-tip' => array(), 'title' => array() ), 'time' => array( 'class' => array(), 'title' => array() ), 'mark' => array( 'class' => array(), 'data-tip' => array() ), 'small' => array( 'class' => array() ), 'table' => array( 'class' => array(), 'cellspacing' => array(), 'cellpadding' => array() ), 'tr' => array( 'class' => array() ), 'td' => array( 'class' => array() ), 'div' => array( 'class' => array(), 'data-tip' => array() ), 'br' => array(), 'strong' => array(), 'span' => array( 'class' => array() ), 'p' => array( 'class' => array() ), 'button' => array( 'type' => array(), 'class' => array() ) ) );
+		echo wp_kses( apply_filters( 'woocommerce_subscription_list_table_column_content', $column_content, $the_subscription, $column ), array( 'a' => array( 'class' => array(), 'href' => array(), 'data-tip' => array(), 'title' => array() ), 'time' => array( 'class' => array(), 'title' => array() ), 'mark' => array( 'class' => array(), 'data-tip' => array() ), 'small' => array( 'class' => array() ), 'table' => array( 'class' => array(), 'cellspacing' => array(), 'cellpadding' => array() ), 'tr' => array( 'class' => array() ), 'td' => array( 'class' => array() ), 'div' => array( 'class' => array(), 'data-tip' => array() ), 'br' => array(), 'strong' => array(), 'span' => array( 'class' => array(), 'data-tip' => array() ), 'p' => array( 'class' => array() ), 'button' => array( 'type' => array(), 'class' => array() ) ) );
+
 	}
 
 	/**
@@ -836,7 +926,7 @@ class WCS_Admin_Post_Types {
 			7 => __( 'Subscription saved.', 'woocommerce-subscriptions' ),
 			8 => __( 'Subscription submitted.', 'woocommerce-subscriptions' ),
 			// translators: php date string
-			9 => sprintf( __( 'Subscription scheduled for: %1$s.', 'woocommerce-subscriptions' ), '<strong>' . date_i18n( _x( 'M j, Y @ G:i', 'used in "Subscription scheduled for <date>"', 'woocommerce-subscriptions' ), strtotime( $post->post_date ) ) . '</strong>' ),
+			9 => sprintf( __( 'Subscription scheduled for: %1$s.', 'woocommerce-subscriptions' ), '<strong>' . date_i18n( _x( 'M j, Y @ G:i', 'used in "Subscription scheduled for <date>"', 'woocommerce-subscriptions' ), wcs_date_to_time( $post->post_date ) ) . '</strong>' ),
 			10 => __( 'Subscription draft updated.', 'woocommerce-subscriptions' ),
 		);
 

@@ -20,60 +20,10 @@ if ( $order->status == 'pending' ) {
 	printf( esc_html_x( 'The automatic payment to renew your subscription with %1$s has failed. To reactivate the subscription, please login and pay for the renewal from your account page: %2$s', 'In customer renewal invoice email', 'woocommerce-subscriptions' ), esc_html( get_bloginfo( 'name' ) ), esc_attr( $order->get_checkout_payment_url() ) );
 }
 
-echo "****************************************************\n\n";
+echo "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";
 
-do_action( 'woocommerce_email_before_order_table', $order, false, true );
+do_action( 'woocommerce_subscriptions_email_order_details', $order, $sent_to_admin, $plain_text, $email );
 
-printf( __( 'Order number: %s', 'woocommerce-subscriptions' ), $order->get_order_number() ) . "\n";
-printf( __( 'Order date: %s', 'woocommerce-subscriptions' ), date_i18n( wc_date_format(), strtotime( $order->order_date ) ) ) . "\n";
-
-do_action( 'woocommerce_email_order_meta', $order, false, true );
-
-echo "\n";
-
-switch ( $order->status ) {
-	case 'completed' :
-		echo WC_Subscriptions_Email::email_order_items_table( $order, array(
-			'show_download_links' => $order->is_download_permitted(),
-			'show_sku'            => false,
-			'show_purchase_note'  => true,
-			'show_image'          => '',
-			'image_size'          => '',
-			'plain_text'          => true,
-			) );
-	break;
-	case 'processing' :
-		echo WC_Subscriptions_Email::email_order_items_table( $order, array(
-			'show_download_links' => $order->is_download_permitted(),
-			'show_sku'            => true,
-			'show_purchase_note'  => true,
-			'show_image'          => '',
-			'image_size'          => '',
-			'plain_text'          => true,
-			) );
-	break;
-	default :
-		echo WC_Subscriptions_Email::email_order_items_table( $order, array(
-			'show_download_links' => $order->is_download_permitted(),
-			'show_sku'            => true,
-			'show_purchase_note'  => false,
-			'show_image'          => '',
-			'image_size'          => '',
-			'plain_text'          => true,
-			) );
-	break;
-}
-
-echo "----------\n\n";
-
-if ( $totals = $order->get_order_item_totals() ) {
-	foreach ( $totals as $total ) {
-		echo $total['label'] . "\t " . $total['value'] . "\n";
-	}
-}
-
-echo "\n****************************************************\n\n";
-
-do_action( 'woocommerce_email_after_order_table', $order, false, true );
+echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
 
 echo apply_filters( 'woocommerce_email_footer_text', get_option( 'woocommerce_email_footer_text' ) );

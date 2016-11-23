@@ -77,7 +77,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 						</p>
 
 						<p class="form-field form-field-wide">
-							<label for="order_status"><?php esc_html_e( 'Subscription Status:', 'woocommerce-subscriptions' ); ?></label>
+							<label for="order_status"><?php esc_html_e( 'Subscription status:', 'woocommerce-subscriptions' ); ?></label>
 							<select id="order_status" name="order_status">
 								<?php
 								$statuses = wcs_get_subscription_statuses();
@@ -123,7 +123,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 
 						// Display help tip
 						if ( ! empty( $subscription->payment_method ) && ! $subscription->is_manual() ) {
-							echo '<img class="help_tip" data-tip="Gateway ID: [' . esc_attr( $subscription->payment_gateway->id ) . ']" src="' . esc_url( WC()->plugin_url() ) . '/assets/images/help.png" height="16" width="16" />';
+							echo wcs_help_tip( sprintf( _x( 'Gateway ID: [%s]', 'The gateway ID displayed on the Edit Subscriptions screen when editing payment method.', 'woocommerce-subscriptions' ), $subscription->payment_gateway->id ) );
 						}
 
 						echo '</p>';

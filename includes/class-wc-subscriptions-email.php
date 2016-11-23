@@ -7,7 +7,7 @@
  * @package		WooCommerce Subscriptions
  * @subpackage	WC_Subscriptions_Email
  * @category	Class
- * @author		Brent Shepherd
+ * @author		Prospress
  */
 class WC_Subscriptions_Email {
 
@@ -26,6 +26,7 @@ class WC_Subscriptions_Email {
 
 		add_filter( 'woocommerce_resend_order_emails_available', __CLASS__ . '::renewal_order_emails_available', -1 ); // run before other plugins so we don't remove their emails
 
+		add_action( 'woocommerce_subscriptions_email_order_details', __CLASS__ . '::order_details', 10, 4 );
 	}
 
 	/**
@@ -42,6 +43,8 @@ class WC_Subscriptions_Email {
 		require_once( 'emails/class-wcs-email-customer-completed-switch-order.php' );
 		require_once( 'emails/class-wcs-email-customer-renewal-invoice.php' );
 		require_once( 'emails/class-wcs-email-cancelled-subscription.php' );
+		require_once( 'emails/class-wcs-email-expired-subscription.php' );
+		require_once( 'emails/class-wcs-email-on-hold-subscription.php' );
 
 		$email_classes['WCS_Email_New_Renewal_Order']        = new WCS_Email_New_Renewal_Order();
 		$email_classes['WCS_Email_New_Switch_Order']         = new WCS_Email_New_Switch_Order();
@@ -50,6 +53,8 @@ class WC_Subscriptions_Email {
 		$email_classes['WCS_Email_Completed_Switch_Order']   = new WCS_Email_Completed_Switch_Order();
 		$email_classes['WCS_Email_Customer_Renewal_Invoice'] = new WCS_Email_Customer_Renewal_Invoice();
 		$email_classes['WCS_Email_Cancelled_Subscription']   = new WCS_Email_Cancelled_Subscription();
+		$email_classes['WCS_Email_Expired_Subscription']     = new WCS_Email_Expired_Subscription();
+		$email_classes['WCS_Email_On_Hold_Subscription']     = new WCS_Email_On_Hold_Subscription();
 
 		return $email_classes;
 	}
@@ -67,6 +72,8 @@ class WC_Subscriptions_Email {
 		}
 
 		add_action( 'woocommerce_subscription_status_updated', __CLASS__ . '::send_cancelled_email', 10, 2 );
+		add_action( 'woocommerce_subscription_status_expired', __CLASS__ . '::send_expired_email', 10, 2 );
+		add_action( 'woocommerce_customer_changed_subscription_to_on-hold', __CLASS__ . '::send_on_hold_email', 10, 2 );
 
 		$order_email_actions = array(
 			'woocommerce_order_status_pending_to_processing',
@@ -100,6 +107,30 @@ class WC_Subscriptions_Email {
 		if ( $subscription->has_status( array( 'pending-cancel', 'cancelled' ) ) && 'true' !== get_post_meta( $subscription->id, '_cancelled_email_sent', true ) ) {
 			do_action( 'cancelled_subscription_notification', $subscription );
 		}
+	}
+
+	/**
+	 * Init the mailer and call for the expired email notification hook.
+	 *
+	 * @param $subscription WC Subscription
+	 * @since 2.1
+	 */
+	public static function send_expired_email( $subscription ) {
+		WC()->mailer();
+
+		do_action( 'expired_subscription_notification', $subscription );
+	}
+
+	/**
+	 * Init the mailer and call for the suspended email notification hook.
+	 *
+	 * @param $subscription WC Subscription
+	 * @since 2.1
+	 */
+	public static function send_on_hold_email( $subscription ) {
+		WC()->mailer();
+
+		do_action( 'on-hold_subscription_notification', $subscription );
 	}
 
 	/**
@@ -139,7 +170,7 @@ class WC_Subscriptions_Email {
 	 */
 	public static function maybe_reattach_woocommerce_email( $order_id ) {
 		if ( wcs_order_contains_renewal( $order_id ) || wcs_order_contains_switch( $order_id ) ) {
-			add_action( current_filter(), array( 'WC_Emails', 'send_transactional_email' ) );
+			add_action( current_filter(), array( 'WC_Emails', 'send_transactional_email' ), 10, 10 );
 		}
 	}
 
@@ -229,6 +260,44 @@ class WC_Subscriptions_Email {
 		}
 
 		return $items_table;
+	}
+
+	/**
+	 * Show the order details table
+	 *
+	 * @param WC_Order $order
+	 * @param bool $sent_to_admin Whether the email is sent to admin - defaults to false
+	 * @param bool $plain_text Whether the email should use plain text templates - defaults to false
+	 * @param WC_Email $email
+	 * @since 2.1
+	 */
+	public static function order_details( $order, $sent_to_admin = false, $plain_text = false, $email = '' ) {
+
+		$order_items_table_args = array(
+			'show_download_links' => ( $sent_to_admin ) ? false : $order->is_download_permitted(),
+			'show_sku'            => $sent_to_admin,
+			'show_purchase_note'  => ( $sent_to_admin ) ? false : $order->has_status( apply_filters( 'woocommerce_order_is_paid_statuses', array( 'processing', 'completed' ) ) ),
+			'show_image'          => '',
+			'image_size'          => '',
+			'plain_text'          => $plain_text,
+		);
+
+		$template_path = ( $plain_text ) ? 'emails/plain/email-order-details.php' : 'emails/email-order-details.php';
+		$order_type    = ( wcs_is_subscription( $order ) ) ? 'subscription' : 'order';
+
+		wc_get_template(
+			$template_path,
+			array(
+				'order'                  => $order,
+				'sent_to_admin'          => $sent_to_admin,
+				'plain_text'             => $plain_text,
+				'email'                  => $email,
+				'order_type'             => $order_type,
+				'order_items_table_args' => $order_items_table_args,
+			),
+			'',
+			plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/'
+		);
 	}
 
 	/**

@@ -37,6 +37,12 @@ class WCS_Cart_Renewal {
 
 		// When a failed renewal order is paid for via checkout, make sure WC_Checkout::create_order() preserves its "failed" status until it is paid
 		add_filter( 'woocommerce_default_order_status', array( &$this, 'maybe_preserve_order_status' ) );
+
+		// When a failed/pending renewal order is paid for via checkout, ensure a new order isn't created due to mismatched cart hashes
+		add_filter( 'woocommerce_create_order', array( &$this, 'set_renewal_order_cart_hash' ), 10, 1 );
+
+		// When a user is prevented from paying for a failed/pending renewal order because they aren't logged in, redirect them back after login
+		add_filter( 'woocommerce_login_redirect', array( &$this, 'maybe_redirect_after_login' ), 10 , 1 );
 	}
 
 	/**
@@ -52,10 +58,6 @@ class WCS_Cart_Renewal {
 
 		// Make sure fees are added to the cart
 		add_action( 'woocommerce_cart_calculate_fees', array( &$this, 'maybe_add_fees' ), 10, 1 );
-
-		// Allow renewal of limited subscriptions
-		add_filter( 'woocommerce_subscription_is_purchasable', array( &$this, 'is_purchasable' ), 12, 2 );
-		add_filter( 'woocommerce_subscription_variation_is_purchasable', array( &$this, 'is_purchasable' ), 12, 2 );
 
 		// Check if a user is requesting to create a renewal order for a subscription, needs to happen after $wp->query_vars are set
 		add_action( 'template_redirect', array( &$this, 'maybe_setup_cart' ), 100 );
@@ -75,6 +77,12 @@ class WCS_Cart_Renewal {
 
 		// Use original order price when resubscribing to products with addons (to ensure the adds on prices are included)
 		add_filter( 'woocommerce_product_addons_adjust_price', array( &$this, 'product_addons_adjust_price' ), 10, 2 );
+
+		// When loading checkout address details, use the renewal order address details for renewals
+		add_filter( 'woocommerce_checkout_get_value', array( &$this, 'checkout_get_value' ), 10, 2 );
+
+		// If the shipping address on a renewal order differs to the order's billing address, check the "Ship to different address" automatically to make sure the renewal order's fields are used by default
+		add_filter( 'woocommerce_ship_to_different_address_checked', array( &$this, 'maybe_check_ship_to_different_address' ), 100, 1 );
 	}
 
 	/**
@@ -97,6 +105,25 @@ class WCS_Cart_Renewal {
 
 			if ( $order->order_key == $order_key && $order->has_status( array( 'pending', 'failed' ) ) && wcs_order_contains_renewal( $order ) ) {
 
+				// If a user isn't logged in, allow them to login first and then redirect back
+				if ( ! is_user_logged_in() ) {
+
+					$redirect = add_query_arg( array(
+						'wcs_redirect'    => 'pay_for_order',
+						'wcs_redirect_id' => $order_id,
+					), get_permalink( wc_get_page_id( 'myaccount' ) ) );
+
+					wp_safe_redirect( $redirect );
+					exit;
+
+				} elseif ( ! current_user_can( 'pay_for_order', $order_id ) ) {
+
+					wc_add_notice( __( 'That doesn\'t appear to be your order.', 'woocommerce-subscriptions' ), 'error' );
+
+					wp_safe_redirect( get_permalink( wc_get_page_id( 'myaccount' ) ) );
+					exit;
+				}
+
 				$subscriptions = wcs_get_subscriptions_for_renewal_order( $order );
 
 				do_action( 'wcs_before_renewal_setup_cart_subscriptions', $subscriptions, $order );
@@ -106,7 +133,7 @@ class WCS_Cart_Renewal {
 					do_action( 'wcs_before_renewal_setup_cart_subscription', $subscription, $order );
 
 					// Add the existing subscription items to the cart
-					$this->setup_cart( $subscription, array(
+					$this->setup_cart( $order, array(
 						'subscription_id'  => $subscription->id,
 						'renewal_order_id' => $order_id,
 					) );
@@ -119,9 +146,7 @@ class WCS_Cart_Renewal {
 				if ( WC()->cart->cart_contents_count != 0 ) {
 					// Store renewal order's ID in session so it can be re-used after payment
 					WC()->session->set( 'order_awaiting_payment', $order_id );
-
-					// Set cart hash for orders paid in WC >= 2.6
-					$this->set_cart_hash( $order_id );
+					wc_add_notice( __( 'Complete checkout to renew your subscription.', 'woocommerce-subscriptions' ), 'success' );
 				}
 
 				wp_safe_redirect( WC()->cart->get_checkout_url() );
@@ -146,6 +171,7 @@ class WCS_Cart_Renewal {
 			$quantity     = (int) $line_item['qty'];
 			$variation_id = (int) $line_item['variation_id'];
 			$variations   = array();
+			$item_data    = array();
 
 			foreach ( $line_item['item_meta'] as $meta_name => $meta_value ) {
 				if ( taxonomy_is_product_attribute( $meta_name ) ) {
@@ -177,11 +203,15 @@ class WCS_Cart_Renewal {
 				}
 			}
 
-			if ( wcs_is_subscription( $subscription ) ) {
-				$cart_item_data['subscription_line_item_id'] = $item_id;
+			$cart_item_data['line_item_id'] = $item_id;
+
+			$item_data = apply_filters( 'woocommerce_order_again_cart_item_data', array( $this->cart_item_key => $cart_item_data ), $line_item, $subscription );
+
+			if ( ! apply_filters( 'woocommerce_add_to_cart_validation', true, $product_id, $quantity, $variation_id, $variations, $item_data ) ) {
+				continue;
 			}
 
-			$cart_item_key = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variations, apply_filters( 'woocommerce_order_again_cart_item_data', array( $this->cart_item_key => $cart_item_data ), $line_item, $subscription ) );
+			$cart_item_key = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variations, $item_data );
 			$success       = $success && (bool) $cart_item_key;
 		}
 
@@ -340,12 +370,12 @@ class WCS_Cart_Renewal {
 
 			$_product = $cart_item_session_data['data'];
 
-			// Need to get the original subscription price, not the current price
-			$subscription       = wcs_get_subscription( $cart_item[ $this->cart_item_key ]['subscription_id'] );
+			// Need to get the original subscription or order price, not the current price
+			$subscription = $this->get_order( $cart_item );
 
 			if ( $subscription ) {
 				$subscription_items = $subscription->get_items();
-				$item_to_renew      = $subscription_items[ $cart_item_session_data[ $this->cart_item_key ]['subscription_line_item_id'] ];
+				$item_to_renew      = $subscription_items[ $cart_item_session_data[ $this->cart_item_key ]['line_item_id'] ];
 
 				$price = $item_to_renew['line_subtotal'];
 
@@ -374,6 +404,68 @@ class WCS_Cart_Renewal {
 		}
 
 		return $cart_item_session_data;
+	}
+
+	/**
+	 * Returns address details from the renewal order if the checkout is for a renewal.
+	 *
+	 * @param string $value Default checkout field value.
+	 * @param string $key The checkout form field name/key
+	 * @return string $value Checkout field value.
+	 */
+	public function checkout_get_value( $value, $key ) {
+
+		// Only hook in after WC()->checkout() has been initialised
+		if ( did_action( 'woocommerce_checkout_init' ) > 0 ) {
+
+			$address_fields = array_merge( WC()->checkout()->checkout_fields['billing'], WC()->checkout()->checkout_fields['shipping'] );
+
+			if ( array_key_exists( $key, $address_fields ) && false !== ( $item = $this->cart_contains() ) ) {
+
+				// Get the most specific order object, which will be the renewal order for renewals, initial order for initial payments, or a subscription for switches/resubscribes
+				$order = $this->get_order( $item );
+
+				if ( isset( $order->$key ) ) {
+					$value = $order->$key;
+				}
+			}
+		}
+
+		return $value;
+	}
+
+	/**
+	 * If the cart contains a renewal order that needs to ship to an address that is different
+	 * to the order's billing address, tell the checkout to toggle the ship to a different address
+	 * checkbox and make sure the shipping fields are displayed by default.
+	 *
+	 * @param bool $ship_to_different_address Whether the order will ship to a different address
+	 * @return bool $ship_to_different_address
+	 */
+	public function maybe_check_ship_to_different_address( $ship_to_different_address ) {
+
+		if ( ! $ship_to_different_address && false !== ( $item = $this->cart_contains() ) ) {
+
+			$order = $this->get_order( $item );
+
+			$renewal_shipping_address = $order->get_address( 'shipping' );
+			$renewal_billing_address  = $order->get_address( 'billing' );
+
+			if ( isset( $renewal_billing_address['email'] ) ) {
+				unset( $renewal_billing_address['email'] );
+			}
+
+			if ( isset( $renewal_billing_address['phone'] ) ) {
+				unset( $renewal_billing_address['phone'] );
+			}
+
+			// If the order's addresses are different, we need to display the shipping fields otherwise the billing address will override it
+			if ( $renewal_shipping_address != $renewal_billing_address ) {
+				$ship_to_different_address = 1;
+			}
+		}
+
+		return $ship_to_different_address;
 	}
 
 	/**
@@ -421,28 +513,9 @@ class WCS_Cart_Renewal {
 	 * @return bool
 	 */
 	public function is_purchasable( $is_purchasable, $product ) {
+		_deprecated_function( __METHOD__, '2.1', 'WCS_Limiter::is_purchasable_renewal' );
+		return WCS_Limiter::is_purchasable_renewal( $is_purchasable, $product );
 
-		// If the product is being set as not-purchasable by Subscriptions (due to limiting)
-		if ( false === $is_purchasable && false === WC_Subscriptions_Product::is_purchasable( $is_purchasable, $product ) ) {
-
-			// Adding to cart from the product page or paying for a renewal
-			if ( isset( $_GET[ $this->cart_item_key ] ) || isset( $_GET['subscription_renewal'] ) || $this->cart_contains() ) {
-
-				$is_purchasable = true;
-
-			} else if ( WC()->session->cart ) {
-
-				foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
-
-					if ( $product->id == $cart_item['product_id'] && isset( $cart_item['subscription_renewal'] ) ) {
-						$is_purchasable = true;
-						break;
-					}
-				}
-			}
-		}
-
-		return $is_purchasable;
 	}
 
 	/**
@@ -565,7 +638,7 @@ class WCS_Cart_Renewal {
 	public function items_removed_title( $product_title, $cart_item ) {
 
 		if ( isset( $cart_item[ $this->cart_item_key ]['subscription_id'] ) ) {
-			$subscription  = wcs_get_subscription( absint( $cart_item[ $this->cart_item_key ]['subscription_id'] ) );
+			$subscription  = $this->get_order( $cart_item );
 			$product_title = ( count( $subscription->get_items() ) > 1 ) ? esc_html_x( 'All linked subscription items were', 'Used in WooCommerce by removed item notification: "_All linked subscription items were_ removed. Undo?" Filter for item title.', 'woocommerce-subscriptions' ) : $product_title;
 		}
 
@@ -783,6 +856,42 @@ class WCS_Cart_Renewal {
 	 */
 	protected function set_cart_hash( $order_id ) {
 		update_post_meta( $order_id, '_cart_hash', md5( json_encode( wc_clean( WC()->cart->get_cart_for_session() ) ) . WC()->cart->total ) );
+	}
+
+	/**
+	 * Right before WC processes a renewal cart through the checkout, set the cart hash.
+	 * This ensures legitimate changes to taxes and shipping methods don't cause a new order to be created.
+	 *
+	 * @param Mixed | An order generated by third party plugins
+	 * @return Mixed | The unchanged order param
+	 * @since  2.1.0
+	 */
+	public function set_renewal_order_cart_hash( $order ) {
+
+		if ( $item = wcs_cart_contains_renewal() ) {
+			$this->set_cart_hash( $item[ $this->cart_item_key ]['renewal_order_id'] );
+		}
+
+		return $order;
+	}
+
+	/**
+	 * Redirect back to pay for an order after successfully logging in.
+	 *
+	 * @param string | redirect URL after successful login
+	 * @return string
+	 * @since  2.1.0
+	 */
+	function maybe_redirect_after_login( $redirect ) {
+		if ( isset( $_GET['wcs_redirect'], $_GET['wcs_redirect_id'] ) && 'pay_for_order' == $_GET['wcs_redirect'] ) {
+			$order = wc_get_order( $_GET['wcs_redirect_id'] );
+
+			if ( $order ) {
+				$redirect = $order->get_checkout_payment_url();
+			}
+		}
+
+		return $redirect;
 	}
 
 	/* Deprecated */
