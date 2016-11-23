@@ -93,6 +93,25 @@ class WCS_PayPal_Status_Manager extends WCS_PayPal {
 				$status_updated = true;
 			} else {
 				$status_updated = false;
+
+				if ( $response->has_api_error_for_credentials() ) {
+
+					// Store the profile ID so we can lookup which profiles are affected
+					$profile_ids = get_option( 'wcs_paypal_credentials_error_affected_profiles', '' );
+
+					if ( ! empty( $profile_ids ) ) {
+						$profile_ids .= ', ';
+					}
+					$profile_ids .= $profile_id;
+
+					update_option( 'wcs_paypal_credentials_error_affected_profiles', $profile_ids );
+
+					// And set a flag to display notice
+					update_option( 'wcs_paypal_credentials_error', 'yes' );
+
+					// This message will be added as an order note on by WC_Subscription::update_status()
+					throw new Exception( sprintf( __( 'PayPal API error - credentials are incorrect.', 'woocommerce-subscriptions' ), $new_status ) );
+				}
 			}
 		} else {
 			$status_updated = false;

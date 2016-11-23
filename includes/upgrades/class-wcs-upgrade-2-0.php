@@ -508,7 +508,7 @@ class WCS_Upgrade_2_0 {
 					if ( 'end_of_prepaid_term' == $new_key ) {
 						wc_schedule_single_action( $next_scheduled, 'woocommerce_scheduled_subscription_end_of_prepaid_term', array( 'subscription_id' => $new_subscription->id ) );
 					} else {
-						$dates_to_update[ $new_key ] = date( 'Y-m-d H:i:s', $next_scheduled );
+						$dates_to_update[ $new_key ] = gmdate( 'Y-m-d H:i:s', $next_scheduled );
 					}
 				}
 			}

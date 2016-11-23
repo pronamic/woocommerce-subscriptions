@@ -39,7 +39,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</a>
 				</td>
 				<td class="order-date" data-title="<?php esc_attr_e( 'Date', 'woocommerce-subscriptions' ); ?>">
-					<time datetime="<?php echo esc_attr( date( 'Y-m-d', strtotime( $order->order_date ) ) ); ?>" title="<?php echo esc_attr( strtotime( $order->order_date ) ); ?>"><?php echo wp_kses_post( date_i18n( get_option( 'date_format' ), strtotime( $order->order_date ) ) ); ?></time>
+					<time datetime="<?php echo esc_attr( gmdate( 'Y-m-d', wcs_date_to_time( $order->post->post_date_gmt ) ) ); ?>" title="<?php echo esc_attr( wcs_date_to_time( $order->post->post_date_gmt ) ); ?>"><?php echo wp_kses_post( date_i18n( get_option( 'date_format' ), wcs_date_to_time( $order->post->post_date_gmt ) ) ); ?></time>
 				</td>
 				<td class="order-status" data-title="<?php esc_attr_e( 'Status', 'woocommerce-subscriptions' ); ?>" style="white-space:nowrap;">
 					<?php echo esc_html( wc_get_order_status_name( $order->get_status() ) ); ?>

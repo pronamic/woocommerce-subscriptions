@@ -2,9 +2,9 @@
 /**
  * PayPal Standard Change Subscription Payment Method Class.
  *
- * Handles the process of a customer changing the payment method on a subscription via their My Account page from or two PayPal Standard.
+ * Handles the process of a customer changing the payment method on a subscription via their My Account page from or to PayPal Standard.
  *
- * @link http://docs.woothemes.com/document/subscriptions/customers-view/#section-5
+ * @link http://docs.woocommerce.com/document/subscriptions/customers-view/#section-5
  *
  * @package		WooCommerce Subscriptions
  * @subpackage	Gateways/PayPal

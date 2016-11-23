@@ -39,18 +39,26 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 			$order_id     = ( isset( $wp->query_vars['order-pay'] ) ) ? $wp->query_vars['order-pay'] : absint( $_GET['order_id'] );
 			$order        = wc_get_order( $wp->query_vars['order-pay'] );
 
-			if ( $order->order_key == $order_key && $order->has_status( array( 'pending', 'failed' ) ) && ! wcs_order_contains_subscription( $order, array( 'renewal', 'resubscribe' ) ) ) {
+			if ( $order->order_key == $order_key && $order->has_status( array( 'pending', 'failed' ) ) && wcs_order_contains_subscription( $order, 'parent' ) && ! wcs_order_contains_subscription( $order, 'resubscribe' ) ) {
 
-				$subscriptions = wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'parent' ) );
+				if ( ! is_user_logged_in() ) {
 
-				if ( get_current_user_id() !== $order->get_user_id() ) {
+					$redirect = add_query_arg( array(
+						'wcs_redirect'    => 'pay_for_order',
+						'wcs_redirect_id' => $order_id,
+					), get_permalink( wc_get_page_id( 'myaccount' ) ) );
+
+					wp_safe_redirect( $redirect );
+					exit;
+
+				} elseif ( ! current_user_can( 'pay_for_order', $order_id ) ) {
 
 					wc_add_notice( __( 'That doesn\'t appear to be your order.', 'woocommerce-subscriptions' ), 'error' );
 
 					wp_safe_redirect( get_permalink( wc_get_page_id( 'myaccount' ) ) );
 					exit;
 
-				} elseif ( ! empty( $subscriptions ) ) {
+				} else {
 
 					// Setup cart with all the original order's line items
 					$this->setup_cart( $order, array(

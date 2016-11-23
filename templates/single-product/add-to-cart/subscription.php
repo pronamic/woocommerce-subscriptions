@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 global $product;
 
 // Bail if the product isn't purchasable and that's not because it's limited
-if ( ! $product->is_purchasable() && ( ! is_user_logged_in() || 'no' == $product->limit_subscriptions ) ) {
+if ( ! $product->is_purchasable() && ( ! is_user_logged_in() || 'no' == wcs_get_product_limitation( $product ) ) ) {
 	return;
 }
 
@@ -35,14 +35,12 @@ if ( ! $product->is_in_stock() ) : ?>
 
 	<?php do_action( 'woocommerce_before_add_to_cart_form' ); ?>
 
-	<?php if ( ! $product->is_purchasable() && 0 != $user_id && 'no' != $product->limit_subscriptions && ( ( 'active' == $product->limit_subscriptions && wcs_user_has_subscription( $user_id, $product->id, 'on-hold' ) ) || $user_has_subscription = wcs_user_has_subscription( $user_id, $product->id, $product->limit_subscriptions ) ) ) : ?>
-		<?php if ( 'any' == $product->limit_subscriptions && $user_has_subscription && ! wcs_user_has_subscription( $user_id, $product->id, 'active' ) && ! wcs_user_has_subscription( $user_id, $product->id, 'on-hold' ) ) : // customer has an inactive subscription, maybe offer the renewal button ?>
-			<?php $resubscribe_link = wcs_get_users_resubscribe_link_for_product( $product->id ); ?>
-			<?php if ( ! empty( $resubscribe_link ) ) : ?>
-				<a href="<?php echo esc_url( $resubscribe_link ); ?>" class="button product-resubscribe-link"><?php esc_html_e( 'Resubscribe', 'woocommerce-subscriptions' ); ?></a>
-			<?php endif; ?>
+	<?php if ( ! $product->is_purchasable() && 0 != $user_id && 'no' != wcs_get_product_limitation( $product ) && wcs_is_product_limited_for_user( $product, $user_id ) ) : ?>
+		<?php $resubscribe_link = wcs_get_users_resubscribe_link_for_product( $product->id ); ?>
+		<?php if ( ! empty( $resubscribe_link ) && 'any' == wcs_get_product_limitation( $product ) && wcs_user_has_subscription( $user_id, $product->id, wcs_get_product_limitation( $product ) ) && ! wcs_user_has_subscription( $user_id, $product->id, 'active' ) && ! wcs_user_has_subscription( $user_id, $product->id, 'on-hold' ) ) : // customer has an inactive subscription, maybe offer the renewal button ?>
+			<a href="<?php echo esc_url( $resubscribe_link ); ?>" class="button product-resubscribe-link"><?php esc_html_e( 'Resubscribe', 'woocommerce-subscriptions' ); ?></a>
 		<?php else : ?>
-		<p class="limited-subscription-notice notice"><?php esc_html_e( 'You have an active subscription to this product already.', 'woocommerce-subscriptions' ); ?></p>
+			<p class="limited-subscription-notice notice"><?php esc_html_e( 'You have an active subscription to this product already.', 'woocommerce-subscriptions' ); ?></p>
 		<?php endif; ?>
 	<?php else : ?>
 	<form class="cart" method="post" enctype='multipart/form-data'>

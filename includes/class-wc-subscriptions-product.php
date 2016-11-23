@@ -15,9 +15,6 @@ class WC_Subscriptions_Product {
 	/* cache the check on whether the session has an order awaiting payment for a given product */
 	protected static $order_awaiting_payment_for_product = array();
 
-	/* cache whether a given product is purchasable or not to save running lots of queries for the same product in the same request */
-	protected static $is_purchasable_cache = array();
-
 	protected static $subscription_meta_fields = array(
 		'_subscription_price',
 		'_subscription_sign_up_fee',
@@ -587,7 +584,7 @@ class WC_Subscriptions_Product {
 		$first_renewal_timestamp = self::get_first_renewal_payment_time( $product_id, $from_date, $timezone );
 
 		if ( $first_renewal_timestamp > 0 ) {
-			$first_renewal_date = date( 'Y-m-d H:i:s', $first_renewal_timestamp );
+			$first_renewal_date = gmdate( 'Y-m-d H:i:s', $first_renewal_timestamp );
 		} else {
 			$first_renewal_date = 0;
 		}
@@ -626,18 +623,11 @@ class WC_Subscriptions_Product {
 			// If the subscription has a free trial period, the first renewal is the same as the expiration of the free trial
 			if ( $trial_length > 0 ) {
 
-				$first_renewal_timestamp = strtotime( self::get_trial_expiration_date( $product_id, $from_date ) );
+				$first_renewal_timestamp = wcs_date_to_time( self::get_trial_expiration_date( $product_id, $from_date ) );
 
 			} else {
 
-				$from_timestamp = strtotime( $from_date );
-				$billing_period = self::get_period( $product_id );
-
-				if ( 'month' == $billing_period ) {
-					$first_renewal_timestamp = wcs_add_months( $from_timestamp, $billing_interval );
-				} else {
-					$first_renewal_timestamp = strtotime( "+ $billing_interval {$billing_period}s", $from_timestamp );
-				}
+				$first_renewal_timestamp = wcs_add_time( $billing_interval, self::get_period( $product_id ), wcs_date_to_time( $from_date ) );
 
 				if ( 'site' == $timezone ) {
 					$first_renewal_timestamp += ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
@@ -672,7 +662,7 @@ class WC_Subscriptions_Product {
 				$from_date = self::get_trial_expiration_date( $product_id, $from_date );
 			}
 
-			$expiration_date = gmdate( 'Y-m-d H:i:s', wcs_add_time( $subscription_length, self::get_period( $product_id ), strtotime( $from_date ) ) );
+			$expiration_date = gmdate( 'Y-m-d H:i:s', wcs_add_time( $subscription_length, self::get_period( $product_id ), wcs_date_to_time( $from_date ) ) );
 
 		} else {
 
@@ -694,7 +684,6 @@ class WC_Subscriptions_Product {
 	 */
 	public static function get_trial_expiration_date( $product_id, $from_date = '' ) {
 
-		$trial_period = self::get_trial_period( $product_id );
 		$trial_length = self::get_trial_length( $product_id );
 
 		if ( $trial_length > 0 ) {
@@ -703,11 +692,8 @@ class WC_Subscriptions_Product {
 				$from_date = gmdate( 'Y-m-d H:i:s' );
 			}
 
-			if ( 'month' == $trial_period ) {
-				$trial_expiration_date = date( 'Y-m-d H:i:s', wcs_add_months( strtotime( $from_date ), $trial_length ) );
-			} else { // Safe to just add the billing periods
-				$trial_expiration_date = date( 'Y-m-d H:i:s', strtotime( "+ {$trial_length} {$trial_period}s", strtotime( $from_date ) ) );
-			}
+			$trial_expiration_date = gmdate( 'Y-m-d H:i:s', wcs_add_time( $trial_length, self::get_trial_period( $product_id ), wcs_date_to_time( $from_date ) ) );
+
 		} else {
 
 			$trial_expiration_date = 0;
@@ -904,31 +890,6 @@ class WC_Subscriptions_Product {
 	}
 
 	/**
-	 * If a product is being marked as not purchasable because it is limited and the customer has a subscription,
-	 * but the current request is to resubscribe to the subscription, then mark it as purchasable.
-	 *
-	 * @since 2.0
-	 * @return bool
-	 */
-	public static function is_purchasable( $is_purchasable, $product ) {
-		global $wp;
-
-		if ( ! isset( self::$is_purchasable_cache[ $product->id ] ) ) {
-
-			self::$is_purchasable_cache[ $product->id ] = $is_purchasable;
-
-			if ( self::is_subscription( $product->id ) && 'no' != $product->limit_subscriptions && ! wcs_is_order_received_page() && ! wcs_is_paypal_api_page() ) {
-
-				if ( ( ( 'active' == $product->limit_subscriptions && wcs_user_has_subscription( 0, $product->id, 'on-hold' ) ) || wcs_user_has_subscription( 0, $product->id, $product->limit_subscriptions ) ) && ! self::order_awaiting_payment_for_product( $product->id ) ) {
-					self::$is_purchasable_cache[ $product->id ] = false;
-				}
-			}
-		}
-
-		return self::$is_purchasable_cache[ $product->id ];
-	}
-
-	/**
 	 * Save variation meta data when it is bulk edited from the Edit Product screen
 	 *
 	 * @param string $bulk_action The bulk edit action being performed
@@ -981,50 +942,6 @@ class WC_Subscriptions_Product {
 				update_post_meta( $variation_id, '_subscription_price', $subscription_price );
 			}
 		}
-	}
-
-	/**
-	 * Check if the current session has an order awaiting payment for a subscription to a specific product line item.
-	 *
-	 * @return 2.0.13
-	 * @return bool
-	 **/
-	protected static function order_awaiting_payment_for_product( $product_id ) {
-		global $wp;
-
-		if ( ! isset( self::$order_awaiting_payment_for_product[ $product_id ] ) ) {
-
-			self::$order_awaiting_payment_for_product[ $product_id ] = false;
-
-			if ( ! empty( WC()->session->order_awaiting_payment ) || isset( $_GET['pay_for_order'] ) ) {
-
-				$order_id = ! empty( WC()->session->order_awaiting_payment ) ? WC()->session->order_awaiting_payment : $wp->query_vars['order-pay'];
-				$order    = wc_get_order( absint( $order_id ) );
-
-				if ( is_object( $order ) && $order->has_status( array( 'pending', 'failed' ) ) ) {
-					foreach ( $order->get_items() as $item ) {
-						if ( $item['product_id'] == $product_id || $item['variation_id'] == $product_id ) {
-
-							$subscriptions = wcs_get_subscriptions( array(
-								'order_id'   => $order->id,
-								'product_id' => $product_id,
-							) );
-
-							if ( ! empty( $subscriptions ) ) {
-								$subscription = array_pop( $subscriptions );
-
-								if ( $subscription->has_status( array( 'pending', 'on-hold' ) ) ) {
-									self::$order_awaiting_payment_for_product[ $product_id ] = true;
-								}
-							}
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		return self::$order_awaiting_payment_for_product[ $product_id ];
 	}
 
 	/**
@@ -1092,87 +1009,61 @@ class WC_Subscriptions_Product {
 	}
 
 	/**
-	 * Calculates a price (could be per period price or sign-up fee) for a subscription less tax
-	 * if the subscription is taxable and the prices in the store include tax.
+	 * If a product is being marked as not purchasable because it is limited and the customer has a subscription,
+	 * but the current request is to resubscribe to the subscription, then mark it as purchasable.
 	 *
-	 * Based on the WC_Product::get_price_excluding_tax() function.
-	 *
-	 * @param float $price The price to adjust based on taxes
-	 * @param WC_Product $product The product the price belongs too (needed to determine tax class)
-	 * @since 1.0
+	 * @since 2.0
+	 * @return bool
 	 */
-	public static function calculate_tax_for_subscription( $price, $product, $deduct_base_taxes = false ) {
-		_deprecated_function( __METHOD__, '1.5.8', 'WC_Product::get_price_including_tax()' );
+	public static function is_purchasable( $is_purchasable, $product ) {
+		_deprecated_function( __METHOD__, '2.1', 'WCS_Limiter::is_purchasable_product' );
+		return WCS_Limiter::is_purchasable_product( $is_purchasable, $product );
+	}
 
-		if ( $product->is_taxable() ) {
+	/**
+	 * Check if the current session has an order awaiting payment for a subscription to a specific product line item.
+	 *
+	 * @return 2.0.13
+	 * @return bool
+	 **/
+	protected static function order_awaiting_payment_for_product( $product_id ) {
+		_deprecated_function( __METHOD__, '2.1', 'WCS_Limiter::order_awaiting_payment_for_product' );
 
-			$tax = new WC_Tax();
+		global $wp;
 
-			$base_tax_rates = $tax->get_shop_base_rate( $product->tax_class );
-			$tax_rates      = $tax->get_rates( $product->get_tax_class() ); // This will get the base rate unless we're on the checkout page
+		if ( ! isset( self::$order_awaiting_payment_for_product[ $product_id ] ) ) {
 
-			if ( $deduct_base_taxes && wc_prices_include_tax() ) {
+			self::$order_awaiting_payment_for_product[ $product_id ] = false;
 
-				$base_taxes = $tax->calc_tax( $price, $base_tax_rates, true );
-				$taxes      = $tax->calc_tax( $price - array_sum( $base_taxes ), $tax_rates, false );
+			if ( ! empty( WC()->session->order_awaiting_payment ) || isset( $_GET['pay_for_order'] ) ) {
 
-			} elseif ( get_option( 'woocommerce_prices_include_tax' ) == 'yes' ) {
+				$order_id = ! empty( WC()->session->order_awaiting_payment ) ? WC()->session->order_awaiting_payment : $wp->query_vars['order-pay'];
+				$order    = wc_get_order( absint( $order_id ) );
 
-				$taxes = $tax->calc_tax( $price, $base_tax_rates, true );
+				if ( is_object( $order ) && $order->has_status( array( 'pending', 'failed' ) ) ) {
+					foreach ( $order->get_items() as $item ) {
+						if ( $item['product_id'] == $product_id || $item['variation_id'] == $product_id ) {
 
-			} else {
+							$subscriptions = wcs_get_subscriptions( array(
+								'order_id'   => $order->id,
+								'product_id' => $product_id,
+							) );
 
-				$taxes = $tax->calc_tax( $price, $base_tax_rates, false );
+							if ( ! empty( $subscriptions ) ) {
+								$subscription = array_pop( $subscriptions );
 
+								if ( $subscription->has_status( array( 'pending', 'on-hold' ) ) ) {
+									self::$order_awaiting_payment_for_product[ $product_id ] = true;
+								}
+							}
+							break;
+						}
+					}
+				}
 			}
-
-			$tax_amount = $tax->get_tax_total( $taxes );
-
-		} else {
-
-			$tax_amount = 0;
-
 		}
 
-		return $tax_amount;
-	}
-
-
-	/**
-	 * Deprecated in favour of native get_price_html() method on the Subscription Product classes (e.g. WC_Product_Subscription)
-	 *
-	 * Output subscription string as the price html
-	 *
-	 * @since 1.0
-	 * @deprecated 1.5.18
-	 */
-	public static function get_price_html( $price, $product ) {
-		_deprecated_function( __METHOD__, '1.5.18', __CLASS__ . '::get_price_string()' );
-
-		if ( self::is_subscription( $product ) ) {
-			$price = self::get_price_string( $product, array( 'price' => $price ) );
-		}
-
-		return $price;
-	}
-
-	/**
-	 * Deprecated in favour of native get_price_html() method on the Subscription Product classes (e.g. WC_Product_Subscription)
-	 *
-	 * Set the subscription string for products which have a $0 recurring fee, but a sign-up fee
-	 *
-	 * @since 1.3.4
-	 * @deprecated 1.5.18
-	 */
-	public static function get_free_price_html( $price, $product ) {
-		_deprecated_function( __METHOD__, '1.5.18', __CLASS__ . '::get_price_string()' );
-
-		// Check if it has a sign-up fee (we already know it has no recurring fee)
-		if ( self::is_subscription( $product ) && self::get_sign_up_fee( $product ) > 0 ) {
-			$price = self::get_price_string( $product, array( 'price' => $price ) );
-		}
-
-		return $price;
+		return self::$order_awaiting_payment_for_product[ $product_id ];
 	}
 }
 

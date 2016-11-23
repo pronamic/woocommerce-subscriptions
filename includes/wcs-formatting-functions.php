@@ -211,3 +211,28 @@ function wcs_price_string( $subscription_details ) {
 
 	return apply_filters( 'woocommerce_subscription_price_string', $subscription_string, $subscription_details );
 }
+
+/**
+ * Display a human friendly time diff for a given timestamp, e.g. "In 12 hours" or "12 hours ago".
+ *
+ * @param int $timestamp_gmt
+ * @return string A human friendly string to display for the timestamp's date
+ * @since 2.1
+ */
+function wcs_get_human_time_diff( $timestamp_gmt ) {
+
+	$time_diff = $timestamp_gmt - current_time( 'timestamp', true );
+
+	if ( $time_diff > 0 && $time_diff < WEEK_IN_SECONDS ) {
+		// translators: placeholder is human time diff (e.g. "3 weeks")
+		$date_to_display = sprintf( __( 'In %s', 'woocommerce-subscriptions' ), human_time_diff( current_time( 'timestamp', true ), $timestamp_gmt ) );
+	} elseif ( $time_diff < 0 && absint( $time_diff ) < WEEK_IN_SECONDS ) {
+		// translators: placeholder is human time diff (e.g. "3 weeks")
+		$date_to_display = sprintf( __( '%s ago', 'woocommerce-subscriptions' ), human_time_diff( current_time( 'timestamp', true ), $timestamp_gmt ) );
+	} else {
+		$timestamp_site  = wcs_date_to_time( get_date_from_gmt( gmdate( 'Y-m-d H:i:s', $timestamp_gmt ) ) );
+		$date_to_display = date_i18n( wc_date_format(), $timestamp_site ) . ' ' . date_i18n( wc_time_format(), $timestamp_site );
+	}
+
+	return $date_to_display;
+}

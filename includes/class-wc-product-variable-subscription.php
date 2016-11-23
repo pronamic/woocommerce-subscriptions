@@ -78,15 +78,22 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 
 		$this->subscription_one_time_shipping = ( ! isset( $this->product_custom_fields['_subscription_one_time_shipping'][0] ) ) ? 'no' : $this->product_custom_fields['_subscription_one_time_shipping'][0];
 
-		if ( ! isset( $this->product_custom_fields['_subscription_limit'][0] ) ) {
-			$this->limit_subscriptions = 'no';
-		} elseif ( 'yes' == $this->product_custom_fields['_subscription_limit'][0] ) { // backward compatibility
-			$this->limit_subscriptions = 'any';
-		} else {
-			$this->limit_subscriptions = $this->product_custom_fields['_subscription_limit'][0];
-		}
-
 		add_filter( 'woocommerce_add_to_cart_handler', array( &$this, 'add_to_cart_handler' ), 10, 2 );
+	}
+
+	/**
+	 * Auto-load in-accessible properties on demand.
+	 *
+	 * @param mixed $key
+	 * @return mixed
+	 */
+	public function __get( $key ) {
+		if ( 'limit_subscriptions' === $key ) {
+			_deprecated_argument( 'WC_Product_Subscription->limit_subscriptions', '2.1', 'Use wcs_get_product_limitation directly' );
+			return wcs_get_product_limitation( $this );
+		} else {
+			return parent::__get( $key );
+		}
 	}
 
 	/**
@@ -594,12 +601,7 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 	 * @return bool
 	 */
 	function is_purchasable() {
-
-		$purchasable = parent::is_purchasable();
-
-		if ( true === $purchasable && false === WC_Subscriptions_Product::is_purchasable( $purchasable, $this ) ) {
-			$purchasable = false;
-		}
+		$purchasable = WCS_Limiter::is_purchasable( parent::is_purchasable(), $this );
 
 		return apply_filters( 'woocommerce_subscription_is_purchasable', $purchasable, $this );
 	}

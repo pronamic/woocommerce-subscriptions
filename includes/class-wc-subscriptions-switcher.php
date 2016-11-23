@@ -10,9 +10,6 @@
  */
 class WC_Subscriptions_Switcher {
 
-	/* cache whether a given product is purchasable or not to save running lots of queries for the same product in the same request */
-	protected static $is_purchasable_cache = array();
-
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
@@ -63,10 +60,6 @@ class WC_Subscriptions_Switcher {
 		// Don't display free trials when switching a subscription, because no free trials are provided
 		add_filter( 'woocommerce_subscriptions_product_price_string_inclusions', __CLASS__ . '::customise_product_string_inclusions', 12, 2 );
 
-		// Allow switching between variations on a limited subscription
-		add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable', 12, 2 );
-		add_filter( 'woocommerce_subscription_variation_is_purchasable', __CLASS__ . '::is_purchasable', 12, 2 );
-
 		// Autocomplete subscription switch orders
 		add_action( 'woocommerce_payment_complete_order_status', __CLASS__ . '::subscription_switch_autocomplete', 10, 2 );
 
@@ -101,11 +94,14 @@ class WC_Subscriptions_Switcher {
 		// Display/indicate whether a cart switch item is a upgrade/downgrade/crossgrade
 		add_filter( 'woocommerce_cart_item_subtotal', __CLASS__ . '::add_cart_item_switch_direction', 10, 3 );
 
-		// Check if the new order was to record a switch request and maybe call a "switch completed" action.
-		add_action( 'subscriptions_created_for_order', __CLASS__ . '::maybe_add_switched_callback', 10, 1 );
+		// Check if the order was to record a switch request and maybe call a "switch completed" action.
+		add_action( 'woocommerce_subscriptions_switch_completed', __CLASS__ . '::maybe_add_switched_callback', 10, 1 );
 
 		// Revoke download permissions from old switch item
 		add_action( 'woocommerce_subscriptions_switched_item', __CLASS__ . '::remove_download_permissions_after_switch', 10, 3 );
+
+		// Process subscription switch changes on completed switch orders status
+		add_action( 'woocommerce_order_status_changed', __CLASS__ . '::process_subscription_switches', 10, 3 );
 
 		// Check if we need to force payment on this switch, just after calculating the prorated totals in @see self::calculate_prorated_totals()
 		add_filter( 'woocommerce_subscriptions_calculated_total', __CLASS__ . '::set_force_payment_flag_in_cart', 10, 1 );
@@ -114,7 +110,10 @@ class WC_Subscriptions_Switcher {
 		add_filter( 'woocommerce_cart_needs_payment', __CLASS__ . '::cart_needs_payment' , 50, 2 );
 
 		// Require payment when switching from a $0 / period subscription to a non-zero subscription to process automatic payments
-		add_filter( 'woocommerce_payment_successful_result', __CLASS__ . '::maybe_set_payment_method' , 10, 2 );
+		add_filter( 'woocommerce_subscriptions_switch_completed', __CLASS__ . '::maybe_set_payment_method_after_switch' , 10, 1 );
+
+		// Do not reduce product stock when the order item is simply to record a switch
+		add_filter( 'woocommerce_order_item_quantity', __CLASS__ . '::maybe_do_not_reduce_stock', 10, 3 );
 
 		// Mock a free trial on the cart item to make sure the switch total doesn't include any recurring amount
 		add_filter( 'woocommerce_before_calculate_totals', __CLASS__ . '::maybe_set_free_trial', 100, 1 );
@@ -183,80 +182,71 @@ class WC_Subscriptions_Switcher {
 			}
 		} elseif ( is_product() && $product = wc_get_product( $post ) ) { // Automatically initiate the switch process for limited variable subscriptions
 
-			if ( wcs_is_product_switchable_type( $product ) && 'no' != $product->limit_subscriptions ) {
+			$limited_switchable_products = array();
 
-				// Check if the user has an active subscription for this product, and if so, initiate the switch process
-				$subscriptions = wcs_get_users_subscriptions();
+			if ( $product->is_type( 'grouped' ) ) { // If we're on a grouped product's page, we need to check if this grouped product has children which are limited and may need to be switched
 
 				$child_ids = $product->get_children();
 
-				foreach ( $subscriptions as $subscription ) {
+				foreach ( $child_ids as $child_id ) {
+					$product = wc_get_product( $child_id );
 
-					// If we're on a grouped product's page, we need to check if the subscription has a child of this grouped product that needs to be switched
-					$subscription_product_id = false;
-
-					if ( $product->is_type( 'grouped' ) ) {
-						foreach ( $child_ids as $child_id ) {
-							if ( $subscription->has_product( $child_id ) ) {
-								$subscription_product_id = $child_id;
-								break;
-							}
-						}
+					if ( 'no' != wcs_get_product_limitation( $product ) && wcs_is_product_switchable_type( $product ) ) {
+						$limited_switchable_products[] = $product;
 					}
+				}
+			} elseif ( 'no' != wcs_get_product_limitation( $product ) && wcs_is_product_switchable_type( $product ) ) {
+				// If we're on a limited variation or single product within a group which is switchable
+				// we only need to look for if the customer is subscribed to this product
+				$limited_switchable_products[] = $product;
+			}
 
-					if ( $subscription->has_product( $product->id ) || $subscription_product_id ) {
+			// If we have limited switchable products, check if the customer is already subscribed and needs to be switched
+			if ( ! empty( $limited_switchable_products ) ) {
 
-						// For grouped products, we need to check the child products limitations, not the grouped product's (which will have no limitation)
-						if ( $subscription_product_id ) {
-							$child_product = wc_get_product( $subscription_product_id );
-							$limitation    = $child_product->limit_subscriptions;
-						} else {
-							$limitation    = $product->limit_subscriptions;
+				$subscriptions = wcs_get_users_subscriptions();
+
+				foreach ( $subscriptions as $subscription ) {
+					foreach ( $limited_switchable_products as $product ) {
+
+						if ( ! $subscription->has_product( $product->id ) ) {
+							continue;
 						}
 
-						// If the product is limited
+						$limitation = wcs_get_product_limitation( $product );
+
 						if ( 'any' == $limitation || $subscription->has_status( $limitation ) ) {
 
 							$subscribed_notice = __( 'You have already subscribed to this product and it is limited to one per customer. You can not purchase the product again.', 'woocommerce-subscriptions' );
 
-							// If switching is enabled for this product type, initiate the auto-switch process
-							if ( wcs_is_product_switchable_type( $product ) ) {
+							// Don't initiate auto-switching when the subscription requires payment
+							if ( $subscription->needs_payment() ) {
 
-								// Don't initiate auto-switching when the subscription requires payment
-								if ( $subscription->needs_payment() ) {
+								$last_order = $subscription->get_last_order( 'all' );
 
-									$last_order = $subscription->get_last_order( 'all' );
-
-									if ( $last_order->needs_payment() ) {
-										// translators: 1$: is the "You have already subscribed to this product" notice, 2$-4$: opening/closing link tags, 3$: an order number
-										$subscribed_notice = sprintf( __( '%1$s Complete payment on %2$sOrder %3$s%4$s to be able to change your subscription.', 'woocommerce-subscriptions' ), $subscribed_notice, sprintf( '<a href="%s">', $last_order->get_checkout_payment_url() ), $last_order->get_order_number(), '</a>' );
-									}
-
-									WC_Subscriptions::add_notice( $subscribed_notice, 'notice' );
-									break;
-
-								} else {
-
-									$product_id = ( $subscription_product_id ) ? $subscription_product_id : $product->id;
-
-									// Get the matching item
-									foreach ( $subscription->get_items() as $line_item_id => $line_item ) {
-										if ( $line_item['product_id'] == $product_id || $line_item['variation_id'] == $product_id ) {
-											$item_id = $line_item_id;
-											$item    = $line_item;
-											break;
-										}
-									}
-
-									if ( self::can_item_be_switched_by_user( $item, $subscription ) ) {
-										wp_redirect( add_query_arg( 'auto-switch', 'true', self::get_switch_url( $item_id, $item, $subscription ) ) );
-										exit;
-									}
+								if ( $last_order->needs_payment() ) {
+									// translators: 1$: is the "You have already subscribed to this product" notice, 2$-4$: opening/closing link tags, 3$: an order number
+									$subscribed_notice = sprintf( __( '%1$s Complete payment on %2$sOrder %3$s%4$s to be able to change your subscription.', 'woocommerce-subscriptions' ), $subscribed_notice, sprintf( '<a href="%s">', $last_order->get_checkout_payment_url() ), $last_order->get_order_number(), '</a>' );
 								}
-							} else {
 
 								WC_Subscriptions::add_notice( $subscribed_notice, 'notice' );
 								break;
+
+							} else {
+
+								// Get the matching item
+								foreach ( $subscription->get_items() as $line_item_id => $line_item ) {
+									if ( $line_item['product_id'] == $product->id || $line_item['variation_id'] == $product->id ) {
+										$item_id = $line_item_id;
+										$item    = $line_item;
+										break;
+									}
+								}
+
+								if ( self::can_item_be_switched_by_user( $item, $subscription ) ) {
+									wp_redirect( add_query_arg( 'auto-switch', 'true', self::get_switch_url( $item_id, $item, $subscription ) ) );
+									exit;
+								}
 							}
 						}
 					}
@@ -318,7 +308,7 @@ class WC_Subscriptions_Switcher {
 				'name'     => __( 'Switching', 'woocommerce-subscriptions' ),
 				'type'     => 'title',
 				// translators: placeholders are opening and closing link tags
-				'desc'     => sprintf( __( 'Allow subscribers to switch (upgrade or downgrade) between different subscriptions. %sLearn more%s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'http://docs.woothemes.com/document/subscriptions/switching-guide/' ) . '">', '</a>' ),
+				'desc'     => sprintf( __( 'Allow subscribers to switch (upgrade or downgrade) between different subscriptions. %sLearn more%s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'http://docs.woocommerce.com/document/subscriptions/switching-guide/' ) . '">', '</a>' ),
 				'id'       => WC_Subscriptions_Admin::$option_prefix . '_switch_settings',
 			),
 
@@ -441,15 +431,21 @@ class WC_Subscriptions_Switcher {
 		}
 
 		$product = wc_get_product( $item['product_id'] );
+		$additional_query_args = array();
 
 		// Grouped product
 		if ( 0 !== $product->post->post_parent ) {
 			$switch_url = get_permalink( $product->post->post_parent );
 		} else {
 			$switch_url = get_permalink( $product->id );
+
+			if ( ! empty( $_GET ) && is_product() ) {
+				$product_variations    = $product->get_variation_attributes();
+				$additional_query_args = array_intersect_key( $_GET, $product_variations );
+			}
 		}
 
-		$switch_url = self::add_switch_query_args( $subscription->id, $item_id, $switch_url );
+		$switch_url = self::add_switch_query_args( $subscription->id, $item_id, $switch_url, $additional_query_args );
 
 		return apply_filters( 'woocommerce_subscriptions_switch_url', $switch_url, $item_id, $item, $subscription );
 	}
@@ -460,12 +456,14 @@ class WC_Subscriptions_Switcher {
 	 * @param int $subscription_id A subscription's post ID
 	 * @param int $item_id The order item ID of a subscription line item
 	 * @param string $permalink The permalink of the product
+	 * @param array $additional_query_args (optional) Additional query args to add to the switch URL
 	 * @since 2.0
 	 */
-	protected static function add_switch_query_args( $subscription_id, $item_id, $permalink ) {
+	protected static function add_switch_query_args( $subscription_id, $item_id, $permalink, $additional_query_args = array() ) {
 
 		// manually add a nonce because we can't use wp_nonce_url() (it would escape the URL)
-		$permalink = add_query_arg( array( 'switch-subscription' => absint( $subscription_id ), 'item' => absint( $item_id ), '_wcsnonce' => wp_create_nonce( 'wcs_switch_request' ) ), $permalink );
+		$query_args = array_merge( $additional_query_args, array( 'switch-subscription' => absint( $subscription_id ), 'item' => absint( $item_id ), '_wcsnonce' => wp_create_nonce( 'wcs_switch_request' ) ) );
+		$permalink  = add_query_arg( $query_args, $permalink );
 
 		return apply_filters( 'woocommerce_subscriptions_add_switch_query_args', $permalink, $subscription_id, $item_id );
 	}
@@ -476,7 +474,7 @@ class WC_Subscriptions_Switcher {
 	 * For an item to be switchable, switching must be enabled, and the item must be for a variable subscription or
 	 * part of a grouped product (at the time the check is made, not at the time the subscription was purchased)
 	 *
-	 * The subscription must also be active or on-hold and use manual renewals or use a payment method which supports cancellation.
+	 * The subscription must also be active and use manual renewals or use a payment method which supports cancellation.
 	 *
 	 * @param array $item An order item on the subscription
 	 * @param WC_Subscription $subscription An instance of WC_Subscription
@@ -546,6 +544,9 @@ class WC_Subscriptions_Switcher {
 	 */
 	public static function add_order_meta( $order_id, $posted ) {
 
+		// delete all the existing subscription switch links before adding new ones
+		delete_post_meta( $order_id, '_subscription_switch' );
+
 		$switches = self::cart_contains_switches();
 
 		if ( false !== $switches ) {
@@ -614,7 +615,9 @@ class WC_Subscriptions_Switcher {
 			return;
 		}
 
-		$order = wc_get_order( $order_id );
+		$order             = wc_get_order( $order_id );
+		$order_items       = $order->get_items();
+		$switch_order_data = array();
 
 		try {
 			// Start transaction if available
@@ -642,6 +645,11 @@ class WC_Subscriptions_Switcher {
 						$is_different_billing_schedule = false;
 					}
 
+					// If we haven't calculated a first payment date, fall back to the recurring cart's next payment date
+					if ( 0 == $cart_item['subscription_switch']['first_payment_timestamp'] ) {
+						$cart_item['subscription_switch']['first_payment_timestamp'] = strtotime( $recurring_cart->next_payment_date );
+					}
+
 					if ( 0 !== $cart_item['subscription_switch']['first_payment_timestamp'] && $next_payment_timestamp !== $cart_item['subscription_switch']['first_payment_timestamp'] ) {
 						$is_different_payment_date = true;
 					} elseif ( 0 !== $cart_item['subscription_switch']['first_payment_timestamp'] && 0 == $subscription->get_time( 'next_payment' ) ) { // if the subscription doesn't have a next payment but the switched item does
@@ -650,7 +658,7 @@ class WC_Subscriptions_Switcher {
 						$is_different_payment_date = false;
 					}
 
-					if ( date( 'Y-m-d', strtotime( $recurring_cart->end_date ) ) !== date( 'Y-m-d', $subscription->get_time( 'end' ) ) ) {
+					if ( gmdate( 'Y-m-d', wcs_date_to_time( $recurring_cart->end_date ) ) !== gmdate( 'Y-m-d', $subscription->get_time( 'end' ) ) ) {
 						$is_different_length = true;
 					} else {
 						$is_different_length = false;
@@ -663,11 +671,34 @@ class WC_Subscriptions_Switcher {
 						$is_single_item_subscription = false;
 					}
 
+					$order_item_id = '';
+
+					foreach ( $order_items as $item_id => $item ) {
+						if ( wcs_get_canonical_product_id( $item ) == wcs_get_canonical_product_id( $cart_item ) && ( empty( $switch_order_data['switches'] ) || ! in_array( $item_id, array_keys( $switch_order_data['switches'] ) ) ) ) {
+							$order_item_id = $item_id;
+							$switch_order_data[ $subscription->id ]['switches'][ $item_id ]['subscription_item_id'] = $cart_item['subscription_switch']['item_id'];
+							break;
+						}
+					}
+
 					// If the item is on the same schedule, we can just add it to the new subscription and remove the old item
 					if ( $is_single_item_subscription || ( false === $is_different_billing_schedule && false === $is_different_payment_date && false === $is_different_length ) ) {
 
 						// Add the new item
-						$item_id = WC_Subscriptions_Checkout::add_cart_item( $subscription, $cart_item, $cart_item_key );
+						$item_id   = WC_Subscriptions_Checkout::add_cart_item( $subscription, $cart_item, $cart_item_key );
+						$item_meta = wc_get_order_item_meta( $item_id, '' );
+
+						// We can't use the prorated order item price upon successful payment so store the cart price
+						$switch_order_data[ $subscription->id ]['switches'][ $order_item_id ]['add_order_item_data'] = array(
+							'totals' => array(
+								'subtotal'     => $cart_item['line_subtotal'],
+								'subtotal_tax' => $cart_item['line_subtotal_tax'],
+								'total'        => $cart_item['line_total'],
+								'tax'          => $cart_item['line_tax'],
+								'tax_data'     => $cart_item['line_tax_data'],
+							),
+							'meta' => $item_meta,
+						);
 
 						// Remove the item from the cart so that WC_Subscriptions_Checkout doesn't add it to a subscription
 						if ( 1 == count( WC()->cart->recurring_carts[ $recurring_cart_key ]->get_cart() ) ) {
@@ -676,8 +707,6 @@ class WC_Subscriptions_Switcher {
 						} else {
 							unset( WC()->cart->recurring_carts[ $recurring_cart_key ]->cart_contents[ $cart_item_key ] );
 						}
-
-						do_action( 'woocommerce_subscription_item_switched', $order, $subscription, $item_id, $cart_item['subscription_switch']['item_id'] );
 					}
 
 					// If the old subscription has just one item, we can safely update its billing schedule
@@ -686,14 +715,18 @@ class WC_Subscriptions_Switcher {
 						if ( $is_different_billing_schedule ) {
 							update_post_meta( $subscription->id, '_billing_period', $cart_item['data']->subscription_period );
 							update_post_meta( $subscription->id, '_billing_interval', absint( $cart_item['data']->subscription_period_interval ) );
+
+							$switch_order_data[ $subscription->id ]['billing_schedule']['_billing_period']   = $cart_item['data']->subscription_period;
+							$switch_order_data[ $subscription->id ]['billing_schedule']['_billing_interval'] = absint( $cart_item['data']->subscription_period_interval );
 						}
 
 						$updated_dates = array();
 
-						if ( '1' == $cart_item['data']->subscription_length || ( 0 != $recurring_cart->end_date && date( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] ) >= $recurring_cart->end_date ) ) {
+						if ( '1' == $cart_item['data']->subscription_length || ( 0 != $recurring_cart->end_date && gmdate( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] ) >= $recurring_cart->end_date ) ) {
 							$subscription->delete_date( 'next_payment' );
+							$switch_order_data[ $subscription->id ]['dates']['delete'][] = 'next_payment';
 						} else if ( $is_different_payment_date ) {
-							$updated_dates['next_payment'] = date( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] );
+							$updated_dates['next_payment'] = gmdate( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] );
 						}
 
 						if ( $is_different_length ) {
@@ -702,33 +735,45 @@ class WC_Subscriptions_Switcher {
 
 						if ( ! empty( $updated_dates ) ) {
 							$subscription->update_dates( $updated_dates );
+							$switch_order_data[ $subscription->id ]['dates']['update'] = $updated_dates;
 						}
 					}
 
 					// Remove the old item from the subscription but don't delete it completely by changing its line item type to "line_item_switched"
 					wc_update_order_item( $cart_item['subscription_switch']['item_id'], array( 'order_item_type' => 'line_item_switched' ) );
 
-					$old_item_name = wcs_get_order_item_name( $existing_item, array( 'attributes' => true ) );
-					$new_item_name = wcs_get_cart_item_name( $cart_item, array( 'attributes' => true ) );
-
-					// translators: 1$: old item name, 2$: new item name when switching
-					$subscription->add_order_note( sprintf( _x( 'Customer switched from: %1$s to %2$s.', 'used in order notes', 'woocommerce-subscriptions' ), $old_item_name, $new_item_name ) );
-
 					// Change the shipping
 					self::update_shipping_methods( $subscription, $recurring_cart );
+					$switch_order_data[ $subscription->id ]['shipping_methods'] = $subscription->get_shipping_methods();
 
 					// Finally, change the addresses but only if they've changed
 					self::maybe_update_subscription_address( $order, $subscription );
-
-					$subscription->calculate_totals();
 				}
 			}
 
-			// Everything seems to be in order
-			$wpdb->query( 'COMMIT' );
+			// Everything seems to be in order.
+			// Rollback the changes and store the required meta on the order so it can be processed on successful payment.
+			$wpdb->query( 'ROLLBACK' );
+
+			foreach ( $switch_order_data as $subscription_id => $switch_data ) {
+
+				// Cancel all the switch orders linked to the switched subscription(s) which haven't been completed yet - excluding this one.
+				$switch_orders = wcs_get_switch_orders_for_subscription( $subscription_id );
+
+				foreach ( $switch_orders as $switch_order_id => $switch_order ) {
+					if ( $order->id !== $switch_order_id && in_array( $switch_order->get_status(), apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'failed', 'on-hold' ), $switch_order ) ) ) {
+						$switch_order->update_status( 'cancelled', sprintf( __( 'Switch order cancelled due to a new switch order being created #%s.', 'woocommerce-subscriptions' ), $order->get_order_number() ) );
+					}
+				}
+
+				// Despite rolling back the DB queries, the cache can still contain subscription changes (eg _billing_period post meta), so make sure we delete the cache for all subscriptions we've altered.
+				wp_cache_delete( $subscription_id, 'post_meta' );
+			}
+
+			update_post_meta( $order_id, '_subscription_switch_data', $switch_order_data );
 
 		} catch ( Exception $e ) {
-			// There was an error adding the subscription, roll back and delete pending order for switch
+			// There was an error updating the subscription, roll back and delete pending order for switch
 			$wpdb->query( 'ROLLBACK' );
 			wp_delete_post( $order_id, true );
 			throw $e;
@@ -918,6 +963,11 @@ class WC_Subscriptions_Switcher {
 			$subscription = wcs_get_subscription( $_GET['switch-subscription'] );
 			$item_id      = absint( $_GET['item'] );
 			$item         = wcs_get_order_item( $item_id, $subscription );
+
+			// Prevent switching to non-subscription product
+			if ( ! WC_Subscriptions_Product::is_subscription( $product_id ) ) {
+				throw new Exception( __( 'You can only switch to a subscription product.', 'woocommerce-subscriptions' ) );
+			}
 
 			// Check if the chosen variation's attributes are different to the existing subscription's attributes (to support switching between a "catch all" variation)
 			if ( empty( $item ) ) {
@@ -1143,7 +1193,7 @@ class WC_Subscriptions_Switcher {
 
 			// Set when the first payment and end date for the new subscription should occur
 			WC()->cart->cart_contents[ $cart_item_key ]['subscription_switch']['first_payment_timestamp'] = $cart_item['subscription_switch']['next_payment_timestamp'];
-			WC()->cart->cart_contents[ $cart_item_key ]['subscription_switch']['end_timestamp'] = $end_timestamp = strtotime( WC_Subscriptions_Product::get_expiration_date( $product_id, $subscription->get_date( 'last_payment' ) ) );
+			WC()->cart->cart_contents[ $cart_item_key ]['subscription_switch']['end_timestamp'] = $end_timestamp = wcs_date_to_time( WC_Subscriptions_Product::get_expiration_date( $product_id, $subscription->get_date( 'last_payment' ) ) );
 
 			// Add any extra sign up fees required to switch to the new subscription
 			if ( 'yes' == $apportion_sign_up_fee ) {
@@ -1228,11 +1278,12 @@ class WC_Subscriptions_Switcher {
 
 						// Find out how many days at the new price per day the customer would receive for the total amount already paid
 						// (e.g. if the customer paid $10 / month previously, and was switching to a $5 / week subscription, she has pre-paid 14 days at the new price)
-						$pre_paid_days = 0;
-						do {
+						$pre_paid_days = $new_total_paid = 0;
+
+						while ( $new_total_paid < $old_recurring_total ) {
 							$pre_paid_days++;
 							$new_total_paid = $pre_paid_days * $new_price_per_day;
-						} while ( $new_total_paid < $old_recurring_total );
+						}
 
 						// If the total amount the customer has paid entitles her to more days at the new price than she has received, there is no gap payment, just shorten the pre-paid term the appropriate number of days
 						if ( $days_since_last_payment < $pre_paid_days ) {
@@ -1321,8 +1372,8 @@ class WC_Subscriptions_Switcher {
 	public static function recurring_cart_next_payment_date( $first_renewal_date, $cart ) {
 
 		foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
-			if ( isset( $cart_item['subscription_switch']['first_payment_timestamp'] ) ) {
-				$first_renewal_date = ( '1' != $cart_item['data']->subscription_length ) ? date( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] ) : 0;
+			if ( isset( $cart_item['subscription_switch']['first_payment_timestamp'] ) && 0 != $cart_item['subscription_switch']['first_payment_timestamp'] ) {
+				$first_renewal_date = ( '1' != $cart_item['data']->subscription_length ) ? gmdate( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] ) : 0;
 			}
 		}
 
@@ -1345,7 +1396,7 @@ class WC_Subscriptions_Switcher {
 
 					// if the subscription is length 1 and prorated, we want to use the prorated the next payment date as the end date
 					if ( 1 == $cart_item['data']->subscription_length && 0 !== $next_payment_time && isset( $cart_item['subscription_switch']['recurring_payment_prorated'] ) ) {
-						$end_date = date( 'Y-m-d H:i:s', $next_payment_time );
+						$end_date = gmdate( 'Y-m-d H:i:s', $next_payment_time );
 
 					// if the subscription is more than 1 (and not 0) and we have a next payment date (prorated or not) we want to calculate the new end date from that
 					} elseif ( 0 !== $next_payment_time && $cart_item['data']->subscription_length > 1 ) {
@@ -1353,14 +1404,14 @@ class WC_Subscriptions_Switcher {
 						$trial_length = $cart_item['data']->subscription_trial_length;
 						$cart_item['data']->subscription_trial_length = 0;
 
-						$end_date = WC_Subscriptions_Product::get_expiration_date( $cart_item['data'], date( 'Y-m-d H:i:s', $next_payment_time ) );
+						$end_date = WC_Subscriptions_Product::get_expiration_date( $cart_item['data'], gmdate( 'Y-m-d H:i:s', $next_payment_time ) );
 
 						// add back the trial length if it has been spoofed
 						$cart_item['data']->subscription_trial_length = $trial_length;
 
 					// elseif fallback to using the end date set on the cart item
 					} elseif ( ! empty( $end_timestamp ) ) {
-						$end_date = date( 'Y-m-d H:i:s', $end_timestamp );
+						$end_date = gmdate( 'Y-m-d H:i:s', $end_timestamp );
 					}
 
 					break;
@@ -1420,41 +1471,11 @@ class WC_Subscriptions_Switcher {
 	 *
 	 * @since 1.4.4
 	 * @return bool
+	 * @deprecated 2.1
 	 */
 	public static function is_purchasable( $is_purchasable, $product ) {
-
-		$product_key = ! empty( $product->variation_id ) ? $product->variation_id : $product->id;
-
-		if ( ! isset( self::$is_purchasable_cache[ $product_key ] ) ) {
-
-			if ( false === $is_purchasable && wcs_is_product_switchable_type( $product ) && WC_Subscriptions_Product::is_subscription( $product->id ) && 'no' != $product->limit_subscriptions && is_user_logged_in() && wcs_user_has_subscription( 0, $product->id, $product->limit_subscriptions ) ) {
-
-				// Adding to cart from the product page
-				if ( isset( $_GET['switch-subscription'] ) ) {
-
-					$is_purchasable = true;
-
-				// Validating when restring cart from session
-				} elseif ( self::cart_contains_switches() ) {
-
-					$is_purchasable = true;
-
-				// Restoring cart from session, so need to check the cart in the session (self::cart_contains_subscription_switch() only checks the cart)
-				} elseif ( isset( WC()->session->cart ) ) {
-
-					foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
-						if ( $product->id == $cart_item['product_id'] && isset( $cart_item['subscription_switch'] ) ) {
-							$is_purchasable = true;
-							break;
-						}
-					}
-				}
-			}
-
-			self::$is_purchasable_cache[ $product_key ] = $is_purchasable;
-		}
-
-		return self::$is_purchasable_cache[ $product_key ];
+		_deprecated_function( __METHOD__, '2.1', 'WCS_Limiter::is_purchasable_switch' );
+		return WCS_Limiter::is_purchasable_switch( $is_purchasable, $product );
 	}
 
 	/**
@@ -1514,6 +1535,49 @@ class WC_Subscriptions_Switcher {
 	}
 
 	/**
+	 * Completes subscription switches on completed order status changes.
+	 *
+	 * Commits all the changes calculated and saved by @see WC_Subscriptions_Switcher::process_checkout(), updating subscription
+	 * line items, schedule, dates and totals to reflect the changes made in this switch order.
+	 *
+	 * @param int $order_id The post_id of a shop_order post/WC_Order object
+	 * @param array $order_old_status The old order status
+	 * @param array $order_new_status The new order status
+	 * @since 2.1
+	 */
+	public static function process_subscription_switches( $order_id, $order_old_status, $order_new_status ) {
+		global $wpdb;
+
+		$switch_processed = get_post_meta( $order_id, '_completed_subscription_switch', true );
+		$order            = wc_get_order( $order_id );
+
+		if ( ! wcs_order_contains_switch( $order_id ) || 'true' == $switch_processed ) {
+			return;
+		}
+
+		$order_completed = in_array( $order_new_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id ), 'processing', 'completed' ) );
+
+		if ( $order_completed ) {
+			try {
+				// Start transaction if available
+				$wpdb->query( 'START TRANSACTION' );
+
+				self::complete_subscription_switches( $order );
+
+				update_post_meta( $order_id, '_completed_subscription_switch', 'true' );
+
+				$wpdb->query( 'COMMIT' );
+
+			} catch ( Exception $e ) {
+				$wpdb->query( 'ROLLBACK' );
+				throw $e;
+			}
+
+			do_action( 'woocommerce_subscriptions_switch_completed', $order );
+		}
+	}
+
+	/**
 	 * Checks if a product can be switched based on it's type and the types which can be switched
 	 *
 	 * @since 1.5.21
@@ -1552,7 +1616,7 @@ class WC_Subscriptions_Switcher {
 	 */
 	public static function hidden_order_itemmeta( $hidden_meta_keys ) {
 
-		if ( ! defined( 'WCS_DEBUG' ) || true !== WCS_DEBUG ) {
+		if ( apply_filters( 'woocommerce_subscriptions_hide_switch_itemmeta', ! defined( 'WCS_DEBUG' ) || true !== WCS_DEBUG ) ) {
 			$hidden_meta_keys = array_merge( $hidden_meta_keys, array(
 				'_switched_subscription_item_id',
 				'_switched_subscription_new_item_id',
@@ -1656,7 +1720,6 @@ class WC_Subscriptions_Switcher {
 			foreach ( $subscriptions as $subscription ) {
 				foreach ( $subscription->get_items() as $new_order_item ) {
 					if ( isset( $new_order_item['switched_subscription_item_id'] ) ) {
-
 						$product_id = wcs_get_canonical_product_id( $new_order_item );
 						// we need to check if the switch order contains the line item that has just been switched so that we don't call the hook on items that were previously switched in another order
 						foreach ( $order->get_items() as $order_item ) {
@@ -1687,6 +1750,142 @@ class WC_Subscriptions_Switcher {
 
 		$product_id = wcs_get_canonical_product_id( $old_item );
 		WCS_Download_Handler::revoke_downloadable_file_permission( $product_id, $subscription->id, $subscription->customer_user );
+
+	}
+
+	/**
+	 * Completes subscription switches for switch order.
+	 *
+	 * Performs all the changes calculated and saved by @see WC_Subscriptions_Switcher::process_checkout(), updating subscription
+	 * line items, schedule, dates and totals to reflect the changes made in this switch order.
+	 *
+	 * @param WC_Order $order
+	 * @since 2.1
+	 */
+	public static function complete_subscription_switches( $order ) {
+
+		// Get the switch meta
+		$switch_order_data = get_post_meta( $order->id, '_subscription_switch_data', true );
+
+		// if we don't have an switch data, there is nothing to do here. Switch orders created prior to v2.1 won't have any data to process.
+		if ( empty( $switch_order_data ) || ! is_array( $switch_order_data ) ) {
+			return;
+		}
+
+		foreach ( $switch_order_data as $subcription_id => $switch_data ) {
+
+			$subscription = wcs_get_subscription( $subcription_id );
+
+			if ( ! $subscription instanceof WC_Subscription ) {
+				continue;
+			}
+
+			// Add the new line items
+			if ( ! empty( $switch_data['switches'] ) ) {
+
+				foreach ( $switch_data['switches'] as $order_item_id => $switch_item_data ) {
+
+					$order_item = wcs_get_order_item( $order_item_id, $order );
+
+					// if we are simply adding this product to an existing subscription
+					if ( isset( $switch_item_data['add_order_item_data'] ) ) {
+						$product              = WC_Subscriptions::get_product( wcs_get_canonical_product_id( $order_item ) );
+						$line_tax_data        = wc_get_order_item_meta( $order_item_id, '_line_tax_data', true );
+						$variation_attributes = ( method_exists( $product, 'get_variation_attributes' ) ) ? $product->get_variation_attributes() : array();
+
+						$item_id = $subscription->add_product( $product, $order_item['qty'], array(
+							'variation' => $variation_attributes,
+							'totals'    => $switch_item_data['add_order_item_data']['totals'],
+						) );
+
+						foreach ( $switch_item_data['add_order_item_data']['meta'] as $key => $value ) {
+							if ( ! array_key_exists( 'attribute_' . $key, $variation_attributes ) ) {
+								wc_add_order_item_meta( $item_id, $key, reset( $value ), true );
+							}
+						}
+
+						do_action( 'woocommerce_subscription_item_switched', $order, $subscription, $order_item_id, $switch_item_data['subscription_item_id'] );
+					}
+
+					// remove the existing subscription item
+					$old_order_item = wcs_get_order_item( $switch_item_data['subscription_item_id'], $subscription );
+
+					if ( empty( $old_order_item ) ) {
+						throw new Exception( __( 'The original subscription item being switched cannot be found.', 'woocommerce-subscriptions' ) );
+					} else {
+						// We dont want to include switch item meta in order item name
+						add_filter( 'woocommerce_subscriptions_hide_switch_itemmeta', '__return_true' );
+						$new_order_item_name         = wcs_get_order_item_name( $order_item, array( 'attributes' => true ) );
+						$old_subscription_item_name  = wcs_get_order_item_name( $old_order_item, array( 'attributes' => true ) );
+						remove_filter( 'woocommerce_subscriptions_hide_switch_itemmeta', '__return_true' );
+
+						wc_update_order_item( $switch_item_data['subscription_item_id'], array( 'order_item_type' => 'line_item_switched' ) );
+
+						// translators: 1$: old item, 2$: new item when switching
+						$subscription->add_order_note( sprintf( _x( 'Customer switched from: %1$s to %2$s.', 'used in order notes', 'woocommerce-subscriptions' ), $old_subscription_item_name, $new_order_item_name ) );
+					}
+				}
+			}
+
+			if ( ! empty( $switch_data['billing_schedule'] ) ) {
+
+				// Update the billing schedule
+				foreach ( $switch_data['billing_schedule'] as $meta_key => $value ) {
+					update_post_meta( $subcription_id, $meta_key, $value );
+				}
+			}
+
+			// Update subscription dates
+			if ( ! empty( $switch_data['dates'] ) ) {
+
+				if ( ! empty( $switch_data['dates']['delete'] ) ) {
+					foreach ( $switch_data['dates']['delete'] as $date ) {
+						$subscription->delete_date( $date );
+					}
+				}
+
+				if ( ! empty( $switch_data['dates']['update'] ) ) {
+					$subscription->update_dates( $switch_order_data[ $subscription->id ]['dates']['update'] );
+				}
+			}
+
+			if ( ! empty( $switch_data['shipping_methods'] ) ) {
+
+				// Archive the old subscription shipping methods
+				foreach ( $subscription->get_shipping_methods() as $shipping_line_item_id => $item ) {
+					wc_update_order_item( $shipping_line_item_id, array( 'order_item_type' => 'shipping_switched' ) );
+				}
+
+				// Add the new shipping line item
+				foreach ( $switch_data['shipping_methods'] as $shipping_line_item ) {
+					$item_id = wc_add_order_item( $subscription->id, array(
+						'order_item_name' => $shipping_line_item['name'],
+						'order_item_type' => 'shipping',
+					) );
+
+					if ( ! $item_id || empty( $shipping_line_item['method_id'] ) || empty( $shipping_line_item['cost'] ) || empty( $shipping_line_item['taxes'] ) ) {
+						throw new Exception( __( 'Failed to update the subscription shipping method.', 'woocommerce-subscriptions' ) );
+					}
+
+					// Add shipping order item meta
+					wc_add_order_item_meta( $item_id, 'method_id', $shipping_line_item['method_id'] );
+					wc_add_order_item_meta( $item_id, 'cost', wc_format_decimal( $shipping_line_item['cost'] ) );
+
+					$taxes = array_map( 'wc_format_decimal', maybe_unserialize( $shipping_line_item['taxes'] ) );
+					wc_add_order_item_meta( $item_id, 'taxes', $taxes );
+
+					// Add custom shipping order item meta added by third-party plugins
+					foreach ( $shipping_line_item['item_meta'] as $key => $value ) {
+						wc_add_order_item_meta( $item_id, $key, $value );
+					}
+				}
+			}
+
+			// Update the subscription address
+			self::maybe_update_subscription_address( $order, $subscription );
+
+			$subscription->calculate_totals();
+		}
 	}
 
 	/**
@@ -1771,38 +1970,73 @@ class WC_Subscriptions_Switcher {
 	 * payment was completed with a payment method which supports automatic payments, update the payment on the subscription
 	 * and the manual renewals flag so that future renewals are processed automatically.
 	 *
-	 * @param array $payment_processing_result
-	 * @param int $order_id
-	 * @since 2.0.16
+	 * @param WC_Order $order
+	 * @since 2.1
 	 */
-	public static function maybe_set_payment_method( $payment_processing_result, $order_id ) {
+	public static function maybe_set_payment_method_after_switch( $order ) {
 
-		// Only update the payment method the order contains a switch, and payment was processed (i.e. a paid date has been set) not just setup for processing, which is the case with PayPal Standard (which is handled by WCS_PayPal_Standard_Switcher)
-		if ( wcs_order_contains_switch( $order_id ) && false != get_post_meta( $order_id, '_paid_date', true ) ) {
+		foreach ( wcs_get_subscriptions_for_switch_order( $order->id ) as $subscription ) {
 
-			$order = wc_get_order( $order_id );
+			if ( false === $subscription->is_manual() ) {
+				continue;
+			}
 
-			foreach ( wcs_get_subscriptions_for_switch_order( $order_id ) as $subscription ) {
+			if ( $subscription->payment_method !== $order->payment_method ) {
 
-				if ( false === $subscription->is_manual() ) {
-					continue;
-				}
+				// Set the new payment method on the subscription
+				$available_gateways = WC()->payment_gateways->get_available_payment_gateways();
+				$payment_method     = isset( $available_gateways[ $order->payment_method ] ) ? $available_gateways[ $order->payment_method ] : false;
 
-				if ( $subscription->payment_method !== $order->payment_method ) {
-
-					// Set the new payment method on the subscription
-					$available_gateways = WC()->payment_gateways->get_available_payment_gateways();
-					$payment_method     = isset( $available_gateways[ $order->payment_method ] ) ? $available_gateways[ $order->payment_method ] : false;
-
-					if ( $payment_method && $payment_method->supports( 'subscriptions' ) ) {
-						$subscription->set_payment_method( $payment_method );
-						$subscription->update_manual( false );
-					}
+				if ( $payment_method && $payment_method->supports( 'subscriptions' ) ) {
+					$subscription->set_payment_method( $payment_method );
+					$subscription->update_manual( false );
 				}
 			}
 		}
+	}
+
+	/** Deprecated Methods **/
+
+	/**
+	 * Once payment is processed on a switch from a $0 / period subscription to a non-zero $ / period subscription, if
+	 * payment was completed with a payment method which supports automatic payments, update the payment on the subscription
+	 * and the manual renewals flag so that future renewals are processed automatically.
+	 *
+	 * @param array $payment_processing_result
+	 * @param int $order_id
+	 * @since 2.0.16
+	 * @deprecated 2.1
+	 */
+	public static function maybe_set_payment_method( $payment_processing_result, $order_id ) {
+
+		_deprecated_function( __METHOD__, '2.1', __CLASS__ . '::maybe_set_payment_method_after_switch( $order )' );
+
+		if ( wcs_order_contains_switch( $order_id ) && false != get_post_meta( $order_id, '_paid_date', true ) ) {
+
+			$order = wc_get_order( $order_id );
+			self::maybe_set_payment_method_after_switch( $order );
+		}
 
 		return $payment_processing_result;
+	}
+
+	/**
+	 * Override the order item quantity used to reduce stock levels when the order item is to record a switch and where no
+	 * prorated amount is being charged.
+	 *
+	 * @param int $quantity the original order item quantity used to reduce stock
+	 * @param WC_Order $order
+	 * @param array $order_item
+	 *
+	 * @return int
+	 */
+	public static function maybe_do_not_reduce_stock( $quantity, $order, $order_item ) {
+
+		if ( isset( $order_item['switched_subscription_price_prorated'] ) && 0 == $order_item['line_total'] ) {
+			$quantity = 0;
+		}
+
+		return $quantity;
 	}
 
 	/**
@@ -1999,7 +2233,7 @@ class WC_Subscriptions_Switcher {
 			$first_payment_timestamp = get_post_meta( $subscription->order->id, '_switched_subscription_first_payment_timestamp', true );
 
 			if ( 0 != $first_payment_timestamp ) {
-				$next_payment_date = ( 'mysql' == $type ) ? date( 'Y-m-d H:i:s', $first_payment_timestamp ) : $first_payment_timestamp;
+				$next_payment_date = ( 'mysql' == $type ) ? gmdate( 'Y-m-d H:i:s', $first_payment_timestamp ) : $first_payment_timestamp;
 			}
 		}
 

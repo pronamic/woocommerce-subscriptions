@@ -58,6 +58,37 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	}
 
 	/**
+	 * Checks if response contains an API error code or message relating to invalid credentails
+	 *
+	 * @link https://developer.paypal.com/docs/classic/api/errorcodes/
+	 *
+	 * @return bool true if has API error relating to incorrect credentials, false otherwise
+	 * @since 2.1
+	 */
+	public function has_api_error_for_credentials() {
+
+		$has_api_error_for_credentials = false;
+
+		// assume something went wrong if ACK is missing
+		if ( $this->has_api_error() ) {
+
+			foreach ( range( 0, 9 ) as $index ) {
+
+				// Error codes refer to multiple errors, go figure, so we need to compare both error codes and error messages
+				$has_credentials_error_code    = $this->has_parameter( "L_ERRORCODE{$index}" ) && in_array( $this->get_parameter( "L_ERRORCODE{$index}" ), array( 10002, 10008 ) );
+				$has_credentials_error_message = $this->has_parameter( "L_LONGMESSAGE{$index}" ) && in_array( $this->get_parameter( "L_LONGMESSAGE{$index}" ), array( 'Username/Password is incorrect', 'Security header is not valid' ) );
+
+				if ( $has_credentials_error_code && $has_credentials_error_message ) {
+					$has_api_error_for_credentials = true;
+					break;
+				}
+			}
+		}
+
+		return $has_api_error_for_credentials;
+	}
+
+	/**
 	 * Gets the API error code
 	 *
 	 * Note that PayPal can return multiple error codes, which are merged here

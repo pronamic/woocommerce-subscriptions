@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once( 'includes/wcs-deprecated-functions.php' );
+require_once( 'includes/wcs-compatibility-functions.php' );
 require_once( 'includes/wcs-conditional-functions.php' );
 require_once( 'includes/wcs-formatting-functions.php' );
 require_once( 'includes/wcs-cart-functions.php' );
@@ -23,6 +24,7 @@ require_once( 'includes/wcs-helper-functions.php' );
 require_once( 'includes/wcs-renewal-functions.php' );
 require_once( 'includes/wcs-resubscribe-functions.php' );
 require_once( 'includes/wcs-switch-functions.php' );
+require_once( 'includes/wcs-limit-functions.php' );
 
 if ( is_admin() ) {
 	require_once( 'includes/admin/wcs-admin-functions.php' );
@@ -123,7 +125,7 @@ function wcs_create_subscription( $args = array() ) {
 	// validate the start_date field
 	if ( ! is_string( $args['start_date'] ) || false === wcs_is_datetime_mysql_format( $args['start_date'] ) ) {
 		return new WP_Error( 'woocommerce_subscription_invalid_start_date_format', _x( 'Invalid date. The date must be a string and of the format: "Y-m-d H:i:s".', 'Error message while creating a subscription', 'woocommerce-subscriptions' ) );
-	} else if ( strtotime( $args['start_date'] ) > current_time( 'timestamp', true ) ) {
+	} else if ( wcs_date_to_time( $args['start_date'] ) > current_time( 'timestamp', true ) ) {
 		return new WP_Error( 'woocommerce_subscription_invalid_start_date', _x( 'Subscription start date must be before current day.', 'Error message while creating a subscription', 'woocommerce-subscriptions' ) );
 	}
 
@@ -273,10 +275,32 @@ function wcs_get_subscription_date_types() {
 		'trial_end'    => _x( 'Trial End', 'table heading', 'woocommerce-subscriptions' ),
 		'next_payment' => _x( 'Next Payment', 'table heading', 'woocommerce-subscriptions' ),
 		'last_payment' => _x( 'Last Payment', 'table heading', 'woocommerce-subscriptions' ),
+		'cancelled'    => _x( 'Cancelled Date', 'table heading', 'woocommerce-subscriptions' ),
 		'end'          => _x( 'End Date', 'table heading', 'woocommerce-subscriptions' ),
 	);
 
 	return apply_filters( 'woocommerce_subscription_dates', $dates );
+}
+
+/**
+ * Find whether to display a specific date type in the admin area
+ *
+ * @param string A subscription date type key. One of the array key values returned by @see wcs_get_subscription_date_types().
+ * @param WC_Subscription
+ * @since 2.1
+ * @return bool
+ */
+function wcs_display_date_type( $date_type, $subscription ) {
+
+	if ( 'last_payment' === $date_type ) {
+		$display_date_type = false;
+	} elseif ( 'cancelled' === $date_type && 0 == $subscription->get_date( $date_type ) ) {
+		$display_date_type = false;
+	} else {
+		$display_date_type = true;
+	}
+
+	return apply_filters( 'wcs_display_date_type', $display_date_type, $date_type, $subscription );
 }
 
 /**
@@ -534,10 +558,15 @@ function wcs_get_order_items_product_id( $item_id ) {
  * items representing a variation, that means the 'variation_id' value, if the item is not a variation, that means
  * the 'product_id value. This function helps save keystrokes on the idiom to check if an item is to a variation or not.
  *
- * @param array $item Either a cart item or order/subscription line item
+ * @param array or object $item Either a cart item, order/subscription line item, or a product.
  */
 function wcs_get_canonical_product_id( $item ) {
-	return ( ! empty( $item['variation_id'] ) ) ? $item['variation_id'] : $item['product_id'];
+
+	if ( is_array( $item ) ) {
+		return ( ! empty( $item['variation_id'] ) ) ? $item['variation_id'] : $item['product_id'];
+	} else {
+		return ( ! empty( $item->variation_id ) ) ? $item->variation_id : $item->id;
+	}
 }
 
 /**
@@ -561,4 +590,3 @@ function wcs_is_view_subscription_page() {
 
 	return ( is_page( wc_get_page_id( 'myaccount' ) ) && isset( $wp->query_vars['view-subscription'] ) ) ? true : false;
 }
-

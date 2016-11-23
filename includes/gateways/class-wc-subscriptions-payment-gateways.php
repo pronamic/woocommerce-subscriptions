@@ -21,13 +21,13 @@ class WC_Subscriptions_Payment_Gateways {
 	 */
 	public static function init() {
 
-		add_action( 'init', __CLASS__ . '::init_paypal', 10 );
+		add_action( 'init', __CLASS__ . '::init_paypal', 5 ); // run before default priority 10 in case the site is using ALTERNATE_WP_CRON to avoid https://core.trac.wordpress.org/ticket/24160
 
 		add_filter( 'woocommerce_available_payment_gateways', __CLASS__ . '::get_available_payment_gateways' );
 
 		add_filter( 'woocommerce_no_available_payment_methods_message', __CLASS__ . '::no_available_payment_methods_message' );
 
-		// Create a custom hook for gateways that need to manually charge recurring payments
+		// Trigger a hook for gateways to charge recurring payments
 		add_action( 'woocommerce_scheduled_subscription_payment', __CLASS__ . '::gateway_scheduled_subscription_payment', 10, 1 );
 
 		// Create a gateway specific hooks for subscription events
@@ -165,6 +165,21 @@ class WC_Subscriptions_Payment_Gateways {
 	}
 
 	/**
+	 * Fire a gateway specific hook for when a subscription renewal payment is due.
+	 *
+	 * @since 2.1.0
+	 */
+	public static function trigger_gateway_renewal_payment_hook( $renewal_order ) {
+		if ( ! empty( $renewal_order ) && $renewal_order->get_total() > 0 && ! empty( $renewal_order->payment_method ) ) {
+
+			// Make sure gateways are setup
+			WC()->payment_gateways();
+
+			do_action( 'woocommerce_scheduled_subscription_payment_' . $renewal_order->payment_method, $renewal_order->get_total(), $renewal_order );
+		}
+	}
+
+	/**
 	 * Fire a gateway specific hook for when a subscription payment is due.
 	 *
 	 * @since 1.0
@@ -175,16 +190,19 @@ class WC_Subscriptions_Payment_Gateways {
 		if ( null != $deprecated ) {
 			_deprecated_argument( __METHOD__, '2.0', 'Second parameter is deprecated' );
 			$subscription = wcs_get_subscription_from_key( $deprecated );
-		} else {
+		} elseif ( ! is_object( $subscription_id ) ) {
 			$subscription = wcs_get_subscription( $subscription_id );
+		} else {
+			// Support receiving a full subscription object for unit testing
+			$subscription = $subscription_id;
 		}
 
 		if ( false === $subscription ) {
 			throw new InvalidArgumentException( sprintf( __( 'Subscription doesn\'t exist in scheduled action: %d', 'woocommerce-subscriptions' ), $subscription_id ) );
 		}
 
-		if ( ! $subscription->is_manual() && $subscription->get_total() > 0 && ! empty( $subscription->payment_method ) ) {
-			do_action( 'woocommerce_scheduled_subscription_payment_' . $subscription->payment_method, $subscription->get_total(), $subscription->get_last_order( 'all' ) );
+		if ( ! $subscription->is_manual() ) {
+			self::trigger_gateway_renewal_payment_hook( $subscription->get_last_order( 'all', 'renewal' ) );
 		}
 	}
 
@@ -236,18 +254,6 @@ class WC_Subscriptions_Payment_Gateways {
 	public static function trigger_gateway_subscription_expired_hook( $user_id, $subscription_key ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::trigger_gateway_status_updated_hook()' );
 		self::trigger_gateway_status_updated_hook( wcs_get_subscription_from_key( $subscription_key ), 'expired' );
-	}
-
-	/**
-	 * Fired a gateway specific when a subscription was suspended. Suspended status was changed in 1.2 to match
-	 * WooCommerce with the "on-hold" status.
-	 *
-	 * @deprecated 1.2
-	 * @since 1.0
-	 */
-	public static function trigger_gateway_suspended_subscription_hook( $user_id, $subscription_key ) {
-		_deprecated_function( __METHOD__, '1.2', __CLASS__ . '::trigger_gateway_subscription_put_on_hold_hook( $subscription_key, $user_id )' );
-		self::trigger_gateway_subscription_put_on_hold_hook( $subscription_key, $user_id );
 	}
 }
 

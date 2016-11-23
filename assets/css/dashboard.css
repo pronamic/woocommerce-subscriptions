@@ -1,0 +1,16 @@
+/*------------------------------------------------------------------------------
+  Subscriptions 2.1 Dashboard Stats
+------------------------------------------------------------------------------*/
+#woocommerce_dashboard_status .wc_status_list li.signup-count a:before {
+    content: "\e02c";
+    color: #5da5da;
+}
+
+#woocommerce_dashboard_status .wc_status_list li.renewal-count a:before {
+    content: "\e02c";
+    color: #f29ec4;
+}
+
+#woocommerce_dashboard_status .wc_status_list li.signup-count {
+    border-right: 1px solid #ececec;
+}
