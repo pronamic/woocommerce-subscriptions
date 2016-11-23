@@ -263,11 +263,11 @@ class WCS_Repair_2_0 {
 		// let's get the last 2 renewal orders
 		$last_renewal_order       = array_shift( $renewal_orders );
 		$last_renewal_date        = $last_renewal_order->order_date;
-		$last_renewal_timestamp   = strtotime( $last_renewal_date );
+		$last_renewal_timestamp   = wcs_date_to_time( $last_renewal_date );
 
 		$second_renewal_order     = array_shift( $renewal_orders );
 		$second_renewal_date      = $second_renewal_order->order_date;
-		$second_renewal_timestamp = strtotime( $second_renewal_date );
+		$second_renewal_timestamp = wcs_date_to_time( $second_renewal_date );
 
 		$interval = 1;
 
@@ -336,11 +336,11 @@ class WCS_Repair_2_0 {
 		// let's get the last 2 renewal orders
 		$last_renewal_order       = array_shift( $renewal_orders );
 		$last_renewal_date        = $last_renewal_order->order_date;
-		$last_renewal_timestamp   = strtotime( $last_renewal_date );
+		$last_renewal_timestamp   = wcs_date_to_time( $last_renewal_date );
 
 		$second_renewal_order     = array_shift( $renewal_orders );
 		$second_renewal_date      = $second_renewal_order->order_date;
-		$second_renewal_timestamp = strtotime( $second_renewal_date );
+		$second_renewal_timestamp = wcs_date_to_time( $second_renewal_date );
 
 		$subscription['interval'] = wcs_estimate_periods_between( $second_renewal_timestamp, $last_renewal_timestamp, $subscription['period'] );
 
@@ -369,7 +369,7 @@ class WCS_Repair_2_0 {
 
 		// If we can calculate it from the effective date and expiry date
 		if ( 'expired' == $subscription['status'] && array_key_exists( 'expiry_date', $subscription ) && ! empty( $subscription['expiry_date'] ) && null !== $effective_start_date && array_key_exists( 'period', $subscription ) && ! empty( $subscription['period'] ) && array_key_exists( 'interval', $subscription ) && ! empty( $subscription['interval'] ) ) {
-			$intervals = wcs_estimate_periods_between( strtotime( $effective_start_date ), strtotime( $subscription['expiry_date'] ), $subscription['period'], 'floor' );
+			$intervals = wcs_estimate_periods_between( wcs_date_to_time( $effective_start_date ), wcs_date_to_time( $subscription['expiry_date'] ), $subscription['period'], 'floor' );
 			$subscription['length'] = $intervals;
 		} else {
 			$subscription['length'] = 0;
@@ -470,7 +470,7 @@ class WCS_Repair_2_0 {
 
 			} else {
 
-				$subscription['end_date'] = wcs_add_time( 5, 'hours', strtotime( $last_order->order_date ) );
+				$subscription['end_date'] = wcs_add_time( 5, 'hours', wcs_date_to_time( $last_order->order_date ) );
 
 			}
 		} else {
@@ -547,8 +547,8 @@ class WCS_Repair_2_0 {
 	 * @return integer       number of seconds between the two
 	 */
 	private static function time_diff( $to, $from ) {
-		$to   = strtotime( $to );
-		$from = strtotime( $from );
+		$to   = wcs_date_to_time( $to );
+		$from = wcs_date_to_time( $from );
 
 		return abs( $to - $from );
 	}
@@ -602,7 +602,7 @@ class WCS_Repair_2_0 {
 			$formatted_date = 0;
 			WCS_Upgrade_Logger::add( sprintf( '-- For order %d: Repairing date type "%s": fetch of date unsuccessfull: no action present. Date is 0.', $subscription['order_id'], $type ) );
 		} else {
-			$formatted_date = date( 'Y-m-d H:i:s', $next_date_timestamp );
+			$formatted_date = gmdate( 'Y-m-d H:i:s', $next_date_timestamp );
 			WCS_Upgrade_Logger::add( sprintf( '-- For order %d: Repairing date type "%s": fetch of date successfull. New date is %s', $subscription['order_id'], $type, $formatted_date ) );
 		}
 
@@ -624,7 +624,7 @@ class WCS_Repair_2_0 {
 		} elseif ( array_key_exists( 'trial_period', $subscription ) && ! empty( $subscription['trial_period'] ) && array_key_exists( 'trial_length', $subscription ) && ! empty( $subscription['trial_length'] ) && array_key_exists( 'start_date', $subscription ) && ! empty( $subscription['start_date'] ) ) {
 
 			// calculate the end of trial from interval, period and start date
-			$effective_date = date( 'Y-m-d H:i:s', strtotime( '+' . $subscription['trial_length'] . ' ' . $subscription['trial_period'], strtotime( $subscription['start_date'] ) ) );
+			$effective_date = gmdate( 'Y-m-d H:i:s', wcs_add_time( $subscription['trial_length'], $subscription['trial_period'], wcs_date_to_time( $subscription['start_date'] ) ) );
 
 		} elseif ( array_key_exists( 'start_date', $subscription ) && ! empty( $subscription['start_date'] ) ) {
 

@@ -107,7 +107,7 @@ class WCS_PayPal_Admin {
 					'type' => 'warning',
 					// translators: placeholders are opening and closing link tags. 1$-2$: to docs on woothemes, 3$-4$ to gateway settings on the site
 					'text'  => sprintf( esc_html__( 'PayPal is inactive for subscription transactions. Please %1$sset up the PayPal IPN%2$s and %3$senter your API credentials%4$s to enable PayPal for Subscriptions.', 'woocommerce-subscriptions' ),
-						'<a href="http://docs.woothemes.com/document/subscriptions/store-manager-guide/#section-4" target="_blank">',
+						'<a href="http://docs.woocommerce.com/document/subscriptions/store-manager-guide/#section-4" target="_blank">',
 						'</a>',
 						'<a href="' . esc_url( $payment_gateway_tab_url ) . '">',
 						'</a>'
@@ -122,11 +122,11 @@ class WCS_PayPal_Admin {
 					'text'  => sprintf( esc_html__( '%1$sPayPal Reference Transactions are not enabled on your account%2$s, some subscription management features are not enabled. Please contact PayPal and request they %3$senable PayPal Reference Transactions%4$s on your account. %5$sCheck PayPal Account%6$s  %7$sLearn more %8$s', 'woocommerce-subscriptions' ),
 						'<strong>',
 						'</strong>',
-						'<a href="http://docs.woothemes.com/document/subscriptions/store-manager-guide/#section-4" target="_blank">',
+						'<a href="http://docs.woocommerce.com/document/subscriptions/store-manager-guide/#section-4" target="_blank">',
 						'</a>',
 						'</p><p><a class="button" href="' . esc_url( wp_nonce_url( add_query_arg( 'wcs_paypal', 'check_reference_transaction_support' ), __CLASS__ ) ) . '">',
 						'</a>',
-						'<a class="button button-primary" href="http://docs.woothemes.com/document/subscriptions/store-manager-guide/#section-4" target="_blank">',
+						'<a class="button button-primary" href="http://docs.woocommerce.com/document/subscriptions/store-manager-guide/#section-4" target="_blank">',
 						'&raquo;</a>'
 					),
 				);
@@ -147,11 +147,11 @@ class WCS_PayPal_Admin {
 			if ( false !== get_option( 'wcs_paypal_credentials_error' ) ) {
 				$notices[] = array(
 					'type' => 'error',
-					// translators: placeholders are link opening and closing tags. 1$-2$: to gateway settings, 3$-4$: support docs on woothemes.com
+					// translators: placeholders are link opening and closing tags. 1$-2$: to gateway settings, 3$-4$: support docs on woocommerce.com
 					'text'  => sprintf( esc_html__( 'There is a problem with PayPal. Your API credentials may be incorrect. Please update your %1$sAPI credentials%2$s. %3$sLearn more%4$s.', 'woocommerce-subscriptions' ),
 						'<a href="' . esc_url( $payment_gateway_tab_url ) . '">',
 						'</a>',
-						'<a href="https://support.woothemes.com/hc/en-us/articles/202882473#paypal-credentials" target="_blank">',
+						'<a href="https://docs.woocommerce.com/document/subscriptions-canceled-suspended-paypal/#section-2" target="_blank">',
 						'</a>'
 					),
 				);
@@ -162,10 +162,28 @@ class WCS_PayPal_Admin {
 					'type' => 'error',
 					// translators: placeholders are opening and closing link tags. 1$-2$: docs on woothemes, 3$-4$: dismiss link
 					'text'  => sprintf( esc_html__( 'There is a problem with PayPal. Your PayPal account is issuing out-of-date subscription IDs. %1$sLearn more%2$s. %3$sDismiss%4$s.', 'woocommerce-subscriptions' ),
-						'<a href="https://support.woothemes.com/hc/en-us/articles/202882473#old-paypal-account" target="_blank">',
+						'<a href="https://docs.woocommerce.com/document/subscriptions-canceled-suspended-paypal/#section-3" target="_blank">',
 						'</a>',
 						'<a href="' . esc_url( add_query_arg( 'wcs_disable_paypal_invalid_profile_id_notice', 'true' ) ) . '">',
 						'</a>'
+					),
+				);
+			}
+
+			$last_ipn_error = get_option( 'wcs_fatal_error_handling_ipn', '' );
+
+			if ( ! empty( $last_ipn_error ) && ( false == get_option( 'wcs_fatal_error_handling_ipn_ignored', false ) || isset( $_GET['wcs_reveal_your_ipn_secrets'] ) ) ) {
+				$notices[] = array(
+					'type' => 'error',
+					'text' => sprintf( esc_html__( '%sA fatal error has occurred when processing a recent subscription payment with PayPal. Please %sopen a new ticket at WooThemes Support%s immediately to get this resolved.%sIn order to get the quickest possible response please attach a %sTemporary Admin Login%s and a copy of your PHP error logs to your support ticket.%sLast recorded error: %s', 'woocommerce-subscriptions' ),
+						'<p>',
+						'<a href="https://www.woocommerce.com/my-account/create-a-ticket/" target="_blank">',
+						'</a>',
+						'<br>',
+						'<a href="https://docs.woocommerce.com/document/create-new-admin-account-wordpress/" target="_blank">',
+						'</a>',
+						'</p>',
+						'<code>' . esc_html( $last_ipn_error ) . '</code><div style="margin: 5px 0;"><a class="button" href="' . esc_url( wp_nonce_url( add_query_arg( 'wcs_ipn_error_notice', 'ignore' ), 'wcs_ipn_error_notice', '_wcsnonce' ) ) . '">' . esc_html__( 'Ignore this error (not recommended!)', 'woocommerce-subscriptions' ) . '</a> <a class="button button-primary" href="https://www.woocommerce.com/my-account/create-a-ticket/">' . esc_html__( 'Open up a ticket now!', 'woocommerce-subscriptions' ) . '</a></div>'
 					),
 				);
 			}
@@ -184,6 +202,10 @@ class WCS_PayPal_Admin {
 	protected static function maybe_disable_invalid_profile_notice() {
 		if ( isset( $_GET['wcs_disable_paypal_invalid_profile_id_notice'] ) ) {
 			update_option( 'wcs_paypal_invalid_profile_id', 'disabled' );
+		}
+
+		if ( isset( $_GET['wcs_ipn_error_notice'] ) ) {
+			update_option( 'wcs_fatal_error_handling_ipn_ignored', true );
 		}
 	}
 

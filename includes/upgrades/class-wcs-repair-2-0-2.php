@@ -269,7 +269,7 @@ class WCS_Repair_2_0_2 {
 
 			// if we have a date, make sure it's valid
 			if ( null !== $old_next_payment_date ) {
-				if ( strtotime( $old_next_payment_date ) <= gmdate( 'U' ) ) {
+				if ( wcs_date_to_time( $old_next_payment_date ) <= gmdate( 'U' ) ) {
 					$repair_date = $subscription->calculate_date( 'next_payment' );
 					if ( 0 == $repair_date ) {
 						$repair_date = false;
@@ -283,7 +283,7 @@ class WCS_Repair_2_0_2 {
 				// let's just double check we shouldn't have a date set by recalculating it
 				$calculated_next_payment_date = $subscription->calculate_date( 'next_payment' );
 
-				if ( 0 != $calculated_next_payment_date && strtotime( $calculated_next_payment_date ) > gmdate( 'U' ) ) {
+				if ( 0 != $calculated_next_payment_date && wcs_date_to_time( $calculated_next_payment_date ) > gmdate( 'U' ) ) {
 					$repair_date = $calculated_next_payment_date;
 				} else {
 					$repair_date = false;

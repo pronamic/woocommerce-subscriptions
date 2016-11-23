@@ -29,6 +29,24 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 
 		// When a resubscribe order is created on checkout, record the resubscribe, attached after WC_Subscriptions_Checkout::process_checkout()
 		add_action( 'woocommerce_checkout_subscription_created', array( &$this, 'maybe_record_resubscribe' ), 10, 3 );
+
+		add_filter( 'woocommerce_subscriptions_recurring_cart_key', array( &$this, 'get_recurring_cart_key' ), 10, 2 );
+
+		add_filter( 'wcs_recurring_cart_next_payment_date', array( &$this, 'recurring_cart_next_payment_date' ), 100, 2 );
+
+		// Mock a free trial on the cart item to make sure the resubscribe total doesn't include any recurring amount when honoring prepaid term
+		add_filter( 'woocommerce_before_calculate_totals', array( &$this, 'maybe_set_free_trial' ), 100, 1 );
+		add_action( 'woocommerce_subscription_cart_before_grouping', array( &$this, 'maybe_unset_free_trial' ) );
+		add_action( 'woocommerce_subscription_cart_after_grouping', array( &$this, 'maybe_set_free_trial' ) );
+		add_action( 'wcs_recurring_cart_start_date', array( &$this, 'maybe_unset_free_trial' ), 0, 1 );
+		add_action( 'wcs_recurring_cart_end_date', array( &$this, 'maybe_set_free_trial' ), 100, 1 );
+		add_filter( 'woocommerce_subscriptions_calculated_total', array( &$this, 'maybe_unset_free_trial' ), 10000, 1 );
+		add_action( 'woocommerce_cart_totals_before_shipping', array( &$this, 'maybe_set_free_trial' ) );
+		add_action( 'woocommerce_cart_totals_after_shipping', array( &$this, 'maybe_unset_free_trial' ) );
+		add_action( 'woocommerce_review_order_before_shipping', array( &$this, 'maybe_set_free_trial' ) );
+		add_action( 'woocommerce_review_order_after_shipping', array( &$this, 'maybe_unset_free_trial' ) );
+
+		add_action( 'woocommerce_order_status_changed', array( &$this, 'maybe_cancel_existing_subscription' ), 10, 3 );
 	}
 
 	/**
@@ -85,14 +103,31 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 
 			if ( $order->order_key == $order_key && $order->has_status( array( 'pending', 'failed' ) ) && wcs_order_contains_resubscribe( $order ) ) {
 
+				if ( ! is_user_logged_in() ) {
+
+					$redirect = add_query_arg( array(
+						'wcs_redirect'    => 'pay_for_order',
+						'wcs_redirect_id' => $order_id,
+					), get_permalink( wc_get_page_id( 'myaccount' ) ) );
+
+					wp_safe_redirect( $redirect );
+					exit;
+				}
+
 				wc_add_notice( __( 'Complete checkout to resubscribe.', 'woocommerce-subscriptions' ), 'success' );
 
 				$subscriptions = wcs_get_subscriptions_for_resubscribe_order( $order );
 
 				foreach ( $subscriptions as $subscription ) {
-					$this->setup_cart( $subscription, array(
-						'subscription_id' => $subscription->id,
-					) );
+					if ( current_user_can( 'subscribe_again', $subscription->id ) ) {
+						$this->setup_cart( $subscription, array(
+							'subscription_id' => $subscription->id,
+						) );
+					} else {
+						wc_add_notice( __( 'That doesn\'t appear to be one of your subscriptions.', 'woocommerce-subscriptions' ), 'error' );
+						wp_safe_redirect( get_permalink( wc_get_page_id( 'myaccount' ) ) );
+						exit;
+					}
 				}
 
 				$redirect_to = WC()->cart->get_checkout_url();
@@ -153,40 +188,9 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	 * @return bool
 	 */
 	public function is_purchasable( $is_purchasable, $product ) {
+		_deprecated_function( __METHOD__, '2.1', 'WCS_Limiter::is_purchasable_renewal' );
+		return WCS_Limiter::is_purchasable_renewal( $is_purchasable, $product );
 
-		// If the product is being set as not-purchasable by Subscriptions (due to limiting)
-		if ( false === $is_purchasable && false === WC_Subscriptions_Product::is_purchasable( $is_purchasable, $product ) ) {
-
-			// Validating when restoring cart from session
-			if ( false !== $this->cart_contains() ) {
-
-				$resubscribe_cart_item = $this->cart_contains();
-				$subscription          = wcs_get_subscription( $resubscribe_cart_item['subscription_resubscribe']['subscription_id'] );
-
-				if ( $subscription->has_product( $product->id ) ) {
-					$is_purchasable = true;
-				}
-
-			// Restoring cart from session, so need to check the cart in the session (wcs_cart_contains_renewal() only checks the cart)
-			} elseif ( isset( WC()->session->cart ) ) {
-
-				foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
-					if ( $product->id == $cart_item['product_id'] && isset( $cart_item[ $this->cart_item_key ] ) ) {
-						$is_purchasable = true;
-						break;
-					}
-				}
-			} elseif ( isset( $_GET['resubscribe'] ) ) { // Is a request to resubscribe
-
-				$subscription = wcs_get_subscription( absint( $_GET['resubscribe'] ) );
-
-				if ( false !== $subscription && $subscription->has_product( $product->id ) && wcs_can_user_resubscribe_to( $subscription ) ) {
-					$is_purchasable = true;
-				}
-			}
-		}
-
-		return $is_purchasable;
 	}
 
 	/**
@@ -220,6 +224,94 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 		}
 
 		return $subscription;
+	}
+
+	/**
+	 * Make sure that a resubscribe item's cart key is based on the end of the pre-paid term if the user already has a subscription that is pending-cancel, not the date calculated for the product.
+	 *
+	 * @since 2.1
+	 */
+	public function get_recurring_cart_key( $cart_key, $cart_item ) {
+		$subscription = $this->get_order( $cart_item );
+		if ( false !== $subscription && $subscription->has_status( 'pending-cancel' ) ) {
+			remove_filter( 'woocommerce_subscriptions_recurring_cart_key', array( &$this, 'get_recurring_cart_key' ), 10, 2 );
+			$cart_key = WC_Subscriptions_Cart::get_recurring_cart_key( $cart_item, $subscription->get_time( 'end' ) );
+			add_filter( 'woocommerce_subscriptions_recurring_cart_key', array( &$this, 'get_recurring_cart_key' ), 10, 2 );
+		}
+
+		return $cart_key;
+	}
+
+	/**
+	 * Make sure when displaying the next payment date for a subscription, the date takes into
+	 * account the end of the pre-paid term if the user is resubscribing to a subscription that is pending-cancel.
+	 *
+	 * @since 2.1
+	 */
+	public function recurring_cart_next_payment_date( $first_renewal_date, $cart ) {
+		foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
+			$subscription = $this->get_order( $cart_item );
+			if ( false !== $subscription && $subscription->has_status( 'pending-cancel' ) ) {
+				$first_renewal_date = ( '1' != $cart_item['data']->subscription_length ) ? $subscription->get_date( 'end' ) : 0;
+				break;
+			}
+		}
+		return $first_renewal_date;
+	}
+
+	/**
+	 * Make sure resubscribe cart item price doesn't include any recurring amount by setting a free trial.
+	 *
+	 * @since 2.1
+	 */
+	public function maybe_set_free_trial( $total = '' ) {
+
+		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+			$subscription = $this->get_order( $cart_item );
+			if ( false !== $subscription && $subscription->has_status( 'pending-cancel' ) ) {
+				WC()->cart->cart_contents[ $cart_item_key ]['data']->subscription_trial_length = 1;
+				break;
+			}
+		}
+
+		return $total;
+	}
+
+	/**
+	 * Remove mock free trials from resubscribe cart items.
+	 *
+	 * @since 2.1
+	 */
+	public function maybe_unset_free_trial( $total = '' ) {
+
+		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+			$subscription = $this->get_order( $cart_item );
+			if ( false !== $subscription && $subscription->has_status( 'pending-cancel' ) ) {
+				WC()->cart->cart_contents[ $cart_item_key ]['data']->subscription_trial_length = 0;
+				break;
+			}
+		}
+
+		return $total;
+	}
+
+	/**
+	 * When the user resubscribes to a subscription that is pending-cancel, cancel the existing subscription.
+	 *
+	 * @since 2.1
+	 */
+	public function maybe_cancel_existing_subscription( $order_id, $old_order_status, $new_order_status ) {
+		if ( wcs_order_contains_subscription( $order_id ) && wcs_order_contains_resubscribe( $order_id ) ) {
+			$order_completed      = in_array( $new_order_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id ), 'processing', 'completed' ) );
+			$order_needed_payment = in_array( $old_order_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ) ) );
+
+			foreach ( wcs_get_subscriptions_for_resubscribe_order( $order_id ) as $subscription ) {
+				if ( $subscription->has_status( 'pending-cancel' ) ) {
+					$cancel_note = sprintf( __( 'Customer resubscribed in order #%s', 'woocommerce-subscriptions' ), wc_get_order( $order_id )->get_order_number() );
+					$subscription->update_status( 'cancelled', $cancel_note );
+				}
+			}
+		}
 	}
 }
 new WCS_Cart_Resubscribe();

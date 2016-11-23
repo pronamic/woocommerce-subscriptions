@@ -85,6 +85,9 @@ class WC_Subscriptions_Upgrader {
 
 		// While the upgrade is in progress, we need to block PayPal IPN messages to avoid renewals failing to process
 		add_action( 'woocommerce_api_wc_gateway_paypal', __CLASS__ . '::maybe_block_paypal_ipn', 0 );
+
+		// Sometimes redirect to the Welcome/About page after an upgrade
+		add_action( 'woocommerce_subscriptions_upgraded', __CLASS__ . '::maybe_redirect_after_upgrade_complete', 100, 2 );
 	}
 
 	/**
@@ -167,6 +170,20 @@ class WC_Subscriptions_Upgrader {
 			self::ajax_upgrade_handler();
 		}
 
+		if ( '0' != self::$active_version && version_compare( self::$active_version, '2.1.0', '<' ) ) {
+
+			// Delete cached subscription length ranges to force an update with 2.1
+			WC_Subscriptions::$cache->delete_cached( tlc_transient( 'wcs-sub-ranges-' . get_locale() )->key );
+
+			WCS_Upgrade_Logger::add( 'v2.1: Deleted cached subscription ranges.' );
+
+			include_once( 'class-wcs-upgrade-2-1.php' );
+			WCS_Upgrade_2_1::set_cancelled_dates();
+
+			// Schedule report cache updates in the hopes that the data is ready and waiting for the store owner the first time they visit the reports pages
+			do_action( 'woocommerce_subscriptions_reports_schedule_cache_updates' );
+		}
+
 		self::upgrade_complete();
 	}
 
@@ -183,7 +200,19 @@ class WC_Subscriptions_Upgrader {
 
 		delete_option( 'wc_subscriptions_is_upgrading' );
 
-		do_action( 'woocommerce_subscriptions_upgraded', WC_Subscriptions::$version );
+		do_action( 'woocommerce_subscriptions_upgraded', WC_Subscriptions::$version, self::$active_version );
+	}
+
+	/**
+	 * Redirect to the Subscriptions major version Welcome/About page for major version updates
+	 *
+	 * @since 2.1
+	 */
+	public static function maybe_redirect_after_upgrade_complete( $current_version, $previously_active_version ) {
+		if ( version_compare( $previously_active_version, '2.1.0', '<' ) && version_compare( $current_version, '2.1.0', '>=' ) ) {
+			wp_safe_redirect( self::$about_page_url );
+			exit();
+		}
 	}
 
 	/**
@@ -296,7 +325,7 @@ class WC_Subscriptions_Upgrader {
 					$results = array(
 						'upgraded_count' => 0,
 						// translators: 1$: error message, 2$: opening link tag, 3$: closing link tag
-						'message'        => sprintf( __( 'Unable to upgrade subscriptions.<br/>Error: %1$s<br/>Please refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage(). '</code>', '<a href="' . esc_url( 'https://woothemes.com/my-account/create-a-ticket/' ) . '">', '</a>' ),
+						'message'        => sprintf( __( 'Unable to upgrade subscriptions.<br/>Error: %1$s<br/>Please refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage(). '</code>', '<a href="' . esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' ) . '">', '</a>' ),
 						'status'         => 'error',
 					);
 				}
@@ -347,7 +376,7 @@ class WC_Subscriptions_Upgrader {
 						'repaired_count'   => 0,
 						'unrepaired_count' => 0,
 						// translators: 1$: error message, 2$: opening link tag, 3$: closing link tag
-						'message'          => sprintf( _x( 'Unable to repair subscriptions.<br/>Error: %1$s<br/>Please refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'Error message that gets sent to front end when upgrading Subscriptions', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage(). '</code>', '<a href="' . esc_url( 'https://woothemes.com/my-account/create-a-ticket/' ) . '">', '</a>' ),
+						'message'          => sprintf( _x( 'Unable to repair subscriptions.<br/>Error: %1$s<br/>Please refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'Error message that gets sent to front end when upgrading Subscriptions', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage(). '</code>', '<a href="' . esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' ) . '">', '</a>' ),
 						'status'           => 'error',
 					);
 				}
@@ -551,7 +580,7 @@ class WC_Subscriptions_Upgrader {
 	 * @since 1.4
 	 */
 	public static function updated_welcome_page() {
-		$about_page = add_dashboard_page( __( 'Welcome to WooCommerce Subscriptions 2.0', 'woocommerce-subscriptions' ), __( 'About WooCommerce Subscriptions', 'woocommerce-subscriptions' ), 'manage_options', 'wcs-about', __CLASS__ . '::about_screen' );
+		$about_page = add_dashboard_page( __( 'Welcome to WooCommerce Subscriptions 2.1', 'woocommerce-subscriptions' ), __( 'About WooCommerce Subscriptions', 'woocommerce-subscriptions' ), 'manage_options', 'wcs-about', __CLASS__ . '::about_screen' );
 		add_action( 'admin_print_styles-'. $about_page, __CLASS__ . '::admin_css' );
 		add_action( 'admin_head',  __CLASS__ . '::admin_head' );
 	}
@@ -580,7 +609,10 @@ class WC_Subscriptions_Upgrader {
 	 * Output the about screen.
 	 */
 	public static function about_screen() {
+
 		$active_version = self::$active_version;
+		$settings_page  = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
+
 		include_once( 'templates/wcs-about.php' );
 	}
 

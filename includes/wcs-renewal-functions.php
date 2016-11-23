@@ -115,12 +115,16 @@ function wcs_get_subscriptions_for_renewal_order( $order ) {
 		$order = wc_get_order( $order );
 	}
 
-	$subscriptions    = array();
-	$subscription_ids = get_post_meta( $order->id, '_subscription_renewal', false );
+	$subscriptions = array();
 
-	foreach ( $subscription_ids as $subscription_id ) {
-		if ( wcs_is_subscription( $subscription_id ) ) {
-			$subscriptions[ $subscription_id ] = wcs_get_subscription( $subscription_id );
+	// Only use the order if we actually found a valid order object
+	if ( is_object( $order ) ) {
+		$subscription_ids = get_post_meta( $order->id, '_subscription_renewal', false );
+
+		foreach ( $subscription_ids as $subscription_id ) {
+			if ( wcs_is_subscription( $subscription_id ) ) {
+				$subscriptions[ $subscription_id ] = wcs_get_subscription( $subscription_id );
+			}
 		}
 	}
 

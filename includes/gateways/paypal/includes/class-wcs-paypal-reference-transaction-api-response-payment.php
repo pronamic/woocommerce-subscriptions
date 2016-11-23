@@ -115,9 +115,8 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 
 		} elseif ( 'echeck' == $this->get_payment_type() ) {
 
-			// add some additional info for eCheck payments
 			// translators: placeholder is localised datetime
-			$message = sprintf( __( 'expected clearing date %s', 'woocommerce-subscriptions' ), date_i18n( wc_date_format(), strtotime( $this->get_payment_parameter( 'EXPECTEDECHECKCLEARDATE' ) ) ) );
+			$message = sprintf( __( 'expected clearing date %s', 'woocommerce-subscriptions' ), date_i18n( wc_date_format(), wcs_date_to_time( $this->get_payment_parameter( 'EXPECTEDECHECKCLEARDATE' ) ) ) );
 		}
 
 		// add fraud filters

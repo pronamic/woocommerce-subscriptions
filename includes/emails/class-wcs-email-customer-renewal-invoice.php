@@ -7,16 +7,20 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * An email sent to the customer via admin.
  *
- * @class 		WC_Email_Customer_Invoice
- * @version		2.0.0
- * @package		WooCommerce/Classes/Emails
- * @author 		WooThemes
- * @extends 	WC_Email
+ * @class		WCS_Email_Customer_Renewal_Invoice
+ * @version		1.4
+ * @package		WooCommerce_Subscriptions/Includes/Emails
+ * @author		Prospress
+ * @extends		WC_Email_Customer_Invoice
  */
 class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 
 	var $find;
 	var $replace;
+
+	// fields used in WC_Email_Customer_Invoice this class doesn't need
+	var $subject_paid = null;
+	var $heading_paid = null;
 
 	/**
 	 * Constructor
@@ -25,7 +29,7 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 
 		$this->id             = 'customer_renewal_invoice';
 		$this->title          = __( 'Customer Renewal Invoice', 'woocommerce-subscriptions' );
-		$this->description    = __( 'Sent to a customer when the subscription is due for renewal and the renewal requires a manual payment, either because it uses manual renewals or the automatic recurring payment failed. The email contains renewal order information and payment links.', 'woocommerce-subscriptions' );
+		$this->description    = __( 'Sent to a customer when the subscription is due for renewal and the renewal requires a manual payment, either because it uses manual renewals or the automatic recurring payment failed for the initial attempt and all automatic retries (if any). The email contains renewal order information and payment links.', 'woocommerce-subscriptions' );
 		$this->customer_email = true;
 
 		$this->template_html  = 'emails/customer-renewal-invoice.php';
@@ -34,9 +38,6 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 
 		$this->subject        = __( 'Invoice for renewal order {order_number} from {order_date}', 'woocommerce-subscriptions' );
 		$this->heading        = __( 'Invoice for renewal order {order_number}', 'woocommerce-subscriptions' );
-
-		$this->subject_paid = null;
-		$this->heading_paid = null;
 
 		// Triggers for this email
 		add_action( 'woocommerce_generated_manual_renewal_order_renewal_notification', array( $this, 'trigger' ) );
@@ -68,9 +69,9 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 			$order_date_index = array_search( '{order_date}', $this->find );
 			if ( false === $order_date_index ) {
 				$this->find[] = '{order_date}';
-				$this->replace[] = date_i18n( wc_date_format(), strtotime( $this->object->order_date ) );
+				$this->replace[] = date_i18n( wc_date_format(), wcs_date_to_time( $this->object->order_date ) );
 			} else {
-				$this->replace[ $order_date_index ] = date_i18n( wc_date_format(), strtotime( $this->object->order_date ) );
+				$this->replace[ $order_date_index ] = date_i18n( wc_date_format(), wcs_date_to_time( $this->object->order_date ) );
 			}
 
 			$order_number_index = array_search( '{order_number}', $this->find );
@@ -122,6 +123,9 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 			array(
 				'order'         => $this->object,
 				'email_heading' => $this->get_heading(),
+				'sent_to_admin' => false,
+				'plain_text'    => false,
+				'email'         => $this,
 			),
 			'',
 			$this->template_base
@@ -142,6 +146,9 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 			array(
 				'order'         => $this->object,
 				'email_heading' => $this->get_heading(),
+				'sent_to_admin' => false,
+				'plain_text'    => true,
+				'email'         => $this,
 			),
 			'',
 			$this->template_base

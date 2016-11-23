@@ -1,6 +1,12 @@
 /*------------------------------------------------------------------------------
-  Subscriptions 2.0 About Page CSS
+  Subscriptions About Page CSS
 ------------------------------------------------------------------------------*/
+ul {
+	list-style-type: disc;
+	padding-left: 1.6em;
+	margin-top: 0;
+	margin-bottom: 1.6em;
+}
 .wcs-badge:before {
 	font-family: WooCommerce !important;
 	content: "\e03d";
@@ -34,8 +40,26 @@
 	-webkit-box-shadow: 0 1px 3px rgba(0,0,0,.2);
 	box-shadow: 0 1px 3px rgba(0,0,0,.2);
 }
+.about-wrap h2 {
+	border-bottom: 1px solid #DDD;
+	margin: 0;
+	padding: 1em 0;
+}
+.about-wrap .changelog {
+	margin-bottom: 0;
+}
 .about-wrap .feature-section {
-	padding-bottom: 2em;
+	padding-top: 1.6em;
+	padding-bottom: 0.4em;
+	border-bottom: 1px solid #DDD;
+}
+.about-wrap .still-more .feature-section {
+	padding-top: 0;
+	padding-bottom: 0.4em;
+	border-bottom: 1px solid #DDD;
+}
+.about-wrap .under-the-hood {
+	padding-top: 0;
 }
 .about-wrap .wcs-badge {
 	position: absolute;
@@ -75,10 +99,11 @@
 .woocommerce-message a.button-primary,p.woocommerce-actions a.button-primary,
 .woocommerce-message a.button-primary:focus, p.woocommerce-actions a.button-primary:focus,
 .woocommerce-message a.button-primary:active, p.woocommerce-actions a.button-primary:active {
-	background: #cc99c2;
+	background: #b366a4;
 	border-color: #b366a4;
 	-webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,.25),0 1px 0 rgba(0,0,0,.15);
 	box-shadow: inset 0 1px 0 rgba(255,255,255,.25),0 1px 0 rgba(0,0,0,.15);
+	text-shadow: 0 -1px 1px #b366a4, 1px 0 1px #b366a4, 0 1px 1px #b366a4, -1px 0 1px #b366a4;
 	color: #fff;
 	text-decoration: none;
 }
@@ -95,7 +120,8 @@
 	border-color: #aa559a;
 }
 
-.woocommerce-message a.docs,.woocommerce-message a.skip,p.woocommerce-actions a.docs,p.woocommerce-actions a.skip {
+.woocommerce-message a.skip,
+p.woocommerce-actions a.skip {
 	opacity: .7;
 }
 
@@ -119,6 +145,9 @@ p.woocommerce-actions {
 }
 .about-wrap .feature-section.two-col .col {
 	float: left;
+}
+.about-wrap .feature-section .col {
+	margin-top: 1em;
 }
 .about-wrap .feature-section .col.last-feature {
 	margin-right: 0;

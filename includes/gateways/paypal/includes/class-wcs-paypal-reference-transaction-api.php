@@ -128,6 +128,11 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 				$reference_transactions_enabled = true;
 			} else {
 				$reference_transactions_enabled = false;
+
+				// And set a flag to display invalid credentials notice
+				if ( $response->has_api_error_for_credentials() ) {
+					update_option( 'wcs_paypal_credentials_error', 'yes' );
+				}
 			}
 		} catch ( Exception $e ) {
 			$reference_transactions_enabled = false;
