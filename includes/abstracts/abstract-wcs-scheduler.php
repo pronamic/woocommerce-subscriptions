@@ -30,6 +30,10 @@ abstract class WCS_Scheduler {
 		$this->date_types_to_schedule = apply_filters( 'woocommerce_subscriptions_date_types_to_schedule', array_keys( wcs_get_subscription_date_types() ) );
 	}
 
+	protected function get_date_types_to_schedule() {
+		return $this->date_types_to_schedule;
+	}
+
 	/**
 	 * When a subscription's date is updated, maybe schedule an event
 	 *
