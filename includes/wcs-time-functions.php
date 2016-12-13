@@ -328,7 +328,7 @@ function wcs_estimate_periods_between( $start_timestamp, $end_timestamp, $unit_o
  * @return int number of leap days between the start and end timstamps
  */
 function wcs_number_of_leap_days( $start_timestamp, $end_timestamp ) {
-	if ( ! is_int( $start_timestamp ) || ! is_int( $end_timestamp ) ) {
+	if ( ! is_numeric( $start_timestamp ) || ! is_numeric( $end_timestamp ) ) {
 		throw new InvalidArgumentException( 'Start or end times are not integers' );
 	}
 	// save the date! ;)
@@ -645,7 +645,7 @@ function wcs_date_to_time( $date_string ) {
 
 	$date_obj = new DateTime( $date_string, new DateTimeZone( 'UTC' ) );
 
-	return $date_obj->format( 'U' );
+	return intval( $date_obj->format( 'U' ) );
 }
 
 /**
