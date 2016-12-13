@@ -1,5 +1,11 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2016.11.26 - version 2.1.1
+* Tweak: Delete Subscriptions transients when using the "Clear Transients" tool via the WooCommerce > System Status > Tools administration screen. (PR#1758)
+* Tweak: Avoid infinite loops with old versions of the Shipping Multiple Addresses extension and potentially other extension that may manually instantiate the WC_Checkout object, which is normally a singleton accessed via WC()->checkout, WC()->checkout or WC_Checkout::instance(). (PR#1757)
+* Tweak: When a subscription's date or status is updated, unschedule all corresponding scheduled actions, not just the first to ensure duplicate scheduled actions that may have been added by 3rd party code or manually are also unscheduled. (PR#1764)
+* Fix: Do not require timestamps to be an integer in some date functions to fix issues where a string representation of a timestamp is used. Fixes issues with PayPal Standard Checkout & compatibility with the Groups for WooCommerce extension. (PR#1763)
+
 2016.11.12 - version 2.1.0
  * New: Subscription Reports to get insights into the performance of your subscription business: https://docs.woocommerce.com/document/subscriptions/reports/
  * New: Failed Recurring Payment Retry System to help recover revenue that would otherwise be lost: https://docs.woocommerce.com/document/subscriptions/failed-payment-retry/

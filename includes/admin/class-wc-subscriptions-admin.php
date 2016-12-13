@@ -54,6 +54,10 @@ class WC_Subscriptions_Admin {
 		// Add subscription pricing fields on edit product page
 		add_action( 'woocommerce_product_options_general_product_data', __CLASS__ . '::subscription_pricing_fields' );
 
+		// Add listener to clear our own transients when WooCommerce -> Clear Transients is
+		// triggered from the admin panel
+		add_action( 'woocommerce_page_wc-status', __CLASS__ . '::clear_subscriptions_transients' );
+
 		// Add subscription shipping options on edit product page
 		add_action( 'woocommerce_product_options_shipping', __CLASS__ . '::subscription_shipping_fields' );
 
@@ -111,6 +115,44 @@ class WC_Subscriptions_Admin {
 
 		add_action( 'woocommerce_payment_gateways_settings', __CLASS__ . '::add_recurring_payment_gateway_information', 10 , 1 );
 	}
+
+	/**
+	 * Clear all transients data we have when the WooCommerce::Tools::Clear Transients action is
+	 * triggered.
+	 *
+	 * @since 2.1.1
+	 *
+	 * @return null
+	 */
+	public static function clear_subscriptions_transients() {
+		global $wpdb;
+		if ( empty( $_GET['action'] ) || empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'debug_action' ) ) {
+			return;
+		}
+
+		if ( wc_clean( $_GET['action'] ) === 'clear_transients' ) {
+			$transients_to_delete = array(
+				'wc_report_subscription_by_product',
+				'wc_report_subscription_by_customer',
+				'wc_report_subscription_events_by_date',
+			);
+
+			// Load all transients with the prefix tlc_
+			$results = $wpdb->get_col( "SELECT DISTINCT `option_name`
+				FROM `$wpdb->options`
+				WHERE `option_name` LIKE '%transient_tlc_%'" );
+
+			foreach ( $results as $column ) {
+				$name = explode( 'transient_', $column, 2 );
+				$transients_to_delete[] = $name[1];
+			}
+
+			foreach ( $transients_to_delete as $transient_to_delete ) {
+				delete_transient( $transient_to_delete );
+			}
+		}
+	}
+
 
 	/**
 	 * Add the 'subscriptions' product type to the WooCommerce product type select box.
