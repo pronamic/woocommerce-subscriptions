@@ -34,8 +34,10 @@ class WCS_Query extends WC_Query {
 	public function init_query_vars() {
 		$this->query_vars = array(
 			'view-subscription' => get_option( 'woocommerce_myaccount_view_subscriptions_endpoint', 'view-subscription' ),
-			'subscriptions'     => get_option( 'woocommerce_myaccount_subscriptions_endpoint', 'subscriptions' ),
 		);
+		if ( ! WC_Subscriptions::is_woocommerce_pre( '2.6' ) ) {
+			$this->query_vars['subscriptions'] = get_option( 'woocommerce_myaccount_subscriptions_endpoint', 'subscriptions' );
+		}
 	}
 
 	/**

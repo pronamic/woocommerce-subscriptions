@@ -25,9 +25,11 @@ $display_th = true;
 				<?php endif; ?>
 				<tr class="cart-subtotal recurring-total">
 					<?php if ( $display_th ) : $display_th = false; ?>
-					<th rowspan="<?php echo esc_attr( $carts_with_multiple_payments ); ?>"><?php esc_html_e( 'Subtotal', 'woocommerce-subscriptions' ); ?></th>
+						<th rowspan="<?php echo esc_attr( $carts_with_multiple_payments ); ?>"><?php esc_html_e( 'Subtotal', 'woocommerce-subscriptions' ); ?></th>
+						<td data-title="<?php esc_attr_e( 'Subtotal', 'woocommerce-subscriptions' ); ?>"><?php wcs_cart_totals_subtotal_html( $recurring_cart ); ?></td>
+					<?php else : ?>
+						<td><?php wcs_cart_totals_subtotal_html( $recurring_cart ); ?></td>
 					<?php endif; ?>
-					<td><?php wcs_cart_totals_subtotal_html( $recurring_cart ); ?></td>
 				</tr>
 			<?php endforeach; ?>
 			<?php $display_th = true; ?>
@@ -41,9 +43,11 @@ $display_th = true;
 						<?php if ( $recurring_code !== $code ) { continue; } ?>
 							<tr class="cart-discount coupon-<?php echo esc_attr( $code ); ?> recurring-total">
 								<?php if ( $display_th ) : $display_th = false; ?>
-								<th rowspan="<?php echo esc_attr( $carts_with_multiple_payments ); ?>"><?php wc_cart_totals_coupon_label( $coupon ); ?></th>
+									<th rowspan="<?php echo esc_attr( $carts_with_multiple_payments ); ?>"><?php wc_cart_totals_coupon_label( $coupon ); ?></th>
+									<td data-title="<?php wc_cart_totals_coupon_label( $coupon ); ?>"><?php wcs_cart_totals_coupon_html( $recurring_coupon, $recurring_cart ); ?></td>
+								<?php else : ?>
+									<td><?php wcs_cart_totals_coupon_html( $recurring_coupon, $recurring_cart ); ?></td>
 								<?php endif; ?>
-								<td><?php wcs_cart_totals_coupon_html( $recurring_coupon, $recurring_cart ); ?></td>
 							</tr>
 					<?php endforeach; ?>
 				<?php endforeach; ?>
@@ -67,10 +71,11 @@ $display_th = true;
 							<tr class="tax-rate tax-rate-<?php echo esc_attr( sanitize_title( $recurring_code ) ); ?> recurring-total">
 								<?php if ( $display_th ) : $display_th = false; ?>
 									<th><?php echo esc_html( $recurring_tax->label ); ?></th>
+									<td data-title="<?php echo esc_attr( $recurring_tax->label ); ?>"><?php echo wp_kses_post( wcs_cart_price_string( $recurring_tax->formatted_amount, $recurring_cart ) ); ?></td>
 								<?php else : ?>
 									<th></th>
+									<td><?php echo wp_kses_post( wcs_cart_price_string( $recurring_tax->formatted_amount, $recurring_cart ) ); ?></td>
 								<?php endif; ?>
-								<td><?php echo wp_kses_post( wcs_cart_price_string( $recurring_tax->formatted_amount, $recurring_cart ) ); ?></td>
 							</tr>
 						<?php endforeach; ?>
 					<?php endforeach; ?>
@@ -86,10 +91,11 @@ $display_th = true;
 					<tr class="tax-total recurring-total">
 						<?php if ( $display_th ) : $display_th = false; ?>
 							<th><?php echo esc_html( WC()->countries->tax_or_vat() ); ?></th>
+							<td data-title="<?php echo esc_attr( WC()->countries->tax_or_vat() ); ?>"><?php echo wp_kses_post( wcs_cart_price_string( $recurring_cart->get_taxes_total(), $recurring_cart ) ); ?></td>
 						<?php else : ?>
 							<th></th>
+							<td><?php echo wp_kses_post( wcs_cart_price_string( $recurring_cart->get_taxes_total(), $recurring_cart ) ); ?></td>
 						<?php endif; ?>
-						<td><?php echo wp_kses_post( wcs_cart_price_string( $recurring_cart->get_taxes_total(), $recurring_cart ) ); ?></td>
 					</tr>
 				<?php endforeach; ?>
 				<?php $display_th = true; ?>
@@ -102,8 +108,10 @@ $display_th = true;
 			<?php endif; ?>
 			<tr class="order-total recurring-total">
 				<?php if ( $display_th ) : $display_th = false; ?>
-				<th rowspan="<?php echo esc_attr( $carts_with_multiple_payments ); ?>"><?php esc_html_e( 'Recurring Total', 'woocommerce-subscriptions' ); ?></th>
+					<th rowspan="<?php echo esc_attr( $carts_with_multiple_payments ); ?>"><?php esc_html_e( 'Recurring Total', 'woocommerce-subscriptions' ); ?></th>
+					<td data-title="<?php esc_attr_e( 'Recurring Total', 'woocommerce-subscriptions' ); ?>"><?php wcs_cart_totals_order_total_html( $recurring_cart ); ?></td>
+				<?php else : ?>
+					<td><?php wcs_cart_totals_order_total_html( $recurring_cart ); ?></td>
 				<?php endif; ?>
-				<td><?php wcs_cart_totals_order_total_html( $recurring_cart ); ?></td>
 			</tr>
 		<?php endforeach; ?>

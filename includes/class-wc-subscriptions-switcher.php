@@ -60,9 +60,6 @@ class WC_Subscriptions_Switcher {
 		// Don't display free trials when switching a subscription, because no free trials are provided
 		add_filter( 'woocommerce_subscriptions_product_price_string_inclusions', __CLASS__ . '::customise_product_string_inclusions', 12, 2 );
 
-		// Autocomplete subscription switch orders
-		add_action( 'woocommerce_payment_complete_order_status', __CLASS__ . '::subscription_switch_autocomplete', 10, 2 );
-
 		// Don't carry switch meta data to renewal orders
 		add_filter( 'wcs_renewal_order_meta_query', __CLASS__ . '::remove_renewal_order_meta_query', 10 );
 
@@ -573,6 +570,15 @@ class WC_Subscriptions_Switcher {
 					}
 				}
 			}
+
+			// Store the order line item id so it can be retrieved when we're processing the switch on checkout
+			foreach ( WC()->cart->recurring_carts as $recurring_cart_key => $recurring_cart ) {
+
+				// If this cart item belongs to this recurring cart
+				if ( in_array( $cart_item_key, array_keys( $recurring_cart->cart_contents ) ) ) {
+					WC()->cart->recurring_carts[ $recurring_cart_key ]->cart_contents[ $cart_item_key ]['subscription_switch']['order_line_item_id'] = $order_item_id;
+				}
+			}
 		}
 	}
 
@@ -620,8 +626,6 @@ class WC_Subscriptions_Switcher {
 		$switch_order_data = array();
 
 		try {
-			// Start transaction if available
-			$wpdb->query( 'START TRANSACTION' );
 
 			foreach ( WC()->cart->recurring_carts as $recurring_cart_key => $recurring_cart ) {
 
@@ -664,41 +668,23 @@ class WC_Subscriptions_Switcher {
 						$is_different_length = false;
 					}
 
-					// WC_Abstract_Order::get_item_count() uses quantites, not just line item rows
+					// WC_Abstract_Order::get_item_count() uses quantities, not just line item rows
 					if ( 1 == count( $subscription->get_items() ) ) {
 						$is_single_item_subscription = true;
 					} else {
 						$is_single_item_subscription = false;
 					}
 
-					$order_item_id = '';
-
-					foreach ( $order_items as $item_id => $item ) {
-						if ( wcs_get_canonical_product_id( $item ) == wcs_get_canonical_product_id( $cart_item ) && ( empty( $switch_order_data['switches'] ) || ! in_array( $item_id, array_keys( $switch_order_data['switches'] ) ) ) ) {
-							$order_item_id = $item_id;
-							$switch_order_data[ $subscription->id ]['switches'][ $item_id ]['subscription_item_id'] = $cart_item['subscription_switch']['item_id'];
-							break;
-						}
-					}
+					$switched_item_data = array( 'remove_line_item' => $cart_item['subscription_switch']['item_id'] );
 
 					// If the item is on the same schedule, we can just add it to the new subscription and remove the old item
 					if ( $is_single_item_subscription || ( false === $is_different_billing_schedule && false === $is_different_payment_date && false === $is_different_length ) ) {
 
 						// Add the new item
-						$item_id   = WC_Subscriptions_Checkout::add_cart_item( $subscription, $cart_item, $cart_item_key );
-						$item_meta = wc_get_order_item_meta( $item_id, '' );
+						$item_id = WC_Subscriptions_Checkout::add_cart_item( $subscription, $cart_item, $cart_item_key );
+						wc_update_order_item( $item_id, array( 'order_item_type' => 'line_item_pending_switch' ) );
 
-						// We can't use the prorated order item price upon successful payment so store the cart price
-						$switch_order_data[ $subscription->id ]['switches'][ $order_item_id ]['add_order_item_data'] = array(
-							'totals' => array(
-								'subtotal'     => $cart_item['line_subtotal'],
-								'subtotal_tax' => $cart_item['line_subtotal_tax'],
-								'total'        => $cart_item['line_total'],
-								'tax'          => $cart_item['line_tax'],
-								'tax_data'     => $cart_item['line_tax_data'],
-							),
-							'meta' => $item_meta,
-						);
+						$switched_item_data['add_line_item'] = $item_id;
 
 						// Remove the item from the cart so that WC_Subscriptions_Checkout doesn't add it to a subscription
 						if ( 1 == count( WC()->cart->recurring_carts[ $recurring_cart_key ]->get_cart() ) ) {
@@ -709,13 +695,12 @@ class WC_Subscriptions_Switcher {
 						}
 					}
 
+					$switch_order_data[ $subscription->id ]['switches'][ $cart_item['subscription_switch']['order_line_item_id'] ] = $switched_item_data;
+
 					// If the old subscription has just one item, we can safely update its billing schedule
 					if ( $is_single_item_subscription ) {
 
 						if ( $is_different_billing_schedule ) {
-							update_post_meta( $subscription->id, '_billing_period', $cart_item['data']->subscription_period );
-							update_post_meta( $subscription->id, '_billing_interval', absint( $cart_item['data']->subscription_period_interval ) );
-
 							$switch_order_data[ $subscription->id ]['billing_schedule']['_billing_period']   = $cart_item['data']->subscription_period;
 							$switch_order_data[ $subscription->id ]['billing_schedule']['_billing_interval'] = absint( $cart_item['data']->subscription_period_interval );
 						}
@@ -723,8 +708,8 @@ class WC_Subscriptions_Switcher {
 						$updated_dates = array();
 
 						if ( '1' == $cart_item['data']->subscription_length || ( 0 != $recurring_cart->end_date && gmdate( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] ) >= $recurring_cart->end_date ) ) {
-							$subscription->delete_date( 'next_payment' );
-							$switch_order_data[ $subscription->id ]['dates']['delete'][] = 'next_payment';
+							// Delete the next payment date.
+							$updated_dates['next_payment'] = 0;
 						} else if ( $is_different_payment_date ) {
 							$updated_dates['next_payment'] = gmdate( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] );
 						}
@@ -734,26 +719,35 @@ class WC_Subscriptions_Switcher {
 						}
 
 						if ( ! empty( $updated_dates ) ) {
-							$subscription->update_dates( $updated_dates );
+							$subscription->validate_date_updates( $updated_dates );
 							$switch_order_data[ $subscription->id ]['dates']['update'] = $updated_dates;
 						}
 					}
 
-					// Remove the old item from the subscription but don't delete it completely by changing its line item type to "line_item_switched"
-					wc_update_order_item( $cart_item['subscription_switch']['item_id'], array( 'order_item_type' => 'line_item_switched' ) );
+					// Add the shipping
+					// Keep a record of the current shipping line items so we can flip any new shipping items to a _pending_switch shipping item.
+					$current_shipping_line_items = array_keys( $subscription->get_shipping_methods() );
+					$new_shipping_line_items     = array();
 
-					// Change the shipping
-					self::update_shipping_methods( $subscription, $recurring_cart );
-					$switch_order_data[ $subscription->id ]['shipping_methods'] = $subscription->get_shipping_methods();
+					// Keep a record of the subscription shipping total. Adding shipping methods will cause a new shipping total to be set, we'll need to set it back after.
+					$subscription_shipping_total = $subscription->order_shipping;
 
-					// Finally, change the addresses but only if they've changed
-					self::maybe_update_subscription_address( $order, $subscription );
+					WC_Subscriptions_Checkout::add_shipping( $subscription, $recurring_cart );
+
+					// Set all new shipping methods to shipping_pending_switch line items
+					foreach ( $subscription->get_shipping_methods() as $shipping_line_item_id => $shipping_meta ) {
+
+						if ( ! in_array( $shipping_line_item_id, $current_shipping_line_items ) ) {
+							wc_update_order_item( $shipping_line_item_id, array( 'order_item_type' => 'shipping_pending_switch' ) );
+							$new_shipping_line_items[] = $shipping_line_item_id;
+						}
+					}
+
+					$subscription->set_total( $subscription_shipping_total, 'shipping' );
+
+					$switch_order_data[ $subscription->id ]['shipping_line_items'] = $new_shipping_line_items;
 				}
 			}
-
-			// Everything seems to be in order.
-			// Rollback the changes and store the required meta on the order so it can be processed on successful payment.
-			$wpdb->query( 'ROLLBACK' );
 
 			foreach ( $switch_order_data as $subscription_id => $switch_data ) {
 
@@ -765,9 +759,6 @@ class WC_Subscriptions_Switcher {
 						$switch_order->update_status( 'cancelled', sprintf( __( 'Switch order cancelled due to a new switch order being created #%s.', 'woocommerce-subscriptions' ), $order->get_order_number() ) );
 					}
 				}
-
-				// Despite rolling back the DB queries, the cache can still contain subscription changes (eg _billing_period post meta), so make sure we delete the cache for all subscriptions we've altered.
-				wp_cache_delete( $subscription_id, 'post_meta' );
 			}
 
 			update_post_meta( $order_id, '_subscription_switch_data', $switch_order_data );
@@ -892,7 +883,7 @@ class WC_Subscriptions_Switcher {
 		}
 
 		if ( isset( WC()->cart ) ) {
-			// We use WC()->cart->cart_contents instead of WC()->cart->get_cart() to prevent recursion caused when get_cart_from_session() too early is called ref: https://github.com/woothemes/woocommerce/commit/1f3365f2066b1e9d7e84aca7b1d7e89a6989c213
+			// We use WC()->cart->cart_contents instead of WC()->cart->get_cart() to prevent recursion caused when get_cart_from_session() too early is called ref: https://github.com/woocommerce/woocommerce/commit/1f3365f2066b1e9d7e84aca7b1d7e89a6989c213
 			foreach ( WC()->cart->cart_contents as $cart_item_key => $cart_item ) {
 				if ( isset( $cart_item['subscription_switch'] ) ) {
 					if ( wcs_is_subscription( $cart_item['subscription_switch']['subscription_id'] ) ) {
@@ -1479,36 +1470,6 @@ class WC_Subscriptions_Switcher {
 	}
 
 	/**
-	 * Automatically set a switch order's status to complete (even if the items require shipping because
-	 * the order is simply a record of the switch and not indicative of an item needing to be shipped)
-	 *
-	 * @since 1.5
-	 */
-	public static function subscription_switch_autocomplete( $new_order_status, $order_id ) {
-
-		if ( 'processing' == $new_order_status && wcs_order_contains_switch( $order_id ) ) {
-			$order        = wc_get_order( $order_id );
-			$all_switched = true;
-
-			if ( 0 == $order->get_total() ) {
-
-				foreach ( $order->get_items() as $item ) {
-					if ( ! isset( $item['switched_subscription_price_prorated'] ) ) {
-						$all_switched = false;
-						break;
-					}
-				}
-
-				if ( $all_switched || 1 == count( $order->get_items() ) ) {
-					$new_order_status = 'completed';
-				}
-			}
-		}
-
-		return $new_order_status;
-	}
-
-	/**
 	 * Do not carry over switch related meta data to renewal orders.
 	 *
 	 * @since 1.5.4
@@ -1772,57 +1733,49 @@ class WC_Subscriptions_Switcher {
 			return;
 		}
 
-		foreach ( $switch_order_data as $subcription_id => $switch_data ) {
+		foreach ( $switch_order_data as $subscription_id => $switch_data ) {
 
-			$subscription = wcs_get_subscription( $subcription_id );
+			$subscription = wcs_get_subscription( $subscription_id );
 
 			if ( ! $subscription instanceof WC_Subscription ) {
 				continue;
 			}
 
-			// Add the new line items
-			if ( ! empty( $switch_data['switches'] ) ) {
+			if ( ! empty( $switch_data['switches'] ) && is_array( $switch_data['switches'] ) ) {
 
-				foreach ( $switch_data['switches'] as $order_item_id => $switch_item_data ) {
+				// If the switch data is in the old format
+				if ( ! array_key_exists( 'remove_line_item', reset( $switch_data['switches'] ) ) ) {
+					self::switch_line_items_pre_2_1_2( $switch_data['switches'], $order, $subscription );
+				} else {
+					foreach ( $switch_data['switches'] as $order_item_id => $switched_item_data ) {
 
-					$order_item = wcs_get_order_item( $order_item_id, $order );
+						// If we are adding a line item to an existing subscription
+						if ( isset( $switched_item_data['add_line_item'] ) ) {
+							wc_update_order_item( $switched_item_data['add_line_item'], array( 'order_item_type' => 'line_item' ) );
 
-					// if we are simply adding this product to an existing subscription
-					if ( isset( $switch_item_data['add_order_item_data'] ) ) {
-						$product              = WC_Subscriptions::get_product( wcs_get_canonical_product_id( $order_item ) );
-						$line_tax_data        = wc_get_order_item_meta( $order_item_id, '_line_tax_data', true );
-						$variation_attributes = ( method_exists( $product, 'get_variation_attributes' ) ) ? $product->get_variation_attributes() : array();
-
-						$item_id = $subscription->add_product( $product, $order_item['qty'], array(
-							'variation' => $variation_attributes,
-							'totals'    => $switch_item_data['add_order_item_data']['totals'],
-						) );
-
-						foreach ( $switch_item_data['add_order_item_data']['meta'] as $key => $value ) {
-							if ( ! array_key_exists( 'attribute_' . $key, $variation_attributes ) ) {
-								wc_add_order_item_meta( $item_id, $key, reset( $value ), true );
-							}
+							do_action( 'woocommerce_subscription_item_switched', $order, $subscription, $switched_item_data['add_line_item'], $switched_item_data['remove_line_item'] );
 						}
 
-						do_action( 'woocommerce_subscription_item_switched', $order, $subscription, $order_item_id, $switch_item_data['subscription_item_id'] );
-					}
+						// remove the existing subscription item
+						$old_subscription_item = wcs_get_order_item( $switched_item_data['remove_line_item'], $subscription );
+						$switch_order_item     = wcs_get_order_item( $order_item_id, $order );
 
-					// remove the existing subscription item
-					$old_order_item = wcs_get_order_item( $switch_item_data['subscription_item_id'], $subscription );
+						if ( empty( $old_subscription_item ) ) {
+							throw new Exception( __( 'The original subscription item being switched cannot be found.', 'woocommerce-subscriptions' ) );
+						} elseif ( empty( $switch_order_item ) ) {
+							throw new Exception( __( 'The item on the switch order cannot be found.', 'woocommerce-subscriptions' ) );
+						} else {
+							// We don't want to include switch item meta in order item name
+							add_filter( 'woocommerce_subscriptions_hide_switch_itemmeta', '__return_true' );
+							$old_item_name = wcs_get_order_item_name( $old_subscription_item, array( 'attributes' => true ) );
+							$new_item_name = wcs_get_order_item_name( $switch_order_item, array( 'attributes' => true ) );
+							remove_filter( 'woocommerce_subscriptions_hide_switch_itemmeta', '__return_true' );
 
-					if ( empty( $old_order_item ) ) {
-						throw new Exception( __( 'The original subscription item being switched cannot be found.', 'woocommerce-subscriptions' ) );
-					} else {
-						// We dont want to include switch item meta in order item name
-						add_filter( 'woocommerce_subscriptions_hide_switch_itemmeta', '__return_true' );
-						$new_order_item_name         = wcs_get_order_item_name( $order_item, array( 'attributes' => true ) );
-						$old_subscription_item_name  = wcs_get_order_item_name( $old_order_item, array( 'attributes' => true ) );
-						remove_filter( 'woocommerce_subscriptions_hide_switch_itemmeta', '__return_true' );
+							wc_update_order_item( $switched_item_data['remove_line_item'], array( 'order_item_type' => 'line_item_switched' ) );
 
-						wc_update_order_item( $switch_item_data['subscription_item_id'], array( 'order_item_type' => 'line_item_switched' ) );
-
-						// translators: 1$: old item, 2$: new item when switching
-						$subscription->add_order_note( sprintf( _x( 'Customer switched from: %1$s to %2$s.', 'used in order notes', 'woocommerce-subscriptions' ), $old_subscription_item_name, $new_order_item_name ) );
+							// translators: 1$: old item, 2$: new item when switching
+							$subscription->add_order_note( sprintf( _x( 'Customer switched from: %1$s to %2$s.', 'used in order notes', 'woocommerce-subscriptions' ), $old_item_name, $new_item_name ) );
+						}
 					}
 				}
 			}
@@ -1831,7 +1784,7 @@ class WC_Subscriptions_Switcher {
 
 				// Update the billing schedule
 				foreach ( $switch_data['billing_schedule'] as $meta_key => $value ) {
-					update_post_meta( $subcription_id, $meta_key, $value );
+					update_post_meta( $subscription_id, $meta_key, $value );
 				}
 			}
 
@@ -1849,35 +1802,19 @@ class WC_Subscriptions_Switcher {
 				}
 			}
 
+			// If the shipping data is in the old format
 			if ( ! empty( $switch_data['shipping_methods'] ) ) {
+				self::switch_shipping_line_items_pre_2_1_2( $subscription, $switch_data['shipping_methods'] );
+			} else if ( ! empty( $switch_data['shipping_line_items'] ) && is_array( $switch_data['shipping_line_items'] ) ) {
 
 				// Archive the old subscription shipping methods
 				foreach ( $subscription->get_shipping_methods() as $shipping_line_item_id => $item ) {
 					wc_update_order_item( $shipping_line_item_id, array( 'order_item_type' => 'shipping_switched' ) );
 				}
 
-				// Add the new shipping line item
-				foreach ( $switch_data['shipping_methods'] as $shipping_line_item ) {
-					$item_id = wc_add_order_item( $subscription->id, array(
-						'order_item_name' => $shipping_line_item['name'],
-						'order_item_type' => 'shipping',
-					) );
-
-					if ( ! $item_id || empty( $shipping_line_item['method_id'] ) || empty( $shipping_line_item['cost'] ) || empty( $shipping_line_item['taxes'] ) ) {
-						throw new Exception( __( 'Failed to update the subscription shipping method.', 'woocommerce-subscriptions' ) );
-					}
-
-					// Add shipping order item meta
-					wc_add_order_item_meta( $item_id, 'method_id', $shipping_line_item['method_id'] );
-					wc_add_order_item_meta( $item_id, 'cost', wc_format_decimal( $shipping_line_item['cost'] ) );
-
-					$taxes = array_map( 'wc_format_decimal', maybe_unserialize( $shipping_line_item['taxes'] ) );
-					wc_add_order_item_meta( $item_id, 'taxes', $taxes );
-
-					// Add custom shipping order item meta added by third-party plugins
-					foreach ( $shipping_line_item['item_meta'] as $key => $value ) {
-						wc_add_order_item_meta( $item_id, $key, $value );
-					}
+				// Flip the switched shipping line items "on"
+				foreach ( $switch_data['shipping_line_items'] as $shipping_line_item_id ) {
+					wc_update_order_item( $shipping_line_item_id, array( 'order_item_type' => 'shipping' ) );
 				}
 			}
 
@@ -1975,6 +1912,11 @@ class WC_Subscriptions_Switcher {
 	 */
 	public static function maybe_set_payment_method_after_switch( $order ) {
 
+		// Only set manual subscriptions to automatic if automatic payments are enabled
+		if ( 'yes' == get_option( WC_Subscriptions_Admin::$option_prefix . '_turn_off_automatic_payments', 'no' ) ) {
+			return;
+		}
+
 		foreach ( wcs_get_subscriptions_for_switch_order( $order->id ) as $subscription ) {
 
 			if ( false === $subscription->is_manual() ) {
@@ -1996,6 +1938,17 @@ class WC_Subscriptions_Switcher {
 	}
 
 	/** Deprecated Methods **/
+
+	/**
+	 * Automatically set a switch order's status to complete (even if the items require shipping because
+	 * the order is simply a record of the switch and not indicative of an item needing to be shipped)
+	 *
+	 * @since 1.5
+	 */
+	public static function subscription_switch_autocomplete( $new_order_status, $order_id ) {
+		_deprecated_function( __METHOD__, '2.1.3', 'WC_Subscriptions_Order::maybe_autocomplete_order' );
+		return WC_Subscriptions_Order::maybe_autocomplete_order( $new_order_status, $order_id );
+	}
 
 	/**
 	 * Once payment is processed on a switch from a $0 / period subscription to a non-zero $ / period subscription, if
@@ -2068,6 +2021,100 @@ class WC_Subscriptions_Switcher {
 			}
 		}
 		return $total;
+	}
+
+	/**
+	 * Switch subscription line items provided line item data in the 2.1 switch order meta format.
+	 *
+	 * @param array $switches an array of switch items and its meta
+	 * @param WC_Order $order the switch order
+	 * @param WC_Subscription $subscription the subscription being switched
+	 * @since 2.1.2
+	 * TODO Remove this function in 2.1.n - compatibility code for 2.1 - 2.1.2
+	 */
+	protected static function switch_line_items_pre_2_1_2( $switches, $order, $subscription ) {
+
+		foreach ( $switches as $order_item_id => $switch_item_data ) {
+
+			$order_item = wcs_get_order_item( $order_item_id, $order );
+
+			// if we are simply adding this product to an existing subscription
+			if ( isset( $switch_item_data['add_order_item_data'] ) ) {
+				$product              = WC_Subscriptions::get_product( wcs_get_canonical_product_id( $order_item ) );
+				$line_tax_data        = wc_get_order_item_meta( $order_item_id, '_line_tax_data', true );
+				$variation_attributes = ( method_exists( $product, 'get_variation_attributes' ) ) ? $product->get_variation_attributes() : array();
+
+				$item_id = $subscription->add_product( $product, $order_item['qty'], array(
+					'variation' => $variation_attributes,
+					'totals'    => $switch_item_data['add_order_item_data']['totals'],
+				) );
+
+				foreach ( $switch_item_data['add_order_item_data']['meta'] as $key => $value ) {
+					if ( ! array_key_exists( 'attribute_' . $key, $variation_attributes ) ) {
+						wc_add_order_item_meta( $item_id, $key, reset( $value ), true );
+					}
+				}
+
+				do_action( 'woocommerce_subscription_item_switched', $order, $subscription, $order_item_id, $switch_item_data['subscription_item_id'] );
+			}
+
+			// remove the existing subscription item
+			$old_order_item = wcs_get_order_item( $switch_item_data['subscription_item_id'], $subscription );
+
+			if ( empty( $old_order_item ) ) {
+				throw new Exception( __( 'The original subscription item being switched cannot be found.', 'woocommerce-subscriptions' ) );
+			} else {
+				// We don't want to include switch item meta in order item name
+				add_filter( 'woocommerce_subscriptions_hide_switch_itemmeta', '__return_true' );
+				$new_order_item_name         = wcs_get_order_item_name( $order_item, array( 'attributes' => true ) );
+				$old_subscription_item_name  = wcs_get_order_item_name( $old_order_item, array( 'attributes' => true ) );
+				remove_filter( 'woocommerce_subscriptions_hide_switch_itemmeta', '__return_true' );
+
+				wc_update_order_item( $switch_item_data['subscription_item_id'], array( 'order_item_type' => 'line_item_switched' ) );
+
+				// translators: 1$: old item, 2$: new item when switching
+				$subscription->add_order_note( sprintf( _x( 'Customer switched from: %1$s to %2$s.', 'used in order notes', 'woocommerce-subscriptions' ), $old_subscription_item_name, $new_order_item_name ) );
+			}
+		}
+	}
+
+	/**
+	 * Switch subscription shipping line items provided shipping line item data in the 2.1 switch order meta format.
+	 *
+	 * @param WC_Subscription $subscription the subscription being switched
+	 * @param array $shipping_methods an array of shipping line items and meta
+	 * @since 2.1.2
+	 * TODO Remove this function in 2.1.n - compatibility code for 2.1 - 2.1.2
+	 */
+	protected static function switch_shipping_line_items_pre_2_1_2( $subscription, $shipping_methods ) {
+		// Archive the old subscription shipping methods
+		foreach ( $subscription->get_shipping_methods() as $shipping_line_item_id => $item ) {
+			wc_update_order_item( $shipping_line_item_id, array( 'order_item_type' => 'shipping_switched' ) );
+		}
+
+		// Add the new shipping line item
+		foreach ( $shipping_methods as $shipping_line_item ) {
+			$item_id = wc_add_order_item( $subscription->id, array(
+				'order_item_name' => $shipping_line_item['name'],
+				'order_item_type' => 'shipping',
+			) );
+
+			if ( ! $item_id || empty( $shipping_line_item['method_id'] ) || empty( $shipping_line_item['cost'] ) || empty( $shipping_line_item['taxes'] ) ) {
+				throw new Exception( __( 'Failed to update the subscription shipping method.', 'woocommerce-subscriptions' ) );
+			}
+
+			// Add shipping order item meta
+			wc_add_order_item_meta( $item_id, 'method_id', $shipping_line_item['method_id'] );
+			wc_add_order_item_meta( $item_id, 'cost', wc_format_decimal( $shipping_line_item['cost'] ) );
+
+			$taxes = array_map( 'wc_format_decimal', maybe_unserialize( $shipping_line_item['taxes'] ) );
+			wc_add_order_item_meta( $item_id, 'taxes', $taxes );
+
+			// Add custom shipping order item meta added by third-party plugins
+			foreach ( $shipping_line_item['item_meta'] as $key => $value ) {
+				wc_add_order_item_meta( $item_id, $key, $value );
+			}
+		}
 	}
 
 	/** Deprecated Methods **/

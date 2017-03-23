@@ -19,3 +19,9 @@
 .shipping.recurring-total ul .amount {
 	font-weight: 700;
 }
+.woocommerce-page table.shop_table_responsive tbody .recurring-totals th {
+	display:table-cell;
+}
+.woocommerce-page table.shop_table_responsive tr.recurring-total td:not([data-title]):before {
+	content:"";
+}

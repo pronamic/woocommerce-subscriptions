@@ -68,14 +68,20 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal{
 
 				foreach ( $order->get_items() as $item_id => $line_item ) {
 
+					// clear the GET args so we can add non-switch items to the cart cleanly
 					unset( $_GET['switch-subscription'] );
 					unset( $_GET['item'] );
 
 					// check if this order item is for a switch
 					foreach ( $switch_order_data as $subscription_id => $switch_data ) {
+
 						if ( isset( $switch_data['switches'] ) && in_array( $item_id, array_keys( $switch_data['switches'] ) ) ) {
+
 							$_GET['switch-subscription'] = $subscription_id;
-							$_GET['item']                = $switch_data['switches'][ $item_id ]['subscription_item_id'];
+
+							// Backwards compatibility (2.1 -> 2.1.2)
+							$subscription_item_id_key = ( isset( $switch_data['switches'][ $item_id ]['subscription_item_id'] ) ) ? 'subscription_item_id' : 'remove_line_item';
+							$_GET['item'] = $switch_data['switches'][ $item_id ][ $subscription_item_id_key ];
 							break;
 						}
 					}
