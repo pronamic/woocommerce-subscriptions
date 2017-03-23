@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @class 		WC_Email_Customer_Completed_Order
  * @version		2.0.0
  * @package		WooCommerce/Classes/Emails
- * @author 		WooThemes
+ * @author 		Prospress
  * @extends 	WC_Email
  */
 class WCS_Email_Completed_Renewal_Order extends WC_Email_Customer_Completed_Order {

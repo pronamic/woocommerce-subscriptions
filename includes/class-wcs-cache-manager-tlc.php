@@ -15,6 +15,7 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 	public $logger = null;
 
 	public function __construct() {
+		_deprecated_function( __METHOD__, '2.1.2' );
 		add_action( 'woocommerce_loaded', array( $this, 'load_logger' ) );
 
 		// Add filters for update / delete / trash post to purge cache
@@ -30,6 +31,7 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 	 * Attaches logger
 	 */
 	public function load_logger() {
+		_deprecated_function( __METHOD__, '2.1.2', 'WC_Subscriptions::$cache->' . __FUNCTION__ );
 		$this->logger = new WC_Logger();
 	}
 
@@ -39,6 +41,7 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 	 * @param string $message Message to log
 	 */
 	public function log( $message ) {
+		_deprecated_function( __METHOD__, '2.1.2', 'WC_Subscriptions::$cache->' . __FUNCTION__ );
 		if ( defined( 'WCS_DEBUG' ) && WCS_DEBUG ) {
 			$this->logger->add( 'wcs-cache', $message );
 		}
@@ -55,6 +58,7 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 	 * @return bool|mixed
 	 */
 	public function cache_and_get( $key, $callback, $params = array(), $expires = WEEK_IN_SECONDS ) {
+		_deprecated_function( __METHOD__, '2.1.2', 'WC_Subscriptions::$cache->' . __FUNCTION__ );
 		$expires = absint( $expires );
 
 		$transient = tlc_transient( $key )
@@ -70,6 +74,7 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 	 * @param $post_id integer the ID of an order / subscription
 	 */
 	public function purge_subscription_cache_on_update( $post_id ) {
+		_deprecated_function( __METHOD__, '2.1.2', 'WC_Subscriptions::$cache->' . __FUNCTION__ );
 		$post_type = get_post_type( $post_id );
 
 		if ( 'shop_subscription' !== $post_type && 'shop_order' !== $post_type ) {
@@ -104,6 +109,7 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 	 * @param $post_id integer the ID of a post
 	 */
 	public function purge_delete( $post_id ) {
+		_deprecated_function( __METHOD__, '2.1.2', 'WC_Subscriptions::$cache->' . __FUNCTION__ );
 		if ( 'shop_order' !== get_post_type( $post_id ) ) {
 			return;
 		}
@@ -127,6 +133,7 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 	 * @param $_meta_value mixed the value we're deleting / adding / updating
 	 */
 	public function purge_from_metadata( $meta_id, $object_id, $meta_key, $_meta_value ) {
+		_deprecated_function( __METHOD__, '2.1.2', 'WC_Subscriptions::$cache->' . __FUNCTION__ );
 		if ( '_subscription_renewal' !== $meta_key || 'shop_order' !== get_post_type( $object_id ) ) {
 			return;
 		}
@@ -143,6 +150,7 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 	 * @param null $id
 	 */
 	public function wcs_clear_related_order_cache( $id = null ) {
+		_deprecated_function( __METHOD__, '2.1.2', 'WC_Subscriptions::$cache->' . __FUNCTION__ );
 		// if nothing was passed in, there's nothing to delete
 		if ( null === $id ) {
 			return;
@@ -170,6 +178,7 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 	 * @param string $key Key that needs deleting
 	 */
 	public function delete_cached( $key ) {
+		_deprecated_function( __METHOD__, '2.1.2', 'WC_Subscriptions::$cache->' . __FUNCTION__ );
 		if ( ! is_string( $key ) || empty( $key ) ) {
 			return;
 		}

@@ -70,10 +70,9 @@ function wcs_get_subscription_trial_period_strings( $number = 1, $period = '' ) 
  * M – for months; allowable range is 1 to 24
  * Y – for years; allowable range is 1 to 5
  *
- * @param string (optional) One of day, week, month or year. If empty, all subscription ranges are returned.
- * @since 2.0
+ * @since 2.1.2
  */
-function wcs_get_subscription_ranges_tlc() {
+function wcs_get_non_cached_subscription_ranges() {
 
 	foreach ( array( 'day', 'week', 'month', 'year' ) as $period ) {
 
@@ -126,7 +125,7 @@ function wcs_get_subscription_ranges( $subscription_period = '' ) {
 
 	$locale = get_locale();
 
-	$subscription_ranges = WC_Subscriptions::$cache->cache_and_get( 'wcs-sub-ranges-' . $locale, 'wcs_get_subscription_ranges_tlc', array(), 3 * HOUR_IN_SECONDS );
+	$subscription_ranges = WC_Subscriptions::$cache->cache_and_get( 'wcs-sub-ranges-' . $locale, 'wcs_get_non_cached_subscription_ranges', array(), 3 * HOUR_IN_SECONDS );
 
 	$subscription_ranges = apply_filters( 'woocommerce_subscription_lengths', $subscription_ranges, $subscription_period );
 
@@ -757,4 +756,24 @@ function wcs_get_sites_timezone() {
 	}
 
 	return $local_timezone;
+}
+
+/* Deprecated Functions */
+
+/**
+ * Returns an array of subscription lengths.
+ *
+ * PayPal Standard Allowable Ranges
+ * D – for days; allowable range is 1 to 90
+ * W – for weeks; allowable range is 1 to 52
+ * M – for months; allowable range is 1 to 24
+ * Y – for years; allowable range is 1 to 5
+ *
+ * @param string (optional) One of day, week, month or year. If empty, all subscription ranges are returned.
+ * @since 2.0
+ */
+function wcs_get_subscription_ranges_tlc() {
+	_deprecated_function( __FUNCTION__, '2.1.2', 'wcs_get_non_cached_subscription_ranges' );
+
+	return wcs_get_non_cached_subscription_ranges();
 }

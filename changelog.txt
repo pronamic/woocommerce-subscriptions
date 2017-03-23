@@ -1,5 +1,45 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2017.03.06 - version 2.1.4
+* Tweak: Lengthen PayPal IPN lock to 5 days to prevent creating duplicate renewal orders when a fatal error occurs in processing the IPN. Prevoiusly the lock was set to 5 minutes, meaning on the 2nd IPN would be ignored. Given fatal errors will rarely be fixed within 5 minutes, Subscriptions will now ignore 5 days worth of IPN retries.(PR#1838
+* Tweak: Log exceptions caught while updating subscription statuses to make it easier to diagnose issues with 3rd party code and hosting environment that occur during status transitions. PR#1842
+* Tweak: Remove lingering compatibility code for WooCommerce prior to version 2.4 as version 2.3 and older have not been supported since v2.1. PR#1750
+* Fix: Changing payment method on manually added subscriptions. When manually creating a subscription via the WooCommerce > Add Subscription administration screen, make sure the order key meta data is set so its available when changing payment methods on that subscription. PR#1849
+* Fix: Make sure customer and admin retry emails are always sent after the initial retry by making sure the WooCommerce mailer has be setup. PR#1840
+* Fix: Do not suspend subscriptions using PayPal Standard as the payment method when switching using PayPal Reference Transactions as the payment method. PR#1831
+* Fix: Calculate correct next payment date for subscriptions suspended for more than 30 billing periods e.g. 1 month for a daily subscription, 2.5 years for a month subscription etc. PR#1846
+* Fix: Do not update the status of a failed or pending renewal order when changing the payment method on a subscription. PR#1720
+* Fix: Make sure free shipping is available as a recurring shipping method for subscription products with a free trial or synced to a date in the future if the recurring total exceeds the Minimum Order Amount required for free shipping. PR#1830
+* Fix: Do not incorrectly double slash some JavaScript file URLs. Fixes JavaScript on the WooCommerce > Edit Subscription administration screen with some hosts. PR#1853
+* Fix: Do not copy backorder line item meta data to subscriptions or renewal orders for in-stock products. PR#1855
+* Fix: Do not apply dynamic discounts from the WooCommerce Dynamic Pricing extension to renewal or resubcribe carts to avoid discounts being compounded when manually renewing or resubscribing. PR#1852
+* Fix: Do not switch to staging mode when site is using the WP_SITEURL constant to set the site URL to a value that differs to the URL stored in the database. Uses WP_SITEURL constant now for site url when it is set, and get_site_url() only its not set. PR#1717
+* Fix: Correct typo on the Customer Suspensions tooltip on the WooCommerce > Settings > Subscriptions > Miscellaneous administration screen. PR#1868
+* Fix: Only setup automatic payments after switching if automatic payments are enabled. PR#1865
+
+2017.01.24 - version 2.1.3
+* Tweak: Set renewal order's status to 'pending' before payment retry to make sure that the status change hooks are triggered by WC_Order::update_status(). Fixes compatibility with custom retry rules that use an order status other than pending. (PR#1818)
+* Tweak: Automatically transition resubscribe orders for $0 to 'complete' rather than 'processing', because the existing subscription had the pending-cancellation status and the new subscriptions first renewal will be when the first shipment is due to be sent. (PR#1796)
+* Tweak: Update Action Scheduler to v1.5.2. (PR#1773)
+* Tweak: Exclude Action Scheduler comments from comments RSS feed. (PR#1773 & Prospress/action-scheduler#66)
+* Fix: Never reschedule single actions in Action Scheduler, even if the action has a scheduled date in the future. Fixes a duplicate payment processed when PHP's default timezone was being set to a time other than UTC, and Subscriptions < 2.1 scheduled the next payment in that timezone, then when the payment becomes due, PHP's default timezone has been changed back to UTC. (PR#1773 & Prospress/action-scheduler#69)
+* Fix: Update renewal order line item cart data when renewal line item IDs are updated. Fixes assorted PHP warnings and notices that resulted from outdated item IDs, including "Division by zero" and "Undefined offset" notices. (PR#1814)
+* Fix: Cancel & trash retries when corresponding renewal order is trashed/deleted to make sure the retry is not attempted (with no ill effect). (PR#1768)
+* Fix: Undefined variable notice on occasion when viewing WooCommerce > Add Order screen when the retry system is enabled. (PR#1803)
+* Fix: Display correct "New Subscription Details" in emails sent when switching (upgrading/downgrading) a subscription. (PR#1819)
+* Fix: Responsiveness of recurring totals sections of checkout table. (PR#1809)
+
+2016.12.12 - version 2.1.2
+* Tweak: Reword the description on the Disable Automatic Payments option to make it clear it does not change existing subscriptions. (PR#1771)
+* Fix: Renewal issues with servers running Memcached, which does not handle expiration times greater than 30 days, by no longer using TLC transients, which sets all transient expiration dates to 1 year in future. (PR#1776)
+* Fix: Do not require InnoDB/SQL transactions for switching. Fixes "The original subscription item being switched cannot be found" errors when a customer attempts to upgrade or downgrade on servers without InnoDB active. (PR#1779)
+* Fix: Pass entire product object from cart to check whether it is a subscription when removing subscription products from the cart. Fixes compatibility with 3rd party extensions with custom subscription product types. (PR#1778)
+* Fix: Make sure all 'woocommerce_valid_order_statuses_for_payment' calls include an order object as the 2nd parameter for callbacks to match current WooCommerce behaviour. (PR#1789)
+* Fix: Incorrect template displayed when browsing to a page with URL /subscriptions/ when using WooCommerce prior to version 2.6. (PR#1660)
+* Fix: Do not add '_synced' to recurring cart keys if 3rd party code is calling calculate totals again, only add it once. (PR#1780)
+* Fix: Display "Retry Payment" option in the "Order Actions" menu if the payment is due, even if the order has a status applied by customer Retry Rules. (PR#1767)
+* Fix: Compatibility with switching and WPML. (PR#1780)
+
 2016.11.26 - version 2.1.1
 * Tweak: Delete Subscriptions transients when using the "Clear Transients" tool via the WooCommerce > System Status > Tools administration screen. (PR#1758)
 * Tweak: Avoid infinite loops with old versions of the Shipping Multiple Addresses extension and potentially other extension that may manually instantiate the WC_Checkout object, which is normally a singleton accessed via WC()->checkout, WC()->checkout or WC_Checkout::instance(). (PR#1757)
@@ -694,10 +734,10 @@
  * Tweak: Reinstate enctype='multipart/form-data' on the subscription add to cart form to fix compatibilty with file uploads via Product Addons extension (related to http://docs.woocommerce.com/document/subscriptions/faq/#section-45)
  * Tweak: Only output P tags for product meta on My Subscriptions table when product has meta
  * Tweak: add enable/disable field for the Customer Renewal Invoice email
- * Fix: set correct order date and ID in renewal order emails' subject & heading when sending more than one email in the same request (workaround until woothemes/woocommerce#5168 is implemented in WC 2.2)
+ * Fix: set correct order date and ID in renewal order emails' subject & heading when sending more than one email in the same request (workaround until woocommerce/woocommerce#5168 is implemented in WC 2.2)
  * Fix: correctly close P tag when display product meta data on the My Subscriptions table
  * Fix: display correct tax and shipping total on cart page when using Local Pickup shipping method and estimating shipping with the "Calculate Shipping" method
- * Fix: display correct tax string when the "Display Tax Totals" setting is set to "As a single total" - requires new 'woocommerce_cart_totals_taxes_total_html' filter introduced with WC 2.1. See woothemes/woocommerce#5184 for details.
+ * Fix: display correct tax string when the "Display Tax Totals" setting is set to "As a single total" - requires new 'woocommerce_cart_totals_taxes_total_html' filter introduced with WC 2.1. See woocommerce/woocommerce#5184 for details.
  * Fix: capitalise custom attribute names in the product meta section of the My Subscriptions table
  * Fix: allow standard products variations to be deleted (but still prevent subscription variations from being permanently deleted)
  * Fix: Maximum execution time error when attempting to switch from a paid subscription to a free subscription

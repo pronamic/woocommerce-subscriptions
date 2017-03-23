@@ -79,8 +79,9 @@ class WC_Subscriptions_Renewal_Order {
 
 		$subscriptions        = wcs_get_subscriptions_for_renewal_order( $order_id );
 		$was_activated        = false;
+		$order                = wc_get_order( $order_id );
 		$order_completed      = in_array( $orders_new_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id ), 'processing', 'completed' ) );
-		$order_needed_payment = in_array( $orders_old_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ) ) );
+		$order_needed_payment = in_array( $orders_old_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ), $order ) );
 
 		if ( $order_completed && $order_needed_payment ) {
 			$update_post_data  = array(

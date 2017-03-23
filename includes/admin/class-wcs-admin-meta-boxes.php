@@ -95,11 +95,11 @@ class WCS_Admin_Meta_Boxes {
 
 		if ( 'shop_subscription' == $screen->id ) {
 
-			wp_register_script( 'jstz', plugin_dir_url( WC_Subscriptions::$plugin_file ) . '/assets/js/admin/jstz.min.js' );
+			wp_register_script( 'jstz', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/admin/jstz.min.js' );
 
-			wp_register_script( 'momentjs', plugin_dir_url( WC_Subscriptions::$plugin_file ) . '/assets/js/admin/moment.min.js' );
+			wp_register_script( 'momentjs', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/admin/moment.min.js' );
 
-			wp_enqueue_script( 'wcs-admin-meta-boxes-subscription', plugin_dir_url( WC_Subscriptions::$plugin_file ) . '/assets/js/admin/meta-boxes-subscription.js', array( 'wc-admin-meta-boxes', 'jstz', 'momentjs' ), WC_VERSION );
+			wp_enqueue_script( 'wcs-admin-meta-boxes-subscription', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/admin/meta-boxes-subscription.js', array( 'wc-admin-meta-boxes', 'jstz', 'momentjs' ), WC_VERSION );
 
 			wp_localize_script( 'wcs-admin-meta-boxes-subscription', 'wcs_admin_meta_boxes', apply_filters( 'woocommerce_subscriptions_admin_meta_boxes_script_parameters', array(
 				'i18n_start_date_notice'         => __( 'Please enter a start date in the past.', 'woocommerce-subscriptions' ),
@@ -115,7 +115,7 @@ class WCS_Admin_Meta_Boxes {
 			) ) );
 		} else if ( 'shop_order' == $screen->id ) {
 
-			wp_enqueue_script( 'wcs-admin-meta-boxes-order', plugin_dir_url( WC_Subscriptions::$plugin_file ) . '/assets/js/admin/wcs-meta-boxes-order.js' );
+			wp_enqueue_script( 'wcs-admin-meta-boxes-order', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/admin/wcs-meta-boxes-order.js' );
 
 			wp_localize_script( 'wcs-admin-meta-boxes-order', 'wcs_admin_order_meta_boxes', array(
 				'retry_renewal_payment_action_warning' => __( "Are you sure you want to retry payment for this renewal order?\n\nThis will attempt to charge the customer and send renewal order emails (if emails are enabled).", 'woocommerce-subscriptions' ),
@@ -229,8 +229,7 @@ class WCS_Admin_Meta_Boxes {
 
 		$can_be_retried = false;
 
-		if ( wcs_order_contains_renewal( $order ) && $order->has_status( 'failed' ) && ! empty( $order->payment_method ) && $order->get_total() > 0 ) {
-
+		if ( wcs_order_contains_renewal( $order ) && $order->needs_payment() && ! empty( $order->payment_method ) ) {
 			$order_payment_gateway          = wc_get_payment_gateway_by_order( $order );
 			$order_payment_gateway_supports = ( isset( $order_payment_gateway->id ) ) ? has_action( 'woocommerce_scheduled_subscription_payment_' . $order_payment_gateway->id ) : false;
 

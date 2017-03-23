@@ -74,6 +74,7 @@ class WC_Subscriptions_Email {
 		add_action( 'woocommerce_subscription_status_updated', __CLASS__ . '::send_cancelled_email', 10, 2 );
 		add_action( 'woocommerce_subscription_status_expired', __CLASS__ . '::send_expired_email', 10, 2 );
 		add_action( 'woocommerce_customer_changed_subscription_to_on-hold', __CLASS__ . '::send_on_hold_email', 10, 2 );
+		add_action( 'woocommerce_subscriptions_switch_completed', __CLASS__ . '::send_switch_order_email', 10 );
 
 		$order_email_actions = array(
 			'woocommerce_order_status_pending_to_processing',
@@ -90,7 +91,6 @@ class WC_Subscriptions_Email {
 		foreach ( $order_email_actions as $action ) {
 			add_action( $action, __CLASS__ . '::maybe_remove_woocommerce_email', 9 );
 			add_action( $action, __CLASS__ . '::send_renewal_order_email', 10 );
-			add_action( $action, __CLASS__ . '::send_switch_order_email', 10 );
 			add_action( $action, __CLASS__ . '::maybe_reattach_woocommerce_email', 11 );
 		}
 	}

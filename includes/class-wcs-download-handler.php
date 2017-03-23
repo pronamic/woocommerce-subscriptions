@@ -157,7 +157,7 @@ class WCS_Download_Handler {
 
 	/**
 	 * Repairs a glitch in WordPress's save function. You cannot save a null value on update, see
-	 * https://github.com/woothemes/woocommerce/issues/7861 for more info on this.
+	 * https://github.com/woocommerce/woocommerce/issues/7861 for more info on this.
 	 *
 	 * @param integer $post_id The ID of the subscription
 	 */

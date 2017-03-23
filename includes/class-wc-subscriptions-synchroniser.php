@@ -63,7 +63,7 @@ class WC_Subscriptions_Synchroniser {
 		add_action( 'woocommerce_process_product_meta_subscription', __CLASS__ . '::save_subscription_meta', 10 );
 
 		// Save sync options when a variable subscription product is saved
-		add_action( 'woocommerce_process_product_meta_variable-subscription', __CLASS__ . '::process_product_meta_variable_subscription' ); // WC < 2.4
+		add_action( 'woocommerce_process_product_meta_variable-subscription', __CLASS__ . '::process_product_meta_variable_subscription' );
 		add_action( 'woocommerce_ajax_save_product_variations', __CLASS__ . '::process_product_meta_variable_subscription' );
 
 		// Make sure the expiration dates are calculated from the synced start date
@@ -100,9 +100,6 @@ class WC_Subscriptions_Synchroniser {
 
 		// Make sure the sign-up fee for a synchronised subscription is correct
 		add_filter( 'woocommerce_subscriptions_sign_up_fee', __CLASS__ . '::get_synced_sign_up_fee', 1, 3 );
-
-		// Autocomplete subscription orders when they only contain a synchronised subscription
-		add_filter( 'woocommerce_payment_complete_order_status', __CLASS__ . '::order_autocomplete', 10, 2 );
 
 		// If it's an initial sync order and the total is zero, and nothing needs to be shipped, do not reduce stock
 		add_filter( 'woocommerce_order_item_quantity', __CLASS__ . '::maybe_do_not_reduce_stock', 10, 3 );
@@ -922,37 +919,6 @@ class WC_Subscriptions_Synchroniser {
 	}
 
 	/**
-	 * Automatically set the order's status to complete if all the subscriptions in an order
-	 * are synced and the order total is zero.
-	 *
-	 * @since 1.5.17
-	 */
-	public static function order_autocomplete( $new_order_status, $order_id ) {
-
-		$order = wc_get_order( $order_id );
-
-		if ( 'processing' == $new_order_status && $order->get_total() == 0 && wcs_order_contains_subscription( $order ) ) {
-
-			$subscriptions   = wcs_get_subscriptions_for_order( $order_id );
-			$all_synced      = true;
-
-			foreach ( $subscriptions as $subscription_id => $subscription ) {
-
-				if ( ! self::subscription_contains_synced_product( $subscription_id ) ) {
-					$all_synced = false;
-					break;
-				}
-			}
-
-			if ( $all_synced ) {
-				$new_order_status = 'completed';
-			}
-		}
-
-		return $new_order_status;
-	}
-
-	/**
 	 * Override quantities used to lower stock levels by when using synced subscriptions. If it's a synced product
 	 * that does not have proration enabled and the payment date is not today, do not lower stock levels.
 	 *
@@ -1060,7 +1026,7 @@ class WC_Subscriptions_Synchroniser {
 	public static function add_to_recurring_cart_key( $cart_key, $cart_item ) {
 		$product = $cart_item['data'];
 
-		if ( self::is_product_synced( $product ) ) {
+		if ( false === strpos( $cart_key, '_synced' ) && self::is_product_synced( $product ) ) {
 			$cart_key .= '_synced';
 		}
 
@@ -1068,6 +1034,17 @@ class WC_Subscriptions_Synchroniser {
 	}
 
 	/* Deprecated Functions */
+
+	/**
+	 * Automatically set the order's status to complete if all the subscriptions in an order
+	 * are synced and the order total is zero.
+	 *
+	 * @since 1.5.17
+	 */
+	public static function order_autocomplete( $new_order_status, $order_id ) {
+		_deprecated_function( __METHOD__, '2.1.3', 'WC_Subscriptions_Order::maybe_autocomplete_order' );
+		return WC_Subscriptions_Order::maybe_autocomplete_order( $new_order_status, $order_id );
+	}
 
 	/**
 	 * Add the first payment date to the end of the subscription to clarify when the first payment will be processed

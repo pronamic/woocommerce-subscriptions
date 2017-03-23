@@ -2,7 +2,7 @@
 /**
  * Subscription Product Add to Cart
  *
- * @author 		WooThemes
+ * @author 		Prospress
  * @package 	WooCommerce-Subscriptions/Templates
  * @version     2.0.18
  */

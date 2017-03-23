@@ -2,7 +2,7 @@
 /**
  * Variable subscription product add to cart
  *
- * @author  WooThemes
+ * @author  Prospress
  * @package WooCommerce-Subscriptions/Templates
  * @version 2.0.9
  */

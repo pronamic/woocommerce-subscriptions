@@ -34,7 +34,7 @@ $settings_page = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
 	<p class="woocommerce-actions">
 		<a href="<?php echo esc_url( $settings_page ); ?>" class="button button-primary"><?php esc_html_e( 'Settings', 'woocommerce-subscriptions' ); ?></a>
 		<a class="docs button button-primary" href="<?php echo esc_url( apply_filters( 'woocommerce_docs_url', 'http://docs.woocommerce.com/documentation/subscriptions/', 'woocommerce-subscriptions' ) ); ?>"><?php echo esc_html_x( 'Docs', 'short for documents', 'woocommerce-subscriptions' ); ?></a>
-		<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.woocommerce.com/products/woocommerce-subscriptions/" data-text="I just upgraded to WooCommerce Subscriptions v2.0, woot!" data-via="WooThemes" data-size="large" data-hashtags="WooCommerce">Tweet</a>
+		<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.woocommerce.com/products/woocommerce-subscriptions/" data-text="I just upgraded to WooCommerce Subscriptions v2.0, woot!" data-via="WooCommerce" data-size="large" data-hashtags="WooCommerce">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 	</p>
 
@@ -72,7 +72,7 @@ $settings_page = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
 					printf( esc_html__( 'The new interface is also built on the existing %sEdit Order%s screen. If you\'ve ever modified an order, you already know how to modify a subscription.', 'woocommerce-subscriptions' ), '<strong>', '</strong>' ); ?>
 				</p>
 				<p><?php
-					// translators: placeholers are link tags: 1$-2$ new subscription page, 3$-4$: docs on woothemes
+					// translators: placeholers are link tags: 1$-2$ new subscription page, 3$-4$: docs on woocommerce.com
 					printf( esc_html__( '%1$sAdd a subscription%2$s now or %3$slearn more%4$s about the new interface.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( admin_url( 'post-new.php?post_type=shop_subscription' ) ) . '">', '</a>', '<a href="' . esc_url( 'http://docs.woocommerce.com/document/subscriptions/version-2/#section-3' ) . '">', '</a>' ); ?>
 				</p>
 			</div>

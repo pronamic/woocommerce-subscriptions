@@ -69,6 +69,9 @@ class WC_Subscriptions_Order {
 		add_action( 'woocommerce_order_fully_refunded', __CLASS__ . '::maybe_cancel_subscription_on_full_refund' );
 
 		add_filter( 'woocommerce_order_needs_shipping_address', __CLASS__ . '::maybe_display_shipping_address', 10, 3 );
+
+		// Autocomplete subscription orders when they only contain a synchronised subscription or a resubscribe
+		add_filter( 'woocommerce_payment_complete_order_status', __CLASS__ . '::maybe_autocomplete_order', 10, 2 );
 	}
 
 	/*
@@ -471,7 +474,8 @@ class WC_Subscriptions_Order {
 
 			$subscriptions   = wcs_get_subscriptions_for_order( $order_id, array( 'order_type' => 'parent' ) );
 			$was_activated   = false;
-			$order_completed = in_array( $new_order_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id ), 'processing', 'completed' ) ) && in_array( $old_order_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ) ) );
+			$order           = wc_get_order( $order_id );
+			$order_completed = in_array( $new_order_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id ), 'processing', 'completed' ) ) && in_array( $old_order_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ), $order ) );
 
 			foreach ( $subscriptions as $subscription ) {
 
@@ -1015,6 +1019,57 @@ class WC_Subscriptions_Order {
 		}
 
 		return $needs_shipping;
+	}
+
+	/**
+	 * Automatically set the order's status to complete if the order total is zero and all the subscriptions
+	 * in an order are synced or the order contains a resubscribe.
+	 *
+	 * @param string $new_order_status
+	 * @param int $order_id
+	 * @return string $new_order_status
+	 *
+	 * @since 2.1.3
+	 */
+	public static function maybe_autocomplete_order( $new_order_status, $order_id ) {
+		$order = wc_get_order( $order_id );
+
+		if ( 'processing' == $new_order_status && $order->get_total() == 0 && wcs_order_contains_subscription( $order ) ) {
+
+			if ( wcs_order_contains_resubscribe( $order ) ) {
+				$new_order_status = 'completed';
+			} elseif ( wcs_order_contains_switch( $order ) ) {
+				$all_switched = true;
+
+				foreach ( $order->get_items() as $item ) {
+					if ( ! isset( $item['switched_subscription_price_prorated'] ) ) {
+						$all_switched = false;
+						break;
+					}
+				}
+
+				if ( $all_switched || 1 == count( $order->get_items() ) ) {
+					$new_order_status = 'completed';
+				}
+			} else {
+				$subscriptions = wcs_get_subscriptions_for_order( $order_id );
+				$all_synced    = true;
+
+				foreach ( $subscriptions as $subscription_id => $subscription ) {
+
+					if ( ! WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $subscription_id ) ) {
+						$all_synced = false;
+						break;
+					}
+				}
+
+				if ( $all_synced ) {
+					$new_order_status = 'completed';
+				}
+			}
+		}
+
+		return $new_order_status;
 	}
 
 	/* Deprecated Functions */
