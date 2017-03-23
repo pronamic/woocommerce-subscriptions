@@ -60,6 +60,7 @@ class WCS_Retry_Email {
 	 * @since 2.1
 	 */
 	public static function send_email( $retry_rule, $last_order ) {
+		WC()->mailer();
 
 		// maybe send emails about the renewal payment failure
 		foreach ( array( 'customer', 'admin' ) as $recipient ) {

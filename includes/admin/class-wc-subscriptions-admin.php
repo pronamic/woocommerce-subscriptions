@@ -75,7 +75,7 @@ class WC_Subscriptions_Admin {
 		add_action( 'save_post', __CLASS__ . '::save_variable_subscription_meta', 11 );
 
 		// Save variable subscription meta
-		add_action( 'woocommerce_process_product_meta_variable-subscription', __CLASS__ . '::process_product_meta_variable_subscription' ); // WC < 2.4
+		add_action( 'woocommerce_process_product_meta_variable-subscription', __CLASS__ . '::process_product_meta_variable_subscription' );
 		add_action( 'woocommerce_ajax_save_product_variations', __CLASS__ . '::process_product_meta_variable_subscription' );
 
 		add_action( 'woocommerce_subscription_pre_update_status', __CLASS__ . '::check_customer_is_set', 10, 3 );
@@ -137,10 +137,10 @@ class WC_Subscriptions_Admin {
 				'wc_report_subscription_events_by_date',
 			);
 
-			// Load all transients with the prefix tlc_
+			// Get all related order and subscription ranges transients
 			$results = $wpdb->get_col( "SELECT DISTINCT `option_name`
 				FROM `$wpdb->options`
-				WHERE `option_name` LIKE '%transient_tlc_%'" );
+				WHERE `option_name` LIKE '%wcs-related-orders-to-%' OR `option_name` LIKE '%wcs-sub-ranges-%'" );
 
 			foreach ( $results as $column ) {
 				$name = explode( 'transient_', $column, 2 );
@@ -571,11 +571,6 @@ class WC_Subscriptions_Admin {
 
 		// Make sure WooCommerce calculates correct prices
 		$_POST['variable_regular_price'] = isset( $_POST['variable_subscription_price'] ) ? $_POST['variable_subscription_price'] : 0;
-
-		// Run WooCommerce core saving routine for WC < 2.4
-		if ( ! is_ajax() ) {
-			WC_Meta_Box_Product_Data::save_variations( $post_id, get_post( $post_id ) );
-		}
 
 		if ( ! isset( $_REQUEST['variable_post_id'] ) ) {
 			return;
@@ -1101,7 +1096,7 @@ class WC_Subscriptions_Admin {
 				'default'         => 'no',
 				'type'            => 'checkbox',
 				// translators: placeholders are opening and closing link tags
-				'desc_tip'        => sprintf( __( 'If you never want a customer to be automatically charged for a subscription renewal payment, you can turn off automatic payments completely. %sLearn more%s.', 'woocommerce-subscriptions' ), '<a href="http://docs.woocommerce.com/document/subscriptions/store-manager-guide/#turn-off-automatic-payments">', '</a>' ),
+				'desc_tip'        => sprintf( __( 'If you don\'t want new subscription purchases to automatically charge renewal payments, you can turn off automatic payments. Existing automatic subscriptions will continue to charge customers automatically. %sLearn more%s.', 'woocommerce-subscriptions' ), '<a href="http://docs.woocommerce.com/document/subscriptions/store-manager-guide/#turn-off-automatic-payments">', '</a>' ),
 				'checkboxgroup'   => 'end',
 				'show_if_checked' => 'yes',
 			),
@@ -1123,7 +1118,7 @@ class WC_Subscriptions_Admin {
 				'default'       => 0,
 				'type'          => 'select',
 				'options'       => apply_filters( 'woocommerce_subscriptions_max_customer_suspension_range', array_merge( range( 0, 12 ), array( 'unlimited' => 'Unlimited' ) ) ),
-				'desc_tip'      => __( 'Set a maximum number of times a customer can suspend their account for each billing period. For example, for a value of 3 and a subscription billed yearly, if the customer has suspended their account 3 times, they will not be presented with the option to suspend their account until the next year. Store managers will always be able able to suspend an active subscription. Set this to 0 to turn off the customer suspension feature completely.', 'woocommerce-subscriptions' ),
+				'desc_tip'      => __( 'Set a maximum number of times a customer can suspend their account for each billing period. For example, for a value of 3 and a subscription billed yearly, if the customer has suspended their account 3 times, they will not be presented with the option to suspend their account until the next year. Store managers will always be able to suspend an active subscription. Set this to 0 to turn off the customer suspension feature completely.', 'woocommerce-subscriptions' ),
 			),
 
 			array(
@@ -1184,7 +1179,7 @@ class WC_Subscriptions_Admin {
 				<p class="submit">
 					<a href="<?php echo esc_url( self::add_subscription_url() ); ?>" class="button button-primary"><?php esc_html_e( 'Add a Subscription Product', 'woocommerce-subscriptions' ); ?></a>
 					<a href="<?php echo esc_url( self::settings_tab_url() ); ?>" class="docs button button-primary"><?php esc_html_e( 'Settings', 'woocommerce-subscriptions' ); ?></a>
-					<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.woocommerce.com/products/woocommerce-subscriptions/" data-text="Woot! I can sell subscriptions with #WooCommerce" data-via="WooThemes" data-size="large">Tweet</a>
+					<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.woocommerce.com/products/woocommerce-subscriptions/" data-text="Woot! I can sell subscriptions with #WooCommerce" data-via="WooCommerce" data-size="large">Tweet</a>
 					<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 				</p>
 			</div>
@@ -1516,7 +1511,7 @@ class WC_Subscriptions_Admin {
 			),
 
 			array(
-				// translators: $1-$2: opening and closing tags. Link to documents->payment gateways, 3$-4$: opening and closing tags. Link to woothemes extensions shop page
+				// translators: $1-$2: opening and closing tags. Link to documents->payment gateways, 3$-4$: opening and closing tags. Link to WooCommerce extensions shop page
 				'desc' => sprintf( __( 'Find new gateways that %1$ssupport automatic subscription payments%2$s in the official %3$sWooCommerce Marketplace%4$s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'http://docs.woocommerce.com/document/subscriptions/payment-gateways/' ) . '">', '</a>', '<a href="' . esc_url( 'http://www.woocommerce.com/product-category/woocommerce-extensions/' ) . '">', '</a>' ),
 				'id'   => WC_Subscriptions_Admin::$option_prefix . '_payment_gateways_additional',
 				'type' => 'informational',

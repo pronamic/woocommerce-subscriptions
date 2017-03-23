@@ -401,6 +401,12 @@ class WC_Subscription extends WC_Order {
 				$this->add_order_note( trim( sprintf( __( '%1$s Status changed from %2$s to %3$s.', 'woocommerce-subscriptions' ), $note, wcs_get_subscription_status_name( $old_status ), wcs_get_subscription_status_name( $new_status ) ) ), 0, $manual );
 
 			} catch ( Exception $e ) {
+				// Log any exceptions to a WC logger
+				$log        = new WC_Logger();
+				$log_entry  = print_r( $e, true );
+				$log_entry .= 'Exception Trace: ' . print_r( $e->getTraceAsString(), true );
+
+				$log->add( 'wcs-update-status-failures', $log_entry );
 
 				// Make sure the old status is restored
 				wp_update_post( array( 'ID' => $this->id, 'post_status' => $old_status_key ) );
@@ -749,97 +755,20 @@ class WC_Subscription extends WC_Order {
 	public function update_dates( $dates, $timezone = 'gmt' ) {
 		global $wpdb;
 
-		if ( ! is_array( $dates ) ) {
-			throw new InvalidArgumentException( __( 'Invalid format. First parameter needs to be an array.', 'woocommerce-subscriptions' ) );
-		}
+		$dates = $this->validate_date_updates( $dates, $timezone );
 
-		if ( empty( $dates ) ) {
-			throw new InvalidArgumentException( __( 'Invalid data. First parameter was empty when passed to update_dates().', 'woocommerce-subscriptions' ) );
-		}
+		// If an exception hasn't been thrown by this point, we can safely update the dates
+		$is_updated = false;
 
-		$allowed_date_keys = array_keys( wcs_get_subscription_date_types() );
-		$passed_date_keys  = array_keys( $dates );
-		$extra_keys        = array_diff( str_replace( '_date', '', $passed_date_keys ), $allowed_date_keys );
-		if ( ! empty( $extra_keys ) ) {
-			throw new InvalidArgumentException( __( 'Invalid data. First parameter has a date that is not in the registered date types.', 'woocommerce-subscriptions' ) );
-		}
-
-		$timestamps = array();
 		foreach ( $dates as $date_type => $datetime ) {
-			if ( ! empty( $datetime ) && false === wcs_is_datetime_mysql_format( $datetime ) ) {
-				// translators: placeholder is date type (e.g. "end", "next_payment"...)
-				throw new InvalidArgumentException( sprintf( _x( 'Invalid %s date. The date must be of the format: "Y-m-d H:i:s".', 'appears in an error message if date is wrong format', 'woocommerce-subscriptions' ), $date_type ) );
-			}
 
-			$date_type = str_replace( '_date', '', $date_type );
-
-			if ( empty( $datetime ) ) {
-
-				$timestamps[ $date_type ] = 0;
-
-			} else {
-
-				if ( 'gmt' !== strtolower( $timezone ) ) {
-					$datetime = get_gmt_from_date( $datetime );
-				}
-
-				$timestamps[ $date_type ] = wcs_date_to_time( $datetime );
-			}
-		}
-
-		foreach ( $allowed_date_keys as $date_type ) {
-			if ( ! array_key_exists( $date_type, $timestamps ) ) {
-				$timestamps[ $date_type ] = $this->get_time( $date_type );
-			}
-
-			if ( 0 == $timestamps[ $date_type ] ) {
-				// Last payment is not in the UI, and it should NOT be deleted as that would mess with scheduling
+			// Delete dates with a 0 date time
+			if ( 0 == $datetime ) {
 				if ( 'last_payment' != $date_type && 'start' != $date_type ) {
 					$this->delete_date( $date_type );
 				}
-				unset( $timestamps[ $date_type ] );
 				continue;
 			}
-		}
-
-		$messages = array();
-
-		// And then iterate over them. We need the two separate loops as we need a full array before we start checking the relationships between them.
-		foreach ( $timestamps as $date_type => $datetime ) {
-			switch ( $date_type ) {
-				case 'end' :
-					if ( array_key_exists( 'cancelled', $timestamps ) && $datetime < $timestamps['cancelled'] ) {
-						$messages[] = sprintf( __( 'The %s date must occur after the cancellation date.', 'woocommerce-subscriptions' ), $date_type );
-					}
-
-				case 'cancelled' :
-					if ( array_key_exists( 'last_payment', $timestamps ) && $datetime < $timestamps['last_payment'] ) {
-						$messages[] = sprintf( __( 'The %s date must occur after the last payment date.', 'woocommerce-subscriptions' ), $date_type );
-					}
-
-					if ( array_key_exists( 'next_payment', $timestamps ) && $datetime <= $timestamps['next_payment'] ) {
-						$messages[] = sprintf( __( 'The %s date must occur after the next payment date.', 'woocommerce-subscriptions' ), $date_type );
-					}
-				case 'next_payment' :
-					// Guarantees that end is strictly after trial_end, because if next_payment and end can't be at same time
-					if ( array_key_exists( 'trial_end', $timestamps ) && $datetime < $timestamps['trial_end'] ) {
-						$messages[] = sprintf( __( 'The %s date must occur after the trial end date.', 'woocommerce-subscriptions' ), $date_type );
-					}
-				case 'trial_end' :
-					if ( $datetime <= $timestamps['start'] ) {
-						$messages[] = sprintf( __( 'The %s date must occur after the start date.', 'woocommerce-subscriptions' ), $date_type );
-					}
-			}
-		}
-
-		if ( ! empty( $messages ) ) {
-			throw new Exception( join( ' ', $messages ) );
-		}
-
-		$is_updated = false;
-
-		foreach ( $timestamps as $date_type => $timestamp ) {
-			$datetime = gmdate( 'Y-m-d H:i:s', $timestamp );
 
 			if ( $datetime == $this->get_date( $date_type ) ) {
 				continue;
@@ -1019,7 +948,7 @@ class WC_Subscription extends WC_Order {
 
 			// Make sure the next payment is more than 2 hours in the future, this ensures changes to the site's timezone because of daylight savings will never cause a 2nd renewal payment to be processed on the same day
 			$i = 1;
-			while ( $next_payment_timestamp < ( current_time( 'timestamp', true ) + 2 * HOUR_IN_SECONDS ) && $i < 30 ) {
+			while ( $next_payment_timestamp < ( current_time( 'timestamp', true ) + 2 * HOUR_IN_SECONDS ) && $i < 3000 ) {
 				$next_payment_timestamp = wcs_add_time( $this->billing_interval, $this->billing_period, $next_payment_timestamp );
 				$i += 1;
 			}
@@ -1271,6 +1200,10 @@ class WC_Subscription extends WC_Order {
 	 * @param $transaction_id string Optional transaction id to store in post meta
 	 */
 	public function payment_complete( $transaction_id = '' ) {
+
+		if ( WC_Subscriptions_Change_Payment_Gateway::$is_request_to_change_payment ) {
+			return;
+		}
 
 		// Clear the cached completed payment count
 		$this->cached_completed_payment_count = false;
@@ -1797,5 +1730,132 @@ class WC_Subscription extends WC_Order {
 		}
 
 		return apply_filters( 'woocommerce_subscription_is_one_payment', $is_one_payment, $this );
+	}
+
+	/**
+	 * Validates subscription date updates ensuring the proposed date changes are in the correct format and are compatible with
+	 * the current subscription dates. Also returns the dates in the gmt timezone - ready for setting/deleting.
+	 *
+	 * @param array $dates array containing dates with keys: 'start', 'trial_end', 'next_payment', 'last_payment' or 'end'. Values are time
+	 * @param string $timezone The timezone of the $datetime param. Default 'gmt'.
+	 * @return array $dates array of dates in gmt timezone.
+	 */
+	public function validate_date_updates( $dates, $timezone = 'gmt' ) {
+
+		if ( ! is_array( $dates ) ) {
+			throw new InvalidArgumentException( __( 'Invalid format. First parameter needs to be an array.', 'woocommerce-subscriptions' ) );
+		}
+
+		if ( empty( $dates ) ) {
+			throw new InvalidArgumentException( __( 'Invalid data. First parameter was empty when passed to update_dates().', 'woocommerce-subscriptions' ) );
+		}
+
+		$subscription_date_keys = array_keys( wcs_get_subscription_date_types() );
+		$passed_date_keys       = str_replace( '_date', '', array_keys( $dates ) );
+		$extra_keys             = array_diff( $passed_date_keys, $subscription_date_keys );
+
+		if ( ! empty( $extra_keys ) ) {
+			throw new InvalidArgumentException( __( 'Invalid data. First parameter has a date that is not in the registered date types.', 'woocommerce-subscriptions' ) );
+		}
+
+		$timestamps = $delete_date_types = array();
+		$dates      = array_combine( $passed_date_keys, array_values( $dates ) );
+
+		// Get a full set of subscription dates made up of passed and current dates
+		foreach ( $subscription_date_keys as $date_type ) {
+
+			// Honour passed values first
+			if ( isset( $dates[ $date_type ] ) ) {
+				$datetime = $dates[ $date_type ];
+
+				if ( ! empty( $datetime ) && false === wcs_is_datetime_mysql_format( $datetime ) ) {
+					// translators: placeholder is date type (e.g. "end", "next_payment"...)
+					throw new InvalidArgumentException( sprintf( _x( 'Invalid %s date. The date must be of the format: "Y-m-d H:i:s".', 'appears in an error message if date is wrong format', 'woocommerce-subscriptions' ), $date_type ) );
+				}
+
+				if ( empty( $datetime ) ) {
+
+					$timestamps[ $date_type ] = 0;
+
+				} else {
+
+					if ( 'gmt' !== strtolower( $timezone ) ) {
+						$datetime = get_gmt_from_date( $datetime );
+					}
+
+					$timestamps[ $date_type ] = wcs_date_to_time( $datetime );
+				}
+			// otherwise get the current subscription time
+			} else {
+				$timestamps[ $date_type ] = $this->get_time( $date_type );
+			}
+
+			if ( 0 == $timestamps[ $date_type ] ) {
+				// Last payment is not in the UI, and it should NOT be deleted as that would mess with scheduling
+				if ( 'last_payment' != $date_type && 'start' != $date_type ) {
+					// We need to separate the dates which need deleting, so they don't interfere in the remaining validation
+					$delete_date_types[ $date_type ] = 0;
+				}
+				unset( $timestamps[ $date_type ] );
+			}
+		}
+
+		$messages = array();
+
+		// And then iterate over them checking the relationships between them.
+		foreach ( $timestamps as $date_type => $datetime ) {
+			switch ( $date_type ) {
+				case 'end' :
+					if ( array_key_exists( 'cancelled', $timestamps ) && $datetime < $timestamps['cancelled'] ) {
+						$messages[] = sprintf( __( 'The %s date must occur after the cancellation date.', 'woocommerce-subscriptions' ), $date_type );
+					}
+
+				case 'cancelled' :
+					if ( array_key_exists( 'last_payment', $timestamps ) && $datetime < $timestamps['last_payment'] ) {
+						$messages[] = sprintf( __( 'The %s date must occur after the last payment date.', 'woocommerce-subscriptions' ), $date_type );
+					}
+
+					if ( array_key_exists( 'next_payment', $timestamps ) && $datetime <= $timestamps['next_payment'] ) {
+						$messages[] = sprintf( __( 'The %s date must occur after the next payment date.', 'woocommerce-subscriptions' ), $date_type );
+					}
+				case 'next_payment' :
+					// Guarantees that end is strictly after trial_end, because if next_payment and end can't be at same time
+					if ( array_key_exists( 'trial_end', $timestamps ) && $datetime < $timestamps['trial_end'] ) {
+						$messages[] = sprintf( __( 'The %s date must occur after the trial end date.', 'woocommerce-subscriptions' ), $date_type );
+					}
+				case 'trial_end' :
+					if ( $datetime <= $timestamps['start'] ) {
+						$messages[] = sprintf( __( 'The %s date must occur after the start date.', 'woocommerce-subscriptions' ), $date_type );
+					}
+			}
+
+			$dates[ $date_type ] = gmdate( 'Y-m-d H:i:s', $datetime );
+		}
+
+		if ( ! empty( $messages ) ) {
+			throw new Exception( join( ' ', $messages ) );
+		}
+
+		return array_merge( $dates, $delete_date_types );
+	}
+
+	/**
+	 * Add a product line item to the subscription.
+	 *
+	 * @since 2.1.4
+	 * @param WC_Product product
+	 * @param int line item quantity.
+	 * @param array args
+	 * @return int|bool Item ID or false.
+	 */
+	public function add_product( $product, $qty = 1, $args = array() ) {
+		$item_id = parent::add_product( $product, $qty, $args );
+
+		// Remove backordered meta if it has been added
+		if ( $item_id && $product->backorders_require_notification() && $product->is_on_backorder( $qty ) ) {
+			wc_delete_order_item_meta( $item_id, apply_filters( 'woocommerce_backordered_item_meta_name', __( 'Backordered', 'woocommerce-subscriptions' ) ) );
+		}
+
+		return $item_id;
 	}
 }

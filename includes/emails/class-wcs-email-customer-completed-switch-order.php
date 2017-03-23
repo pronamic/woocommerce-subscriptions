@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @class 		WCS_Email_Completed_Switch_Order
  * @version		2.0.0
  * @package		WooCommerce/Classes/Emails
- * @author 		WooThemes
+ * @author 		Prospress
  * @extends 	WC_Email
  */
 class WCS_Email_Completed_Switch_Order extends WC_Email_Customer_Completed_Order {
@@ -39,7 +39,7 @@ class WCS_Email_Completed_Switch_Order extends WC_Email_Customer_Completed_Order
 		$this->subject_downloadable = $this->get_option( 'subject_downloadable', __( 'Your {blogname} subscription change from {order_date} is complete - download your files', 'woocommerce-subscriptions' ) );
 
 		// Triggers for this email
-		add_action( 'woocommerce_order_status_completed_switch_notification', array( $this, 'trigger' ) );
+		add_action( 'woocommerce_subscriptions_switch_completed_switch_notification', array( $this, 'trigger' ) );
 
 		// We want most of the parent's methods, with none of its properties, so call its parent's constructor
 		WC_Email::__construct();

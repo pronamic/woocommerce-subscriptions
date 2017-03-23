@@ -30,12 +30,7 @@ class WCS_Email_New_Switch_Order extends WC_Email_New_Order {
 		$this->template_base  = plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/';
 
 		// Triggers for this email
-		add_action( 'woocommerce_order_status_pending_to_processing_switch_notification', array( $this, 'trigger' ) );
-		add_action( 'woocommerce_order_status_pending_to_completed_switch_notification', array( $this, 'trigger' ) );
-		add_action( 'woocommerce_order_status_pending_to_on-hold_switch_notification', array( $this, 'trigger' ) );
-		add_action( 'woocommerce_order_status_failed_to_processing_switch_notification', array( $this, 'trigger' ) );
-		add_action( 'woocommerce_order_status_failed_to_completed_switch_notification', array( $this, 'trigger' ) );
-		add_action( 'woocommerce_order_status_failed_to_on-hold_switch_notification', array( $this, 'trigger' ) );
+		add_action( 'woocommerce_subscriptions_switch_completed_switch_notification', array( $this, 'trigger' ) );
 
 		// We want all the parent's methods, with none of its properties, so call its parent's constructor, rather than my parent constructor
 		WC_Email::__construct();

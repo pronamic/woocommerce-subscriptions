@@ -43,6 +43,14 @@ class WCS_Cart_Renewal {
 
 		// When a user is prevented from paying for a failed/pending renewal order because they aren't logged in, redirect them back after login
 		add_filter( 'woocommerce_login_redirect', array( &$this, 'maybe_redirect_after_login' ), 10 , 1 );
+
+		// When a renewal order's line items are being updated, update the line item IDs stored in cart data.
+		add_action( 'woocommerce_add_order_item_meta', array( &$this, 'update_line_item_cart_data' ), 10, 3 );
+
+		// Once we have finished updating the renewal order on checkout, update the session cart so the cart changes are honoured.
+		add_action( 'woocommerce_checkout_order_processed', array( &$this, 'update_session_cart_after_updating_renewal_order' ), 10 );
+
+		add_filter( 'wc_dynamic_pricing_apply_cart_item_adjustment', array( &$this, 'prevent_compounding_dynamic_discounts' ), 10, 2 );
 	}
 
 	/**
@@ -897,6 +905,53 @@ class WCS_Cart_Renewal {
 		}
 
 		return $redirect;
+	}
+
+	/**
+	 * After updating renewal order line items, update the values stored in cart item data
+	 * which would now reference old line item IDs.
+	 *
+	 * @since 2.1.3
+	 */
+	public function update_line_item_cart_data( $item_id, $cart_item_data, $cart_item_key ) {
+
+		if ( isset( $cart_item_data[ $this->cart_item_key ] ) ) {
+			// Update the line_item_id to the new corresponding item_id
+			WC()->cart->cart_contents[ $cart_item_key ][ $this->cart_item_key ]['line_item_id'] = $item_id;
+		}
+	}
+
+	/**
+	 * Force an update to the session cart after updating renewal order line items.
+	 * This is required so that changes made by @see WCS_Cart_Renewal->update_line_item_cart_data()
+	 * are also reflected in the session cart.
+	 *
+	 * @since 2.1.3
+	 */
+	public function update_session_cart_after_updating_renewal_order() {
+
+		if ( $this->cart_contains() ) {
+			// Update the cart stored in the session with the new data
+			WC()->session->cart = WC()->cart->get_cart_for_session();
+		}
+	}
+
+	/**
+	* Prevent compounding dynamic discounts on cart items.
+	* Dynamic discounts are copied from the subscription to the renewal order and so don't need to be applied again in the cart.
+	*
+	* @param bool Whether to apply the dynamic discount
+	* @param string The cart item key of the cart item the dynamic discount is being applied to.
+	* @return bool
+	* @since  2.1.4
+	*/
+	function prevent_compounding_dynamic_discounts( $adjust_price, $cart_item_key ) {
+
+		if ( $adjust_price && isset( WC()->cart->cart_contents[ $cart_item_key ][ $this->cart_item_key ] ) ) {
+			$adjust_price = false;
+		}
+
+		return $adjust_price;
 	}
 
 	/* Deprecated */
