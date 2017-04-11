@@ -158,3 +158,31 @@ function wcs_get_rounding_precision() {
 
 	return $precision;
 }
+
+/**
+ * Add a prefix to a string if it doesn't already have it
+ *
+ * @param string
+ * @param string
+ * @since 2.2.0
+ * @return string
+ */
+function wcs_maybe_prefix_key( $key, $prefix = '_' ) {
+	return ( substr( $key, 0, strlen( $prefix ) ) != $prefix ) ? $prefix . $key : $key;
+}
+
+/**
+ * Find the name of the function which called the function which called this function.
+ *
+ * @since 2.2.0
+ * @return string
+ */
+function wcs_get_calling_function_name() {
+
+	$backtrace         = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 3 );
+	$calling_function  = isset( $backtrace[2]['class'] ) ? $backtrace[2]['class'] : '';
+	$calling_function .= isset( $backtrace[2]['type'] ) ? $backtrace[2]['type'] : '';
+	$calling_function .= isset( $backtrace[2]['function'] ) ? $backtrace[2]['function'] : '';
+
+	return $calling_function;
+}

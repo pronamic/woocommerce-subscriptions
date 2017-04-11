@@ -24,13 +24,13 @@ function wcs_order_contains_switch( $order ) {
 		$order = wc_get_order( $order );
 	}
 
-	if ( 'simple' != $order->order_type || isset( $order->subscription_renewal ) ) { // It's a parent order or renewal order
+	if ( ! wcs_is_order( $order ) || wcs_order_contains_renewal( $order ) ) {
 
 		$is_switch_order = false;
 
 	} else {
 
-		$subscription_ids = get_post_meta( $order->id, '_subscription_switch', false );
+		$subscription_ids = wcs_get_objects_property( $order, 'subscription_switch', 'multiple' );
 
 		if ( ! empty( $subscription_ids ) ) {
 			$is_switch_order = true;
@@ -49,14 +49,14 @@ function wcs_order_contains_switch( $order ) {
  * @return array Subscription details in post_id => WC_Subscription form.
  * @since  2.0
  */
-function wcs_get_subscriptions_for_switch_order( $order_id ) {
+function wcs_get_subscriptions_for_switch_order( $order ) {
 
-	if ( is_object( $order_id ) ) {
-		$order_id = $order_id->id;
+	if ( ! is_object( $order ) ) {
+		$order = wc_get_order( $order );
 	}
 
 	$subscriptions    = array();
-	$subscription_ids = get_post_meta( $order_id, '_subscription_switch', false );
+	$subscription_ids = wcs_get_objects_property( $order, 'subscription_switch', 'multiple' );
 
 	foreach ( $subscription_ids as $subscription_id ) {
 		$subscriptions[ $subscription_id ] = wcs_get_subscription( $subscription_id );
@@ -119,9 +119,11 @@ function wcs_is_product_switchable_type( $product ) {
 	} else {
 
 		// back compat for parent products
-		if ( $product->is_type( 'subscription_variation' ) && ! empty( $product->parent ) ) {
+		$parent_id = wcs_get_objects_property( $product, 'parent_id' );
+
+		if ( $product->is_type( 'subscription_variation' ) && ! empty( $parent_id ) ) {
 			$variation = $product;
-			$product   = $product->parent;
+			$product   = wc_get_product( $parent_id );;
 		}
 
 		$allow_switching = get_option( WC_Subscriptions_Admin::$option_prefix . '_allow_switching', 'no' );
@@ -131,10 +133,10 @@ function wcs_is_product_switchable_type( $product ) {
 				$is_product_switchable = ( $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) ) ? true : false;
 				break;
 			case 'grouped' :
-				$is_product_switchable = ( 0 !== $product->post->post_parent ) ? true : false;
+				$is_product_switchable = ( ! empty( $parent_id ) ) ? true : false;
 				break;
 			case 'variable_grouped' :
-				$is_product_switchable = ( $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) || 0 !== $product->post->post_parent ) ? true : false;
+				$is_product_switchable = ( $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) || ! empty( $parent_id ) ) ? true : false;
 				break;
 			case 'no' :
 			default:

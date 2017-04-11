@@ -54,8 +54,13 @@ class WCS_API {
 			return;
 		}
 
-		require_once( 'api/class-wc-rest-subscriptions-controller.php' );
-		require_once( 'api/class-wc-rest-subscription-notes-controller.php' );
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+			require_once( 'api/legacy/class-wc-rest-subscriptions-controller.php' );
+			require_once( 'api/legacy/class-wc-rest-subscription-notes-controller.php' );
+		} else {
+			require_once( 'api/class-wc-rest-subscriptions-controller.php' );
+			require_once( 'api/class-wc-rest-subscription-notes-controller.php' );
+		}
 
 		foreach ( array( 'WC_REST_Subscriptions_Controller', 'WC_REST_Subscription_Notes_Controller' ) as $api_class ) {
 			$controller = new $api_class();

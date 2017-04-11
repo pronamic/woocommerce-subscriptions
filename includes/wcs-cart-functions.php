@@ -213,7 +213,7 @@ function wcs_cart_totals_coupon_html( $coupon, $cart ) {
 
 	$value  = array();
 
-	if ( $amount = $cart->get_coupon_discount_amount( $coupon->code, $cart->display_cart_ex_tax ) ) {
+	if ( $amount = $cart->get_coupon_discount_amount( wcs_get_coupon_property( $coupon, 'code' ), $cart->display_cart_ex_tax ) ) {
 		$discount_html = '-' . wc_price( $amount );
 	} else {
 		$discount_html = '';
@@ -221,7 +221,7 @@ function wcs_cart_totals_coupon_html( $coupon, $cart ) {
 
 	$value[] = apply_filters( 'woocommerce_coupon_discount_amount_html', $discount_html, $coupon );
 
-	if ( $coupon->enable_free_shipping() ) {
+	if ( wcs_get_coupon_property( $coupon, 'enable_free_shipping' ) ) {
 		$value[] = __( 'Free shipping coupon', 'woocommerce-subscriptions' );
 	}
 
@@ -303,10 +303,11 @@ function wcs_cart_pluck( $cart, $field, $default = 0 ) {
 		$value = $cart->$field;
 	} else {
 		foreach ( $cart->get_cart() as $cart_item ) {
+
 			if ( isset( $cart_item[ $field ] ) ) {
 				$value = $cart_item[ $field ];
-			} elseif ( $cart_item['data']->$field ) {
-				$value = $cart_item['data']->$field;
+			} else {
+				$value = WC_Subscriptions_Product::get_meta_data( $cart_item['data'], $field, $default );
 			}
 		}
 	}

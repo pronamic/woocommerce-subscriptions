@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package WooCommerce_Subscriptions/API
  * @extends WC_REST_Order_Notes_Controller
  */
-class WC_REST_Subscription_Notes_Controller extends WC_REST_Order_Notes_Controller {
+class WC_REST_Subscription_Notes_Controller extends WC_REST_Order_Notes_V1_Controller {
 
 	/**
 	 * Route base.

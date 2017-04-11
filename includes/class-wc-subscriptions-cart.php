@@ -120,6 +120,8 @@ class WC_Subscriptions_Cart {
 
 		// WooCommerce determines if free shipping is available using the WC->cart total and coupons, we need to recalculate its availability when obtaining shipping methods for a recurring cart
 		add_filter( 'woocommerce_shipping_free_shipping_is_available', __CLASS__ . '::maybe_recalculate_shipping_method_availability', 10, 2 );
+
+		add_filter( 'woocommerce_add_to_cart_handler', __CLASS__ . '::add_to_cart_handler', 10, 2 );
 	}
 
 	/**
@@ -140,7 +142,12 @@ class WC_Subscriptions_Cart {
 		}
 
 		// Set which price should be used for calculation
-		add_filter( 'woocommerce_get_price', __CLASS__ . '::set_subscription_prices_for_calculation', 100, 2 );
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+			add_filter( 'woocommerce_get_price', __CLASS__ . '::set_subscription_prices_for_calculation', 100, 2 );
+		} else {
+			add_filter( 'woocommerce_product_get_price', __CLASS__ . '::set_subscription_prices_for_calculation', 100, 2 );
+			add_filter( 'woocommerce_product_variation_get_price', __CLASS__ . '::set_subscription_prices_for_calculation', 100, 2 );
+		}
 	}
 
 	/**
@@ -150,7 +157,34 @@ class WC_Subscriptions_Cart {
 	 * @since 1.2
 	 */
 	public static function remove_calculation_price_filter() {
-		remove_filter( 'woocommerce_get_price', __CLASS__ . '::set_subscription_prices_for_calculation', 100, 2 );
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+			remove_filter( 'woocommerce_get_price', __CLASS__ . '::set_subscription_prices_for_calculation', 100 );
+		} else {
+			remove_filter( 'woocommerce_product_get_price', __CLASS__ . '::set_subscription_prices_for_calculation', 100 );
+			remove_filter( 'woocommerce_product_variation_get_price', __CLASS__ . '::set_subscription_prices_for_calculation', 100 );
+		}
+	}
+
+	/**
+	 * Use WC core add-to-cart handlers for subscription products.
+	 *
+	 * @param string $handler The name of the handler to use when adding product to the cart
+	 * @param WC_Product $product
+	 */
+	public static function add_to_cart_handler( $handler, $product ) {
+
+		if ( WC_Subscriptions_Product::is_subscription( $product ) ) {
+			switch ( $handler ) {
+				case 'variable-subscription' :
+					$handler = 'variable';
+					break;
+				case 'subscription' :
+					$handler = 'simple';
+					break;
+			}
+		}
+
+		return $handler;
 	}
 
 	/**
@@ -542,8 +576,7 @@ class WC_Subscriptions_Cart {
 				$all_items_have_free_trial = false;
 				break;
 			} else {
-				$trial_length = ( isset( $cart_item['data']->subscription_trial_length ) ) ? $cart_item['data']->subscription_trial_length : WC_Subscriptions_Product::get_trial_length( $cart_item['data'] );
-				if ( 0 == $trial_length ) {
+				if ( 0 == WC_Subscriptions_Product::get_trial_length( $cart_item['data'] ) ) {
 					$all_items_have_free_trial = false;
 					break;
 				}
@@ -569,7 +602,7 @@ class WC_Subscriptions_Cart {
 		if ( self::cart_contains_subscription() ) {
 			foreach ( WC()->cart->cart_contents as $cart_item_key => $values ) {
 				$_product = $values['data'];
-				if ( WC_Subscriptions_Product::is_subscription( $_product ) && $_product->needs_shipping() && 'yes' !== $_product->subscription_one_time_shipping ) {
+				if ( WC_Subscriptions_Product::is_subscription( $_product ) && $_product->needs_shipping() && false === WC_Subscriptions_Product::needs_one_time_shipping( $_product ) ) {
 					$cart_contains_subscriptions_needing_shipping = true;
 				}
 			}
@@ -590,8 +623,7 @@ class WC_Subscriptions_Cart {
 			if ( 'none' == self::$calculation_type ) {
 				foreach ( $packages as $index => $package ) {
 					foreach ( $package['contents'] as $cart_item_key => $cart_item ) {
-						$trial_length = ( isset( $cart_item['data']->subscription_trial_length ) ) ? $cart_item['data']->subscription_trial_length : WC_Subscriptions_Product::get_trial_length( $cart_item['data'] );
-						if ( $trial_length > 0 ) {
+						if ( WC_Subscriptions_Product::get_trial_length( $cart_item['data'] ) > 0 ) {
 							unset( $packages[ $index ]['contents'][ $cart_item_key ] );
 						}
 					}
@@ -603,7 +635,7 @@ class WC_Subscriptions_Cart {
 			} elseif ( 'recurring_total' == self::$calculation_type ) {
 				foreach ( $packages as $index => $package ) {
 					foreach ( $package['contents'] as $cart_item_key => $cart_item ) {
-						if ( isset( $cart_item['data']->subscription_one_time_shipping ) && 'yes' == $cart_item['data']->subscription_one_time_shipping ) {
+						if ( WC_Subscriptions_Product::needs_one_time_shipping( $cart_item['data'] ) ) {
 							$packages[ $index ]['contents_cost'] -= $cart_item['line_total'];
 							unset( $packages[ $index ]['contents'][ $cart_item_key ] );
 						}
@@ -633,15 +665,22 @@ class WC_Subscriptions_Cart {
 
 		if ( WC_Subscriptions_Product::is_subscription( $product ) && ! wcs_cart_contains_renewal() ) {
 
+
+			if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+				$product_price_filter = 'woocommerce_get_price';
+			} else {
+				$product_price_filter = is_a( $product, 'WC_Product_Variation' ) ? 'woocommerce_product_variation_get_price' : 'woocommerce_product_get_price';
+			}
+
 			// Avoid infinite loop
 			remove_filter( 'woocommerce_cart_product_subtotal', __CLASS__ . '::get_formatted_product_subtotal', 11, 4 );
 
-			add_filter( 'woocommerce_get_price', 'WC_Subscriptions_Product::get_sign_up_fee_filter', 100, 2 );
+			add_filter( $product_price_filter, 'WC_Subscriptions_Product::get_sign_up_fee_filter', 100, 2 );
 
 			// And get the appropriate sign up fee string
 			$sign_up_fee_string = $cart->get_product_subtotal( $product, $quantity );
 
-			remove_filter( 'woocommerce_get_price',  'WC_Subscriptions_Product::get_sign_up_fee_filter', 100, 2 );
+			remove_filter( $product_price_filter,  'WC_Subscriptions_Product::get_sign_up_fee_filter', 100, 2 );
 
 			add_filter( 'woocommerce_cart_product_subtotal', __CLASS__ . '::get_formatted_product_subtotal', 11, 4 );
 
@@ -701,10 +740,7 @@ class WC_Subscriptions_Cart {
 
 		if ( self::cart_contains_subscription() ) {
 			foreach ( WC()->cart->cart_contents as $cart_item ) {
-				if ( isset( $cart_item['data']->subscription_trial_length ) && $cart_item['data']->subscription_trial_length > 0 ) {
-					$cart_contains_free_trial = true;
-					break;
-				} elseif ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) && WC_Subscriptions_Product::get_trial_length( $cart_item['data'] ) > 0 ) {
+				if ( WC_Subscriptions_Product::get_trial_length( $cart_item['data'] ) > 0 ) {
 					$cart_contains_free_trial = true;
 					break;
 				}
@@ -758,11 +794,7 @@ class WC_Subscriptions_Cart {
 					continue;
 				}
 
-				if ( isset( $cart_item['data']->subscription_sign_up_fee ) ) {
-					$sign_up_fee += $cart_item['data']->subscription_sign_up_fee;
-				} elseif ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
-					$sign_up_fee += WC_Subscriptions_Product::get_sign_up_fee( $cart_item['data'] );
-				}
+				$sign_up_fee += WC_Subscriptions_Product::get_sign_up_fee( $cart_item['data'] );
 			}
 		}
 
@@ -1411,10 +1443,7 @@ class WC_Subscriptions_Cart {
 
 		if ( self::cart_contains_subscription() ) {
 			foreach ( WC()->cart->cart_contents as $cart_item ) {
-				if ( isset( $cart_item['data']->subscription_period ) ) {
-					$period = $cart_item['data']->subscription_period;
-					break;
-				} elseif ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
+				if ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
 					$period = WC_Subscriptions_Product::get_period( $cart_item['data'] );
 					break;
 				}
@@ -1460,10 +1489,7 @@ class WC_Subscriptions_Cart {
 
 		if ( self::cart_contains_subscription() ) {
 			foreach ( WC()->cart->cart_contents as $cart_item ) {
-				if ( isset( $cart_item['data']->subscription_length ) ) {
-					$length = $cart_item['data']->subscription_length;
-					break;
-				} elseif ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
+				if ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
 					$length = WC_Subscriptions_Product::get_length( $cart_item['data'] );
 					break;
 				}
@@ -1488,10 +1514,7 @@ class WC_Subscriptions_Cart {
 
 		if ( self::cart_contains_subscription() ) {
 			foreach ( WC()->cart->cart_contents as $cart_item ) {
-				if ( isset( $cart_item['data']->subscription_trial_length ) ) {
-					$trial_length = $cart_item['data']->subscription_trial_length;
-					break;
-				} elseif ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
+				if ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
 					$trial_length = WC_Subscriptions_Product::get_trial_length( $cart_item['data'] );
 					break;
 				}
@@ -1517,10 +1540,7 @@ class WC_Subscriptions_Cart {
 		// Get the original trial period
 		if ( self::cart_contains_subscription() ) {
 			foreach ( WC()->cart->cart_contents as $cart_item ) {
-				if ( isset( $cart_item['data']->subscription_trial_period ) ) {
-					$trial_period = $cart_item['data']->subscription_trial_period;
-					break;
-				} elseif ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
+				if ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
 					$trial_period = WC_Subscriptions_Product::get_trial_period( $cart_item['data'] );
 					break;
 				}

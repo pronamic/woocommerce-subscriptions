@@ -1,5 +1,41 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2017.04.07 - version 2.2.3
+* Fix: WooCommerce 3.0: Improve backward compatibility of get_date( 'start' ) calls for subscriptions without a date created set by WooCommerce 3.0 (which happens when manually adding a new subscriptions). PR#2047
+* Fix: WooCommerce 3.0: Prevent saving subscriptions with a 0 start date/date created by making sure we set a default date created value when manually adding a new subscription. PR#2048
+* Fix: WooCommerce 3.0: Remove the correct 3.0 core function responsible for sending order emails to avoid sending both WooCommerce order emails and Subscriptions order emails. PR#2045
+* Fix: WooCommerce 3.0: Make sure synchronised product meta data is set correctly on subscriptino line items by using WooCommerce 3.0 compatible hook. PR#2049
+* Fix: Make sure filters are applied when getting customer subscriptions with REST API endpoints by using WC_API_Subscriptions::get_subscriptions() instead of a custom query to get customer subscriptions. PR#1806
+* Fix: Display correct variable subscription product "From" prices and grouped subscription products prices to match tax settings. PR#2054
+* Fix: Don't attempt to save shipping and billing fields which aren't set when submitting the Edit Subscription screen to avoid notices. PR#2053
+* Fix: Don't use method return value in write context in REST API to avoid errors on certain versions of PHP. PR#2051
+
+2017.04.04 - version 2.2.2
+* Fix: WooCommerce 3.0: Fix using $this when in a static context on newer versions of PHP affecting Edit Subscription and Edit Order screens. PR#2043
+* Fix: WooCommerce 3.0: Grant new product download permissions to all subscriptions because WooCommerce no longer does it for orders (and subscriptions are a custom order type). PR#2039
+* Fix: WooCommerce 3.0: Display subscription related System Status fields in the System Status page on 3.0 which removed old hooks. PR#2039
+* Fix: WooCommerce 3.0: Fix updating payment method and elsewhere via the Edit Subscription administration screen. PR#2037
+* Fix: WooCommerce 3.0: Store correct prorated price for switches against the order line item so it can be used for future switches. PR#2032
+
+2017.04.04 - version 2.2.1
+* Fix: WooCommerce 3.0: Add subscription shipping line item tax the same way WooCommerce 3.0 does it. PR#2023
+* Fix: WooCommerce 3.0: Fix division by zero error when manually paying for renewal with offsite payment methods like PayPal. PR#2036
+* Fix: Send customer renewal invoice emails for manual renewals and when creating a pending renewal. PR#2035
+* Fix: Replace use of undefined variable within WC_Subscription::get_failed_payment_count(). PR#2025
+
+2017.04.03 - version 2.2.0
+* WooCommerce 3.0 Compatibility Release
+* Tweak: add new getters for subscription related product meta data to conform to WooCommerce 3.0's new CRUD system and also prepare for subscription related product meta data to be moved to schemes that can be applied to any product instead of only subscription product types
+* Tweak: add new subscription data store to abstract data storage of subscription data from the subscription class, matching WooCommerce 3.0's new approach to data abstraction.
+* Tweak: add new subscription getters and setters for all subscription data to conform to WooCommerce 3.0's new CRUD architecture
+* Tweak: add new subscription date APIs to work with dates as date/time objects and with nomclementure that aligns with WooCommerce 3.0
+* Tweak: deprecate subscription last payment date APIs because they actual returned the last order date, forcing us to also update the last order date whenever a payment was processed. Two new APIs can now be used: last order date and last order date paid.
+* Tweak: improve variable subscription product sync performance by using cache. Also align it with the approach WooCommerce takes.
+* Tweak: update Select2 to version 4 to work with the version used by WooCommerce 3.0.
+* Tweak: show recurring fees in the recurring totals section on Cart & Checkout pages if 3rd party extensions, like Checkout Add Ons, are adding fees to recurring carts. (PR#2005)
+* Fix: don't show Subscription Data metabox title div on WooCommerce > Edit Subscription administration screen with WordPress 4.4. (PR#1998)
+* Fix: remove option to order the WooCommerce > Subscriptions administration screen by Status, because this option is not supported. (PR#1996)
+
 2017.03.06 - version 2.1.4
 * Tweak: Lengthen PayPal IPN lock to 5 days to prevent creating duplicate renewal orders when a fatal error occurs in processing the IPN. Prevoiusly the lock was set to 5 minutes, meaning on the 2nd IPN would be ignored. Given fatal errors will rarely be fixed within 5 minutes, Subscriptions will now ignore 5 days worth of IPN retries.(PR#1838
 * Tweak: Log exceptions caught while updating subscription statuses to make it easier to diagnose issues with 3rd party code and hosting environment that occur during status transitions. PR#1842

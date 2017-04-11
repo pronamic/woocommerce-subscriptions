@@ -46,10 +46,10 @@ class WCS_Report_Cache_Manager {
 		'woocommerce_subscription_status_active' => array(
 			1 => 'WC_Report_Upcoming_Recurring_Revenue',
 		),
-		'woocommerce_order_add_product' => array(
+		'woocommerce_new_order_item' => array(
 			3 => 'WC_Report_Subscription_By_Product',
 		),
-		'woocommerce_order_edit_product' => array(
+		'woocommerce_update_order_item' => array(
 			3 => 'WC_Report_Subscription_By_Product',
 		),
 	);
@@ -76,6 +76,20 @@ class WCS_Report_Cache_Manager {
 	 * @return null
 	 */
 	public function __construct() {
+
+		// Use the old hooks
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+
+			$hooks = array(
+				'woocommerce_order_add_product'  => 'woocommerce_new_order_item',
+				'woocommerce_order_edit_product' => 'woocommerce_update_order_item',
+			);
+
+			foreach ( $hooks as $old_hook => $new_hook ) {
+				$this->update_events_and_classes[ $old_hook ] = $this->update_events_and_classes[ $new_hook ];
+				unset( $this->update_events_and_classes[ $new_hook ] ); // New hooks aren't called, so no need to attach to them
+			}
+		}
 
 		add_action( $this->cron_hook, array( $this, 'update_cache' ), 10, 1 );
 

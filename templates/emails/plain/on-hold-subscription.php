@@ -25,11 +25,11 @@ do_action( 'woocommerce_subscriptions_email_order_details', $subscription, $sent
 
 echo "\n----------\n\n";
 
-$last_payment_time = $subscription->get_time( 'last_payment', 'site' );
+$last_order_time_created = $subscription->get_time( 'last_order_date_created', 'site' );
 
-if ( ! empty( $last_payment_time ) ) {
+if ( ! empty( $last_order_time_created ) ) {
 	// translators: placeholder is last time subscription was paid
-	echo sprintf( __( 'Last Payment: %s', 'woocommerce-subscriptions' ), date_i18n( wc_date_format(), $last_payment_time ) ) . "\n";
+	echo sprintf( __( 'Last Order: %s', 'woocommerce-subscriptions' ), date_i18n( wc_date_format(), $last_order_time_created ) ) . "\n";
 }
 
 // translators: placeholder is localised date string
@@ -37,7 +37,7 @@ echo sprintf( __( 'Date Suspended: %s', 'woocommerce-subscriptions' ), date_i18n
 
 do_action( 'woocommerce_email_order_meta', $subscription, $sent_to_admin, $plain_text, $email );
 
-echo "\n" . sprintf( _x( 'View Subscription: %s', 'in plain emails for subscription information', 'woocommerce-subscriptions' ), wcs_get_edit_post_link( $subscription->id ) ) . "\n";
+echo "\n" . sprintf( _x( 'View Subscription: %s', 'in plain emails for subscription information', 'woocommerce-subscriptions' ), wcs_get_edit_post_link( $subscription->get_id() ) ) . "\n";
 
 echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
 

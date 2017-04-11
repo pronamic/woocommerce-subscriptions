@@ -209,7 +209,7 @@ class WC_Subscriptions_Upgrader {
 	 * @since 2.1
 	 */
 	public static function maybe_redirect_after_upgrade_complete( $current_version, $previously_active_version ) {
-		if ( version_compare( $previously_active_version, '2.1.0', '<' ) && version_compare( $current_version, '2.1.0', '>=' ) ) {
+		if ( version_compare( $previously_active_version, '2.1.0', '<' ) && version_compare( $current_version, '2.1.0', '>=' ) && version_compare( $current_version, '2.2.0', '<' ) ) {
 			wp_safe_redirect( self::$about_page_url );
 			exit();
 		}

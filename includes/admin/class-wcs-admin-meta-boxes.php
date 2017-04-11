@@ -51,7 +51,7 @@ class WCS_Admin_Meta_Boxes {
 	 * Add WC Meta boxes
 	 */
 	public function add_meta_boxes() {
-		global $current_screen, $post_ID;
+		global $post_ID;
 
 		add_meta_box( 'woocommerce-subscription-data', _x( 'Subscription Data', 'meta box title', 'woocommerce-subscriptions' ), 'WCS_Meta_Box_Subscription_Data::output', 'shop_subscription', 'normal', 'high' );
 
@@ -110,7 +110,7 @@ class WCS_Admin_Meta_Boxes {
 				'i18n_trial_end_next_notice'     => __( 'Please enter a date before the next payment.', 'woocommerce-subscriptions' ),
 				'i18n_end_date_notice'           => __( 'Please enter a date after the next payment.', 'woocommerce-subscriptions' ),
 				'process_renewal_action_warning' => __( "Are you sure you want to process a renewal?\n\nThis will charge the customer and email them the renewal order (if emails are enabled).", 'woocommerce-subscriptions' ),
-				'payment_method'                 => wcs_get_subscription( $post )->payment_method,
+				'payment_method'                 => wcs_get_subscription( $post )->get_payment_method(),
 				'search_customers_nonce'         => wp_create_nonce( 'search-customers' ),
 			) ) );
 		} else if ( 'shop_order' == $screen->id ) {
@@ -156,7 +156,7 @@ class WCS_Admin_Meta_Boxes {
 	 * @since 2.0
 	 */
 	public static function process_renewal_action_request( $subscription ) {
-		do_action( 'woocommerce_scheduled_subscription_payment', $subscription->id );
+		do_action( 'woocommerce_scheduled_subscription_payment', $subscription->get_id() );
 		$subscription->add_order_note( __( 'Process renewal order action requested by admin.', 'woocommerce-subscriptions' ), false, true );
 	}
 
@@ -173,7 +173,7 @@ class WCS_Admin_Meta_Boxes {
 		$renewal_order = wcs_create_renewal_order( $subscription );
 
 		if ( ! $subscription->is_manual() ) {
-			$renewal_order->set_payment_method( $subscription->payment_gateway );
+			$renewal_order->set_payment_method( wc_get_payment_gateway_by_order( $subscription ) ); // We need to pass the payment gateway instance to be compatible with WC < 3.0, only WC 3.0+ supports passing the string name
 		}
 
 		$subscription->add_order_note( __( 'Create pending renewal order requested by admin action.', 'woocommerce-subscriptions' ), false, true );
@@ -207,7 +207,7 @@ class WCS_Admin_Meta_Boxes {
 			// init payment gateways
 			WC()->payment_gateways();
 
-			do_action( 'woocommerce_scheduled_subscription_payment_' . $order->payment_method, $order->get_total(), $order );
+			do_action( 'woocommerce_scheduled_subscription_payment_' . wcs_get_objects_property( $order, 'payment_method' ), $order->get_total(), $order );
 		}
 	}
 
@@ -229,7 +229,8 @@ class WCS_Admin_Meta_Boxes {
 
 		$can_be_retried = false;
 
-		if ( wcs_order_contains_renewal( $order ) && $order->needs_payment() && ! empty( $order->payment_method ) ) {
+		if ( wcs_order_contains_renewal( $order ) && $order->needs_payment() && '' != wcs_get_objects_property( $order, 'payment_method' ) ) {
+			$supports_date_changes          = false;
 			$order_payment_gateway          = wc_get_payment_gateway_by_order( $order );
 			$order_payment_gateway_supports = ( isset( $order_payment_gateway->id ) ) ? has_action( 'woocommerce_scheduled_subscription_payment_' . $order_payment_gateway->id ) : false;
 

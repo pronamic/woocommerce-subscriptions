@@ -95,11 +95,11 @@ class WCS_User_Change_Status_Handler {
 			WC_Subscriptions::add_notice( __( 'That subscription does not exist. Please contact us if you need assistance.', 'woocommerce-subscriptions' ), 'error' );
 			return false;
 
-		} elseif ( ! empty( $wpnonce ) && wp_verify_nonce( $wpnonce, $subscription->id . $subscription->get_status() ) === false ) {
+		} elseif ( ! empty( $wpnonce ) && wp_verify_nonce( $wpnonce, $subscription->get_id() . $subscription->get_status() ) === false ) {
 			WC_Subscriptions::add_notice( __( 'Security error. Please contact us if you need assistance.', 'woocommerce-subscriptions' ), 'error' );
 			return false;
 
-		} elseif ( ! user_can( $user_id, 'edit_shop_subscription_status', $subscription->id ) ) {
+		} elseif ( ! user_can( $user_id, 'edit_shop_subscription_status', $subscription->get_id() ) ) {
 			WC_Subscriptions::add_notice( __( 'That doesn\'t appear to be one of your subscriptions.', 'woocommerce-subscriptions' ), 'error' );
 			return false;
 

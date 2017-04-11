@@ -26,7 +26,7 @@ function wcs_order_contains_resubscribe( $order ) {
 		$order = new WC_Order( $order );
 	}
 
-	if ( '' !== get_post_meta( $order->id, '_subscription_resubscribe', true ) ) {
+	if ( wcs_get_objects_property( $order, 'subscription_resubscribe' ) ) {
 		$is_resubscribe_order = true;
 	} else {
 		$is_resubscribe_order = false;
@@ -55,7 +55,7 @@ function wcs_create_resubscribe_order( $subscription ) {
 	}
 
 	// Keep a record of the original subscription's ID on the new order
-	update_post_meta( $resubscribe_order->id, '_subscription_resubscribe', $subscription->id, true );
+	wcs_set_objects_property( $resubscribe_order, 'subscription_resubscribe', $subscription->get_id(), true );
 
 	do_action( 'wcs_resubscribe_order_created', $resubscribe_order, $subscription );
 
@@ -71,7 +71,7 @@ function wcs_create_resubscribe_order( $subscription ) {
  */
 function wcs_get_users_resubscribe_link( $subscription ) {
 
-	$subscription_id  = ( is_object( $subscription ) ) ? $subscription->id : $subscription;
+	$subscription_id  = ( is_object( $subscription ) ) ? $subscription->get_id() : $subscription;
 
 	$resubscribe_link = add_query_arg( array( 'resubscribe' => $subscription_id ), get_permalink( wc_get_page_id( 'myaccount' ) ) );
 	$resubscribe_link = wp_nonce_url( $resubscribe_link, $subscription_id );
@@ -143,7 +143,7 @@ function wcs_get_subscriptions_for_resubscribe_order( $order ) {
 	}
 
 	$subscriptions    = array();
-	$subscription_ids = get_post_meta( $order->id, '_subscription_resubscribe', false );
+	$subscription_ids = wcs_get_objects_property( $order, 'subscription_resubscribe', 'multiple' );
 
 	foreach ( $subscription_ids as $subscription_id ) {
 		if ( wcs_is_subscription( $subscription_id ) ) {
@@ -187,7 +187,7 @@ function wcs_can_user_resubscribe_to( $subscription, $user_id = '' ) {
 
 		$can_user_resubscribe = false;
 
-	} elseif ( ! user_can( $user_id, 'subscribe_again', $subscription->id ) ) {
+	} elseif ( ! user_can( $user_id, 'subscribe_again', $subscription->get_id() ) ) {
 
 		$can_user_resubscribe = false;
 
@@ -206,7 +206,7 @@ function wcs_can_user_resubscribe_to( $subscription, $user_id = '' ) {
 				array(
 					'key'     => '_subscription_resubscribe',
 					'compare' => '=',
-					'value'   => $subscription->id,
+					'value'   => $subscription->get_id(),
 					'type'    => 'numeric',
 				),
 			),
@@ -229,7 +229,7 @@ function wcs_can_user_resubscribe_to( $subscription, $user_id = '' ) {
 				break;
 			}
 
-			if ( 'active' == wcs_get_product_limitation( $product ) && ( wcs_user_has_subscription( $user_id, $product->id, 'on-hold' ) || wcs_user_has_subscription( $user_id, $product->id, 'active' ) ) ) {
+			if ( 'active' == wcs_get_product_limitation( $product ) && ( wcs_user_has_subscription( $user_id, $product->get_id(), 'on-hold' ) || wcs_user_has_subscription( $user_id, $product->get_id(), 'active' ) ) ) {
 				$has_active_limited_subscription = true;
 				break;
 			}

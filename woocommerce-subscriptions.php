@@ -5,7 +5,7 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: http://prospress.com/
- * Version: 2.1.4
+ * Version: 2.2.3
  *
  * Copyright 2016 Prospress, Inc.  (email : freedoms@prospress.com)
  *
@@ -40,11 +40,11 @@ if ( ! function_exists( 'woothemes_queue_update' ) || ! function_exists( 'is_woo
 woothemes_queue_update( plugin_basename( __FILE__ ), '6115e6d7e297b623a169fdcf5728b224', '27147' );
 
 /**
- * Check if WooCommerce is active, and if it isn't, disable Subscriptions.
+ * Check if WooCommerce is active and at the required minimum version, and if it isn't, disable Subscriptions.
  *
  * @since 1.0
  */
-if ( ! is_woocommerce_active() || version_compare( get_option( 'woocommerce_db_version' ), '2.4', '<' ) ) {
+if ( ! is_woocommerce_active() || version_compare( get_option( 'woocommerce_db_version' ), '2.5', '<' ) ) {
 	add_action( 'admin_notices', 'WC_Subscriptions::woocommerce_inactive_notice' );
 	return;
 }
@@ -111,7 +111,7 @@ require_once( 'includes/class-wcs-cart-switch.php' );
 
 require_once( 'includes/class-wcs-limiter.php' );
 
-require_once( 'includes/admin/reports/class-wcs-report-cache-manager.php' );
+require_once( 'includes/legacy/class-wcs-array-property-post-meta-black-magic.php' );
 
 /**
  * The main subscriptions class.
@@ -126,7 +126,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.1.4';
+	public static $version = '2.2.3';
 
 	private static $total_subscription_count = null;
 
@@ -143,6 +143,8 @@ class WC_Subscriptions {
 
 		// Register our custom subscription order type after WC_Post_types::register_post_types()
 		add_action( 'init', __CLASS__ . '::register_order_types', 6 );
+
+		add_filter( 'woocommerce_data_stores', __CLASS__ . '::add_data_stores', 10, 1 );
 
 		// Register our custom subscription order statuses before WC_Post_types::register_post_status()
 		add_action( 'init', __CLASS__ . '::register_post_status', 9 );
@@ -187,6 +189,23 @@ class WC_Subscriptions {
 		$scheduler_class = apply_filters( 'woocommerce_subscriptions_scheduler', 'WCS_Action_Scheduler' );
 
 		self::$scheduler = new $scheduler_class();
+	}
+
+	/**
+	 * Register data stores for WooCommerce 3.0+
+	 *
+	 * @since 2.2.0
+	 */
+	public static function add_data_stores( $data_stores ) {
+
+		$data_stores['subscription']                   = 'WCS_Subscription_Data_Store_CPT';
+
+		// Use WC core data stores for our products
+		$data_stores['product-variable-subscription']  = 'WC_Product_Variable_Data_Store_CPT';
+		$data_stores['product-subscription_variation'] = 'WC_Product_Variation_Data_Store_CPT';
+		$data_stores['order-item-line_item_pending_switch'] = 'WC_Order_Item_Product_Data_Store';
+
+		return $data_stores;
 	}
 
 	/**
@@ -240,7 +259,7 @@ class WC_Subscriptions {
 					'exclude_from_order_webhooks'      => true,
 					'exclude_from_order_reports'       => true,
 					'exclude_from_order_sales_reports' => true,
-					'class_name'                       => 'WC_Subscription',
+					'class_name'                       => self::is_woocommerce_pre( '3.0' ) ? 'WC_Subscription_Legacy' : 'WC_Subscription',
 				)
 			)
 		);
@@ -257,7 +276,7 @@ class WC_Subscriptions {
 	 * they want to add more links, or modify any of the messages.
 	 * @since  2.0
 	 *
-	 * @return string 						what appears in the list table of the subscriptions
+	 * @return string what appears in the list table of the subscriptions
 	 */
 	private static function get_not_found_text() {
 		if ( true === apply_filters( 'woocommerce_subscriptions_not_empty', wcs_do_subscriptions_exist() ) ) {
@@ -498,7 +517,7 @@ class WC_Subscriptions {
 		wc_get_template( 'single-product/add-to-cart/variable-subscription.php', array(
 			'available_variations' => $get_variations ? $product->get_available_variations() : false,
 			'attributes'           => $product->get_variation_attributes(),
-			'selected_attributes'  => $product->get_variation_default_attributes(),
+			'selected_attributes'  => $product->get_default_attributes(),
 		), '', plugin_dir_path( __FILE__ ) . 'templates/' );
 	}
 
@@ -678,6 +697,8 @@ class WC_Subscriptions {
 
 		require_once( 'includes/admin/class-wcs-admin-reports.php' );
 
+		require_once( 'includes/admin/reports/class-wcs-report-cache-manager.php' );
+
 		require_once( 'includes/admin/meta-boxes/class-wcs-meta-box-related-orders.php' );
 
 		require_once( 'includes/admin/meta-boxes/class-wcs-meta-box-subscription-data.php' );
@@ -699,6 +720,32 @@ class WC_Subscriptions {
 		require_once( 'includes/class-wcs-remove-item.php' );
 
 		require_once( 'includes/class-wcs-user-change-status-handler.php' );
+
+		if ( self::is_woocommerce_pre( '3.0' ) ) {
+
+			require_once( 'includes/legacy/class-wc-subscription-legacy.php' );
+
+			require_once( 'includes/legacy/class-wcs-product-legacy.php' );
+
+			require_once( 'includes/legacy/class-wc-product-subscription-legacy.php' );
+
+			require_once( 'includes/legacy/class-wc-product-subscription-variation-legacy.php' );
+
+			require_once( 'includes/legacy/class-wc-product-variable-subscription-legacy.php' );
+
+			// Load WC_DateTime when it doesn't exist yet so we can use it for datetime handling consistently with WC 3.0+
+			if ( ! class_exists( 'WC_DateTime' ) ) {
+				require_once( 'includes/libraries/class-wc-datetime.php' );
+			}
+
+		} else {
+
+			require_once( 'includes/class-wc-order-item-pending-switch.php');
+
+			require_once( 'includes/data-stores/class-wcs-subscription-data-store-cpt.php' );
+
+			require_once( 'includes/deprecated/class-wcs-deprecated-filter-hooks.php' );
+		}
 
 		// Provide a hook to enable running deprecation handling for stores that might want to check for deprecated code
 		if ( apply_filters( 'woocommerce_subscriptions_load_deprecation_handlers', false ) ) {

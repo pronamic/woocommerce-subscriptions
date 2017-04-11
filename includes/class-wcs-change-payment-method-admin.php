@@ -19,7 +19,7 @@ class WCS_Change_Payment_Method_Admin {
 	 */
 	public static function display_fields( $subscription ) {
 
-		$payment_method        = ! empty( $subscription->payment_method ) ? $subscription->payment_method : '';
+		$payment_method        = $subscription->get_payment_method();
 		$valid_payment_methods = self::get_valid_payment_methods( $subscription );
 
 		if ( ! $subscription->is_manual() && ! isset( $valid_payment_methods[ $payment_method ] ) ) {
@@ -129,7 +129,7 @@ class WCS_Change_Payment_Method_Admin {
 
 		$payment_gateway = ( 'manual' != $payment_method ) ? $payment_gateways[ $payment_method ] : '';
 
-		if ( ! $subscription->is_manual() && property_exists( $subscription->payment_gateway, 'id' ) && ( '' == $payment_gateway || ( $subscription->payment_gateway->id != $payment_gateway->id ) ) ) {
+		if ( ! $subscription->is_manual() && ( '' == $payment_gateway || $subscription->get_payment_method() != $payment_gateway->id ) ) {
 			// Before updating to a new payment gateway make sure the subscription status is updated with the current gateway
 			$gateway_status = apply_filters( 'wcs_gateway_status_payment_changed', 'cancelled', $subscription, $payment_gateway );
 
@@ -137,6 +137,7 @@ class WCS_Change_Payment_Method_Admin {
 		}
 
 		$subscription->set_payment_method( $payment_gateway, $payment_method_meta );
+		$subscription->save();
 	}
 
 	/**
@@ -158,7 +159,7 @@ class WCS_Change_Payment_Method_Admin {
 
 		foreach ( $available_gateways as $gateway_id => $gateway ) {
 
-			if ( $gateway->supports( 'subscription_payment_method_change_admin' ) && 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_turn_off_automatic_payments', 'no' ) || ( ! $subscription->is_manual() && $gateway_id == $subscription->payment_method ) ) {
+			if ( $gateway->supports( 'subscription_payment_method_change_admin' ) && 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_turn_off_automatic_payments', 'no' ) || ( ! $subscription->is_manual() && $gateway_id == $subscription->get_payment_method() ) ) {
 				$valid_gateways[ $gateway_id ] = $gateway->get_title();
 
 			}

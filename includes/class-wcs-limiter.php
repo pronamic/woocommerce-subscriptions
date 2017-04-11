@@ -75,9 +75,11 @@ class WCS_Limiter {
 				}
 				break;
 			case 'subscription_variation' :
-				if ( 'no' != wcs_get_product_limitation( $product->parent ) && ! empty( WC()->cart->cart_contents ) && ! wcs_is_order_received_page() && ! wcs_is_paypal_api_page() ) {
+				$variable_product = wc_get_product( $product->get_parent_id() );
+				if ( 'no' != wcs_get_product_limitation( $variable_product ) && ! empty( WC()->cart->cart_contents ) && ! wcs_is_order_received_page() && ! wcs_is_paypal_api_page() ) {
 					foreach ( WC()->cart->cart_contents as $cart_item ) {
-						if ( $product->id == $cart_item['data']->id && $product->variation_id != $cart_item['data']->variation_id ) {
+						// If the variable product is limited, it can't be purchased if its the same variation
+						if ( $product->get_parent_id() == wcs_get_objects_property( $cart_item['data'], 'parent_id' ) && $product->get_id() != $cart_item['data']->get_id() ) {
 							$purchasable = false;
 							break;
 						}
@@ -98,21 +100,21 @@ class WCS_Limiter {
 	public static function is_purchasable_product( $is_purchasable, $product ) {
 
 		//Set up cache
-		if ( ! isset( self::$is_purchasable_cache[ $product->id ] ) ) {
-			self::$is_purchasable_cache[ $product->id ] = array();
+		if ( ! isset( self::$is_purchasable_cache[ $product->get_id() ] ) ) {
+			self::$is_purchasable_cache[ $product->get_id() ] = array();
 		}
 
-		if ( ! isset( self::$is_purchasable_cache[ $product->id ]['standard'] ) ) {
-			self::$is_purchasable_cache[ $product->id ]['standard'] = $is_purchasable;
+		if ( ! isset( self::$is_purchasable_cache[ $product->get_id() ]['standard'] ) ) {
+			self::$is_purchasable_cache[ $product->get_id() ]['standard'] = $is_purchasable;
 
-			if ( WC_Subscriptions_Product::is_subscription( $product->id ) && 'no' != wcs_get_product_limitation( $product ) && ! wcs_is_order_received_page() && ! wcs_is_paypal_api_page() ) {
+			if ( WC_Subscriptions_Product::is_subscription( $product->get_id() ) && 'no' != wcs_get_product_limitation( $product ) && ! wcs_is_order_received_page() && ! wcs_is_paypal_api_page() ) {
 
-				if ( wcs_is_product_limited_for_user( $product ) && ! self::order_awaiting_payment_for_product( $product->id ) ) {
-					self::$is_purchasable_cache[ $product->id ]['standard'] = false;
+				if ( wcs_is_product_limited_for_user( $product ) && ! self::order_awaiting_payment_for_product( $product->get_id() ) ) {
+					self::$is_purchasable_cache[ $product->get_id() ]['standard'] = false;
 				}
 			}
 		}
-		return self::$is_purchasable_cache[ $product->id ]['standard'];
+		return self::$is_purchasable_cache[ $product->get_id() ]['standard'];
 
 	}
 
@@ -132,7 +134,7 @@ class WCS_Limiter {
 
 		if ( ! isset( self::$is_purchasable_cache[ $product_key ]['switch'] ) ) {
 
-			if ( false === $is_purchasable && wcs_is_product_switchable_type( $product ) && WC_Subscriptions_Product::is_subscription( $product->id ) && 'no' != wcs_get_product_limitation( $product ) && is_user_logged_in() && wcs_user_has_subscription( 0, $product->id, wcs_get_product_limitation( $product ) ) ) {
+			if ( false === $is_purchasable && wcs_is_product_switchable_type( $product ) && WC_Subscriptions_Product::is_subscription( $product->get_id() ) && 'no' != wcs_get_product_limitation( $product ) && is_user_logged_in() && wcs_user_has_subscription( 0, $product->get_id(), wcs_get_product_limitation( $product ) ) ) {
 
 				//Adding to cart
 				if ( isset( $_GET['switch-subscription'] ) ) {
@@ -146,7 +148,7 @@ class WCS_Limiter {
 				} elseif ( isset( WC()->session->cart ) ) {
 
 					foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
-						if ( $product->id == $cart_item['product_id'] && isset( $cart_item['subscription_switch'] ) ) {
+						if ( $product->get_id() == $cart_item['product_id'] && isset( $cart_item['subscription_switch'] ) ) {
 							$is_purchasable = true;
 							break;
 						}
@@ -172,7 +174,7 @@ class WCS_Limiter {
 				$subscription_id       = ( isset( $_GET['resubscribe'] ) ) ? absint( $_GET['resubscribe'] ) : $resubscribe_cart_item['subscription_resubscribe']['subscription_id'];
 				$subscription          = wcs_get_subscription( $subscription_id );
 
-				if ( false != $subscription && $subscription->has_product( $product->id ) && wcs_can_user_resubscribe_to( $subscription ) ) {
+				if ( false != $subscription && $subscription->has_product( $product->get_id() ) && wcs_can_user_resubscribe_to( $subscription ) ) {
 					$is_purchasable = true;
 				}
 
@@ -183,7 +185,7 @@ class WCS_Limiter {
 			// Restoring cart from session, so need to check the cart in the session (wcs_cart_contains_renewal() only checks the cart)
 			} elseif ( WC()->session->cart ) {
 				foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
-					if ( $product->id == $cart_item['product_id'] && ( isset( $cart_item['subscription_renewal'] ) || isset( $cart_item['subscription_resubscribe'] ) ) ) {
+					if ( $product->get_id() == $cart_item['product_id'] && ( isset( $cart_item['subscription_renewal'] ) || isset( $cart_item['subscription_resubscribe'] ) ) ) {
 						$is_purchasable = true;
 						break;
 					}
@@ -216,7 +218,7 @@ class WCS_Limiter {
 						if ( $item['product_id'] == $product_id || $item['variation_id'] == $product_id ) {
 
 							$subscriptions = wcs_get_subscriptions( array(
-								'order_id'   => $order->id,
+								'order_id'   => wcs_get_objects_property( $order, 'id' ),
 								'product_id' => $product_id,
 							) );
 

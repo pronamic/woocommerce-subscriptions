@@ -262,11 +262,11 @@ class WCS_Repair_2_0 {
 
 		// let's get the last 2 renewal orders
 		$last_renewal_order       = array_shift( $renewal_orders );
-		$last_renewal_date        = $last_renewal_order->order_date;
+		$last_renewal_date        = wcs_get_datetime_utc_string( wcs_get_objects_property( $last_renewal_order, 'date_created' ) );
 		$last_renewal_timestamp   = wcs_date_to_time( $last_renewal_date );
 
 		$second_renewal_order     = array_shift( $renewal_orders );
-		$second_renewal_date      = $second_renewal_order->order_date;
+		$second_renewal_date      = wcs_get_datetime_utc_string( wcs_get_objects_property( $second_renewal_order, 'date_created' ) );
 		$second_renewal_timestamp = wcs_date_to_time( $second_renewal_date );
 
 		$interval = 1;
@@ -284,7 +284,7 @@ class WCS_Repair_2_0 {
 			WCS_Upgrade_Logger::add( sprintf( '-- For order %d: we have 3 renewal orders, trying to make sure we are right.', $subscription['order_id'] ) );
 
 			$third_renewal_order = array_shift( $renewal_orders );
-			$third_renewal_date = $third_renewal_order->order_date;
+			$third_renewal_date = wcs_get_datetime_utc_string( wcs_get_objects_property( $third_renewal_order, 'date_created' ) );
 
 			$period2 = wcs_estimate_period_between( $second_renewal_date, $third_renewal_date, $interval );
 
@@ -335,11 +335,11 @@ class WCS_Repair_2_0 {
 
 		// let's get the last 2 renewal orders
 		$last_renewal_order       = array_shift( $renewal_orders );
-		$last_renewal_date        = $last_renewal_order->order_date;
+		$last_renewal_date        = wcs_get_datetime_utc_string( wcs_get_objects_property( $last_renewal_order, 'date_created' ) );
 		$last_renewal_timestamp   = wcs_date_to_time( $last_renewal_date );
 
 		$second_renewal_order     = array_shift( $renewal_orders );
-		$second_renewal_date      = $second_renewal_order->order_date;
+		$second_renewal_date      = wcs_get_datetime_utc_string( wcs_get_objects_property( $second_renewal_order, 'date_created' ) );
 		$second_renewal_timestamp = wcs_date_to_time( $second_renewal_date );
 
 		$subscription['interval'] = wcs_estimate_periods_between( $second_renewal_timestamp, $last_renewal_timestamp, $subscription['period'] );
@@ -470,7 +470,7 @@ class WCS_Repair_2_0 {
 
 			} else {
 
-				$subscription['end_date'] = wcs_add_time( 5, 'hours', wcs_date_to_time( $last_order->order_date ) );
+				$subscription['end_date'] = wcs_add_time( 5, 'hours', wcs_get_objects_property( $last_order, 'date_created' )->getTimestamp() );
 
 			}
 		} else {

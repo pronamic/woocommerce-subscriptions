@@ -78,9 +78,9 @@ class WCS_PayPal_Supports {
 	 */
 	public static function add_feature_support_for_subscription( $is_supported, $feature, $subscription ) {
 
-		if ( 'paypal' === $subscription->payment_method && WCS_PayPal::are_credentials_set() ) {
+		if ( 'paypal' === $subscription->get_payment_method() && WCS_PayPal::are_credentials_set() ) {
 
-			$paypal_profile_id    = wcs_get_paypal_id( $subscription->id );
+			$paypal_profile_id    = wcs_get_paypal_id( $subscription->get_id() );
 			$is_billing_agreement = wcs_is_paypal_profile_a( $paypal_profile_id, 'billing_agreement' );
 
 			if ( 'gateway_scheduled_payments' === $feature && $is_billing_agreement ) {

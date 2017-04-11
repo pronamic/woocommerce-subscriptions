@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package WooCommerce_Subscriptions/API
  * @extends WC_REST_Orders_Controller
  */
-class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
+class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 
 	/**
 	 * Route base.
@@ -41,8 +41,6 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		add_filter( 'woocommerce_rest_prepare_shop_subscription', array( $this, 'filter_get_subscription_response' ), 10, 3 );
 
 		add_filter( 'woocommerce_rest_shop_subscription_query', array( $this, 'query_args' ), 10, 2 );
-
-		add_filter( 'woocommerce_rest_pre_insert_shop_subscription', array( $this, 'prepare_subscription_args' ), 10, 2 );
 	}
 
 	/**
@@ -83,12 +81,15 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		if ( ! empty( $post->post_type ) && ! empty( $post->ID ) && 'shop_subscription' == $post->post_type ) {
 			$subscription = wcs_get_subscription( $post->ID );
 
-			$response->data['billing_period']    = $subscription->billing_period;
-			$response->data['billing_interval']  = $subscription->billing_interval;
-			$response->data['start_date']        = wc_rest_prepare_date_response( $subscription->get_date( 'start' ) );
-			$response->data['trial_end_date']    = wc_rest_prepare_date_response( $subscription->get_date( 'trial_end' ) );
-			$response->data['next_payment_date'] = wc_rest_prepare_date_response( $subscription->get_date( 'next_payment' ) );
-			$response->data['end_date']          = wc_rest_prepare_date_response( $subscription->get_date( 'end_date' ) );
+			$response->data['billing_period']    = $subscription->get_billing_period();
+			$response->data['billing_interval']  = $subscription->get_billing_interval();
+
+			foreach ( array( 'start', 'trial_end', 'next_payment', 'end' ) as $date_type ) {
+				$date_type_key = ( 'start' === $date_type ) ? 'date_created' : $date_type;
+				$date = $subscription->get_date( $date_type_key );
+
+				$response->data[ $date_type . '_date'] = ( ! empty( $date ) ) ? wc_rest_prepare_date_response( $date ) : '';
+			}
 		}
 
 		return $response;
@@ -103,17 +104,50 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	 * @param WP_REST_Request $request
 	 */
 	protected function create_order( $request ) {
-		$post_id = parent::create_order( $request );
+		try {
+			if ( ! is_null( $request['customer_id'] ) && 0 !== $request['customer_id'] && false === get_user_by( 'id', $request['customer_id'] ) ) {
+				throw new WC_REST_Exception( 'woocommerce_rest_invalid_customer_id',__( 'Customer ID is invalid.', 'woocommerce-subscriptions' ), 400 );
+			}
 
-		if ( is_wp_error( $post_id ) ) {
-			return $post_id;
+			// If the start date is not set in the request, set its default to now
+			if ( ! isset( $request['start_date'] ) ) {
+				$request['start_date'] = gmdate( 'Y-m-d H:i:s' );
+			}
+
+			// prepare all subscription data from the request
+			$subscription = $this->prepare_item_for_database( $request );
+			$subscription->set_created_via( 'rest-api' );
+			$subscription->set_prices_include_tax( 'yes' === get_option( 'woocommerce_prices_include_tax' ) );
+			$subscription->calculate_totals();
+
+			// allow the order total to be overriden (i.e. if you want to have a subscription with no order items but a flat $10.00 recurring payment )
+			if ( isset( $request['order_total'] ) ) {
+				$subscription->set_total( wc_format_decimal( $request['order_total'], get_option( 'woocommerce_price_num_decimals' ) ) );
+			}
+
+			$subscription->save();
+
+			// Store the post meta on the subscription after it's saved, this is to avoid compat. issue with the filters in WC_Subscriptions::set_payment_method_meta() expecting the $subscription to have an ID (therefore it needs to be called after the WC_Subscription has been saved)
+			$payment_data = ( ! empty( $request['payment_details'] ) ) ? $request['payment_details'] : array();
+			if ( empty( $payment_data['payment_details']['method_id'] ) && ! empty( $request['payment_method'] ) ) {
+				$payment_data['method_id'] = $request['payment_method'];
+			}
+
+			$this->update_payment_method( $subscription, $payment_data );
+
+			// Handle set paid.
+			if ( true === $request['set_paid'] ) {
+				$subscription->payment_complete( $request['transaction_id'] );
+			} else {
+				$subscription->save(); // $subscription->payment_complete() calls $subscription->update_status() which saves the subscription, so we only need to save it if not calling that
+			}
+
+			return $subscription->get_id();
+		} catch ( WC_Data_Exception $e ) {
+			return new WP_Error( $e->getErrorCode(), $e->getMessage(), $e->getErrorData() );
+		} catch ( WC_REST_Exception $e ) {
+			return new WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ) );
 		}
-
-		if ( isset( $request['order_total'] ) ) {
-			update_post_meta( $post_id, '_order_total', wc_format_decimal( $request['order_total'], get_option( 'woocommerce_price_num_decimals' ) ) );
-		}
-
-		return $post_id;
 	}
 
 	/**
@@ -124,28 +158,47 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	 * @param WP_REST_Request $request
 	 * @param WP_POST $post
 	 */
-	protected function update_order( $request, $post ) {
+	protected function update_order( $request ) {
 		try {
-			$post_id = parent::update_order( $request, $post );
+			$subscription = $this->prepare_item_for_database( $request );
 
-			if ( is_wp_error( $post_id ) ) {
-				return $post_id;
+			// If any line items have changed, recalculate subscription totals.
+			if ( isset( $request['line_items'] ) || isset( $request['shipping_lines'] ) || isset( $request['fee_lines'] ) || isset( $request['coupon_lines'] ) ) {
+				$subscription->calculate_totals();
 			}
 
-			$subscription = wcs_get_subscription( $post_id );
-			$this->update_schedule( $subscription, $request );
-
-			if ( empty( $request['payment_details']['method_id'] ) && ! empty( $request['payment_method'] ) ) {
-				$request['payment_details']['method_id'] = $request['payment_method'];
+			// allow the order total to be overriden (i.e. if you want to have a subscription with no order items but a flat $10.00 recurring payment )
+			if ( isset( $request['order_total'] ) ) {
+				$subscription->set_total( wc_format_decimal( $request['order_total'], get_option( 'woocommerce_price_num_decimals' ) ) );
 			}
 
-			$this->update_payment_method( $subscription, $request['payment_details'], true );
+			$subscription->save();
 
-			return $post_id;
+			// Update the post meta on the subscription after it's saved, this is to avoid compat. issue with the filters in WC_Subscriptions::set_payment_method_meta() expecting the $subscription to have an ID (therefore it needs to be called after the WC_Subscription has been saved)
+			$payment_data = ( ! empty( $request['payment_details'] ) ) ? $request['payment_details'] : array();
+			$existing_payment_method_id = $subscription->get_payment_method();
+
+			if ( empty( $payment_data['method_id'] ) && isset( $request['payment_method'] ) ) {
+				$payment_data['method_id'] = $request['payment_method'];
+
+			} elseif ( ! empty( $existing_payment_method_id ) ) {
+				$payment_data['method_id'] = $existing_payment_method_id;
+			}
+
+			if ( isset( $payment_data['method_id'] ) ) {
+				$this->update_payment_method( $subscription, $payment_data, true );
+			}
+
+			// Handle set paid.
+			if ( $subscription->needs_payment() && true === $request['set_paid'] ) {
+				$subscription->payment_complete();
+			}
+
+			return $subscription->get_id();
+		} catch ( WC_Data_Exception $e ) {
+			return new WP_Error( $e->getErrorCode(), $e->getMessage(), $e->getErrorData() );
 		} catch ( WC_REST_Exception $e ) {
 			return new WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ) );
-		} catch ( Exception $e ) {
-			return new WP_Error( 'woocommerce_rest_cannot_update_subscription', $e->getMessage(), array( 'status' => 400 ) );
 		}
 	}
 
@@ -219,64 +272,6 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	}
 
 	/**
-	 * Create WC_Subscription object.
-	 *
-	 * @since 2.1
-	 * @param array $args subscription args.
-	 * @return WC_Subscription
-	 */
-	protected function create_base_order( $args ) {
-		$subscription = wcs_create_subscription( $args );
-
-		if ( is_wp_error( $subscription ) ) {
-			throw new WC_REST_Exception( 'woocommerce_rest_cannot_create_subscription', sprintf( __( 'Cannot create subscription: %s.', 'woocommerce-subscriptions' ), implode( ', ', $subscription->get_error_messages() ) ), 400 );
-		}
-
-		$this->update_schedule( $subscription, $args );
-
-		if ( empty( $args['payment_details']['method_id'] ) && ! empty( $args['payment_method'] ) ) {
-			$args['payment_details']['method_id'] = $args['payment_method'];
-		}
-
-		$this->update_payment_method( $subscription, $args['payment_details'] );
-
-		return $subscription;
-	}
-
-	/**
-	 * Update or set the subscription schedule with the request data
-	 *
-	 * @since 2.1
-	 * @param WC_Subscription $subscription
-	 * @param array $data
-	 */
-	public function update_schedule( $subscription, $data ) {
-		if ( isset( $data['billing_interval'] ) ) {
-			update_post_meta( $subscription->id, '_billing_interval', absint( $data['billing_interval'] ) );
-		}
-
-		if ( ! empty( $data['billing_period'] ) ) {
-			update_post_meta( $subscription->id, '_billing_period', $data['billing_period'] );
-		}
-
-		try {
-			$dates_to_update = array();
-
-			foreach ( array( 'start', 'trial_end', 'end', 'next_payment' ) as $date_type ) {
-				if ( isset( $data[ $date_type . '_date' ] ) ) {
-					$dates_to_update[ $date_type ] = $data[ $date_type . '_date' ];
-				}
-			}
-
-			if ( ! empty( $dates_to_update ) ) {
-				$subscription->update_dates( $dates_to_update );
-			}
-		} catch ( Exception $e ) {
-			throw new WC_REST_Exception( 'woocommerce_rest_cannot_update_subscription_dates', sprintf( __( 'Updating subscription dates errored with message: %s', 'woocommerce-subscriptions' ), $e->getMessage() ), 400 );
-		}
-	}
-
-	/**
 	 * Validate and update payment method on a subscription
 	 *
 	 * @since 2.1
@@ -285,9 +280,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	 * @param bool $updating
 	 */
 	public function update_payment_method( $subscription, $data, $updating = false ) {
-		$payment_gateways = WC()->payment_gateways->get_available_payment_gateways();
-		$payment_method   = ( ! empty( $data['method_id'] ) ) ? $data['method_id'] : 'manual';
-		$payment_gateway  = ( ! empty( $payment_gateways[ $payment_method ] ) ) ? $payment_gateways[ $payment_method ] : '';
+		$payment_method = ( ! empty( $data['method_id'] ) ) ? $data['method_id'] : '';
 
 		try {
 			if ( $updating && ! array_key_exists( $payment_method, WCS_Change_Payment_Method_Admin::get_valid_payment_methods( $subscription ) ) ) {
@@ -296,8 +289,8 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 
 			$payment_method_meta = apply_filters( 'woocommerce_subscription_payment_meta', array(), $subscription );
 
-			if ( ! empty( $payment_gateway ) && isset( $payment_method_meta[ $payment_gateway->id ] ) ) {
-				$payment_method_meta = $payment_method_meta[ $payment_gateway->id ];
+			if ( isset( $payment_method_meta[ $payment_method ] ) ) {
+				$payment_method_meta = $payment_method_meta[ $payment_method ];
 
 				if ( ! empty( $payment_method_meta ) ) {
 
@@ -316,16 +309,90 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 				}
 			}
 
-			if ( empty( $subscription->payment_gateway ) ) {
-				$subscription->payment_gateway = $payment_gateway;
-			}
-
-			$subscription->set_payment_method( $payment_gateway, $payment_method_meta );
+			$subscription->set_payment_method( $payment_method, $payment_method_meta );
 
 		} catch ( Exception $e ) {
+			$subscription->set_payment_method();
+			$subscription->save();
 			// translators: 1$: gateway id, 2$: error message
 			throw new WC_REST_Exception( 'woocommerce_rest_invalid_payment_data', sprintf( __( 'Subscription payment method could not be set to %1$s with error message: %2$s', 'woocommerce-subscriptions' ), $payment_method, $e->getMessage() ), 400 );
 		}
+	}
+
+	/**
+	 * Prepare a single subscription for create.
+	 *
+	 * @param  WP_REST_Request $request Request object.
+	 * @return WP_Error|WC_Subscription $data Object.
+	 */
+	protected function prepare_item_for_database( $request ) {
+		$id           = isset( $request['id'] ) ? absint( $request['id'] ) : 0;
+		$subscription = new WC_Subscription( $id );
+		$schema       = $this->get_item_schema();
+		$data_keys    = array_keys( array_filter( $schema['properties'], array( $this, 'filter_writable_props' ) ) );
+
+		$dates_to_update = array();
+
+		// Handle all writable props
+		foreach ( $data_keys as $key ) {
+			$value = $request[ $key ];
+
+			if ( ! is_null( $value ) ) {
+				switch ( $key ) {
+					case 'billing' :
+					case 'shipping' :
+						$this->update_address( $subscription, $value, $key );
+						break;
+					case 'line_items' :
+					case 'shipping_lines' :
+					case 'fee_lines' :
+					case 'coupon_lines' :
+						if ( is_array( $value ) ) {
+							foreach ( $value as $item ) {
+								if ( is_array( $item ) ) {
+									if ( $this->item_is_null( $item ) || ( isset( $item['quantity'] ) && 0 === $item['quantity'] ) ) {
+										$subscription->remove_item( $item['id'] );
+									} else {
+										$this->set_item( $subscription, $key, $item );
+									}
+								}
+							}
+						}
+						break;
+					case 'start_date' :
+					case 'trial_end_date' :
+					case 'next_payment_date' :
+					case 'end_date' :
+						$date_type_key = ( 'start_date' === $key ) ? 'date_created' : $key;
+						$dates_to_update[ $date_type_key ] = $value;
+						break;
+					default :
+						if ( is_callable( array( $subscription, "set_{$key}" ) ) ) {
+							$subscription->{"set_{$key}"}( $value );
+						}
+						break;
+				}
+			}
+		}
+
+		try {
+			if ( ! empty( $dates_to_update ) ) {
+				$subscription->update_dates( $dates_to_update );
+			}
+		} catch ( Exception $e ) {
+			throw new WC_REST_Exception( 'woocommerce_rest_cannot_update_subscription_dates', sprintf( __( 'Updating subscription dates errored with message: %s', 'woocommerce-subscriptions' ), $e->getMessage() ), 400 );
+		}
+
+		/**
+		 * Filter the data for the insert.
+		 *
+		 * The dynamic portion of the hook name, $this->post_type, refers to post_type of the post being
+		 * prepared for the response.
+		 *
+		 * @param WC_Subscription    $subscription   The subscription object.
+		 * @param WP_REST_Request    $request        Request object.
+		 */
+		return apply_filters( "woocommerce_rest_pre_insert_{$this->post_type}", $subscription, $request );
 	}
 
 	/**
@@ -350,7 +417,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 			),
 			'payment_details' => array(
 				'description' => __( 'Subscription payment details.', 'woocommerce-subscriptions' ),
-				'type'        => 'array',
+				'type'        => 'object',
 				'context'     => array( 'edit' ),
 				'properties'  => array(
 					'method_id' => array(
@@ -365,7 +432,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
 			),
-			'trial_date' => array(
+			'trial_end_date' => array(
 				'description' => __( "The subscription's trial date", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
@@ -387,20 +454,31 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	}
 
 	/**
+	 * Deprecated functions
+	 */
+
+	/**
 	 * Prepare subscription data for create.
+	 *
+	 * Now that we override WC_REST_Orders_V1_Controller::prepare_item_for_database() function,
+	 * we no longer need to prepare these args
 	 *
 	 * @since 2.1
 	 * @param stdClass $data
 	 * @param WP_REST_Request $request Request object.
 	 * @return stdClass
+	 * @deprecated 2.2
 	 */
 	public function prepare_subscription_args( $data, $request ) {
+		wcs_deprecated_function( __METHOD__, '2.2' );
+
 		$data->billing_interval = $request['billing_interval'];
 		$data->billing_period   = $request['billing_period'];
 
 		foreach ( array( 'start', 'trial_end', 'end', 'next_payment' ) as $date_type ) {
 			if ( ! empty( $request[ $date_type . '_date' ] ) ) {
-				$data->{$date_type . '_date'} = $request[ $date_type . '_date' ];
+				$date_type_key = ( 'start' === $date_type ) ? 'date_created' : $date_type . '_date';
+				$data->{$date_type_key} = $request[ $date_type . '_date' ];
 			}
 		}
 
@@ -408,5 +486,43 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		$data->payment_method  = ! empty( $request['payment_method'] ) ? $request['payment_method'] : '';
 
 		return $data;
+	}
+
+	/**
+	 * Update or set the subscription schedule with the request data.
+	 *
+	 *
+	 * @since 2.1
+	 * @param WC_Subscription $subscription
+	 * @param array $data
+	 * @deprecated 2.2
+	 */
+	public function update_schedule( $subscription, $data ) {
+		wcs_deprecated_function( __METHOD__, '2.2', 'WC_REST_Subscriptions_Controller::prepare_item_for_database() now prepares the billing interval/period and dates' );
+
+		if ( isset( $data['billing_interval'] ) ) {
+			$subscription->set_billing_interval( absint( $data['billing_interval'] ) );
+		}
+
+		if ( ! empty( $data['billing_period'] ) ) {
+			$subscription->set_billing_period( $data['billing_period'] );
+		}
+
+		try {
+			$dates_to_update = array();
+
+			foreach ( array( 'start', 'trial_end', 'end', 'next_payment' ) as $date_type ) {
+				if ( isset( $data[ $date_type . '_date' ] ) ) {
+					$date_type_key = ( 'start' === $date_type ) ? 'date_created' : $date_type;
+					$dates_to_update[ $date_type_key ] = $data[ $date_type . '_date' ];
+				}
+			}
+
+			if ( ! empty( $dates_to_update ) ) {
+				$subscription->update_dates( $dates_to_update );
+			}
+		} catch ( Exception $e ) {
+			throw new WC_REST_Exception( 'woocommerce_rest_cannot_update_subscription_dates', sprintf( __( 'Updating subscription dates errored with message: %s', 'woocommerce-subscriptions' ), $e->getMessage() ), 400 );
+		}
 	}
 }

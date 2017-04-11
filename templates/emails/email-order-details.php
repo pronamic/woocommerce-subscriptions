@@ -15,11 +15,11 @@ do_action( 'woocommerce_email_before_' . $order_type . '_table', $order, $sent_t
 if ( 'cancelled_subscription' != $email->id ) {
 	echo '<h2>';
 
-	$link_element_url = ( $sent_to_admin ) ? wcs_get_edit_post_link( $order->id ) : $order->get_view_order_url();
+	$link_element_url = ( $sent_to_admin ) ? wcs_get_edit_post_link( wcs_get_objects_property( $order, 'id' ) ) : $order->get_view_order_url();
 
 	if ( 'order' == $order_type ) {
 		// translators: $1-$2: opening and closing <a> tags $3: order's order number $4: date of order in <time> element
-		printf( esc_html_x( '%1$sOrder #%3$s%2$s (%4$s)', 'Used in email notification', 'woocommerce-subscriptions' ), '<a href="' . esc_url( $link_element_url ) . '">', '</a>', esc_html( $order->get_order_number() ), sprintf( '<time datetime="%s">%s</time>', esc_attr( date_i18n( 'c', strtotime( $order->order_date ) ) ), esc_html( date_i18n( wc_date_format(), strtotime( $order->order_date ) ) ) ) );
+		printf( esc_html_x( '%1$sOrder #%3$s%2$s (%4$s)', 'Used in email notification', 'woocommerce-subscriptions' ), '<a href="' . esc_url( $link_element_url ) . '">', '</a>', esc_html( $order->get_order_number() ), sprintf( '<time datetime="%s">%s</time>', esc_attr( wcs_get_objects_property( $order, 'date_created' )->format( 'c' ) ), esc_html( wcs_format_datetime( wcs_get_objects_property( $order, 'date_created' ) ) ) ) );
 	} else {
 		// translators: $1-$3: opening and closing <a> tags $2: subscription's order number
 		printf( esc_html_x( 'Subscription %1$s#%2$s%3$s', 'Used in email notification', 'woocommerce-subscriptions' ), '<a href="' . esc_url( $link_element_url ) . '">', esc_html( $order->get_order_number() ), '</a>' );
