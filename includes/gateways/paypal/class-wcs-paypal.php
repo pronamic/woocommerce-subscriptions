@@ -234,7 +234,7 @@ class WCS_PayPal {
 
 						foreach ( wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'any' ) ) as $subscription ) {
 							$subscription->set_payment_method( $payment_method );
-							wcs_set_paypal_id( $subscription, $billing_agreement_response->get_billing_agreement_id() );
+							wcs_set_paypal_id( $subscription, $billing_agreement_response->get_billing_agreement_id() ); // Also saves the subscription
 						}
 
 						if ( ! wcs_is_subscription( $order ) ) {
@@ -330,7 +330,7 @@ class WCS_PayPal {
 	public static function process_subscription_payment( $amount, $order ) {
 
 		// If the subscription is using reference transactions, we can process the payment ourselves
-		$paypal_profile_id = wcs_get_paypal_id( $order->id );
+		$paypal_profile_id = wcs_get_paypal_id( wcs_get_objects_property( $order, 'id' ) );
 
 		if ( wcs_is_paypal_profile_a( $paypal_profile_id, 'billing_agreement' ) ) {
 
@@ -414,7 +414,7 @@ class WCS_PayPal {
 		);
 
 		foreach ( $post_meta_keys as $post_meta_key ) {
-			delete_post_meta( $resubscribe_order->id, $post_meta_key );
+			delete_post_meta( wcs_get_objects_property( $resubscribe_order, 'id' ), $post_meta_key );
 		}
 
 		return $resubscribe_order;
@@ -433,9 +433,9 @@ class WCS_PayPal {
 		global $post;
 		$subscription = wcs_get_subscription( $post );
 
-		if ( 'paypal' === $subscription->payment_method ) {
+		if ( 'paypal' === $subscription->get_payment_method() ) {
 
-			$paypal_profile_id  = wcs_get_paypal_id( $subscription->id );
+			$paypal_profile_id  = wcs_get_paypal_id( $subscription->get_id() );
 			$is_paypal_standard = ! wcs_is_paypal_profile_a( $paypal_profile_id, 'billing_agreement' );
 
 			if ( $is_paypal_standard ) {

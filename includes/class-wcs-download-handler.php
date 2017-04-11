@@ -50,7 +50,7 @@ class WCS_Download_Handler {
 	 */
 	public static function maybe_revoke_immediate_access( $grant_access, $download_id, $product_id, $order ) {
 
-		if ( 'yes' == get_option( WC_Subscriptions_Admin::$option_prefix . '_drip_downloadable_content_on_renewal', 'no' ) && ( wcs_is_subscription( $order->id ) || wcs_order_contains_subscription( $order, 'any' ) ) ) {
+		if ( 'yes' == get_option( WC_Subscriptions_Admin::$option_prefix . '_drip_downloadable_content_on_renewal', 'no' ) && ( wcs_is_subscription( wcs_get_objects_property( $order, 'id' ) ) || wcs_order_contains_subscription( $order, 'any' ) ) ) {
 			$grant_access = false;
 		}
 		return $grant_access;
@@ -79,20 +79,20 @@ class WCS_Download_Handler {
 					$_product = $subscription->get_product_from_item( $item );
 
 					if ( $_product && $_product->exists() && $_product->is_downloadable() ) {
-						$downloads  = $_product->get_files();
+						$downloads  = wcs_get_objects_property( $_product, 'downloads' );
 						$product_id = wcs_get_canonical_product_id( $item );
 
 						foreach ( array_keys( $downloads ) as $download_id ) {
 							// grant access on subscription if it does not already exist
-							if ( ! $wpdb->get_var( $wpdb->prepare( "SELECT download_id FROM {$wpdb->prefix}woocommerce_downloadable_product_permissions WHERE `order_id` = %d AND `product_id` = %d AND `download_id` = '%s'", $subscription->id, $product_id, $download_id ) ) ) {
+							if ( ! $wpdb->get_var( $wpdb->prepare( "SELECT download_id FROM {$wpdb->prefix}woocommerce_downloadable_product_permissions WHERE `order_id` = %d AND `product_id` = %d AND `download_id` = '%s'", $subscription->get_id(), $product_id, $download_id ) ) ) {
 								wc_downloadable_file_permission( $download_id, $product_id, $subscription, $item['qty'] );
 							}
-							self::revoke_downloadable_file_permission( $product_id, $order_id, $order->user_id );
+							self::revoke_downloadable_file_permission( $product_id, $order_id, $order->get_user_id() );
 						}
 					}
 				}
 			}
-			update_post_meta( $subscription->id, '_download_permissions_granted', 1 );
+			update_post_meta( $subscription->get_id(), '_download_permissions_granted', 1 );
 		}
 	}
 
@@ -147,7 +147,11 @@ class WCS_Download_Handler {
 		foreach ( $subscriptions as $subscription ) {
 			foreach ( $subscription->get_items() as $subscription_item ) {
 				if ( wcs_get_canonical_product_id( $subscription_item ) === $product_id ) {
-					$files = $subscription->get_item_downloads( $subscription_item );
+					if ( is_callable( array( $subscription_item, 'get_item_downloads' ) ) ) { // WC 3.0+
+						$files = $subscription_item->get_item_downloads( $subscription_item );
+					} else { // WC < 3.0
+						$files = $subscription->get_item_downloads( $subscription_item );
+					}
 				}
 			}
 		}
@@ -195,7 +199,7 @@ class WCS_Download_Handler {
 
 	/**
 	 * Grant downloadable file access to any newly added files on any existing subscriptions
-	 * which don't have existing permissions.
+	 * which don't have existing permissions pre WC3.0 and all subscriptions post WC3.0.
 	 *
 	 * @param int $product_id
 	 * @param int $variation_id
@@ -207,7 +211,7 @@ class WCS_Download_Handler {
 
 		$product_id            = ( $variation_id ) ? $variation_id : $product_id;
 		$product               = wc_get_product( $product_id );
-		$existing_download_ids = array_keys( (array) $product->get_files() );
+		$existing_download_ids = array_keys( (array) wcs_get_objects_property( $product, 'downloads' ) );
 		$downloadable_ids      = array_keys( (array) $downloadable_files );
 		$new_download_ids      = array_filter( array_diff( $downloadable_ids, $existing_download_ids ) );
 
@@ -218,8 +222,8 @@ class WCS_Download_Handler {
 
 			foreach ( $subscriptions as $subscription_id ) {
 
-				// only grant permissions to subscriptions which have no permissions for this product
-				if ( ! in_array( $subscription_id, $existing_permissions ) ) {
+				// Grant permissions to subscriptions which have no permissions for this product, pre WC3.0, or all subscriptions, post WC3.0, as WC doesn't grant them retrospectively anymore.
+				if ( ! in_array( $subscription_id, $existing_permissions ) || false === WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
 					$subscription = wcs_get_subscription( $subscription_id );
 
 					foreach ( $new_download_ids as $download_id ) {

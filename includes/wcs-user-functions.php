@@ -235,7 +235,7 @@ function wcs_can_user_put_subscription_on_hold( $subscription, $user = '' ) {
 		if ( $user->ID == $subscription->get_user_id() ) {
 
 			// Make sure subscription suspension count hasn't been reached
-			$suspension_count    = intval( $subscription->suspension_count );
+			$suspension_count    = intval( $subscription->get_suspension_count() );
 			$allowed_suspensions = get_option( WC_Subscriptions_Admin::$option_prefix . '_max_customer_suspensions', 0 );
 
 			if ( 'unlimited' === $allowed_suspensions || $allowed_suspensions > $suspension_count ) { // 0 not > anything so prevents a customer ever being able to suspend
@@ -256,19 +256,19 @@ function wcs_get_all_user_actions_for_subscription( $subscription, $user_id ) {
 
 	$actions = array();
 
-	if ( user_can( $user_id, 'edit_shop_subscription_status', $subscription->id ) ) {
+	if ( user_can( $user_id, 'edit_shop_subscription_status', $subscription->get_id() ) ) {
 
 		$admin_with_suspension_disallowed = ( current_user_can( 'manage_woocommerce' ) && '0' === get_option( WC_Subscriptions_Admin::$option_prefix . '_max_customer_suspensions', '0' ) ) ? true : false;
 		$current_status = $subscription->get_status();
 
 		if ( $subscription->can_be_updated_to( 'on-hold' ) && wcs_can_user_put_subscription_on_hold( $subscription, $user_id ) && ! $admin_with_suspension_disallowed ) {
 			$actions['suspend'] = array(
-				'url'  => wcs_get_users_change_status_link( $subscription->id, 'on-hold', $current_status ),
+				'url'  => wcs_get_users_change_status_link( $subscription->get_id(), 'on-hold', $current_status ),
 				'name' => __( 'Suspend', 'woocommerce-subscriptions' ),
 			);
 		} elseif ( $subscription->can_be_updated_to( 'active' ) && ! $subscription->needs_payment() ) {
 			$actions['reactivate'] = array(
-				'url'  => wcs_get_users_change_status_link( $subscription->id, 'active', $current_status ),
+				'url'  => wcs_get_users_change_status_link( $subscription->get_id(), 'active', $current_status ),
 				'name' => __( 'Reactivate', 'woocommerce-subscriptions' ),
 			);
 		}
@@ -284,7 +284,7 @@ function wcs_get_all_user_actions_for_subscription( $subscription, $user_id ) {
 		$next_payment = $subscription->get_time( 'next_payment' );
 		if ( $subscription->can_be_updated_to( 'cancelled' ) && ! $subscription->is_one_payment() && ( $next_payment > 0 || ( $subscription->has_status( 'on-hold' ) && empty( $next_payment ) ) ) ) {
 			$actions['cancel'] = array(
-				'url'  => wcs_get_users_change_status_link( $subscription->id, 'cancelled', $current_status ),
+				'url'  => wcs_get_users_change_status_link( $subscription->get_id(), 'cancelled', $current_status ),
 				'name' => _x( 'Cancel', 'an action on a subscription', 'woocommerce-subscriptions' ),
 			);
 		}

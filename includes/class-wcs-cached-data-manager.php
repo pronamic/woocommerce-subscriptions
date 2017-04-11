@@ -75,9 +75,9 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 			return;
 		}
 
-		foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'any' ) ) as $linked_subscription ) {
-			$this->log( 'Calling purge delete on ' . current_filter() . ' for ' . $linked_subscription->id );
-			$this->clear_related_order_cache( $linked_subscription );
+		foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'any' ) ) as $subscription ) {
+			$this->log( 'Calling purge delete on ' . current_filter() . ' for ' . $subscription->get_id() );
+			$this->clear_related_order_cache( $subscription );
 		}
 	}
 
@@ -108,7 +108,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 
 		// if it's not a Subscription, we don't deal with it
 		if ( is_object( $subscription_id ) && $subscription_id instanceof WC_Subscription ) {
-			$subscription_id = $subscription_id->id;
+			$subscription_id = $subscription_id->get_id();
 		} elseif ( is_numeric( $subscription_id ) ) {
 			$subscription_id = absint( $subscription_id );
 		} else {
@@ -169,7 +169,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 				$this->log( 'No subscriptions for this ID: ' . $post_id );
 			} else {
 				foreach ( $subscriptions as $subscription ) {
-					$this->log( 'Got subscription, calling clear_related_order_cache for ' . $subscription->id );
+					$this->log( 'Got subscription, calling clear_related_order_cache for ' . $subscription->get_id() );
 					$this->clear_related_order_cache( $subscription );
 				}
 			}

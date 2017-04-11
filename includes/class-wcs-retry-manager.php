@@ -134,7 +134,7 @@ class WCS_Retry_Manager {
 		if ( $subscription->get_date( 'payment_retry' ) > 0 ) {
 
 			$last_order = $subscription->get_last_order( 'all' );
-			$last_retry = ( $last_order ) ? self::store()->get_last_retry_for_order( $last_order->id ) : null;
+			$last_retry = ( $last_order ) ? self::store()->get_last_retry_for_order( wcs_get_objects_property( $last_order, 'id' ) ) : null;
 
 			if ( null !== $last_retry && 'cancelled' !== $last_retry->get_status() && null !== ( $last_retry_rule = $last_retry->get_rule() ) ) {
 
@@ -206,17 +206,17 @@ class WCS_Retry_Manager {
 			return;
 		}
 
-		$retry_count = self::store()->get_retry_count_for_order( $last_order->id );
+		$retry_count = self::store()->get_retry_count_for_order( wcs_get_objects_property( $last_order, 'id' ) );
 
-		if ( self::rules()->has_rule( $retry_count, $last_order->id ) ) {
+		if ( self::rules()->has_rule( $retry_count, wcs_get_objects_property( $last_order, 'id' ) ) ) {
 
-			$retry_rule = self::rules()->get_rule( $retry_count, $last_order->id );
+			$retry_rule = self::rules()->get_rule( $retry_count, wcs_get_objects_property( $last_order, 'id' ) );
 
 			do_action( 'woocommerce_subscriptions_before_apply_retry_rule', $retry_rule, $last_order, $subscription );
 
 			$retry_id = self::store()->save( new WCS_Retry( array(
 				'status'   => 'pending',
-				'order_id' => $last_order->id,
+				'order_id' => wcs_get_objects_property( $last_order, 'id' ),
 				'date_gmt' => gmdate( 'Y-m-d H:i:s', gmdate( 'U' ) + $retry_rule->get_retry_interval() ),
 				'rule_raw' => $retry_rule->get_raw_data(),
 			) ) );
@@ -257,7 +257,7 @@ class WCS_Retry_Manager {
 		}
 
 		$subscriptions = wcs_get_subscriptions_for_renewal_order( $last_order );
-		$last_retry    = self::store()->get_last_retry_for_order( $last_order->id );
+		$last_retry    = self::store()->get_last_retry_for_order( wcs_get_objects_property( $last_order, 'id' ) );
 
 		// we only need to retry the payment if we have applied a retry rule for the order and it still needs payment
 		if ( null !== $last_retry && 'pending' === $last_retry->get_status() ) {
@@ -302,7 +302,7 @@ class WCS_Retry_Manager {
 					WC_Subscriptions_Payment_Gateways::trigger_gateway_renewal_payment_hook( $last_order );
 
 					// Now that we've attempted to process the payment, refresh the order
-					$last_order = wc_get_order( $last_order->id );
+					$last_order = wc_get_order( wcs_get_objects_property( $last_order, 'id' ) );
 
 					// if the order still needs payment, payment failed
 					if ( $last_order->needs_payment() ) {

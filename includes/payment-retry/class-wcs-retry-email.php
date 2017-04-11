@@ -68,7 +68,7 @@ class WCS_Retry_Email {
 				$email_class = $retry_rule->get_email_template( $recipient );
 				if ( class_exists( $email_class ) ) {
 					$email = new $email_class();
-					$email->trigger( $last_order );
+					$email->trigger( wcs_get_objects_property( $last_order, 'id' ), $last_order );
 				}
 			}
 		}
@@ -89,8 +89,8 @@ class WCS_Retry_Email {
 			remove_action( 'woocommerce_order_status_failed', 'WC_Subscriptions_Email::send_renewal_order_email', 10 );
 
 			// Remove email sent to admin, which is sent by WooCommerce
-			remove_action( 'woocommerce_order_status_pending_to_failed', array( 'WC_Emails', 'send_transactional_email' ), 10, 10 );
-			remove_action( 'woocommerce_order_status_on-hold_to_failed', array( 'WC_Emails', 'send_transactional_email' ), 10, 10 );
+			WC_Subscriptions_Email::detach_woocommerce_transactional_email( 'woocommerce_order_status_pending_to_failed' );
+			WC_Subscriptions_Email::detach_woocommerce_transactional_email( 'woocommerce_order_status_on-hold_to_failed' );
 
 			self::$removed_emails_for_order_id = $order_id;
 		}
@@ -109,8 +109,8 @@ class WCS_Retry_Email {
 			add_action( 'woocommerce_order_status_failed', 'WC_Subscriptions_Email::send_renewal_order_email' );
 
 			// Reattach email sent to admin, which is sent by WooCommerce
-			add_action( 'woocommerce_order_status_pending_to_failed', array( 'WC_Emails', 'send_transactional_email' ), 10, 10 );
-			add_action( 'woocommerce_order_status_on-hold_to_failed', array( 'WC_Emails', 'send_transactional_email' ), 10, 10 );
+			WC_Subscriptions_Email::attach_woocommerce_transactional_email( 'woocommerce_order_status_pending_to_failed' );
+			WC_Subscriptions_Email::attach_woocommerce_transactional_email( 'woocommerce_order_status_on-hold_to_failed' );
 
 			self::$removed_emails_for_order_id = null;
 		}

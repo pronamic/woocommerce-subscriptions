@@ -97,9 +97,9 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 			}
 			$subscription = array_shift( $subscription );
 
-			$this->log( 'Got subscription, calling wcs_clear_related_order_cache for ' . $subscription->id );
+			$this->log( 'Got subscription, calling wcs_clear_related_order_cache for ' . $subscription->get_id() );
 
-			$this->wcs_clear_related_order_cache( $subscription->id );
+			$this->wcs_clear_related_order_cache( $subscription->get_id() );
 		}
 	}
 
@@ -158,7 +158,7 @@ class WCS_Cache_Manager_TLC extends WCS_Cache_Manager {
 
 		// if it's not a Subscription, we don't deal with it
 		if ( is_object( $id ) && $id instanceof WC_Subscription ) {
-			$id = $id->id;
+			$id = $id->get_id();
 		} elseif ( is_numeric( $id ) ) {
 			$id = absint( $id );
 		} else {

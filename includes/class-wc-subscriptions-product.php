@@ -45,6 +45,9 @@ class WC_Subscriptions_Product {
 		// Make sure a subscriptions price is included in subscription variations when required
 		add_filter( 'woocommerce_available_variation', __CLASS__ . '::maybe_set_variations_price_html', 10, 3 );
 
+		// Sync variable product min/max prices with WC 3.0
+		add_action( 'woocommerce_variable_product_sync_data', __CLASS__ . '::variable_subscription_product_sync', 10 );
+
 		// Prevent users from deleting subscription products - it causes too many problems with WooCommerce and other plugins
 		add_filter( 'user_has_cap', __CLASS__ . '::user_can_not_delete_subscription', 10, 3 );
 
@@ -72,23 +75,6 @@ class WC_Subscriptions_Product {
 	}
 
 	/**
-	 * Returns the sign up fee (including tax) by filtering the products price used in
-	 * @see WC_Product::get_price_including_tax( $qty )
-	 *
-	 * @return string
-	 */
-	public static function get_sign_up_fee_including_tax( $product, $qty = 1 ) {
-
-		add_filter( 'woocommerce_get_price', __CLASS__ . '::get_sign_up_fee_filter', 100, 2 );
-
-		$sign_up_fee_including_tax = $product->get_price_including_tax( $qty );
-
-		remove_filter( 'woocommerce_get_price', __CLASS__ . '::get_sign_up_fee_filter', 100, 2 );
-
-		return $sign_up_fee_including_tax;
-	}
-
-	/**
 	 * Returns the raw sign up fee value (ignoring tax) by filtering the products price.
 	 *
 	 * @return string
@@ -96,23 +82,6 @@ class WC_Subscriptions_Product {
 	public static function get_sign_up_fee_filter( $price, $product ) {
 
 		return self::get_sign_up_fee( $product );
-	}
-
-	/**
-	 * Returns the sign up fee (excluding tax) by filtering the products price used in
-	 * @see WC_Product::get_price_excluding_tax( $qty )
-	 *
-	 * @return string
-	 */
-	public static function get_sign_up_fee_excluding_tax( $product, $qty = 1 ) {
-
-		add_filter( 'woocommerce_get_price', __CLASS__ . '::get_sign_up_fee_filter', 100, 2 );
-
-		$sign_up_fee_excluding_tax = $product->get_price_excluding_tax( $qty );
-
-		remove_filter( 'woocommerce_get_price', __CLASS__ . '::get_sign_up_fee_filter', 100, 2 );
-
-		return $sign_up_fee_excluding_tax;
 	}
 
 	/**
@@ -134,25 +103,20 @@ class WC_Subscriptions_Product {
 	 * Checks a given product to determine if it is a subscription.
 	 * When the received arg is a product object, make sure it is passed into the filter intact in order to retain any properties added on the fly.
 	 *
-	 * @param int|WC_Product $product_id Either a product object or product's post ID.
+	 * @param int|WC_Product $product Either a product object or product's post ID.
 	 * @since 1.0
 	 */
-	public static function is_subscription( $product_id ) {
+	public static function is_subscription( $product ) {
 
 		$is_subscription = false;
 
-		if ( is_object( $product_id ) ) {
-			$product    = $product_id;
-			$product_id = $product->id;
-		} elseif ( is_numeric( $product_id ) ) {
-			$product = wc_get_product( $product_id );
-		}
+		$product = self::maybe_get_product_instance( $product );
 
 		if ( is_object( $product ) && $product->is_type( array( 'subscription', 'subscription_variation', 'variable-subscription' ) ) ) {
 			$is_subscription = true;
 		}
 
-		return apply_filters( 'woocommerce_is_subscription', $is_subscription, $product_id, $product );
+		return apply_filters( 'woocommerce_is_subscription', $is_subscription, $product->get_id(), $product );
 	}
 
 	/**
@@ -174,9 +138,10 @@ class WC_Subscriptions_Product {
 
 				$child_product = wc_get_product( $child_product_id );
 
-				$child_price = $child_product->get_price();
-				$sign_up_fee = $child_product->get_sign_up_fee();
-				$has_trial   = ( self::get_trial_length( $child_product ) > 0 ) ? true : false;
+				$tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
+				$child_price      = 'incl' == $tax_display_mode ? wcs_get_price_including_tax( $child_product, array( 'price' => $child_product->get_price() ) ) : wcs_get_price_excluding_tax( $child_product, array( 'price' => $child_product->get_price() ) );
+				$sign_up_fee      = 'incl' == $tax_display_mode ? wcs_get_price_including_tax( $child_product, array( 'price' => self::get_sign_up_fee( $child_product ) ) ) : wcs_get_price_excluding_tax( $child_product, array( 'price' => self::get_sign_up_fee( $child_product ) ) );
+				$has_trial        = ( self::get_trial_length( $child_product ) > 0 ) ? true : false;
 
 				// Make sure we have the *real* price (i.e. total initial payment)
 				if ( $has_trial && $sign_up_fee > 0 ) {
@@ -209,7 +174,7 @@ class WC_Subscriptions_Product {
 		}
 
 		if ( sizeof( $child_prices ) > 1 ) {
-			$price .= $grouped_product->get_price_html_from_text();
+			$price .= wcs_get_price_html_from_text( $grouped_product );
 		}
 
 		$price .= wc_price( $min_price );
@@ -247,9 +212,7 @@ class WC_Subscriptions_Product {
 	public static function get_price_string( $product, $include = array() ) {
 		global $wp_locale;
 
-		if ( ! is_object( $product ) ) {
-			$product = WC_Subscriptions::get_product( $product );
-		}
+		$product = self::maybe_get_product_instance( $product );
 
 		if ( ! self::is_subscription( $product ) ) {
 			return;
@@ -284,22 +247,22 @@ class WC_Subscriptions_Product {
 				if ( isset( $include['price'] ) ) {
 					$price = $include['price'];
 				} else {
-					$price = $product->get_price_excluding_tax( 1, $include['price'] );
+					$price = wcs_get_price_excluding_tax( $product, array( 'price' => $include['price'] ) );
 				}
 
 				if ( true === $include['sign_up_fee'] ) {
-					$sign_up_fee = self::get_sign_up_fee_excluding_tax( $product );
+					$sign_up_fee = wcs_get_price_excluding_tax( $product, array( 'price' => WC_Subscriptions_Product::get_sign_up_fee( $product ) ) );
 				}
 			} else { // Add Tax
 
 				if ( isset( $include['price'] ) ) {
 					$price = $include['price'];
 				} else {
-					$price = $product->get_price_including_tax();
+					$price = wcs_get_price_including_tax( $product );
 				}
 
 				if ( true === $include['sign_up_fee'] ) {
-					$sign_up_fee = self::get_sign_up_fee_including_tax( $product );
+					$sign_up_fee = wcs_get_price_including_tax( $product, array( 'price' => WC_Subscriptions_Product::get_sign_up_fee( $product ) ) );
 				}
 			}
 		} else {
@@ -421,18 +384,43 @@ class WC_Subscriptions_Product {
 	 * @since 1.0
 	 */
 	public static function get_price( $product ) {
+		return apply_filters( 'woocommerce_subscriptions_product_price', self::get_meta_data( $product, 'subscription_price', 0 ), self::maybe_get_product_instance( $product ) );
+	}
 
-		if ( ! is_object( $product ) ) {
-			$product = WC_Subscriptions::get_product( $product );
-		}
+	/**
+	 * Returns the sale price per period for a product if it is a subscription.
+	 *
+	 * @param mixed $product A WC_Product object or product ID
+	 * @return float
+	 * @since 2.2.0
+	 */
+	public static function get_regular_price( $product, $context = 'view' ) {
 
-		if ( ! self::is_subscription( $product ) || ( ! isset( $product->subscription_price ) && empty( $product->product_custom_fields['_subscription_price'][0] ) ) ) {
-			$subscription_price = '';
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+			$regular_price = $product->regular_price;
 		} else {
-			$subscription_price = isset( $product->subscription_price ) ? $product->subscription_price : $product->product_custom_fields['_subscription_price'][0];
+			$regular_price = $product->get_regular_price( $context );
 		}
 
-		return apply_filters( 'woocommerce_subscriptions_product_price', $subscription_price, $product );
+		return apply_filters( 'woocommerce_subscriptions_product_regular_price', $regular_price, $product );
+	}
+
+	/**
+	 * Returns the regular price per period for a product if it is a subscription.
+	 *
+	 * @param mixed $product A WC_Product object or product ID
+	 * @return float
+	 * @since 2.2.0
+	 */
+	public static function get_sale_price( $product, $context = 'view' ) {
+
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+			$sale_price = $product->sale_price;
+		} else {
+			$sale_price = $product->get_sale_price( $context );
+		}
+
+		return apply_filters( 'woocommerce_subscriptions_product_sale_price', $sale_price, $product );
 	}
 
 	/**
@@ -443,18 +431,7 @@ class WC_Subscriptions_Product {
 	 * @since 1.0
 	 */
 	public static function get_period( $product ) {
-
-		if ( ! is_object( $product ) ) {
-			$product = WC_Subscriptions::get_product( $product );
-		}
-
-		if ( ! self::is_subscription( $product ) || ( ! isset( $product->subscription_period ) && empty( $product->product_custom_fields['_subscription_period'][0] ) ) ) {
-			$subscription_period = '';
-		} else {
-			$subscription_period = isset( $product->subscription_period ) ? $product->subscription_period : $product->product_custom_fields['_subscription_period'][0];
-		}
-
-		return apply_filters( 'woocommerce_subscriptions_product_period', $subscription_period, $product );
+		return apply_filters( 'woocommerce_subscriptions_product_period', self::get_meta_data( $product, 'subscription_period', '' ), self::maybe_get_product_instance( $product ) );
 	}
 
 	/**
@@ -465,18 +442,7 @@ class WC_Subscriptions_Product {
 	 * @since 1.0
 	 */
 	public static function get_interval( $product ) {
-
-		if ( ! is_object( $product ) ) {
-			$product = WC_Subscriptions::get_product( $product );
-		}
-
-		if ( ! self::is_subscription( $product ) || ( ! isset( $product->subscription_period_interval ) && empty( $product->product_custom_fields['_subscription_period_interval'][0] ) ) ) {
-			$subscription_period_interval = 1;
-		} else {
-			$subscription_period_interval = isset( $product->subscription_period_interval ) ? $product->subscription_period_interval : $product->product_custom_fields['_subscription_period_interval'][0];
-		}
-
-		return apply_filters( 'woocommerce_subscriptions_product_period_interval', $subscription_period_interval, $product );
+		return apply_filters( 'woocommerce_subscriptions_product_period_interval', self::get_meta_data( $product, 'subscription_period_interval', 0 ), self::maybe_get_product_instance( $product ) );
 	}
 
 	/**
@@ -487,18 +453,7 @@ class WC_Subscriptions_Product {
 	 * @since 1.0
 	 */
 	public static function get_length( $product ) {
-
-		if ( ! is_object( $product ) ) {
-			$product = WC_Subscriptions::get_product( $product );
-		}
-
-		if ( ! self::is_subscription( $product ) || ( ! isset( $product->subscription_length ) && empty( $product->product_custom_fields['_subscription_length'][0] ) ) ) {
-			$subscription_length = 0;
-		} else {
-			$subscription_length = isset( $product->subscription_length ) ? $product->subscription_length : $product->product_custom_fields['_subscription_length'][0];
-		}
-
-		return apply_filters( 'woocommerce_subscriptions_product_length', $subscription_length, $product );
+		return apply_filters( 'woocommerce_subscriptions_product_length', self::get_meta_data( $product, 'subscription_length', 0 ), self::maybe_get_product_instance( $product ) );
 	}
 
 	/**
@@ -509,18 +464,7 @@ class WC_Subscriptions_Product {
 	 * @since 1.0
 	 */
 	public static function get_trial_length( $product ) {
-
-		if ( ! is_object( $product ) ) {
-			$product = WC_Subscriptions::get_product( $product );
-		}
-
-		if ( ! self::is_subscription( $product ) || ( ! isset( $product->subscription_trial_length ) && empty( $product->product_custom_fields['_subscription_trial_length'][0] ) ) ) {
-			$subscription_trial_length = 0;
-		} else {
-			$subscription_trial_length = isset( $product->subscription_trial_length ) ? $product->subscription_trial_length : $product->product_custom_fields['_subscription_trial_length'][0];
-		}
-
-		return apply_filters( 'woocommerce_subscriptions_product_trial_length', $subscription_trial_length, $product );
+		return apply_filters( 'woocommerce_subscriptions_product_trial_length', self::get_meta_data( $product, 'subscription_trial_length', 0 ), self::maybe_get_product_instance( $product ) );
 	}
 
 	/**
@@ -531,20 +475,7 @@ class WC_Subscriptions_Product {
 	 * @since 1.2
 	 */
 	public static function get_trial_period( $product ) {
-
-		if ( ! is_object( $product ) ) {
-			$product = WC_Subscriptions::get_product( $product );
-		}
-
-		if ( ! self::is_subscription( $product ) ) {
-			$subscription_trial_period = '';
-		} elseif ( ! isset( $product->subscription_trial_period ) && empty( $product->product_custom_fields['_subscription_trial_period'][0] ) ) { // Backward compatibility
-			$subscription_trial_period = self::get_period( $product );
-		} else {
-			$subscription_trial_period = isset( $product->subscription_trial_period ) ? $product->subscription_trial_period : $product->product_custom_fields['_subscription_trial_period'][0];
-		}
-
-		return apply_filters( 'woocommerce_subscriptions_product_trial_period', $subscription_trial_period, $product );
+		return apply_filters( 'woocommerce_subscriptions_product_trial_period', self::get_meta_data( $product, 'subscription_trial_period', '' ), self::maybe_get_product_instance( $product ) );
 	}
 
 	/**
@@ -555,18 +486,7 @@ class WC_Subscriptions_Product {
 	 * @since 1.0
 	 */
 	public static function get_sign_up_fee( $product ) {
-
-		if ( ! is_object( $product ) ) {
-			$product = WC_Subscriptions::get_product( $product );
-		}
-
-		if ( ! self::is_subscription( $product ) || ( ! isset( $product->subscription_sign_up_fee ) && empty( $product->product_custom_fields['_subscription_sign_up_fee'][0] ) ) ) {
-			$subscription_sign_up_fee = 0;
-		} else {
-			$subscription_sign_up_fee = isset( $product->subscription_sign_up_fee ) ? $product->subscription_sign_up_fee : $product->product_custom_fields['_subscription_sign_up_fee'][0];
-		}
-
-		return apply_filters( 'woocommerce_subscriptions_product_sign_up_fee', $subscription_sign_up_fee, $product );
+		return apply_filters( 'woocommerce_subscriptions_product_sign_up_fee', self::get_meta_data( $product, 'subscription_sign_up_fee', 0 ), self::maybe_get_product_instance( $product ) );
 	}
 
 	/**
@@ -735,7 +655,7 @@ class WC_Subscriptions_Product {
 	 */
 	public static function maybe_set_variations_price_html( $variation_details, $variable_product, $variation ) {
 
-		if ( 'variable-subscription' == $variable_product->product_type && empty( $variation_details['price_html'] ) ) {
+		if ( $variable_product->is_type( 'variable-subscription' ) && empty( $variation_details['price_html'] ) ) {
 			$variation_details['price_html'] = '<span class="price">' . $variation->get_price_html() . '</span>';
 		}
 
@@ -759,9 +679,9 @@ class WC_Subscriptions_Product {
 			$post_id = $args[2];
 			$product = wc_get_product( $post_id );
 
-			if ( false !== $product && 'trash' == $product->post->post_status && $product->is_type( array( 'subscription', 'variable-subscription', 'subscription_variation' ) ) ) {
+			if ( false !== $product && 'trash' == wcs_get_objects_property( $product, 'post_status' ) && $product->is_type( array( 'subscription', 'variable-subscription', 'subscription_variation' ) ) ) {
 
-				$product_id = ( $product->is_type( 'subscription_variation' ) ) ? $product->post->ID : $post_id;
+				$product_id = ( $product->is_type( 'subscription_variation' ) ) ? $product->get_parent_id() : $post_id;
 
 				$subscription_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM `{$wpdb->prefix}woocommerce_order_itemmeta` WHERE `meta_key` = '_product_id' AND `meta_value` = %d", $product_id ) );
 
@@ -818,6 +738,17 @@ class WC_Subscriptions_Product {
 		unset( $actions['delete'] );
 
 		return $actions;
+	}
+
+	/**
+	 * Check whether a product has one-time shipping only.
+	 *
+	 * @param mixed $product A WC_Product object or product ID
+	 * @return bool True if the product requires only one time shipping, false otherwise.
+	 * @since 2.2.0
+	 */
+	public static function needs_one_time_shipping( $product ) {
+		return apply_filters( 'woocommerce_subscriptions_product_needs_one_time_shipping', 'yes' === self::get_meta_data( $product, 'subscription_one_time_shipping', 'no' ), self::maybe_get_product_instance( $product ) );
 	}
 
 	/**
@@ -965,14 +896,14 @@ class WC_Subscriptions_Product {
 					continue;
 				}
 
-				$variable_product = wc_get_product( $variation_id );
+				$variation_product = wc_get_product( $variation_id );
 
-				if ( $variable_product->subscription_trial_length > 0 ) {
+				if ( WC_Subscriptions_Product::get_trial_length( $variation_product ) ) {
 					$is_synced_or_has_trial = true;
 					break;
 				}
 
-				if ( WC_Subscriptions_Synchroniser::is_syncing_enabled() && ( ( ! is_array( $variable_product->subscription_payment_sync_date ) && $variable_product->subscription_payment_sync_date > 0 ) || ( is_array( $variable_product->subscription_payment_sync_date ) && $variable_product->subscription_payment_sync_date['day'] > 0 ) ) ) {
+				if ( WC_Subscriptions_Synchroniser::is_product_synced( $variation_product ) ) {
 					$is_synced_or_has_trial = true;
 					break;
 				}
@@ -1007,6 +938,102 @@ class WC_Subscriptions_Product {
 
 		wp_send_json( array( 'one_time_shipping' => $subscription_one_time_shipping ) );
 	}
+
+	/**
+	 * Wrapper to check whether we have a product ID or product and if we have the former, return the later.
+	 *
+	 * @param mixed $product A WC_Product object or product ID
+	 * @return WC_Product
+	 * @since 2.2.0
+	 */
+	private static function maybe_get_product_instance( $product ) {
+
+		if ( ! is_object( $product ) || ! is_a( $product, 'WC_Product' ) ) {
+			$product = wc_get_product( $product );
+		}
+
+		return $product;
+	}
+
+	/**
+	 * Get a piece of subscription related meta data for a product in a version compatible way.
+	 *
+	 * @param mixed $product A WC_Product object or product ID
+	 * @param string $meta_key The string key for the meta data
+	 * @return float The value of the sign-up fee, or 0 if the product is not a subscription or the subscription has no sign-up fee
+	 * @since 2.2.0
+	 */
+	public static function get_meta_data( $product, $meta_key, $default_value ) {
+
+		$product = self::maybe_get_product_instance( $product );
+
+		$meta_value = $default_value;
+
+		if ( self::is_subscription( $product ) ) {
+
+			if ( is_callable( array( $product, 'meta_exists' ) ) ) { // WC 3.0
+
+				$prefixed_key = wcs_maybe_prefix_key( $meta_key );
+
+				// Only set the meta value when the object has a meta value to workaround ambiguous default return values
+				if ( $product->meta_exists( $prefixed_key ) ) {
+					$meta_value = $product->get_meta( $prefixed_key, true );
+				}
+			} elseif ( isset( $product->{$meta_key} ) ) { // WC < 3.0
+				$meta_value = $product->{$meta_key};
+			}
+		}
+
+		return $meta_value;
+	}
+
+	/**
+	 * sync variable product min/max prices with WC 3.0
+	 *
+	 * @param WC_Product_Variable $product
+	 * @since 2.2.0
+	 */
+	public static function variable_subscription_product_sync( $product ) {
+
+		if ( self::is_subscription( $product ) ) {
+
+			$child_variation_ids = $product->get_visible_children();
+
+			if ( $child_variation_ids ) {
+
+				$min_max_data = wcs_get_min_max_variation_data( $product, $child_variation_ids );
+
+				$product->add_meta_data( '_min_price_variation_id', $min_max_data['min']['variation_id'], true );
+				$product->add_meta_data( '_max_price_variation_id', $min_max_data['max']['variation_id'], true );
+
+				$product->add_meta_data( '_min_variation_price', $min_max_data['min']['price'], true );
+				$product->add_meta_data( '_max_variation_price', $min_max_data['max']['price'], true );
+				$product->add_meta_data( '_min_variation_regular_price', $min_max_data['min']['regular_price'], true );
+				$product->add_meta_data( '_max_variation_regular_price', $min_max_data['max']['regular_price'], true );
+				$product->add_meta_data( '_min_variation_sale_price', $min_max_data['min']['sale_price'], true );
+				$product->add_meta_data( '_max_variation_sale_price', $min_max_data['max']['sale_price'], true );
+
+				$product->add_meta_data( '_min_variation_period', $min_max_data['min']['period'], true );
+				$product->add_meta_data( '_max_variation_period', $min_max_data['max']['period'], true );
+				$product->add_meta_data( '_min_variation_period_interval', $min_max_data['min']['interval'], true );
+				$product->add_meta_data( '_max_variation_period_interval', $min_max_data['max']['interval'], true );
+
+				$product->add_meta_data( '_subscription_price', $min_max_data['min']['price'], true );
+				$product->add_meta_data( '_subscription_period', $min_max_data['min']['period'], true );
+				$product->add_meta_data( '_subscription_period_interval', $min_max_data['min']['interval'], true );
+				$product->add_meta_data( '_subscription_sign_up_fee', $min_max_data['subscription']['signup-fee'], true );
+				$product->add_meta_data( '_subscription_trial_period', $min_max_data['subscription']['trial_period'], true );
+				$product->add_meta_data( '_subscription_trial_length', $min_max_data['subscription']['trial_length'], true );
+				$product->add_meta_data( '_subscription_length', $min_max_data['subscription']['length'], true );
+			}
+		}
+
+		return $product;
+	}
+
+	/************************
+	 * Deprecated Functions *
+	 ************************/
 
 	/**
 	 * If a product is being marked as not purchasable because it is limited and the customer has a subscription,
@@ -1045,7 +1072,7 @@ class WC_Subscriptions_Product {
 						if ( $item['product_id'] == $product_id || $item['variation_id'] == $product_id ) {
 
 							$subscriptions = wcs_get_subscriptions( array(
-								'order_id'   => $order->id,
+								'order_id'   => wcs_get_objects_property( $order, 'id' ),
 								'product_id' => $product_id,
 							) );
 
@@ -1064,6 +1091,28 @@ class WC_Subscriptions_Product {
 		}
 
 		return self::$order_awaiting_payment_for_product[ $product_id ];
+	}
+
+	/**
+	 * Returns the sign up fee (including tax) by filtering the products price used in
+	 * @see WC_Product::get_price_including_tax( $qty )
+	 *
+	 * @return string
+	 */
+	public static function get_sign_up_fee_including_tax( $product, $qty = 1 ) {
+		wcs_deprecated_function( __METHOD__, '2.2.0', 'wcs_get_price_including_tax( $product, array( "qty" => $qty, "price" => WC_Subscriptions_Product::get_sign_up_fee( $product ) ) )' );
+		return wcs_get_price_including_tax( $product, array( 'qty' => $qty, 'price' => WC_Subscriptions_Product::get_sign_up_fee( $product ) ) );
+	}
+
+	/**
+	 * Returns the sign up fee (excluding tax) by filtering the products price used in
+	 * @see WC_Product::get_price_excluding_tax( $qty )
+	 *
+	 * @return string
+	 */
+	public static function get_sign_up_fee_excluding_tax( $product, $qty = 1 ) {
+		wcs_deprecated_function( __METHOD__, '2.2.0', 'wcs_get_price_excluding_tax( $product, array( "qty" => $qty, "price" => WC_Subscriptions_Product::get_sign_up_fee( $product ) ) )' );
+		return wcs_get_price_excluding_tax( $product, array( 'qty' => $qty, 'price' => WC_Subscriptions_Product::get_sign_up_fee( $product ) ) );
 	}
 }
 

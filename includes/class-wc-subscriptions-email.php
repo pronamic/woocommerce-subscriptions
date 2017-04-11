@@ -104,7 +104,7 @@ class WC_Subscriptions_Email {
 	public static function send_cancelled_email( $subscription ) {
 		WC()->mailer();
 
-		if ( $subscription->has_status( array( 'pending-cancel', 'cancelled' ) ) && 'true' !== get_post_meta( $subscription->id, '_cancelled_email_sent', true ) ) {
+		if ( $subscription->has_status( array( 'pending-cancel', 'cancelled' ) ) && 'true' !== get_post_meta( $subscription->get_id(), '_cancelled_email_sent', true ) ) {
 			do_action( 'cancelled_subscription_notification', $subscription );
 		}
 	}
@@ -157,7 +157,7 @@ class WC_Subscriptions_Email {
 	 */
 	public static function maybe_remove_woocommerce_email( $order_id ) {
 		if ( wcs_order_contains_renewal( $order_id ) || wcs_order_contains_switch( $order_id ) ) {
-			remove_action( current_filter(), array( 'WC_Emails', 'send_transactional_email' ) );
+			self::detach_woocommerce_transactional_email();
 		}
 	}
 
@@ -170,7 +170,7 @@ class WC_Subscriptions_Email {
 	 */
 	public static function maybe_reattach_woocommerce_email( $order_id ) {
 		if ( wcs_order_contains_renewal( $order_id ) || wcs_order_contains_switch( $order_id ) ) {
-			add_action( current_filter(), array( 'WC_Emails', 'send_transactional_email' ), 10, 10 );
+			self::attach_woocommerce_transactional_email();
 		}
 	}
 
@@ -185,7 +185,7 @@ class WC_Subscriptions_Email {
 	public static function renewal_order_emails_available( $available_emails ) {
 		global $theorder;
 
-		if ( wcs_order_contains_renewal( $theorder->id ) ) {
+		if ( wcs_order_contains_renewal( wcs_get_objects_property( $theorder, 'id' ) ) ) {
 			$available_emails = array(
 				'new_renewal_order',
 				'customer_processing_renewal_order',
@@ -252,7 +252,11 @@ class WC_Subscriptions_Email {
 				add_filter( 'woocommerce_order_is_download_permitted', $show_download_links_callback );
 				add_filter( 'woocommerce_order_is_paid', $show_purchase_note_callback );
 
-				$items_table = $order->email_order_items_table( $args );
+				if ( function_exists( 'wc_get_email_order_items' ) ) { // WC 3.0+
+					$items_table = wc_get_email_order_items( $order );
+				} else {
+					$items_table = $order->email_order_items_table( $args );
+				}
 
 				remove_filter( 'woocommerce_order_is_download_permitted', $show_download_links_callback );
 				remove_filter( 'woocommerce_order_is_paid', $show_purchase_note_callback );
@@ -298,6 +302,45 @@ class WC_Subscriptions_Email {
 			'',
 			plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/'
 		);
+	}
+
+	/**
+	 * Detach WC transactional emails from a specific hook.
+	 *
+	 * @param string Optional. The action hook or filter to detach WC core's transactional emails from. Defaults to the current filter.
+	 * @param int Optional. The priority the function runs on. Default 10.
+	 * @since 2.2.3
+	 */
+	public static function detach_woocommerce_transactional_email( $hook = '', $priority = 10 ) {
+
+		if ( '' === $hook ) {
+			$hook = current_filter();
+		}
+
+		// Emails might be queued or sent immediately so we need to remove both
+		remove_action( $hook, array( 'WC_Emails', 'queue_transactional_email' ), $priority );
+		remove_action( $hook, array( 'WC_Emails', 'send_transactional_email' ), $priority );
+	}
+
+	/**
+	 * Attach WC transactional emails to a specific hook.
+	 *
+	 * @param string Optional. The action hook or filter to attach WC core's transactional emails to. Defaults to the current filter.
+	 * @param int Optional. The priority the function should run on. Default 10.
+	 * @param int Optional. The number of arguments the function accepts. Default 10.
+	 * @since 2.2.3
+	 */
+	public static function attach_woocommerce_transactional_email( $hook = '', $priority = 10, $accepted_args = 10 ) {
+
+		if ( '' === $hook ) {
+			$hook = current_filter();
+		}
+
+		if ( false === WC_Subscriptions::is_woocommerce_pre( '3.0' ) && apply_filters( 'woocommerce_defer_transactional_emails', true ) ) {
+			add_action( $hook, array( 'WC_Emails', 'queue_transactional_email' ), $priority, $accepted_args );
+		} else {
+			add_action( $hook, array( 'WC_Emails', 'send_transactional_email' ), $priority, $accepted_args );
+		}
 	}
 
 	/**

@@ -22,7 +22,7 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 	 * Maybe set a schedule action if the new date is in the future
 	 *
 	 * @param object $subscription An instance of a WC_Subscription object
-	 * @param string $date_type Can be 'start', 'trial_end', 'next_payment', 'payment_retry', 'last_payment', 'end', 'end_of_prepaid_term' or a custom date type
+	 * @param string $date_type Can be 'trial_end', 'next_payment', 'payment_retry', 'end', 'end_of_prepaid_term' or a custom date type
 	 * @param string $datetime A MySQL formated date/time string in the GMT/UTC timezone.
 	 */
 	public function update_date( $subscription, $date_type, $datetime ) {
@@ -55,7 +55,7 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 	 * Delete a date from the action scheduler queue
 	 *
 	 * @param object $subscription An instance of a WC_Subscription object
-	 * @param string $date_type Can be 'start', 'trial_end', 'next_payment', 'last_payment', 'end', 'end_of_prepaid_term' or a custom date type
+	 * @param string $date_type Can be 'trial_end', 'next_payment', 'end', 'end_of_prepaid_term' or a custom date type
 	 */
 	public function delete_date( $subscription, $date_type ) {
 		$this->update_date( $subscription, $date_type, 0 );
@@ -65,7 +65,7 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 	 * When a subscription's status is updated, maybe schedule an event
 	 *
 	 * @param object $subscription An instance of a WC_Subscription object
-	 * @param string $date_type Can be 'start', 'trial_end', 'next_payment', 'last_payment', 'end', 'end_of_prepaid_term' or a custom date type
+	 * @param string $date_type Can be 'trial_end', 'next_payment', 'end', 'end_of_prepaid_term' or a custom date type
 	 * @param string $datetime A MySQL formated date/time string in the GMT/UTC timezone.
 	 */
 	public function update_status( $subscription, $new_status, $old_status ) {
@@ -126,7 +126,7 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 	 * Get the hook to use in the action scheduler for the date type
 	 *
 	 * @param object $subscription An instance of WC_Subscription to get the hook for
-	 * @param string $date_type Can be 'start', 'trial_end', 'next_payment', 'last_payment', 'expiration', 'end_of_prepaid_term' or a custom date type
+	 * @param string $date_type Can be 'trial_end', 'next_payment', 'expiration', 'end_of_prepaid_term' or a custom date type
 	 */
 	protected function get_scheduled_action_hook( $subscription, $date_type ) {
 
@@ -158,7 +158,7 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 	/**
 	 * Get the args to set on the scheduled action.
 	 *
-	 * @param string $date_type Can be 'start', 'trial_end', 'next_payment', 'last_payment', 'expiration', 'end_of_prepaid_term' or a custom date type
+	 * @param string $date_type Can be 'trial_end', 'next_payment', 'expiration', 'end_of_prepaid_term' or a custom date type
 	 * @param object $subscription An instance of WC_Subscription to get the hook for
 	 * @return array Array of name => value pairs stored against the scheduled action.
 	 */
@@ -170,7 +170,7 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 			$action_args   = array( 'order_id' => $last_order_id );
 
 		} else {
-			$action_args = array( 'subscription_id' => $subscription->id );
+			$action_args = array( 'subscription_id' => $subscription->get_id() );
 		}
 
 		return apply_filters( 'woocommerce_subscriptions_scheduled_action_args', $action_args, $date_type, $subscription );

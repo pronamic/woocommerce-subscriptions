@@ -159,7 +159,12 @@ class WCS_Admin_Post_Types {
 		// Let's create a temporary table, drop the previous one, because otherwise this query is hella slow
 		$wpdb->query( "DROP TEMPORARY TABLE IF EXISTS {$table_name}" );
 
-		$wpdb->query( "CREATE TEMPORARY TABLE {$table_name} (id INT, INDEX USING BTREE (id), last_payment DATETIME) AS SELECT pm.meta_value as id, MAX( p.post_date_gmt ) as last_payment FROM {$wpdb->postmeta} pm LEFT JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = '_subscription_renewal' GROUP BY pm.meta_value" );
+		$wpdb->query(
+			"CREATE TEMPORARY TABLE {$table_name} (id INT, INDEX USING BTREE (id), last_payment DATETIME) AS
+			 SELECT pm.meta_value as id, MAX( p.post_date_gmt ) as last_payment FROM {$wpdb->postmeta} pm
+			 LEFT JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+			 WHERE pm.meta_key = '_subscription_renewal'
+			 GROUP BY pm.meta_value" );
 		// Magic ends here
 
 		$pieces['join'] .= "LEFT JOIN {$table_name} lp
@@ -189,9 +194,15 @@ class WCS_Admin_Post_Types {
 			$product_string = wc_get_product( $product_id )->get_formatted_name();
 		}
 
-		?>
-		<input type="hidden" class="wc-product-search" name="_wcs_product" data-placeholder="<?php esc_attr_e( 'Search for a product&hellip;', 'woocommerce-subscriptions' ); ?>" data-action="woocommerce_json_search_products_and_variations" data-selected="<?php echo esc_attr( strip_tags( $product_string ) ); ?>" value="<?php echo esc_attr( $product_id ); ?>" data-allow_clear="true" />
-		<?php
+		WCS_Select2::render( array(
+			'class'       => 'wc-product-search',
+			'name'        => '_wcs_product',
+			'placeholder' => esc_attr__( 'Search for a product&hellip;', 'woocommerce-subscriptions' ),
+			'action'      => 'woocommerce_json_search_products_and_variations',
+			'selected'    => strip_tags( $product_string ),
+			'value'       => $product_id,
+			'allow_clear' => 'true',
+		) );
 	}
 
 	/**
@@ -401,7 +412,7 @@ class WCS_Admin_Post_Types {
 			'start_date'        => __( 'Start Date', 'woocommerce-subscriptions' ),
 			'trial_end_date'    => __( 'Trial End', 'woocommerce-subscriptions' ),
 			'next_payment_date' => __( 'Next Payment', 'woocommerce-subscriptions' ),
-			'last_payment_date' => __( 'Last Payment', 'woocommerce-subscriptions' ),
+			'last_payment_date' => __( 'Last Order Date', 'woocommerce-subscriptions' ), // Keep deprecated 'last_payment_date' key for backward compatibility
 			'end_date'          => __( 'End Date', 'woocommerce-subscriptions' ),
 			'orders'            => _x( 'Orders', 'number of orders linked to a subscription', 'woocommerce-subscriptions' ),
 		);
@@ -416,7 +427,7 @@ class WCS_Admin_Post_Types {
 	public function render_shop_subscription_columns( $column ) {
 		global $post, $the_subscription, $wp_list_table;
 
-		if ( empty( $the_subscription ) || $the_subscription->id != $post->ID ) {
+		if ( empty( $the_subscription ) || $the_subscription->get_id() != $post->ID ) {
 			$the_subscription = wcs_get_subscription( $post->ID );
 		}
 
@@ -433,7 +444,7 @@ class WCS_Admin_Post_Types {
 
 				$action_url = add_query_arg(
 					array(
-						'post'     => $the_subscription->id,
+						'post'     => $the_subscription->get_id(),
 						'_wpnonce' => wp_create_nonce( 'bulk-posts' ),
 					)
 				);
@@ -502,14 +513,14 @@ class WCS_Admin_Post_Types {
 					$customer_tip .= _x( 'Billing:', 'meaning billing address', 'woocommerce-subscriptions' ) . ' ' . esc_html( $address );
 				}
 
-				if ( $the_subscription->billing_email ) {
+				if ( $the_subscription->get_billing_email() ) {
 					// translators: placeholder is customer's billing email
-					$customer_tip .= '<br/><br/>' . sprintf( __( 'Email: %s', 'woocommerce-subscriptions' ), esc_attr( $the_subscription->billing_email ) );
+					$customer_tip .= '<br/><br/>' . sprintf( __( 'Email: %s', 'woocommerce-subscriptions' ), esc_attr( $the_subscription->get_billing_email() ) );
 				}
 
-				if ( $the_subscription->billing_phone ) {
+				if ( $the_subscription->get_billing_phone() ) {
 					// translators: placeholder is customer's billing phone number
-					$customer_tip .= '<br/><br/>' . sprintf( __( 'Tel: %s', 'woocommerce-subscriptions' ), esc_html( $the_subscription->billing_phone ) );
+					$customer_tip .= '<br/><br/>' . sprintf( __( 'Tel: %s', 'woocommerce-subscriptions' ), esc_html( $the_subscription->get_billing_phone() ) );
 				}
 
 				if ( ! empty( $customer_tip ) ) {
@@ -523,8 +534,8 @@ class WCS_Admin_Post_Types {
 
 					$username  = '<a href="user-edit.php?user_id=' . absint( $user_info->ID ) . '">';
 
-					if ( $the_subscription->billing_first_name || $the_subscription->billing_last_name ) {
-						$username .= esc_html( ucfirst( $the_subscription->billing_first_name ) . ' ' . ucfirst( $the_subscription->billing_last_name ) );
+					if ( $the_subscription->get_billing_first_name() || $the_subscription->get_billing_last_name() ) {
+						$username .= esc_html( ucfirst( $the_subscription->get_billing_first_name() ) . ' ' . ucfirst( $the_subscription->get_billing_last_name() ) );
 					} elseif ( $user_info->first_name || $user_info->last_name ) {
 						$username .= esc_html( ucfirst( $user_info->first_name ) . ' ' . ucfirst( $user_info->last_name ) );
 					} else {
@@ -533,8 +544,8 @@ class WCS_Admin_Post_Types {
 
 					$username .= '</a>';
 
-				} elseif ( $the_subscription->billing_first_name || $the_subscription->billing_last_name ) {
-					$username = trim( $the_subscription->billing_first_name . ' ' . $the_subscription->billing_last_name );
+				} elseif ( $the_subscription->get_billing_first_name() || $the_subscription->get_billing_last_name() ) {
+					$username = trim( $the_subscription->get_billing_first_name() . ' ' . $the_subscription->get_billing_last_name() );
 				}
 				// translators: $1: is opening link, $2: is subscription order number, $3: is closing link tag, $4: is user's name
 				$column_content = sprintf( _x( '%1$s#%2$s%3$s for %4$s', 'Subscription title on admin table. (e.g.: #211 for John Doe)', 'woocommerce-subscriptions' ), '<a href="' . esc_url( admin_url( 'post.php?post=' . absint( $post->ID ) . '&action=edit' ) ) . '">', '<strong>' . esc_attr( $the_subscription->get_order_number() ) . '</strong>', '</a>', $username );
@@ -570,7 +581,7 @@ class WCS_Admin_Post_Types {
 								$item_name = sprintf( '%s &times; %s', absint( $item_quantity ), $item_name );
 							}
 							if ( $_product ) {
-								$item_name = sprintf( '<a href="%s">%s</a>', get_edit_post_link( $_product->id ), $item_name );
+								$item_name = sprintf( '<a href="%s">%s</a>', get_edit_post_link( ( $_product->is_type( 'variation' ) ) ? wcs_get_objects_property( $_product, 'parent_id' ) : $_product->get_id() ), $item_name );
 							}
 
 							$column_content .= '<div class="order-item">';
@@ -606,7 +617,7 @@ class WCS_Admin_Post_Types {
 									$item_name  = esc_html( $item_name );
 
 									if ( $_product ) {
-										$item_name = sprintf( '<a href="%s">%s</a>', get_edit_post_link( $_product->id ), $item_name );
+										$item_name = sprintf( '<a href="%s">%s</a>', get_edit_post_link( $_product->get_id() ), $item_name );
 									}
 
 									echo wp_kses( $item_name, array( 'a' => array( 'href' => array() ) ) );
@@ -636,10 +647,13 @@ class WCS_Admin_Post_Types {
 			case 'next_payment_date':
 			case 'last_payment_date':
 			case 'end_date':
-				if ( 0 == $the_subscription->get_time( $column, 'gmt' ) ) {
+				$date_type_map = array( 'start_date' => 'date_created', 'last_payment_date' => 'last_order_date_created' );
+				$date_type     = array_key_exists( $column, $date_type_map ) ? $date_type_map[ $column ] : $column;
+
+				if ( 0 == $the_subscription->get_time( $date_type, 'gmt' ) ) {
 					$column_content .= '-';
 				} else {
-					$column_content .= sprintf( '<time class="%s" title="%s">%s</time>', esc_attr( $column ), esc_attr( date( __( 'Y/m/d g:i:s A', 'woocommerce-subscriptions' ) , $the_subscription->get_time( $column, 'site' ) ) ), esc_html( $the_subscription->get_date_to_display( $column ) ) );
+					$column_content .= sprintf( '<time class="%s" title="%s">%s</time>', esc_attr( $column ), esc_attr( date( __( 'Y/m/d g:i:s A', 'woocommerce-subscriptions' ) , $the_subscription->get_time( $date_type, 'site' ) ) ), esc_html( $the_subscription->get_date_to_display( $date_type ) ) );
 
 					if ( 'next_payment_date' == $column && $the_subscription->payment_method_supports( 'gateway_scheduled_payments' ) && ! $the_subscription->is_manual() && $the_subscription->has_status( 'active' ) ) {
 						$column_content .= '<div class="woocommerce-help-tip" data-tip="' . esc_attr__( 'This date should be treated as an estimate only. The payment gateway for this subscription controls when payments are processed.', 'woocommerce-subscriptions' ) . '"></div>';
@@ -667,7 +681,6 @@ class WCS_Admin_Post_Types {
 	public function shop_subscription_sortable_columns( $columns ) {
 
 		$sortable_columns = array(
-			'status'            => 'post_status',
 			'order_title'       => 'ID',
 			'recurring_total'   => 'order_total',
 			'start_date'        => 'date',
@@ -941,11 +954,9 @@ class WCS_Admin_Post_Types {
 	 * @return string 						the link string
 	 */
 	public function get_related_orders_link( $the_subscription ) {
-		$order_id = isset( $the_subscription->order->id ) ? $the_subscription->order->id : 0;
-
 		return sprintf(
 			'<a href="%s">%s</a>',
-			admin_url( 'edit.php?post_status=all&post_type=shop_order&_subscription_related_orders=' . absint( $the_subscription->id ) ),
+			admin_url( 'edit.php?post_status=all&post_type=shop_order&_subscription_related_orders=' . absint( $the_subscription->get_id() ) ),
 			count( $the_subscription->get_related_orders() )
 		);
 	}

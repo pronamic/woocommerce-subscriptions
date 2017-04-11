@@ -58,6 +58,21 @@ $display_th = true;
 			<?php wcs_cart_totals_shipping_html(); ?>
 		<?php endif; ?>
 
+		<?php foreach ( WC()->cart->get_fees() as $fee ) : ?>
+			<?php foreach ( $recurring_carts as $recurring_cart_key => $recurring_cart ) : ?>
+				<?php if ( 0 == $recurring_cart->next_payment_date ) : ?>
+					<?php continue; ?>
+				<?php endif; ?>
+				<?php foreach ( $recurring_cart->get_fees() as $recurring_fee ) : ?>
+					<?php if ( $recurring_fee->id !== $fee->id ) { continue; } ?>
+					<tr class="fee recurring-total">
+						<th><?php echo esc_html( $fee->name ); ?></th>
+						<td><?php wc_cart_totals_fee_html( $fee ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+			<?php endforeach; ?>
+		<?php endforeach; ?>
+
 		<?php if ( WC()->cart->tax_display_cart === 'excl' ) : ?>
 			<?php if ( get_option( 'woocommerce_tax_total_display' ) === 'itemized' ) : ?>
 

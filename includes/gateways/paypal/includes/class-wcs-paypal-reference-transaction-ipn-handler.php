@@ -64,7 +64,7 @@ class WCS_PayPal_Reference_Transaction_IPN_Handler extends WCS_PayPal_Standard_I
 						$transaction_details['payment_status'] = 'completed';
 					}
 
-					WC_Gateway_Paypal::log( 'Found order #' . $order->id );
+					WC_Gateway_Paypal::log( 'Found order #' . wcs_get_objects_property( $order, 'id' ) );
 					WC_Gateway_Paypal::log( 'Payment status: ' . $transaction_details['payment_status'] );
 
 					if ( method_exists( $this, 'payment_status_' . $transaction_details['payment_status'] ) ) {

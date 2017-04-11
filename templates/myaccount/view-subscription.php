@@ -6,7 +6,7 @@
  *
  * @author    Prospress
  * @package   WooCommerce_Subscription/Templates
- * @version   2.0
+ * @version   2.2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -34,13 +34,13 @@ wc_print_notices();
 	</tr>
 	<tr>
 		<td><?php echo esc_html_x( 'Start Date', 'table heading',  'woocommerce-subscriptions' ); ?></td>
-		<td><?php echo esc_html( $subscription->get_date_to_display( 'start' ) ); ?></td>
+		<td><?php echo esc_html( $subscription->get_date_to_display( 'date_created' ) ); ?></td>
 	</tr>
 	<?php foreach ( array(
-		'last_payment' => _x( 'Last Payment Date', 'admin subscription table header', 'woocommerce-subscriptions' ),
-		'next_payment' => _x( 'Next Payment Date', 'admin subscription table header', 'woocommerce-subscriptions' ),
-		'end'          => _x( 'End Date', 'table heading', 'woocommerce-subscriptions' ),
-		'trial end'    => _x( 'Trial End Date', 'admin subscription table header', 'woocommerce-subscriptions' ),
+		'last_order_date_created' => _x( 'Last Order Date', 'admin subscription table header', 'woocommerce-subscriptions' ),
+		'next_payment'            => _x( 'Next Payment Date', 'admin subscription table header', 'woocommerce-subscriptions' ),
+		'end'                     => _x( 'End Date', 'table heading', 'woocommerce-subscriptions' ),
+		'trial_end'               => _x( 'Trial End Date', 'admin subscription table header', 'woocommerce-subscriptions' ),
 		) as $date_type => $date_title ) : ?>
 		<?php $date = $subscription->get_date( $date_type ); ?>
 		<?php if ( ! empty( $date ) ) : ?>
@@ -106,7 +106,7 @@ wc_print_notices();
 					?>
 					<tr class="<?php echo esc_attr( apply_filters( 'woocommerce_order_item_class', 'order_item', $item, $subscription ) ); ?>">
 						<?php if ( $allow_remove_item ) : ?>
-							<td class="remove_item"><a href="<?php echo esc_url( WCS_Remove_Item::get_remove_url( $subscription->id, $item_id ) );?>" class="remove" onclick="return confirm('<?php printf( esc_html__( 'Are you sure you want remove this item from your subscription?', 'woocommerce-subscriptions' ) ); ?>');">&times;</a></td>
+							<td class="remove_item"><a href="<?php echo esc_url( WCS_Remove_Item::get_remove_url( $subscription->get_id(), $item_id ) );?>" class="remove" onclick="return confirm('<?php printf( esc_html__( 'Are you sure you want remove this item from your subscription?', 'woocommerce-subscriptions' ) ); ?>');">&times;</a></td>
 						<?php endif; ?>
 						<td class="product-name">
 							<?php
@@ -121,8 +121,9 @@ wc_print_notices();
 							// Allow other plugins to add additional product information here
 							do_action( 'woocommerce_order_item_meta_start', $item_id, $item, $subscription );
 
-							$subscription->display_item_meta( $item );
-							$subscription->display_item_downloads( $item );
+							wcs_display_item_meta( $item, $subscription );
+
+							wcs_display_item_downloads( $item, $subscription );
 
 							// Allow other plugins to add additional product information here
 							do_action( 'woocommerce_order_item_meta_end', $item_id, $item, $subscription );

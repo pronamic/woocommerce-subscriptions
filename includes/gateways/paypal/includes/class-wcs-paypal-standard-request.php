@@ -33,9 +33,9 @@ class WCS_PayPal_Standard_Request {
 		// Payment method changes act on the subscription not the original order
 		if ( $is_payment_change ) {
 
-			$subscriptions = array( wcs_get_subscription( $order->id ) );
+			$subscriptions = array( wcs_get_subscription( wcs_get_objects_property( $order, 'id' ) ) );
 			$subscription  = array_pop( $subscriptions );
-			$order         = $subscription->order;
+			$order         = $subscription->get_parent();
 
 			// We need the subscription's total
 			remove_filter( 'woocommerce_order_amount_total', 'WC_Subscriptions_Change_Payment_Gateway::maybe_zero_total', 11, 2 );
@@ -43,7 +43,7 @@ class WCS_PayPal_Standard_Request {
 		} else {
 
 			// Otherwise the order is the $order
-			if ( $cart_item = wcs_cart_contains_failed_renewal_order_payment() || false !== WC_Subscriptions_Renewal_Order::get_failed_order_replaced_by( $order->id ) ) {
+			if ( $cart_item = wcs_cart_contains_failed_renewal_order_payment() || false !== WC_Subscriptions_Renewal_Order::get_failed_order_replaced_by( wcs_get_objects_property( $order, 'id' ) ) ) {
 				$subscriptions                 = wcs_get_subscriptions_for_renewal_order( $order );
 				$order_contains_failed_renewal = true;
 			} else {
@@ -60,7 +60,7 @@ class WCS_PayPal_Standard_Request {
 			$paypal_args['cmd'] = '_xclick-subscriptions';
 
 			// Store the subscription ID in the args sent to PayPal so we can access them later
-			$paypal_args['custom'] = wcs_json_encode( array( 'order_id' => $order->id, 'order_key' => $order->order_key, 'subscription_id' => $subscription->id, 'subscription_key' => $subscription->order_key ) );
+			$paypal_args['custom'] = wcs_json_encode( array( 'order_id' => wcs_get_objects_property( $order, 'id' ), 'order_key' => wcs_get_objects_property( $order, 'order_key' ), 'subscription_id' => $subscription->get_id(), 'subscription_key' => $subscription->get_order_key() ) );
 
 			foreach ( $subscription->get_items() as $item ) {
 				if ( $item['qty'] > 1 ) {
@@ -74,8 +74,8 @@ class WCS_PayPal_Standard_Request {
 			$paypal_args['item_name'] = wcs_get_paypal_item_name( sprintf( _x( 'Subscription %1$s (Order %2$s) - %3$s', 'item name sent to paypal', 'woocommerce-subscriptions' ), $subscription->get_order_number(), $order->get_order_number(), implode( ', ', $item_names ) ) );
 
 			$unconverted_periods = array(
-				'billing_period' => $subscription->billing_period,
-				'trial_period'   => $subscription->trial_period,
+				'billing_period' => $subscription->get_billing_period(),
+				'trial_period'   => $subscription->get_trial_period(),
 			);
 
 			$converted_periods = array();
@@ -100,12 +100,12 @@ class WCS_PayPal_Standard_Request {
 			}
 
 			$price_per_period       = $subscription->get_total();
-			$subscription_interval  = $subscription->billing_interval;
-			$start_timestamp        = $subscription->get_time( 'start' );
+			$subscription_interval  = $subscription->get_billing_interval();
+			$start_timestamp        = $subscription->get_time( 'date_created' );
 			$trial_end_timestamp    = $subscription->get_time( 'trial_end' );
 			$next_payment_timestamp = $subscription->get_time( 'next_payment' );
 
-			$is_synced_subscription = WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $subscription->id );
+			$is_synced_subscription = WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $subscription->get_id() );
 
 			if ( $is_synced_subscription ) {
 				$length_from_timestamp = $next_payment_timestamp;
@@ -115,7 +115,7 @@ class WCS_PayPal_Standard_Request {
 				$length_from_timestamp = $start_timestamp;
 			}
 
-			$subscription_length = wcs_estimate_periods_between( $length_from_timestamp, $subscription->get_time( 'end' ), $subscription->billing_period );
+			$subscription_length = wcs_estimate_periods_between( $length_from_timestamp, $subscription->get_time( 'end' ), $subscription->get_billing_period() );
 
 			$subscription_installments = $subscription_length / $subscription_interval;
 
@@ -128,24 +128,24 @@ class WCS_PayPal_Standard_Request {
 					$suffix = '-wcscpm-' . wp_create_nonce();
 				} else {
 					// Failed renewal order, append a descriptor and renewal order's ID
-					$suffix = '-wcsfrp-' . $order->id;
+					$suffix = '-wcsfrp-' . wcs_get_objects_property( $order, 'id' );
 				}
+
+				$parent_order = $subscription->get_parent();
 
 				// Change the 'invoice' and the 'custom' values to be for the original order (if there is one)
-				if ( false === $subscription->order ) {
+				if ( false === $parent_order ) {
 					// No original order so we need to use the subscriptions values instead
 					$order_number = ltrim( $subscription->get_order_number(), _x( '#', 'hash before the order number. Used as a character to remove from the actual order number', 'woocommerce-subscriptions' ) ) . '-subscription';
-					$order_id_key = array( 'order_id' => $subscription->id, 'order_key' => $subscription->order_key );
+					$order_id_key = array( 'order_id' => $subscription->get_id(), 'order_key' => $subscription->get_order_key() );
 				} else {
-					$order_number = ltrim( $subscription->order->get_order_number(), _x( '#', 'hash before the order number. Used as a character to remove from the actual order number', 'woocommerce-subscriptions' ) );
-					$order_id_key = array( 'order_id' => $subscription->order->id, 'order_key' => $subscription->order->order_key );
+					$order_number = ltrim( $parent_order->get_order_number(), _x( '#', 'hash before the order number. Used as a character to remove from the actual order number', 'woocommerce-subscriptions' ) );
+					$order_id_key = array( 'order_id' => wcs_get_objects_property( $parent_order, 'id' ), 'order_key' => wcs_get_objects_property( $parent_order, 'order_key' ) );
 				}
-
-				$order_details = ( false !== $subscription->order ) ? $subscription->order : $subscription;
 
 				// Set the invoice details to the original order's invoice but also append a special string and this renewal orders ID so that we can match it up as a failed renewal order payment later
 				$paypal_args['invoice'] = WCS_PayPal::get_option( 'invoice_prefix' ) . $order_number . $suffix;
-				$paypal_args['custom']  = wcs_json_encode( array_merge( $order_id_key, array( 'subscription_id' => $subscription->id, 'subscription_key' => $subscription->order_key ) ) );
+				$paypal_args['custom']  = wcs_json_encode( array_merge( $order_id_key, array( 'subscription_id' => $subscription->get_id(), 'subscription_key' => $subscription->get_order_key() ) ) );
 
 			}
 
@@ -182,7 +182,7 @@ class WCS_PayPal_Standard_Request {
 				}
 			} else {
 
-				$subscription_trial_length = wcs_estimate_periods_between( $start_timestamp, $trial_end_timestamp, $subscription->trial_period );
+				$subscription_trial_length = wcs_estimate_periods_between( $start_timestamp, $trial_end_timestamp, $subscription->get_trial_period() );
 
 			}
 

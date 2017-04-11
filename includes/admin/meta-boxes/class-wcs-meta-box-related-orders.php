@@ -26,7 +26,7 @@ class WCS_Meta_Box_Related_Orders {
 
 		if ( wcs_is_subscription( $post->ID ) ) {
 			$subscription = wcs_get_subscription( $post->ID );
-			$order = ( false == $subscription->order ) ? $subscription : $subscription->order;
+			$order = ( false == $subscription->get_parent_id() ) ? $subscription : $subscription->get_parent();
 		} else {
 			$order = wc_get_order( $post->ID );
 		}
@@ -58,7 +58,7 @@ class WCS_Meta_Box_Related_Orders {
 
 		// First, display all the subscriptions
 		foreach ( $subscriptions as $subscription ) {
-			$subscription->relationship = __( 'Subscription', 'woocommerce-subscriptions' );
+			wcs_set_objects_property( $subscription, 'relationship', __( 'Subscription', 'woocommerce-subscriptions' ), 'set_prop_only' );
 			$orders[] = $subscription;
 		}
 
@@ -79,7 +79,7 @@ class WCS_Meta_Box_Related_Orders {
 
 			foreach ( $resubscribed_subscriptions as $subscription ) {
 				$subscription = wcs_get_subscription( $subscription );
-				$subscription->relationship = _x( 'Resubscribed Subscription', 'relation to order', 'woocommerce-subscriptions' );
+				wcs_set_objects_property( $subscription, 'relationship', _x( 'Resubscribed Subscription', 'relation to order', 'woocommerce-subscriptions' ), 'set_prop_only' );
 				$orders[] = $subscription;
 			}
 		} else if ( wcs_order_contains_subscription( $post->ID, array( 'resubscribe' ) ) ) {
@@ -87,16 +87,17 @@ class WCS_Meta_Box_Related_Orders {
 		}
 
 		foreach ( $initial_subscriptions as $subscription ) {
-			$subscription->relationship = _x( 'Initial Subscription', 'relation to order', 'woocommerce-subscriptions' );
+			wcs_set_objects_property( $subscription, 'relationship', _x( 'Initial Subscription', 'relation to order', 'woocommerce-subscriptions' ), 'set_prop_only' );
 			$orders[] = $subscription;
 		}
 
 		// Now, if we're on a single subscription or renewal order's page, display the parent orders
 		if ( 1 == count( $subscriptions ) ) {
 			foreach ( $subscriptions as $subscription ) {
-				if ( false !== $subscription->order ) {
-					$subscription->order->relationship = _x( 'Parent Order', 'relation to order', 'woocommerce-subscriptions' );
-					$orders[] = $subscription->order;
+				if ( $subscription->get_parent_id() ) {
+					$order = $subscription->get_parent();
+					wcs_set_objects_property( $order, 'relationship', _x( 'Parent Order', 'relation to order', 'woocommerce-subscriptions' ), 'set_prop_only' );
+					$orders[] = $order;
 				}
 			}
 		}
@@ -105,7 +106,7 @@ class WCS_Meta_Box_Related_Orders {
 		foreach ( $subscriptions as $subscription ) {
 
 			foreach ( $subscription->get_related_orders( 'all', 'renewal' ) as $order ) {
-				$order->relationship = _x( 'Renewal Order', 'relation to order', 'woocommerce-subscriptions' );
+				wcs_set_objects_property( $order, 'relationship', _x( 'Renewal Order', 'relation to order', 'woocommerce-subscriptions' ), 'set_prop_only' );
 				$orders[] = $order;
 			}
 		}
@@ -113,7 +114,8 @@ class WCS_Meta_Box_Related_Orders {
 		$orders = apply_filters( 'woocommerce_subscriptions_admin_related_orders_to_display', $orders, $subscriptions, $post );
 
 		foreach ( $orders as $order ) {
-			if ( $order->id == $post->ID ) {
+
+			if ( wcs_get_objects_property( $order, 'id' ) == $post->ID ) {
 				continue;
 			}
 			include( 'views/html-related-orders-row.php' );

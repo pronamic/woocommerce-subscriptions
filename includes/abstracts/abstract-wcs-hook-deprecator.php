@@ -100,8 +100,7 @@ abstract class WCS_Hook_Deprecator {
 	 * @since 2.0
 	 */
 	protected static function get_order( $subscription ) {
-		$order = isset( $subscription->order->id ) ? $subscription->order : $subscription;
-		return $order;
+		return ( false == $subscription->get_parent_id() ) ? $subscription :  $subscription->get_parent();
 	}
 
 	/**
@@ -113,7 +112,7 @@ abstract class WCS_Hook_Deprecator {
 	 * @since 2.0
 	 */
 	protected static function get_order_id( $subscription ) {
-		return isset( $subscription->order->id ) ? $subscription->order->id : $subscription->id;
+		return ( false == $subscription->get_parent_id() ) ? $subscription->get_id() : $subscription->get_parent_id();
 	}
 
 	/**
