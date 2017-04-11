@@ -84,14 +84,21 @@ class WC_Subscriptions_Renewal_Order {
 		$order_needed_payment = in_array( $orders_old_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ), $order ) );
 
 		if ( $order_completed && $order_needed_payment ) {
-			$update_post_data  = array(
-				'ID'            => $order_id,
-				'post_date'     => current_time( 'mysql', 0 ),
-				'post_date_gmt' => current_time( 'mysql', 1 ),
-			);
 
-			wp_update_post( $update_post_data );
-			update_post_meta( $order_id, '_paid_date', current_time( 'mysql', true ) );
+			if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+				$update_post_data  = array(
+					'ID'            => $order_id,
+					'post_date'     => current_time( 'mysql', 0 ),
+					'post_date_gmt' => current_time( 'mysql', 1 ),
+				);
+
+				wp_update_post( $update_post_data );
+				update_post_meta( $order_id, '_paid_date', current_time( 'mysql', true ) );
+			} else {
+				// In WC 3.0, only the paid date prop represents the paid date, the post date isn't used anymore, also the paid date is stored and referenced as a timestamp in site timezone, not a MySQL string
+				$order->set_date_paid( current_time( 'timestamp', 0 ) );
+				$order->save();
+			}
 		}
 
 		foreach ( $subscriptions as $subscription ) {
@@ -138,7 +145,7 @@ class WC_Subscriptions_Renewal_Order {
 			$order_number = sprintf( _x( '#%s', 'hash before order number', 'woocommerce-subscriptions' ), $renewal_order->get_order_number() );
 
 			// translators: placeholder is order ID
-			$subscription->add_order_note( sprintf( __( 'Order %s created to record renewal.', 'woocommerce-subscriptions' ), sprintf( '<a href="%s">%s</a> ', esc_url( wcs_get_edit_post_link( $renewal_order->id ) ), $order_number ) ) );
+			$subscription->add_order_note( sprintf( __( 'Order %s created to record renewal.', 'woocommerce-subscriptions' ), sprintf( '<a href="%s">%s</a> ', esc_url( wcs_get_edit_post_link( wcs_get_objects_property( $renewal_order, 'id' ) ) ), $order_number ) ) );
 		}
 
 		return $renewal_order;
@@ -184,7 +191,13 @@ class WC_Subscriptions_Renewal_Order {
 		);
 
 		foreach ( $order_items as $order_item_id => $item ) {
-			$order_items[ $order_item_id ]['item_meta'] = array_diff_key( $item['item_meta'], $switched_order_item_keys );
+			if ( is_callable( array( $item, 'delete_meta_data' ) ) ) { // WC 3.0+
+				foreach( $switched_order_item_keys as $switch_meta_key => $value ) {
+					$item->delete_meta_data( $switch_meta_key );
+				}
+			} else { // WC 2.6
+				$order_items[ $order_item_id ]['item_meta'] = array_diff_key( $item['item_meta'], $switched_order_item_keys );
+			}
 		}
 
 		return $order_items;
@@ -210,7 +223,7 @@ class WC_Subscriptions_Renewal_Order {
 		$subscription  = wcs_get_subscription_from_key( $subscription_key );
 		$renewal_order = wcs_create_renewal_order( $subscription );
 		$renewal_order->payment_complete();
-		return $renewal_order->id;
+		return wcs_get_objects_property( $renewal_order, 'id' );
 	}
 
 	/**
@@ -228,7 +241,7 @@ class WC_Subscriptions_Renewal_Order {
 		_deprecated_function( __METHOD__, '2.0', 'wcs_create_renewal_order( WC_Subscription $subscription )' );
 		$renewal_order = wcs_create_renewal_order( wcs_get_subscription_from_key( $subscription_key ) );
 		$renewal_order->update_status( 'failed' );
-		return $renewal_order->id;
+		return wcs_get_objects_property( $renewal_order, 'id' );
 	}
 
 	/**
@@ -246,7 +259,7 @@ class WC_Subscriptions_Renewal_Order {
 	 */
 	public static function maybe_generate_manual_renewal_order( $user_id, $subscription_key ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::maybe_create_manual_renewal_order( WC_Subscription $subscription )' );
-		self::maybe_create_manual_renewal_order( wcs_get_subscription_from_key( $subscription_key ) )->id;
+		self::maybe_create_manual_renewal_order( wcs_get_subscription_from_key( $subscription_key ) );
 	}
 
 	/**
@@ -264,7 +277,7 @@ class WC_Subscriptions_Renewal_Order {
 
 		$parent_order = self::get_parent_order( $renewal_order );
 
-		return ( null === $parent_order ) ? null : $parent_order->id;
+		return ( null === $parent_order ) ? null : wcs_get_objects_property( $parent_order, 'id' );
 	}
 
 	/**
@@ -287,10 +300,10 @@ class WC_Subscriptions_Renewal_Order {
 		$subscriptions = wcs_get_subscriptions_for_renewal_order( $renewal_order );
 		$subscription  = array_pop( $subscriptions );
 
-		if ( false === $subscription->order ) { // There is no original order
+		if ( false == $subscription->get_parent_id() ) { // There is no original order
 			$parent_order = null;
 		} else {
-			$parent_order = $subscription->order;
+			$parent_order = $subscription->get_parent();
 		}
 
 		return apply_filters( 'woocommerce_subscriptions_parent_order', $parent_order, $renewal_order );
@@ -316,7 +329,7 @@ class WC_Subscriptions_Renewal_Order {
 			$renewal_order_count = count( $all_orders );
 
 			// Don't include the initial order (if any)
-			if ( false !== $subscription->order ) {
+			if ( $subscription->get_parent_id() ) {
 				$renewal_order_count -= 1;
 			}
 		} else {
@@ -426,7 +439,7 @@ class WC_Subscriptions_Renewal_Order {
 			$new_order = wcs_create_renewal_order( $subscription );
 		}
 
-		return $new_order->id;
+		return wcs_get_objects_property( $new_order, 'id' );
 	}
 
 	/**

@@ -76,7 +76,7 @@ class WCS_Remove_Item {
 					// handle undo request
 					$removed_item = WC()->session->get( 'removed_subscription_items', array() );
 
-					if ( ! empty( $removed_item[ $item_id ] ) && $subscription->id == $removed_item[ $item_id ] ) {
+					if ( ! empty( $removed_item[ $item_id ] ) && $subscription->get_id() == $removed_item[ $item_id ] ) {
 
 						// restore the item
 						wc_update_order_item( $item_id, array( 'order_item_type' => 'line_item' ) );
@@ -85,6 +85,7 @@ class WCS_Remove_Item {
 						WC()->session->set( 'removed_subscription_items', $removed_item );
 
 						// restore download permissions for this item
+						$subscription = wcs_get_subscription( $subscription->get_id() );
 						$line_items = $subscription->get_items();
 						$line_item  = $line_items[ $item_id ];
 						$_product   = $subscription->get_product_from_item( $line_item );
@@ -92,7 +93,7 @@ class WCS_Remove_Item {
 
 						if ( $_product && $_product->exists() && $_product->is_downloadable() ) {
 
-							$downloads = $_product->get_files();
+							$downloads = wcs_get_objects_property( $_product, 'downloads' );
 
 							foreach ( array_keys( $downloads ) as $download_id ) {
 								wc_downloadable_file_permission( $download_id, $product_id, $subscription, $line_item['qty'] );
@@ -108,14 +109,14 @@ class WCS_Remove_Item {
 				} else {
 
 					// handle remove item requests
-					WC()->session->set( 'removed_subscription_items', array( $item_id => $subscription->id ) );
+					WC()->session->set( 'removed_subscription_items', array( $item_id => $subscription->get_id() ) );
 
 					// remove download access for the item
 					$line_items = $subscription->get_items();
 					$line_item  = $line_items[ $item_id ];
 					$product_id = wcs_get_canonical_product_id( $line_item );
 
-					WCS_Download_Handler::revoke_downloadable_file_permission( $product_id, $subscription->id, $subscription->get_user_id() );
+					WCS_Download_Handler::revoke_downloadable_file_permission( $product_id, $subscription->get_id(), $subscription->get_user_id() );
 
 					// remove the line item from subscription but preserve its data in the DB
 					wc_update_order_item( $item_id, array( 'order_item_type' => 'line_item_removed' ) );
@@ -124,10 +125,15 @@ class WCS_Remove_Item {
 					$subscription->add_order_note( sprintf( _x( 'Customer removed "%1$s" (Product ID: #%2$d) via the My Account page.', 'used in order note', 'woocommerce-subscriptions' ), wcs_get_line_item_name( $line_item ), $product_id ) );
 
 					// translators: placeholders are 1$: item name, and, 2$: opening and, 3$: closing link tags
-					wc_add_notice( sprintf( __( 'You have successfully removed "%1$s" from your subscription. %2$sUndo?%3$s', 'woocommerce-subscriptions' ), $line_item['name'], '<a href="' . esc_url( self::get_undo_remove_url( $subscription->id, $item_id, $subscription->get_view_order_url() ) ) . '" >', '</a>' ) );
+					wc_add_notice( sprintf( __( 'You have successfully removed "%1$s" from your subscription. %2$sUndo?%3$s', 'woocommerce-subscriptions' ), $line_item['name'], '<a href="' . esc_url( self::get_undo_remove_url( $subscription->get_id(), $item_id, $subscription->get_view_order_url() ) ) . '" >', '</a>' ) );
 				}
 			}
 
+			/**
+			 * In WooCommerce 3.0 the subscription object and its items override the database with their current content,
+			 * so we lost the changes we just did with `wc_update_order_item`. Re-reading the object fixes this problem.
+			 */
+			$subscription = wcs_get_subscription( $subscription->get_id() );
 			$subscription->calculate_totals();
 			wp_safe_redirect( $subscription->get_view_order_url() );
 			exit;
@@ -155,7 +161,7 @@ class WCS_Remove_Item {
 
 			wc_add_notice( __( 'Security error. Please contact us if you need assistance.', 'woocommerce-subscriptions' ), 'error' );
 
-		} elseif ( ! current_user_can( 'edit_shop_subscription_line_items', $subscription->id ) ) {
+		} elseif ( ! current_user_can( 'edit_shop_subscription_line_items', $subscription->get_id() ) ) {
 
 			wc_add_notice( __( 'You cannot modify a subscription that does not belong to you.', 'woocommerce-subscriptions' ), 'error' );
 

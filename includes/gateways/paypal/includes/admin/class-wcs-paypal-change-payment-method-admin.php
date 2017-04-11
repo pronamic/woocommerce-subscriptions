@@ -41,7 +41,7 @@ class WCS_PayPal_Change_Payment_Method_Admin {
 	 * @since 2.0
 	 */
 	public static function add_payment_meta_details( $payment_meta, $subscription ) {
-		$subscription_id = get_post_meta( $subscription->id, '_paypal_subscription_id', true );
+		$subscription_id = get_post_meta( $subscription->get_id(), '_paypal_subscription_id', true );
 
 		if ( wcs_is_paypal_profile_a( $subscription_id, 'billing_agreement' ) || empty( $subscription_id ) ) {
 			$label = 'PayPal Billing Agreement ID';
@@ -76,8 +76,8 @@ class WCS_PayPal_Change_Payment_Method_Admin {
 	public static function validate_payment_meta( $payment_meta, $subscription ) {
 		if ( empty( $payment_meta['post_meta']['_paypal_subscription_id']['value'] ) ) {
 			throw new Exception( 'A valid PayPal Billing Agreement ID value is required.' );
-		} elseif ( $subscription->paypal_subscription_id !== $payment_meta['post_meta']['_paypal_subscription_id']['value'] && 0 !== strpos( $payment_meta['post_meta']['_paypal_subscription_id']['value'], 'B-' ) ) {
-			throw new Exception( 'Invalid Billing Agreemend ID. A valid PayPal Billing Agreement ID must begin with "B-".' );
+		} elseif ( 0 !== strpos( $payment_meta['post_meta']['_paypal_subscription_id']['value'], 'B-' ) && wcs_get_paypal_id( $subscription ) !== $payment_meta['post_meta']['_paypal_subscription_id']['value'] ) {
+			throw new Exception( 'Invalid Billing Agreement ID. A valid PayPal Billing Agreement ID must begin with "B-".' );
 		}
 	}
 

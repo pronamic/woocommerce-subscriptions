@@ -25,23 +25,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<tr>
 			<th class="td" scope="col" style="text-align:left;"><?php esc_html_e( 'Subscription', 'woocommerce-subscriptions' ); ?></th>
 			<th class="td" scope="col" style="text-align:left;"><?php echo esc_html_x( 'Price', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
-			<th class="td" scope="col" style="text-align:left;"><?php echo esc_html_x( 'Last Payment', 'table heading', 'woocommerce-subscriptions' ); ?></th>
+			<th class="td" scope="col" style="text-align:left;"><?php echo esc_html_x( 'Last Order Date', 'table heading', 'woocommerce-subscriptions' ); ?></th>
 			<th class="td" scope="col" style="text-align:left;"><?php echo esc_html_x( 'End Date', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
 		</tr>
 	</thead>
 	<tbody>
 		<tr>
 			<td class="td" width="1%" style="text-align:left; vertical-align:middle;">
-				<a href="<?php echo esc_url( wcs_get_edit_post_link( $subscription->id ) ); ?>">#<?php echo esc_html( $subscription->get_order_number() ); ?></a>
+				<a href="<?php echo esc_url( wcs_get_edit_post_link( $subscription->get_id() ) ); ?>">#<?php echo esc_html( $subscription->get_order_number() ); ?></a>
 			</td>
 			<td class="td" style="text-align:left; vertical-align:middle;">
 				<?php echo wp_kses_post( $subscription->get_formatted_order_total() ); ?>
 			</td>
 			<td class="td" style="text-align:left; vertical-align:middle;">
 				<?php
-				$last_payment_time = $subscription->get_time( 'last_payment', 'site' );
-				if ( ! empty( $last_payment_time ) ) {
-					echo esc_html( date_i18n( wc_date_format(), $last_payment_time ) );
+				$last_order_time_created = $subscription->get_time( 'last_order_date_created', 'site' );
+				if ( ! empty( $last_order_time_created ) ) {
+					echo esc_html( date_i18n( wc_date_format(), $last_order_time_created ) );
 				} else {
 					esc_html_e( '-', 'woocommerce-subscriptions' );
 				}

@@ -777,3 +777,70 @@ function wcs_get_subscription_ranges_tlc() {
 
 	return wcs_get_non_cached_subscription_ranges();
 }
+
+/**
+ * Take a date in the form of a timestamp, MySQL date/time string or DateTime object (or perhaps
+ * a WC_Datetime object when WC > 3.0 is active) and create a WC_DateTime object.
+ *
+ * @since  2.2.0
+ * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
+ * @return null|WC_DateTime in site's timezone
+ */
+function wcs_get_datetime_from( $variable_date_type ) {
+
+	try {
+		if ( empty( $variable_date_type ) ) {
+			$datetime = null;
+		} elseif ( is_a( $variable_date_type, 'WC_DateTime' ) ) {
+			$datetime = $variable_date_type;
+		} elseif ( is_numeric( $variable_date_type ) ) {
+			$datetime = new WC_DateTime( "@{$variable_date_type}", new DateTimeZone( 'UTC' ) );
+			$datetime->setTimezone( new DateTimeZone( wc_timezone_string() ) );
+		} else {
+			$datetime = new WC_DateTime( $variable_date_type, new DateTimeZone( wc_timezone_string() ) );
+		}
+	} catch ( Exception $e ) {
+		$datetime = null;
+	}
+
+	return $datetime;
+}
+
+/**
+ * Get a MySQL date/time string in UTC timezone from a WC_Datetime object.
+ *
+ * @since  2.2.0
+ * @param WC_DateTime
+ * @return string MySQL date/time string representation of the DateTime object in UTC timezone
+ */
+function wcs_get_datetime_utc_string( $datetime ) {
+	$date = clone $datetime; // Don't change the original date object's timezone
+	$date->setTimezone( new DateTimeZone( 'UTC' ) );
+	return $date->format( 'Y-m-d H:i:s' );
+}
+
+/**
+ * Format a date for output, a wrapper for wcs_format_datetime() introduced with WC 3.0.
+ *
+ * @since  2.2.0
+ * @param  WC_DateTime $date
+ * @param  string $format Defaults to the wc_date_format function if not set.
+ * @return string
+ */
+function wcs_format_datetime( $date, $format = '' ) {
+
+	if ( function_exists( 'wc_format_datetime' ) ) { // WC 3.0+
+		$formatted_datetime = wc_format_datetime( $date, $format );
+	} else { // WC < 3.0
+		if ( ! $format ) {
+			$format = wc_date_format();
+		}
+		if ( ! is_a( $date, 'WC_DateTime' ) ) {
+			return '';
+		}
+
+		$formatted_datetime = $date->date_i18n( $format );
+	}
+
+	return $formatted_datetime;
+}

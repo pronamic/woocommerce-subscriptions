@@ -161,7 +161,7 @@ class WC_Subscriptions_Payment_Gateways {
 				break;
 		}
 
-		do_action( $hook_prefix . $subscription->payment_method, $subscription );
+		do_action( $hook_prefix . $subscription->get_payment_method(), $subscription );
 	}
 
 	/**
@@ -170,12 +170,15 @@ class WC_Subscriptions_Payment_Gateways {
 	 * @since 2.1.0
 	 */
 	public static function trigger_gateway_renewal_payment_hook( $renewal_order ) {
-		if ( ! empty( $renewal_order ) && $renewal_order->get_total() > 0 && ! empty( $renewal_order->payment_method ) ) {
+
+		$renewal_order_payment_method = wcs_get_objects_property( $renewal_order, 'payment_method' );
+
+		if ( ! empty( $renewal_order ) && $renewal_order->get_total() > 0 && ! empty( $renewal_order_payment_method ) ) {
 
 			// Make sure gateways are setup
 			WC()->payment_gateways();
 
-			do_action( 'woocommerce_scheduled_subscription_payment_' . $renewal_order->payment_method, $renewal_order->get_total(), $renewal_order );
+			do_action( 'woocommerce_scheduled_subscription_payment_' . $renewal_order_payment_method, $renewal_order->get_total(), $renewal_order );
 		}
 	}
 

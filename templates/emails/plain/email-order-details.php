@@ -14,7 +14,7 @@ do_action( 'woocommerce_email_before_' . $order_type . '_table', $order, $sent_t
 
 if ( 'order' == $order_type ) {
 	echo sprintf( __( 'Order number: %s', 'woocommerce-subscriptions' ), $order->get_order_number() ) . "\n";
-	echo sprintf( __( 'Order date: %s', 'woocommerce-subscriptions' ), date_i18n( _x( 'jS F Y', 'date format for order date in notification emails', 'woocommerce-subscriptions' ), wcs_date_to_time( $order->order_date ) ) ) . "\n";
+	echo sprintf( __( 'Order date: %s', 'woocommerce-subscriptions' ), wcs_format_datetime( wcs_get_objects_property( $order, 'date_created' ) ) ) . "\n";
 } else {
 	echo sprintf( __( 'Subscription Number: %s', 'woocommerce-subscriptions' ), $order->get_order_number() ) . "\n";
 }

@@ -42,7 +42,7 @@ class WC_Subscriptions_Addresses {
 
 		if ( $subscription->needs_shipping_address() && $subscription->has_status( array( 'active', 'on-hold' ) ) ) {
 			$actions['change_address'] = array(
-				'url'  => add_query_arg( array( 'subscription' => $subscription->id ), wc_get_endpoint_url( 'edit-address', 'shipping' ) ),
+				'url'  => add_query_arg( array( 'subscription' => $subscription->get_id() ), wc_get_endpoint_url( 'edit-address', 'shipping' ) ),
 				'name' => __( 'Change Address', 'woocommerce-subscriptions' ),
 			);
 		}
@@ -154,7 +154,8 @@ class WC_Subscriptions_Addresses {
 			$subscription = wcs_get_subscription( absint( $_GET['subscription'] ) );
 
 			foreach ( array_keys( $address ) as $key ) {
-				$address[ $key ]['value'] = $subscription->$key;
+				$function_name            = 'get_' . $key;
+				$address[ $key ]['value'] = $subscription->$function_name();
 			}
 		}
 

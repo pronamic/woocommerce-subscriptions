@@ -55,24 +55,24 @@ class WCS_Email_Completed_Renewal_Order extends WC_Email_Customer_Completed_Orde
 	 * @access public
 	 * @return void
 	 */
-	function trigger( $order_id ) {
+	function trigger( $order_id, $order = null ) {
 
 		if ( $order_id ) {
 			$this->object    = new WC_Order( $order_id );
-			$this->recipient = $this->object->billing_email;
+			$this->recipient = wcs_get_objects_property( $this->object, 'billing_email' );
 
 			$order_date_index = array_search( '{order_date}', $this->find );
 			if ( false === $order_date_index ) {
-				$this->find[] = '{order_date}';
-				$this->replace[] = date_i18n( wc_date_format(), wcs_date_to_time( $this->object->order_date ) );
+				$this->find['order_date']    = '{order_date}';
+				$this->replace['order_date'] = wcs_format_datetime( wcs_get_objects_property( $this->object, 'date_created' ) );
 			} else {
-				$this->replace[ $order_date_index ] = date_i18n( wc_date_format(), wcs_date_to_time( $this->object->order_date ) );
+				$this->replace[ $order_date_index ] = wcs_format_datetime( wcs_get_objects_property( $this->object, 'date_created' ) );
 			}
 
 			$order_number_index = array_search( '{order_number}', $this->find );
 			if ( false === $order_number_index ) {
-				$this->find[] = '{order_number}';
-				$this->replace[] = $this->object->get_order_number();
+				$this->find['order_number']    = '{order_number}';
+				$this->replace['order_number'] = $this->object->get_order_number();
 			} else {
 				$this->replace[ $order_number_index ] = $this->object->get_order_number();
 			}

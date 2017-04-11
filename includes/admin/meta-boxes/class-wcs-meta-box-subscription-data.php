@@ -25,7 +25,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 	public static function output( $post ) {
 		global $the_subscription;
 
-		if ( ! is_object( $the_subscription ) || $the_subscription->id !== $post->ID ) {
+		if ( ! is_object( $the_subscription ) || $the_subscription->get_id() !== $post->ID ) {
 			$the_subscription = wc_get_order( $post->ID );
 		}
 
@@ -39,7 +39,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 			#post-body-content, #titlediv, #major-publishing-actions, #minor-publishing-actions, #visibility, #submitdiv { display:none }
 		</style>
 		<div class="panel-wrap woocommerce">
-			<input name="post_title" type="hidden" value="<?php echo empty( $post->post_title ) ? esc_attr( get_post_type_object( $subscription->post->post_type )->labels->singular_name ) : esc_attr( $post->post_title ); ?>" />
+			<input name="post_title" type="hidden" value="<?php echo empty( $post->post_title ) ? esc_attr( get_post_type_object( $post->post_type )->labels->singular_name ) : esc_attr( $post->post_title ); ?>" />
 			<input name="post_status" type="hidden" value="<?php echo esc_attr( 'wc-' . $subscription->get_status() ); ?>" />
 			<div id="order_data" class="panel">
 
@@ -52,11 +52,11 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 
 						<p class="form-field form-field-wide wc-customer-user">
 							<label for="customer_user"><?php esc_html_e( 'Customer:', 'woocommerce-subscriptions' ) ?> <?php
-							if ( ! empty( $subscription->customer_user ) ) {
+							if ( $subscription->get_user_id() ) {
 								$args = array(
 									'post_status' => 'all',
 									'post_type'      => 'shop_subscription',
-									'_customer_user' => absint( $subscription->customer_user ),
+									'_customer_user' => absint( $subscription->get_user_id() ),
 								);
 								printf( '<a href="%s">%s &rarr;</a>',
 									esc_url( add_query_arg( $args, admin_url( 'edit.php' ) ) ),
@@ -67,13 +67,20 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 							<?php
 							$user_string = '';
 							$user_id     = '';
-							if ( ! empty( $subscription->customer_user ) && ( false !== get_userdata( $subscription->customer_user ) ) ) {
-								$user_id     = absint( $subscription->customer_user );
+							if ( $subscription->get_user_id() && ( false !== get_userdata( $subscription->get_user_id() ) ) ) {
+								$user_id     = absint( $subscription->get_user_id() );
 								$user        = get_user_by( 'id', $user_id );
-								$user_string = esc_html( $user->display_name ) . ' (#' . absint( $user->ID ) . ' &ndash; ' . esc_html( $user->user_email );
+								$user_string = esc_html( $user->display_name ) . ' (#' . absint( $user->ID ) . ' &ndash; ' . esc_html( $user->user_email ) . ')';
 							}
+							WCS_Select2::render( array(
+								'class'       => 'wc-customer-search',
+								'name'        => 'customer_user',
+								'id'          => 'customer_user',
+								'placeholder' => esc_attr__( 'Search for a customer&hellip;', 'woocommerce-subscriptions' ),
+								'selected'    => $user_string,
+								'value'       => $user_id,
+							) );
 							?>
-							<input type="hidden" class="wc-customer-search" id="customer_user" name="customer_user" data-placeholder="<?php esc_attr_e( 'Search for a customer&hellip;', 'woocommerce-subscriptions' ); ?>" data-selected="<?php echo esc_attr( $user_string ); ?>" value="<?php echo esc_attr( $user_id ); ?>" />
 						</p>
 
 						<p class="form-field form-field-wide">
@@ -112,18 +119,18 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 								continue;
 							}
 
-							$field_name = 'billing_' . $key;
+							$function_name = 'get_billing_' . $key;
 
-							if ( $subscription->$field_name ) {
-								echo '<p><strong>' . esc_html( $field['label'] ) . ':</strong> ' . wp_kses_post( make_clickable( esc_html( $subscription->$field_name ) ) ) . '</p>';
+							if ( $subscription->$function_name() ) {
+								echo '<p><strong>' . esc_html( $field['label'] ) . ':</strong> ' . wp_kses_post( make_clickable( esc_html( $subscription->$function_name() ) ) ) . '</p>';
 							}
 						}
 
-						echo '<p' . ( ! empty( $subscription->payment_method ) ? ' class="' . esc_attr( $subscription->payment_method ) . '"' : '' ) . '><strong>' . esc_html__( 'Payment Method', 'woocommerce-subscriptions' ) . ':</strong>' . wp_kses_post( nl2br( $subscription->get_payment_method_to_display() ) );
+						echo '<p' . ( ( '' != $subscription->get_payment_method() ) ? ' class="' . esc_attr( $subscription->get_payment_method() ) . '"' : '' ) . '><strong>' . esc_html__( 'Payment Method', 'woocommerce-subscriptions' ) . ':</strong>' . wp_kses_post( nl2br( $subscription->get_payment_method_to_display() ) );
 
 						// Display help tip
-						if ( ! empty( $subscription->payment_method ) && ! $subscription->is_manual() ) {
-							echo wcs_help_tip( sprintf( _x( 'Gateway ID: [%s]', 'The gateway ID displayed on the Edit Subscriptions screen when editing payment method.', 'woocommerce-subscriptions' ), $subscription->payment_gateway->id ) );
+						if ( '' != $subscription->get_payment_method()  && ! $subscription->is_manual() ) {
+							echo wcs_help_tip( sprintf( _x( 'Gateway ID: [%s]', 'The gateway ID displayed on the Edit Subscriptions screen when editing payment method.', 'woocommerce-subscriptions' ), $subscription->get_payment_method() ) );
 						}
 
 						echo '</p>';
@@ -236,7 +243,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 	/**
 	 * Save meta box data
 	 */
-	public static function save( $post_id, $post ) {
+	public static function save( $post_id, $post = '' ) {
 		global $wpdb;
 
 		if ( 'shop_subscription' != $post->post_type || empty( $_POST['woocommerce_meta_nonce'] ) || ! wp_verify_nonce( $_POST['woocommerce_meta_nonce'], 'woocommerce_save_data' ) ) {
@@ -253,12 +260,22 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 
 		if ( self::$billing_fields ) {
 			foreach ( self::$billing_fields as $key => $field ) {
+
+				if ( ! isset( $_POST[ '_billing_' . $key ] ) ) {
+					continue;
+				}
+
 				update_post_meta( $post_id, '_billing_' . $key, wc_clean( $_POST[ '_billing_' . $key ] ) );
 			}
 		}
 
 		if ( self::$shipping_fields ) {
 			foreach ( self::$shipping_fields as $key => $field ) {
+
+				if ( ! isset( $_POST[ '_shipping_' . $key ] ) ) {
+					continue;
+				}
+
 				update_post_meta( $post_id, '_shipping_' . $key, wc_clean( $_POST[ '_shipping_' . $key ] ) );
 			}
 		}

@@ -238,7 +238,7 @@ class WC_Subscriptions_Order {
 
 		$item['name']      = $item['order_item_name'];
 		$item['type']      = $item['order_item_type'];
-		$item['item_meta'] = $order->get_item_meta( $item['order_item_id'] );
+		$item['item_meta'] = wc_get_order_item_meta( $item['order_item_id'], '' );
 
 		// Put meta into item array
 		if ( is_array( $item['item_meta'] ) ) {
@@ -345,7 +345,7 @@ class WC_Subscriptions_Order {
 		} elseif ( is_array( $order->order_custom_fields ) && isset( $order->order_custom_fields[ '_' . $meta_key ][0] ) && $order->order_custom_fields[ '_' . $meta_key ][0] ) {  // < WC 2.1+
 			$meta_value = maybe_unserialize( $order->order_custom_fields[ '_' . $meta_key ][0] );
 		} else {
-			$meta_value = get_post_meta( $order->id, '_' . $meta_key, true );
+			$meta_value = get_post_meta( wcs_get_objects_property( $order, 'id' ), '_' . $meta_key, true );
 
 			if ( empty( $meta_value ) ) {
 				$meta_value = $default;
@@ -482,12 +482,12 @@ class WC_Subscriptions_Order {
 				// Do we need to activate a subscription?
 				if ( $order_completed && ! $subscription->has_status( wcs_get_subscription_ended_statuses() ) && ! $subscription->has_status( 'active' ) ) {
 
-					$new_start_date_offset = current_time( 'timestamp', true ) - $subscription->get_time( 'start' );
+					$new_start_date_offset = current_time( 'timestamp', true ) - $subscription->get_time( 'date_created' );
 
 					// if the payment has been processed more than an hour after the order was first created, let's update the dates on the subscription to account for that, because it may have even been processed days after it was first placed
 					if ( $new_start_date_offset > HOUR_IN_SECONDS ) {
 
-						$dates = array( 'start' => current_time( 'mysql', true ) );
+						$dates = array( 'date_created' => current_time( 'mysql', true ) );
 
 						if ( WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $subscription ) ) {
 
@@ -495,15 +495,15 @@ class WC_Subscriptions_Order {
 							$next_payment = $subscription->get_time( 'next_payment' );
 
 							// if either there is a free trial date or a next payment date that falls before now, we need to recalculate all the sync'd dates
-							if ( ( $trial_end > 0 && $trial_end < wcs_date_to_time( $dates['start'] ) ) || ( $next_payment > 0 && $next_payment < wcs_date_to_time( $dates['start'] ) ) ) {
+							if ( ( $trial_end > 0 && $trial_end < wcs_date_to_time( $dates['date_created'] ) ) || ( $next_payment > 0 && $next_payment < wcs_date_to_time( $dates['date_created'] ) ) ) {
 
 								foreach ( $subscription->get_items() as $item ) {
 									$product_id = wcs_get_canonical_product_id( $item );
 
 									if ( WC_Subscriptions_Synchroniser::is_product_synced( $product_id ) ) {
-										$dates['trial_end']    = WC_Subscriptions_Product::get_trial_expiration_date( $product_id, $dates['start'] );
-										$dates['next_payment'] = WC_Subscriptions_Synchroniser::calculate_first_payment_date( $product_id, 'mysql', $dates['start'] );
-										$dates['end']          = WC_Subscriptions_Product::get_expiration_date( $product_id, $dates['start'] );
+										$dates['trial_end']    = WC_Subscriptions_Product::get_trial_expiration_date( $product_id, $dates['date_created'] );
+										$dates['next_payment'] = WC_Subscriptions_Synchroniser::calculate_first_payment_date( $product_id, 'mysql', $dates['date_created'] );
+										$dates['end']          = WC_Subscriptions_Product::get_expiration_date( $product_id, $dates['date_created'] );
 										break;
 									}
 								}
@@ -624,7 +624,7 @@ class WC_Subscriptions_Order {
 	 */
 	public static function order_needs_payment( $needs_payment, $order, $valid_order_statuses ) {
 
-		if ( wcs_order_contains_subscription( $order ) && in_array( $order->status, $valid_order_statuses ) && 0 == $order->get_total() && false === $needs_payment && self::get_recurring_total( $order ) > 0 && 'yes' !== get_option( WC_Subscriptions_Admin::$option_prefix . '_turn_off_automatic_payments', 'no' ) ) {
+		if ( false === $needs_payment && 0 == $order->get_total() && in_array( $order->get_status(), $valid_order_statuses ) && wcs_order_contains_subscription( $order ) && self::get_recurring_total( $order ) > 0 && 'yes' !== get_option( WC_Subscriptions_Admin::$option_prefix . '_turn_off_automatic_payments', 'no' ) ) {
 			$needs_payment = true;
 		}
 
@@ -656,22 +656,6 @@ class WC_Subscriptions_Order {
 				$template_base
 			);
 		}
-	}
-
-	/**
-	 * Wrapper around @see WC_Order::get_order_currency() for versions of WooCommerce prior to 2.1.
-	 *
-	 * @since version 1.4.9
-	 */
-	public static function get_order_currency( $order ) {
-
-		if ( method_exists( $order, 'get_order_currency' ) ) {
-			$order_currency = $order->get_order_currency();
-		} else {
-			$order_currency = get_woocommerce_currency();
-		}
-
-		return $order_currency;
 	}
 
 	/**
@@ -946,14 +930,14 @@ class WC_Subscriptions_Order {
 
 		if ( wcs_order_contains_subscription( $order, array( 'parent', 'renewal' ) ) ) {
 
-			$subscriptions = wcs_get_subscriptions_for_order( $order->id, array( 'order_type' => array( 'parent', 'renewal' ) ) );
+			$subscriptions = wcs_get_subscriptions_for_order( wcs_get_objects_property( $order, 'id' ), array( 'order_type' => array( 'parent', 'renewal' ) ) );
 
 			foreach ( $subscriptions as $subscription ) {
 				$latest_order = $subscription->get_last_order();
 
-				if ( $order->id == $latest_order && $subscription->has_status( 'pending-cancel' ) && $subscription->can_be_updated_to( 'cancelled' ) ) {
+				if ( wcs_get_objects_property( $order, 'id' ) == $latest_order && $subscription->has_status( 'pending-cancel' ) && $subscription->can_be_updated_to( 'cancelled' ) ) {
 					// translators: $1: opening link tag, $2: order number, $3: closing link tag
-					$subscription->update_status( 'cancelled', wp_kses( sprintf( __( 'Subscription cancelled for refunded order %1$s#%2$s%3$s.', 'woocommerce-subscriptions' ), sprintf( '<a href="%s">', esc_url( wcs_get_edit_post_link( $order->id ) ) ), $order->get_order_number(), '</a>' ), array( 'a' => array( 'href' => true ) ) ) );
+					$subscription->update_status( 'cancelled', wp_kses( sprintf( __( 'Subscription cancelled for refunded order %1$s#%2$s%3$s.', 'woocommerce-subscriptions' ), sprintf( '<a href="%s">', esc_url( wcs_get_edit_post_link( wcs_get_objects_property( $order, 'id' ) ) ) ), $order->get_order_number(), '</a>' ), array( 'a' => array( 'href' => true ) ) ) );
 				}
 			}
 		}
@@ -1032,7 +1016,11 @@ class WC_Subscriptions_Order {
 	 * @since 2.1.3
 	 */
 	public static function maybe_autocomplete_order( $new_order_status, $order_id ) {
+
+		// Guard against infinite loops in WC 3.0+ where woocommerce_payment_complete_order_status is called while instantiating WC_Order objects
+		remove_filter( 'woocommerce_payment_complete_order_status', __METHOD__, 10 );
 		$order = wc_get_order( $order_id );
+		add_filter( 'woocommerce_payment_complete_order_status', __METHOD__, 10, 2 );
 
 		if ( 'processing' == $new_order_status && $order->get_total() == 0 && wcs_order_contains_subscription( $order ) ) {
 
@@ -1350,22 +1338,24 @@ class WC_Subscriptions_Order {
 	public static function get_recurring_discount_total( $order, $product_id = '' ) {
 		_deprecated_function( __METHOD__, '2.0', 'the value for the subscription object rather than the value on the original order. The value is stored against the subscription since Subscriptions v2.0 as an order can be used to create multiple different subscriptions with different discounts, so use the subscription object' );
 
-		$ex_tax = ( $order->tax_display_cart === 'excl' && $order->display_totals_ex_tax ) ? true : false;
+		$ex_tax = ( 'excl' === get_option( 'woocommerce_tax_display_cart' ) && wcs_get_objects_property( $order, 'display_totals_ex_tax' ) ) ? true : false;
 
 		$recurring_discount_cart     = (double) self::get_recurring_discount_cart( $order );
 		$recurring_discount_cart_tax = (double) self::get_recurring_discount_cart_tax( $order );
 		$recurring_discount_total    = 0;
 
-		if ( ! $order->order_version || version_compare( $order->order_version, '2.3.7', '<' ) ) {
+		$order_version = wcs_get_objects_property( $order, 'version' );
+
+		if ( '' === $order_version || version_compare( $order_version, '2.3.7', '<' ) ) {
 			// Backwards compatible total calculation - totals were not stored consistently in old versions.
 			if ( $ex_tax ) {
-				if ( $order->prices_include_tax ) {
+				if ( wcs_get_objects_property( $order, 'prices_include_tax' ) ) {
 					$recurring_discount_total = $recurring_discount_cart - $recurring_discount_cart_tax;
 				} else {
 					$recurring_discount_total = $recurring_discount_cart;
 				}
 			} else {
-				if ( $order->prices_include_tax ) {
+				if ( wcs_get_objects_property( $order, 'prices_include_tax' ) ) {
 					$recurring_discount_total = $recurring_discount_cart;
 				} else {
 					$recurring_discount_total = $recurring_discount_cart + $recurring_discount_cart_tax;
@@ -1629,13 +1619,13 @@ class WC_Subscriptions_Order {
 
 			// Find the billing period discount for all recurring items
 			if ( empty( $product_id ) ) {
-				$billing_period = $subscription->billing_period;
+				$billing_period = $subscription->get_billing_period();
 				break;
 			} else {
 				// We want the billing period for a specific item (so we need to find if this subscription contains that item)
 				foreach ( $subscription->get_items() as $line_item ) {
 					if ( wcs_get_canonical_product_id( $line_item ) == $product_id ) {
-						$billing_period = $subscription->billing_period;
+						$billing_period = $subscription->get_billing_period();
 						break 2;
 					}
 				}
@@ -1664,13 +1654,13 @@ class WC_Subscriptions_Order {
 
 			// Find the billing interval for all recurring items
 			if ( empty( $product_id ) ) {
-				$billing_interval = $subscription->billing_interval;
+				$billing_interval = $subscription->get_billing_interval();
 				break;
 			} else {
 				// We want the billing interval for a specific item (so we need to find if this subscription contains that item)
 				foreach ( $subscription->get_items() as $line_item ) {
 					if ( wcs_get_canonical_product_id( $line_item ) == $product_id ) {
-						$billing_interval = $subscription->billing_interval;
+						$billing_interval = $subscription->get_billing_interval();
 						break 2;
 					}
 				}
@@ -1802,11 +1792,11 @@ class WC_Subscriptions_Order {
 		}
 
 		if ( $subscription = self::get_matching_subscription( $order, $product_id ) ) {
-			$last_payment_date = $subscription->get_date( 'last_payment' );
-		} elseif ( isset( $order->paid_date ) ) {
-			$last_payment_date = get_gmt_from_date( $order->paid_date );
+			$last_payment_date = $subscription->get_date( 'last_order_date_created' );
+		} elseif ( null !== ( $last_payment_date = wcs_get_objects_property( $order, 'date_paid' ) ) ) {
+			$last_payment_date = $last_payment_date->date( 'Y-m-d H:i:s' );
 		} else {
-			$last_payment_date = $order->post->post_date;
+			$last_payment_date = wcs_get_datetime_utc_string( wcs_get_objects_property( $order, 'date_created' ) ); // get_date_created() can return null, but if it does, we have an error anyway
 		}
 
 		return $last_payment_date;
@@ -2024,11 +2014,22 @@ class WC_Subscriptions_Order {
 
 				// No payments have been recorded yet
 				if ( 0 == $subscription->get_completed_payment_count() ) {
-					$subscription->update_dates( array( 'start' => current_time( 'mysql', true ) ) );
+					$subscription->update_dates( array( 'date_created' => current_time( 'mysql', true ) ) );
 					$subscription->payment_complete();
 				}
 			}
 		}
+	}
+
+	/**
+	 * Wrapper around @see WC_Order::get_order_currency() for versions of WooCommerce prior to 2.1.
+	 *
+	 * @since version 1.4.9
+	 * @deprecated 2.2.0
+	 */
+	public static function get_order_currency( $order ) {
+		_deprecated_function( __METHOD__, '2.2.0', 'wcs_get_objects_property( $order, "currency" ) or $order->get_currency()' );
+		return wcs_get_objects_property( $order, 'currency' );
 	}
 }
 WC_Subscriptions_Order::init();

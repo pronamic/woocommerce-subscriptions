@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function wcs_get_subscriptions_for_order( $order_id, $args = array() ) {
 
 	if ( is_object( $order_id ) ) {
-		$order_id = $order_id->id;
+		$order_id = wcs_get_objects_property( $order_id, 'id' );
 	}
 
 	$args = wp_parse_args( $args, array(
@@ -83,31 +83,31 @@ function wcs_copy_order_address( $from_order, $to_order, $address_type = 'all' )
 
 	if ( in_array( $address_type, array( 'shipping', 'all' ) ) ) {
 		$to_order->set_address( array(
-			'first_name' => $from_order->shipping_first_name,
-			'last_name'  => $from_order->shipping_last_name,
-			'company'    => $from_order->shipping_company,
-			'address_1'  => $from_order->shipping_address_1,
-			'address_2'  => $from_order->shipping_address_2,
-			'city'       => $from_order->shipping_city,
-			'state'      => $from_order->shipping_state,
-			'postcode'   => $from_order->shipping_postcode,
-			'country'    => $from_order->shipping_country,
+			'first_name' => wcs_get_objects_property( $from_order, 'shipping_first_name' ),
+			'last_name'  => wcs_get_objects_property( $from_order, 'shipping_last_name' ),
+			'company'    => wcs_get_objects_property( $from_order, 'shipping_company' ),
+			'address_1'  => wcs_get_objects_property( $from_order, 'shipping_address_1' ),
+			'address_2'  => wcs_get_objects_property( $from_order, 'shipping_address_2' ),
+			'city'       => wcs_get_objects_property( $from_order, 'shipping_city' ),
+			'state'      => wcs_get_objects_property( $from_order, 'shipping_state' ),
+			'postcode'   => wcs_get_objects_property( $from_order, 'shipping_postcode' ),
+			'country'    => wcs_get_objects_property( $from_order, 'shipping_country' ),
 		), 'shipping' );
 	}
 
 	if ( in_array( $address_type, array( 'billing', 'all' ) ) ) {
 		$to_order->set_address( array(
-			'first_name' => $from_order->billing_first_name,
-			'last_name'  => $from_order->billing_last_name,
-			'company'    => $from_order->billing_company,
-			'address_1'  => $from_order->billing_address_1,
-			'address_2'  => $from_order->billing_address_2,
-			'city'       => $from_order->billing_city,
-			'state'      => $from_order->billing_state,
-			'postcode'   => $from_order->billing_postcode,
-			'country'    => $from_order->billing_country,
-			'email'      => $from_order->billing_email,
-			'phone'      => $from_order->billing_phone,
+			'first_name' => wcs_get_objects_property( $from_order, 'billing_first_name' ),
+			'last_name'  => wcs_get_objects_property( $from_order, 'billing_last_name' ),
+			'company'    => wcs_get_objects_property( $from_order, 'billing_company' ),
+			'address_1'  => wcs_get_objects_property( $from_order, 'billing_address_1' ),
+			'address_2'  => wcs_get_objects_property( $from_order, 'billing_address_2' ),
+			'city'       => wcs_get_objects_property( $from_order, 'billing_city' ),
+			'state'      => wcs_get_objects_property( $from_order, 'billing_state' ),
+			'postcode'   => wcs_get_objects_property( $from_order, 'billing_postcode' ),
+			'country'    => wcs_get_objects_property( $from_order, 'billing_country' ),
+			'email'      => wcs_get_objects_property( $from_order, 'billing_email' ),
+			'phone'      => wcs_get_objects_property( $from_order, 'billing_phone' ),
 		), 'billing' );
 	}
 
@@ -150,7 +150,9 @@ function wcs_copy_order_meta( $from_order, $to_order, $type = 'subscription' ) {
 		 AND `meta_key` NOT LIKE '_schedule_%%'
 		 AND `meta_key` NOT IN (
 			 '_paid_date',
+			 '_date_paid',
 			 '_completed_date',
+			 '_date_completed',
 			 '_order_key',
 			 '_edit_lock',
 			 '_wc_points_earned',
@@ -163,7 +165,7 @@ function wcs_copy_order_meta( $from_order, $to_order, $type = 'subscription' ) {
 			 '_payment_method',
 			 '_payment_method_title'
 		 )",
-		$from_order->id
+		wcs_get_objects_property( $from_order, 'id' )
 	);
 
 	if ( 'renewal_order' == $type ) {
@@ -176,7 +178,7 @@ function wcs_copy_order_meta( $from_order, $to_order, $type = 'subscription' ) {
 	$meta       = apply_filters( 'wcs_' . $type . '_meta', $meta, $to_order, $from_order );
 
 	foreach ( $meta as $meta_item ) {
-		update_post_meta( $to_order->id, $meta_item['meta_key'], maybe_unserialize( $meta_item['meta_value'] ) );
+		wcs_set_objects_property( $to_order, $meta_item['meta_key'], maybe_unserialize( $meta_item['meta_value'] ) );
 	}
 }
 
@@ -208,10 +210,8 @@ function wcs_create_order_from_subscription( $subscription, $type ) {
 
 		$new_order = wc_create_order( array(
 			'customer_id'   => $subscription->get_user_id(),
-			'customer_note' => $subscription->customer_note,
+			'customer_note' => $subscription->get_customer_note(),
 		) );
-
-		$new_order->post->post_title = wcs_get_new_order_title( $type );
 
 		wcs_copy_order_meta( $subscription, $new_order, $type );
 
@@ -225,16 +225,23 @@ function wcs_create_order_from_subscription( $subscription, $type ) {
 			$item_name = apply_filters( 'wcs_' . $type . '_item_name', $item_name, $item, $subscription );
 
 			// Create order line item on the renewal order
-			$recurring_item_id = wc_add_order_item( $new_order->id, array(
+			$order_item_id = wc_add_order_item( wcs_get_objects_property( $new_order, 'id' ), array(
 				'order_item_name' => $item_name,
 				'order_item_type' => $item['type'],
 			) );
 
 			// Remove recurring line items and set item totals based on recurring line totals
-			foreach ( $item['item_meta'] as $meta_key => $meta_values ) {
-				foreach ( $meta_values as $meta_value ) {
-					wc_add_order_item_meta( $recurring_item_id, $meta_key, maybe_unserialize( $meta_value ) );
+			if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+				foreach ( $item['item_meta'] as $meta_key => $meta_values ) {
+					foreach ( $meta_values as $meta_value ) {
+						wc_add_order_item_meta( $order_item_id, $meta_key, maybe_unserialize( $meta_value ) );
+					}
 				}
+			} else {
+				$order_item = $new_order->get_item( $order_item_id );
+
+				wcs_copy_order_item( $item, $order_item );
+				$order_item->save();
 			}
 
 			// If the line item we're adding is a product line item and that product still exists, trigger the 'woocommerce_order_add_product' hook
@@ -256,8 +263,8 @@ function wcs_create_order_from_subscription( $subscription, $type ) {
 					);
 
 					// If we have a variation, get the attribute meta data from teh item to pass to callbacks
-					if ( ! empty( $item['variation_id'] ) && ! empty( $product->variation_data ) ) {
-						foreach ( $product->variation_data as $attribute => $variation ) {
+					if ( ! empty( $item['variation_id'] ) && null !== ( $variation_data = wcs_get_objects_property( $product, 'variation_data' ) ) ) {
+						foreach ( $variation_data as $attribute => $variation ) {
 							if ( isset( $item[ str_replace( 'attribute_', '', $attribute ) ] ) ) {
 								$args['variation'][ $attribute ] = $item[ str_replace( 'attribute_', '', $attribute ) ];
 							}
@@ -265,11 +272,17 @@ function wcs_create_order_from_subscription( $subscription, $type ) {
 					}
 
 					// Backorders
-					if ( $product->backorders_require_notification() && $product->is_on_backorder( $item['qty'] ) ) {
-						wc_add_order_item_meta( $recurring_item_id, apply_filters( 'woocommerce_backordered_item_meta_name', __( 'Backordered', 'woocommerce-subscriptions' ) ), $item['qty'] - max( 0, $product->get_total_stock() ) );
+					if ( isset( $order_item ) && is_callable( array( $order_item, 'set_backorder_meta' ) ) ) { // WC 3.0
+						$order_item->set_backorder_meta();
+						$order_item->save();
+					} elseif ( $product->backorders_require_notification() && $product->is_on_backorder( $item['qty'] ) ) { // WC 2.6
+						wc_add_order_item_meta( $order_item_id, apply_filters( 'woocommerce_backordered_item_meta_name', __( 'Backordered', 'woocommerce-subscriptions' ) ), $item['qty'] - max( 0, $product->get_total_stock() ) );
 					}
 
-					do_action( 'woocommerce_order_add_product', $new_order->id, $recurring_item_id, $product, $item['qty'], $args );
+					if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+						// WC 3.0+ will also trigger the 'woocommerce_order_add_product when 'woocommerce_new_order_item', which is triggered in wc_add_order_item_meta()
+						do_action( 'woocommerce_order_add_product', wcs_get_objects_property( $new_order, 'id' ), $order_item_id, $product, $item['qty'], $args );
+					}
 				}
 			}
 		}
@@ -294,6 +307,8 @@ function wcs_create_order_from_subscription( $subscription, $type ) {
  * @return string       new title for a post
  */
 function wcs_get_new_order_title( $type ) {
+	wcs_deprecated_function( __FUNCTION__, '2.2.0' );
+
 	$type = wcs_validate_new_order_type( $type );
 
 	$order_date = strftime( _x( '%b %d, %Y @ %I:%M %p', 'Used in subscription post title. "Subscription renewal order - <this>"', 'woocommerce-subscriptions' ) );
@@ -346,29 +361,29 @@ function wcs_get_order_address( $order, $address_type = 'shipping' ) {
 
 	if ( 'billing' == $address_type ) {
 		$address = array(
-			'first_name' => $order->billing_first_name,
-			'last_name'  => $order->billing_last_name,
-			'company'    => $order->billing_company,
-			'address_1'  => $order->billing_address_1,
-			'address_2'  => $order->billing_address_2,
-			'city'       => $order->billing_city,
-			'state'      => $order->billing_state,
-			'postcode'   => $order->billing_postcode,
-			'country'    => $order->billing_country,
-			'email'      => $order->billing_email,
-			'phone'      => $order->billing_phone,
+			'first_name' => wcs_get_objects_property( $order, 'billing_first_name' ),
+			'last_name'  => wcs_get_objects_property( $order, 'billing_last_name' ),
+			'company'    => wcs_get_objects_property( $order, 'billing_company' ),
+			'address_1'  => wcs_get_objects_property( $order, 'billing_address_1' ),
+			'address_2'  => wcs_get_objects_property( $order, 'billing_address_2' ),
+			'city'       => wcs_get_objects_property( $order, 'billing_city' ),
+			'state'      => wcs_get_objects_property( $order, 'billing_state' ),
+			'postcode'   => wcs_get_objects_property( $order, 'billing_postcode' ),
+			'country'    => wcs_get_objects_property( $order, 'billing_country' ),
+			'email'      => wcs_get_objects_property( $order, 'billing_email' ),
+			'phone'      => wcs_get_objects_property( $order, 'billing_phone' ),
 		);
 	} else {
 		$address = array(
-			'first_name' => $order->shipping_first_name,
-			'last_name'  => $order->shipping_last_name,
-			'company'    => $order->shipping_company,
-			'address_1'  => $order->shipping_address_1,
-			'address_2'  => $order->shipping_address_2,
-			'city'       => $order->shipping_city,
-			'state'      => $order->shipping_state,
-			'postcode'   => $order->shipping_postcode,
-			'country'    => $order->shipping_country,
+			'first_name' => wcs_get_objects_property( $order, 'shipping_first_name' ),
+			'last_name'  => wcs_get_objects_property( $order, 'shipping_last_name' ),
+			'company'    => wcs_get_objects_property( $order, 'shipping_company' ),
+			'address_1'  => wcs_get_objects_property( $order, 'shipping_address_1' ),
+			'address_2'  => wcs_get_objects_property( $order, 'shipping_address_2' ),
+			'city'       => wcs_get_objects_property( $order, 'shipping_city' ),
+			'state'      => wcs_get_objects_property( $order, 'shipping_state' ),
+			'postcode'   => wcs_get_objects_property( $order, 'shipping_postcode' ),
+			'country'    => wcs_get_objects_property( $order, 'shipping_country' ),
 		);
 	}
 
@@ -397,7 +412,7 @@ function wcs_order_contains_subscription( $order, $order_type = array( 'parent',
 	$contains_subscription = false;
 	$get_all               = ( in_array( 'any', $order_type ) ) ? true : false;
 
-	if ( ( in_array( 'parent', $order_type ) || $get_all ) && count( wcs_get_subscriptions_for_order( $order->id, array( 'order_type' => 'parent' ) ) ) > 0 ) {
+	if ( ( in_array( 'parent', $order_type ) || $get_all ) && count( wcs_get_subscriptions_for_order( wcs_get_objects_property( $order, 'id' ), array( 'order_type' => 'parent' ) ) ) > 0 ) {
 		$contains_subscription = true;
 
 	} elseif ( ( in_array( 'renewal', $order_type ) || $get_all ) && wcs_order_contains_renewal( $order ) ) {
@@ -656,4 +671,100 @@ function wcs_get_line_item_name( $line_item ) {
 	}
 
 	return apply_filters( 'wcs_line_item_name', $line_item_name, $line_item );
+}
+
+/**
+ * Display item meta data in a version compatible way.
+ *
+ * @since  2.2.0
+ * @param  WC_Item $item
+ * @param  WC_Order $order
+ * @return void
+ */
+function wcs_display_item_meta( $item, $order ) {
+	if ( function_exists( 'wc_display_item_meta' ) ) { // WC 3.0+
+		wc_display_item_meta( $item );
+	} else {
+		$order->display_item_meta( $item );
+	}
+}
+
+/**
+ * Display item download links in a version compatible way.
+ *
+ * @since  2.2.0
+ * @param  WC_Item $item
+ * @param  WC_Order $order
+ * @return void
+ */
+function wcs_display_item_downloads( $item, $order ) {
+	if ( function_exists( 'wc_display_item_downloads' ) ) { // WC 3.0+
+		wc_display_item_downloads( $item );
+	} else {
+		$order->display_item_downloads( $item );
+	}
+}
+
+/**
+ * Copy the order item data and meta data from one item to another.
+ *
+ * @since  2.2.0
+ * @param  WC_Order_Item The order item to copy data from
+ * @param  WC_Order_Item The order item to copy data to
+ * @return void
+ */
+function wcs_copy_order_item( $from_item, &$to_item ) {
+
+	if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+		wcs_doing_it_wrong( __FUNCTION__, 'This function uses data structures introduced in WC 3.0. To copy line item meta use $from_item[\'item_meta\'] and wc_add_order_item_meta().', '2.2' );
+		return;
+	}
+
+	foreach ( $from_item->get_meta_data() as $meta_data ) {
+		$to_item->update_meta_data( $meta_data->key, $meta_data->value );
+	}
+
+	switch ( $from_item->get_type() ) {
+		case 'line_item':
+			$to_item->set_props( array(
+				'product_id'   => $from_item->get_product_id(),
+				'variation_id' => $from_item->get_variation_id(),
+				'quantity'     => $from_item->get_quantity(),
+				'tax_class'    => $from_item->get_tax_class(),
+				'subtotal'     => $from_item->get_subtotal(),
+				'total'        => $from_item->get_total(),
+				'taxes'        => $from_item->get_taxes(),
+			) );
+			break;
+		case 'shipping':
+			$to_item->set_props( array(
+				'method_id' => $from_item->get_method_id(),
+				'total'     => $from_item->get_total(),
+				'taxes'     => $from_item->get_taxes(),
+			) );
+			break;
+		case 'tax':
+			$to_item->set_props( array(
+				'rate_id'            => $from_item->get_rate_id(),
+				'label'              => $from_item->get_label(),
+				'compound'           => $from_item->get_compound(),
+				'tax_total'          => $from_item->get_tax_total(),
+				'shipping_tax_total' => $from_item->get_shipping_tax_total(),
+			) );
+			break;
+		case 'fee':
+			$to_item->set_props( array(
+				'tax_class'  => $from_item->get_tax_class(),
+				'tax_status' => $from_item->get_tax_status(),
+				'total'      => $from_item->get_total(),
+				'taxes'      => $from_item->get_taxes(),
+			) );
+			break;
+		case 'coupon':
+			$to_item->set_props( array(
+				'discount'     => $from_item->discount(),
+				'discount_tax' => $from_item->discount_tax(),
+			) );
+			break;
+	}
 }

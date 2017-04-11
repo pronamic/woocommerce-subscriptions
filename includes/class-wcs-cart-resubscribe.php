@@ -65,7 +65,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 			$subscription = wcs_get_subscription( $_GET['resubscribe'] );
 			$redirect_to  = get_permalink( wc_get_page_id( 'myaccount' ) );
 
-			if ( wp_verify_nonce( $_GET['_wpnonce'], $subscription->id ) === false ) {
+			if ( wp_verify_nonce( $_GET['_wpnonce'], $subscription->get_id() ) === false ) {
 
 				wc_add_notice( __( 'There was an error with your request to resubscribe. Please try again.', 'woocommerce-subscriptions' ), 'error' );
 
@@ -73,7 +73,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 
 				wc_add_notice( __( 'That subscription does not exist. Has it been deleted?', 'woocommerce-subscriptions' ), 'error' );
 
-			} elseif ( ! current_user_can( 'subscribe_again', $subscription->id ) ) {
+			} elseif ( ! current_user_can( 'subscribe_again', $subscription->get_id() ) ) {
 
 				wc_add_notice( __( 'That doesn\'t appear to be one of your subscriptions.', 'woocommerce-subscriptions' ), 'error' );
 
@@ -84,7 +84,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 			} else {
 
 				$this->setup_cart( $subscription, array(
-					'subscription_id' => $subscription->id,
+					'subscription_id' => $subscription->get_id(),
 				) );
 
 				if ( WC()->cart->get_cart_contents_count() != 0 ) {
@@ -103,7 +103,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 			$order        = wc_get_order( $wp->query_vars['order-pay'] );
 			$order_key    = $_GET['key'];
 
-			if ( $order->order_key == $order_key && $order->has_status( array( 'pending', 'failed' ) ) && wcs_order_contains_resubscribe( $order ) ) {
+			if ( wcs_get_objects_property( $order, 'order_key' ) == $order_key && $order->has_status( array( 'pending', 'failed' ) ) && wcs_order_contains_resubscribe( $order ) ) {
 
 				if ( ! is_user_logged_in() ) {
 
@@ -121,9 +121,9 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 				$subscriptions = wcs_get_subscriptions_for_resubscribe_order( $order );
 
 				foreach ( $subscriptions as $subscription ) {
-					if ( current_user_can( 'subscribe_again', $subscription->id ) ) {
+					if ( current_user_can( 'subscribe_again', $subscription->get_id() ) ) {
 						$this->setup_cart( $subscription, array(
-							'subscription_id' => $subscription->id,
+							'subscription_id' => $subscription->get_id(),
 						) );
 					} else {
 						wc_add_notice( __( 'That doesn\'t appear to be one of your subscriptions.', 'woocommerce-subscriptions' ), 'error' );
@@ -150,8 +150,9 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 		$cart_item = $this->cart_contains( $recurring_cart );
 
 		if ( false !== $cart_item ) {
-			update_post_meta( $order->id, '_subscription_resubscribe', $cart_item[ $this->cart_item_key ]['subscription_id'], true );
-			update_post_meta( $new_subscription->id, '_subscription_resubscribe', $cart_item[ $this->cart_item_key ]['subscription_id'], true );
+			wcs_set_objects_property( $order, 'subscription_resubscribe', $cart_item[ $this->cart_item_key ]['subscription_id'] );
+			$new_subscription->update_meta_data( '_subscription_resubscribe', $cart_item[ $this->cart_item_key ]['subscription_id'] );
+			$new_subscription->save();
 		}
 	}
 
@@ -170,12 +171,12 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 			$subscription = wcs_get_subscription( $cart_item[ $this->cart_item_key ]['subscription_id'] );
 			if ( $subscription ) {
 				// Make sure the original subscription terms perisist
-				$_product                               = $cart_item_session_data['data'];
-				$_product->subscription_period          = $subscription->billing_period;
-				$_product->subscription_period_interval = $subscription->billing_interval;
+				$_product = $cart_item_session_data['data'];
+				wcs_set_objects_property( $_product, 'subscription_period', $subscription->get_billing_period(), 'set_prop_only' );
+				wcs_set_objects_property( $_product, 'subscription_period_interval', $subscription->get_billing_interval(), 'set_prop_only' );
 
 				// And don't give another free trial period
-				$_product->subscription_trial_length = 0;
+				wcs_set_objects_property( $_product, 'subscription_trial_length', 0, 'set_prop_only' );
 			}
 		}
 
@@ -254,7 +255,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 		foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
 			$subscription = $this->get_order( $cart_item );
 			if ( false !== $subscription && $subscription->has_status( 'pending-cancel' ) ) {
-				$first_renewal_date = ( '1' != $cart_item['data']->subscription_length ) ? $subscription->get_date( 'end' ) : 0;
+				$first_renewal_date = ( '1' != WC_Subscriptions_Product::get_length( $cart_item['data'] ) ) ? $subscription->get_date( 'end' ) : 0;
 				break;
 			}
 		}
@@ -271,7 +272,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
 			$subscription = $this->get_order( $cart_item );
 			if ( false !== $subscription && $subscription->has_status( 'pending-cancel' ) ) {
-				WC()->cart->cart_contents[ $cart_item_key ]['data']->subscription_trial_length = 1;
+				wcs_set_objects_property( WC()->cart->cart_contents[ $cart_item_key ]['data'], 'subscription_trial_length', 1, 'set_prop_only' );
 				break;
 			}
 		}
@@ -289,7 +290,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
 			$subscription = $this->get_order( $cart_item );
 			if ( false !== $subscription && $subscription->has_status( 'pending-cancel' ) ) {
-				WC()->cart->cart_contents[ $cart_item_key ]['data']->subscription_trial_length = 0;
+				wcs_set_objects_property( WC()->cart->cart_contents[ $cart_item_key ]['data'], 'subscription_trial_length', 0, 'set_prop_only' );
 				break;
 			}
 		}

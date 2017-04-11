@@ -58,11 +58,11 @@ class WCS_Repair_2_0_2 {
 			$subscription = wcs_get_subscription( $subscription_id );
 
 			if ( false !== $subscription && self::maybe_repair_subscription( $subscription ) ) {
-				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repair completed', $subscription->id ) );
+				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repair completed', $subscription->get_id() ) );
 				$repaired_count++;
 				update_post_meta( $subscription_id, '_wcs_repaired_2_0_2', 'true' );
 			} else {
-				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no repair needed', $subscription->id ) );
+				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no repair needed', $subscription->get_id() ) );
 				$unrepaired_count++;
 				update_post_meta( $subscription_id, '_wcs_repaired_2_0_2', 'false' );
 			}
@@ -87,10 +87,11 @@ class WCS_Repair_2_0_2 {
 	protected static function maybe_repair_subscription( $subscription ) {
 
 		$repaired_subscription = false;
+		$parent_order          = $subscription->get_parent();
 
 		// if the subscription doesn't have an order, it must have been created in 2.0, so we can ignore it
-		if ( false === $subscription->order ) {
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no need to repair: it has no order.', $subscription->id ) );
+		if ( false === $parent_order ) {
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no need to repair: it has no order.', $subscription->get_id() ) );
 			return $repaired_subscription;
 		}
 
@@ -98,7 +99,7 @@ class WCS_Repair_2_0_2 {
 
 		// if the subscription has more than one line item, it must have been created in 2.0, so we can ignore it
 		if ( count( $subscription_line_items ) > 1 ) {
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no need to repair: it has more than one line item.', $subscription->id ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no need to repair: it has more than one line item.', $subscription->get_id() ) );
 			return $repaired_subscription;
 		}
 
@@ -106,7 +107,7 @@ class WCS_Repair_2_0_2 {
 		$subscription_line_item    = array_shift( $subscription_line_items );
 
 		// Get old order item's meta
-		foreach ( $subscription->order->get_items() as $line_item_id => $line_item ) {
+		foreach ( $parent_order->get_items() as $line_item_id => $line_item ) {
 			if ( wcs_get_canonical_product_id( $line_item ) == wcs_get_canonical_product_id( $subscription_line_item ) ) {
 				$matching_line_item_id = $line_item_id;
 				$matching_line_item    = $line_item;
@@ -116,7 +117,7 @@ class WCS_Repair_2_0_2 {
 
 		// we couldn't find a matching line item so we can't repair it
 		if ( ! isset( $matching_line_item ) ) {
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: can not repair: it has no matching line item.', $subscription->id ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: can not repair: it has no matching line item.', $subscription->get_id() ) );
 			return $repaired_subscription;
 		}
 
@@ -124,20 +125,20 @@ class WCS_Repair_2_0_2 {
 
 		// if the order item doesn't have migrated subscription data, the subscription wasn't migrated from 1.5
 		if ( ! isset( $matching_line_item_meta['_wcs_migrated_subscription_status'] ) && ! isset( $matching_line_item_meta['_wcs_migrated_subscription_start_date'] )  ) {
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no need to repair: matching line item has no migrated meta data.', $subscription->id ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no need to repair: matching line item has no migrated meta data.', $subscription->get_id() ) );
 			return $repaired_subscription;
 		}
 
 		if ( false !== self::maybe_repair_line_tax_data( $subscription_line_item_id, $matching_line_item_id, $matching_line_item ) ) {
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repaired missing line tax data.', $subscription->id ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repaired missing line tax data.', $subscription->get_id() ) );
 			$repaired_subscription = true;
 		} else {
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: line tax data not added.', $subscription->id ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: line tax data not added.', $subscription->get_id() ) );
 		}
 
 		// if the subscription has been cancelled, we don't need to repair any other data
 		if ( $subscription->has_status( array( 'pending-cancel', 'cancelled' ) ) ) {
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no need to repair: it has cancelled status.', $subscription->id ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no need to repair: it has cancelled status.', $subscription->get_id() ) );
 			return $repaired_subscription;
 		}
 
@@ -157,38 +158,38 @@ class WCS_Repair_2_0_2 {
 
 		if ( ! empty( $dates_to_update ) ) {
 
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repairing dates = %s', $subscription->id, str_replace( array( '{', '}', '"' ), '', wcs_json_encode( $dates_to_update ) ) ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repairing dates = %s', $subscription->get_id(), str_replace( array( '{', '}', '"' ), '', wcs_json_encode( $dates_to_update ) ) ) );
 
 			try {
 				$subscription->update_dates( $dates_to_update );
-				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repaired dates = %s', $subscription->id, str_replace( array( '{', '}', '"' ), '', wcs_json_encode( $dates_to_update ) ) ) );
+				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repaired dates = %s', $subscription->get_id(), str_replace( array( '{', '}', '"' ), '', wcs_json_encode( $dates_to_update ) ) ) );
 			} catch ( Exception $e ) {
-				WCS_Upgrade_Logger::add( sprintf( '!! For subscription %d: unable to repair dates (%s), exception "%s"', $subscription->id, str_replace( array( '{', '}', '"' ), '', wcs_json_encode( $dates_to_update ) ), $e->getMessage() ) );
+				WCS_Upgrade_Logger::add( sprintf( '!! For subscription %d: unable to repair dates (%s), exception "%s"', $subscription->get_id(), str_replace( array( '{', '}', '"' ), '', wcs_json_encode( $dates_to_update ) ), $e->getMessage() ) );
 			}
 
 			try {
 				self::maybe_repair_status( $subscription, $matching_line_item_meta, $dates_to_update );
 			} catch ( Exception $e ) {
-				WCS_Upgrade_Logger::add( sprintf( '!! For subscription %d: unable to repair status. Exception: "%s"', $subscription->id, $e->getMessage() ) );
+				WCS_Upgrade_Logger::add( sprintf( '!! For subscription %d: unable to repair status. Exception: "%s"', $subscription->get_id(), $e->getMessage() ) );
 			}
 
 			$repaired_subscription = true;
 		}
 
-		if ( ! empty( $subscription->order->customer_note ) && empty( $subscription->customer_note ) ) {
+		if ( '' !== wcs_get_objects_property( $parent_order, 'customer_note' ) && '' == $subscription->get_customer_note() ) {
 
 			$post_data = array(
-				'ID'           => $subscription->id,
-				'post_excerpt' => $subscription->order->customer_note,
+				'ID'           => $subscription->get_id(),
+				'post_excerpt' => wcs_get_objects_property( $parent_order, 'customer_note' ),
 			);
 
 			$updated_post_id = wp_update_post( $post_data, true );
 
 			if ( ! is_wp_error( $updated_post_id ) ) {
-				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repaired missing customer note.', $subscription->id ) );
+				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repaired missing customer note.', $subscription->get_id() ) );
 				$repaired_subscription = true;
 			} else {
-				WCS_Upgrade_Logger::add( sprintf( '!! For subscription %d: unable to repair missing customer note. Exception: "%s"', $subscription->id, $updated_post_id->get_error_message() ) );
+				WCS_Upgrade_Logger::add( sprintf( '!! For subscription %d: unable to repair missing customer note. Exception: "%s"', $subscription->get_id(), $updated_post_id->get_error_message() ) );
 			}
 		}
 
@@ -211,8 +212,8 @@ class WCS_Repair_2_0_2 {
 
 			$old_trial_end_date = isset( $former_order_item_meta['_wcs_migrated_subscription_trial_expiry_date'][0] ) ? $former_order_item_meta['_wcs_migrated_subscription_trial_expiry_date'][0] : 0;
 
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: new trial end date = %s.', $subscription->id, var_export( $subscription->get_date( 'trial_end' ), true ) ) );
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: old trial end date = %s.', $subscription->id, var_export( $old_trial_end_date, true ) ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: new trial end date = %s.', $subscription->get_id(), var_export( $subscription->get_date( 'trial_end' ), true ) ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: old trial end date = %s.', $subscription->get_id(), var_export( $old_trial_end_date, true ) ) );
 
 			// if the subscription has a trial end time whereas previously it didn't, we need it to be deleted
 			if ( 0 == $old_trial_end_date ) {
@@ -224,7 +225,7 @@ class WCS_Repair_2_0_2 {
 			$repair_date = false;
 		}
 
-		WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repair trial end date = %s.', $subscription->id, var_export( $repair_date, true ) ) );
+		WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repair trial end date = %s.', $subscription->get_id(), var_export( $repair_date, true ) ) );
 
 		return $repair_date;
 	}
@@ -264,8 +265,8 @@ class WCS_Repair_2_0_2 {
 				wcs_json_encode( $old_hook_args )
 			) );
 
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: new next payment date = %s.', $subscription->id, var_export( $subscription->get_date( 'next_payment' ), true ) ) );
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: old next payment date = %s.', $subscription->id, var_export( $old_next_payment_date, true ) ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: new next payment date = %s.', $subscription->get_id(), var_export( $subscription->get_date( 'next_payment' ), true ) ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: old next payment date = %s.', $subscription->get_id(), var_export( $old_next_payment_date, true ) ) );
 
 			// if we have a date, make sure it's valid
 			if ( null !== $old_next_payment_date ) {
@@ -274,7 +275,7 @@ class WCS_Repair_2_0_2 {
 					if ( 0 == $repair_date ) {
 						$repair_date = false;
 					}
-					WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: old next payment date is in the past, setting it to %s.', $subscription->id, var_export( $repair_date, true ) ) );
+					WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: old next payment date is in the past, setting it to %s.', $subscription->get_id(), var_export( $repair_date, true ) ) );
 				} else {
 					$repair_date = $old_next_payment_date;
 				}
@@ -289,13 +290,13 @@ class WCS_Repair_2_0_2 {
 					$repair_date = false;
 				}
 
-				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no old next payment date, setting it to %s.', $subscription->id, var_export( $repair_date, true ) ) );
+				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no old next payment date, setting it to %s.', $subscription->get_id(), var_export( $repair_date, true ) ) );
 			}
 		} else {
 			$repair_date = false;
 		}
 
-		WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repair next payment date = %s.', $subscription->id, var_export( $repair_date, true ) ) );
+		WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repair next payment date = %s.', $subscription->get_id(), var_export( $repair_date, true ) ) );
 
 		return $repair_date;
 	}
@@ -325,8 +326,8 @@ class WCS_Repair_2_0_2 {
 				$old_end_date = isset( $former_order_item_meta['_wcs_migrated_subscription_expiry_date'][0] ) ? $former_order_item_meta['_wcs_migrated_subscription_expiry_date'][0] : 0;
 			}
 
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: new end date = %s.', $subscription->id, var_export( $subscription->get_date( 'end' ), true ) ) );
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: old end date = %s.', $subscription->id, var_export( $old_end_date, true ) ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: new end date = %s.', $subscription->get_id(), var_export( $subscription->get_date( 'end' ), true ) ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: old end date = %s.', $subscription->get_id(), var_export( $old_end_date, true ) ) );
 
 			// if the subscription has an end time whereas previously it didn't, we need it to be deleted so set it 0
 			if ( 0 == $old_end_date ) {
@@ -338,7 +339,7 @@ class WCS_Repair_2_0_2 {
 			$repair_date = false;
 		}
 
-		WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repair end date = %s.', $subscription->id, var_export( $repair_date, true ) ) );
+		WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repair end date = %s.', $subscription->get_id(), var_export( $repair_date, true ) ) );
 
 		return $repair_date;
 	}
@@ -359,27 +360,27 @@ class WCS_Repair_2_0_2 {
 			try {
 
 				// we need to bypass the update_status() method here because normally an expired subscription can't have it's status changed, we also don't want normal status change hooks to be fired
-				wp_update_post( array( 'ID' => $subscription->id, 'post_status' => 'wc-on-hold' ) );
+				wp_update_post( array( 'ID' => $subscription->get_id(), 'post_status' => 'wc-on-hold' ) );
 
 				// if the payment method doesn't support date changes, we still want to reactivate the subscription but we also need to process a special failed payment at the next renewal to fix up the payment method so we'll set a special flag in post meta to handle that
 				if ( ! $subscription->payment_method_supports( 'subscription_date_changes' ) && $subscription->get_total() > 0 ) {
-					update_post_meta( $subscription->id, '_wcs_repaired_2_0_2_needs_failed_payment', 'true' );
-					WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: payment method does not support "subscription_date_changes" and total > 0, setting "_wcs_repaired_2_0_2_needs_failed_payment" post meta flag.', $subscription->id ) );
+					update_post_meta( $subscription->get_id(), '_wcs_repaired_2_0_2_needs_failed_payment', 'true' );
+					WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: payment method does not support "subscription_date_changes" and total > 0, setting "_wcs_repaired_2_0_2_needs_failed_payment" post meta flag.', $subscription->get_id() ) );
 				}
 
 				if ( 'active' == $former_order_item_meta['_wcs_migrated_subscription_status'][0] && $subscription->can_be_updated_to( 'active' ) ) {
 					$subscription->update_status( 'active' );
 				}
 
-				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repaired status. Status was "expired", it is now "%s".', $subscription->id, $subscription->get_status() ) );
+				WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: repaired status. Status was "expired", it is now "%s".', $subscription->get_id(), $subscription->get_status() ) );
 				$repair_status = true;
 
 			} catch ( Exception $e ) {
-				WCS_Upgrade_Logger::add( sprintf( '!!! For subscription %d: unable to repair status, exception "%s"', $subscription->id, $e->getMessage() ) );
+				WCS_Upgrade_Logger::add( sprintf( '!!! For subscription %d: unable to repair status, exception "%s"', $subscription->get_id(), $e->getMessage() ) );
 				$repair_status = false;
 			}
 		} else {
-			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no need to repair status, current status: %s; former status: %s.', $subscription->id, $subscription->get_status(), $former_order_item_meta['_wcs_migrated_subscription_status'][0] ) );
+			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no need to repair status, current status: %s; former status: %s.', $subscription->get_id(), $subscription->get_status(), $former_order_item_meta['_wcs_migrated_subscription_status'][0] ) );
 			$repair_status = false;
 		}
 		return $repair_status;

@@ -2,11 +2,13 @@
 /**
  * Subscriptions switching cart
  *
- *
  * @author   Prospress
  * @since    2.1
  */
-class WCS_Cart_Switch extends WCS_Cart_Renewal{
+class WCS_Cart_Switch extends WCS_Cart_Renewal {
+
+	/* The flag used to indicate if a cart item is a renewal */
+	public $cart_item_key = 'subscription_switch';
 
 	/**
 	 * Initialise class hooks & filters when the file is loaded
@@ -14,6 +16,9 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal{
 	 * @since 2.1
 	 */
 	public function __construct() {
+
+		// Attach hooks which depend on WooCommerce constants
+		add_action( 'woocommerce_loaded', array( &$this, 'attach_dependant_hooks' ), 10 );
 
 		// Set checkout payment URL parameter for subscription switch orders
 		add_filter( 'woocommerce_get_checkout_payment_url', array( &$this, 'get_checkout_payment_url' ), 10, 2 );
@@ -30,7 +35,7 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal{
 	public function get_checkout_payment_url( $pay_url, $order ) {
 
 		if ( wcs_order_contains_switch( $order ) ) {
-			$switch_order_data = get_post_meta( $order->id, '_subscription_switch_data', true );
+			$switch_order_data = wcs_get_objects_property( $order, 'subscription_switch_data' );
 
 			if ( ! empty( $switch_order_data ) ) {
 				$pay_url = add_query_arg( array(
@@ -51,7 +56,6 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal{
 	 * @since 2.1
 	 */
 	public function maybe_setup_cart() {
-
 		global $wp;
 
 		if ( isset( $_GET['pay_for_order'] ) && isset( $_GET['key'] ) && isset( $wp->query_vars['order-pay'] ) && isset( $_GET['subscription_switch'] ) ) {
@@ -61,10 +65,10 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal{
 			$order_id  = ( isset( $wp->query_vars['order-pay'] ) ) ? $wp->query_vars['order-pay'] : absint( $_GET['order_id'] );
 			$order     = wc_get_order( $wp->query_vars['order-pay'] );
 
-			if ( $order->order_key == $order_key && $order->has_status( array( 'pending', 'failed' ) ) && wcs_order_contains_switch( $order ) ) {
+			if ( wcs_get_objects_property( $order, 'order_key' ) == $order_key && $order->has_status( array( 'pending', 'failed' ) ) && wcs_order_contains_switch( $order ) ) {
 				WC()->cart->empty_cart( true );
 
-				$switch_order_data = get_post_meta( $order_id, '_subscription_switch_data', true );
+				$switch_order_data = wcs_get_objects_property( $order, 'subscription_switch_data' );
 
 				foreach ( $order->get_items() as $item_id => $line_item ) {
 
@@ -88,28 +92,28 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal{
 
 					$order_item = wcs_get_order_item( $item_id, $order );
 					$product    = WC_Subscriptions::get_product( wcs_get_canonical_product_id( $order_item ) );
+					$product_id = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
 
 					$order_product_data = array(
-						'_qty'          => 0,
-						'_variation_id' => '',
+						'_qty'          => (int) $line_item['qty'],
+						'_variation_id' => (int) $line_item['variation_id'],
 					);
 
 					$variations = array();
 
 					foreach ( $order_item['item_meta'] as $meta_key => $meta_value ) {
+						$meta_value = is_array( $meta_value ) ? $meta_value[0] : $meta_value; // In WC 3.0 the meta values are no longer arrays
 
-						if ( taxonomy_is_product_attribute( $meta_key ) || meta_is_product_attribute( $meta_key, $meta_value[0], $product->id ) ) {
-							$variations[ $meta_key ] = $meta_value[0];
-							$_POST[ 'attribute_' . $meta_key ] = $meta_value[0];
-						} else if ( array_key_exists( $meta_key, $order_product_data ) ) {
-							$order_product_data[ $meta_key ] = (int) $meta_value[0];
+						if ( taxonomy_is_product_attribute( $meta_key ) || meta_is_product_attribute( $meta_key, $meta_value, $product_id ) ) {
+							$variations[ $meta_key ] = $meta_value;
+							$_POST[ 'attribute_' . $meta_key ] = $meta_value;
 						}
 					}
 
-					$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $product->id, $order_product_data['_qty'], $order_product_data['_variation_id'] );
+					$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $product_id, $order_product_data['_qty'], $order_product_data['_variation_id'] );
 
 					if ( $passed_validation ) {
-						$cart_item_key = WC()->cart->add_to_cart( $product->id, $order_product_data['_qty'], $order_product_data['_variation_id'], $variations, array() );
+						$cart_item_key = WC()->cart->add_to_cart( $product_id, $order_product_data['_qty'], $order_product_data['_variation_id'], $variations, array() );
 					}
 				}
 			}
@@ -119,6 +123,27 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal{
 
 			wp_safe_redirect( WC()->cart->get_checkout_url() );
 			exit;
+		}
+	}
+
+	/**
+	 * Store the order line item id so it can be retrieved when we're processing the switch on checkout.
+	 *
+	 * @param string $cart_item_key
+	 * @param int $order_item_id
+	 * @since 2.2.1
+	 */
+	protected function set_cart_item_order_item_id( $cart_item_key, $order_item_id ) {
+
+		foreach ( WC()->cart->recurring_carts as $recurring_cart_key => $recurring_cart ) {
+
+			// If this cart item belongs to this recurring cart
+			if ( in_array( $cart_item_key, array_keys( $recurring_cart->cart_contents ) ) && isset( WC()->cart->recurring_carts[ $recurring_cart_key ]->cart_contents[ $cart_item_key ][ $this->cart_item_key ] ) ) {
+
+				WC()->cart->recurring_carts[ $recurring_cart_key ]->cart_contents[ $cart_item_key ][ $this->cart_item_key ]['order_line_item_id'] = $order_item_id;
+
+				wc_add_order_item_meta( WC()->cart->recurring_carts[ $recurring_cart_key ]->cart_contents[ $cart_item_key ][ $this->cart_item_key ]['item_id'], '_switched_subscription_new_item_id', $order_item_id, true );
+			}
 		}
 	}
 }

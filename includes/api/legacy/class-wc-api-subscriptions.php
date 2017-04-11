@@ -196,17 +196,18 @@ class WC_API_Subscriptions extends WC_API_Orders {
 
 			// allow order total to be manually set, especially for those cases where there's no line items added to the subscription
 			if ( isset( $data['order_total'] ) ) {
-				update_post_meta( $subscription->id, '_order_total', wc_format_decimal( $data['order_total'], get_option( 'woocommerce_price_num_decimals' ) ) );
+				$subscription->set_total( wc_format_decimal( $data['order_total'], get_option( 'woocommerce_price_num_decimals' ) ) );
 			}
 
 			if ( isset( $data['payment_details'] ) && is_array( $data['payment_details'] ) ) {
 				$this->update_payment_method( $subscription, $data['payment_details'], false );
-
 			}
 
-			do_action( 'wcs_api_subscription_created', $subscription->id, $this );
+			$subscription->save();
 
-			return array( 'creating_subscription' => $this->get_subscription( $subscription->id ) );
+			do_action( 'wcs_api_subscription_created', $subscription->get_id(), $this );
+
+			return array( 'creating_subscription' => $this->get_subscription( $subscription->get_id() ) );
 
 		} catch ( WC_API_Exception $e ) {
 			return new WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ) );
@@ -215,7 +216,7 @@ class WC_API_Subscriptions extends WC_API_Orders {
 
 			// show the subscription in response if it was still created but errored.
 			if ( ! empty( $subscription ) && ! is_wp_error( $subscription ) ) {
-				$response['creating_subscription'] = $this->get_subscription( $subscription->id );
+				$response['creating_subscription'] = $this->get_subscription( $subscription->get_id() );
 			}
 
 			return $response;
@@ -251,7 +252,7 @@ class WC_API_Subscriptions extends WC_API_Orders {
 			}
 
 			if ( ! empty( $data['order_id'] ) ) {
-				wp_update_post( array( 'ID' => $subscription_id, 'post_parent' => $data['order_id'] ) );
+				$subscription->set_parent_id( $data['order_id'] );
 			}
 
 			// set $data['order'] = $data['subscription'] so that edit_order can read in the request
@@ -269,11 +270,13 @@ class WC_API_Subscriptions extends WC_API_Orders {
 
 			$this->update_schedule( $subscription, $data );
 
+			$subscription->save();
+
 			do_action( 'wcs_api_subscription_updated', $subscription_id, $data, $this );
 
 			return $this->get_subscription( $subscription_id );
 
-		} catch ( WC_API_Excpetion $e ) {
+		} catch ( WC_API_Exception $e ) {
 			return new WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ) );
 
 		} catch ( Exception $e ) {
@@ -327,8 +330,8 @@ class WC_API_Subscriptions extends WC_API_Orders {
 				}
 			}
 
-			if ( empty( $subscription->payment_gateway ) ) {
-				$subscription->payment_gateway = $payment_gateway;
+			if ( '' == $subscription->get_payment_method() ) {
+				$subscription->set_payment_method( $payment_gateway );
 			}
 
 			$subscription->set_payment_method( $payment_gateway, $payment_method_meta );
@@ -377,8 +380,7 @@ class WC_API_Subscriptions extends WC_API_Orders {
 				throw new WC_API_Exception( 'wcs_api_invalid_subscription_meta', __( 'Invalid subscription billing interval given. Must be an integer greater than 0.', 'woocommerce-subscriptions' ), 400 );
 			}
 
-			update_post_meta( $subscription->id, '_billing_interval', $interval );
-
+			$subscription->set_billing_interval( $interval );
 		}
 
 		if ( ! empty( $data['billing_period'] ) ) {
@@ -389,7 +391,7 @@ class WC_API_Subscriptions extends WC_API_Orders {
 				throw new WC_API_Exception( 'wcs_api_invalid_subscription_meta', __( 'Invalid subscription billing period given.', 'woocommerce-subscriptions' ), 400 );
 			}
 
-			update_post_meta( $subscription->id, '_billing_period', $period );
+			$subscription->set_billing_period( $period );
 		}
 
 		$dates_to_update = array();
@@ -397,7 +399,8 @@ class WC_API_Subscriptions extends WC_API_Orders {
 		foreach ( array( 'start', 'trial_end', 'end', 'next_payment' ) as $date_type ) {
 
 			if ( isset( $data[ $date_type . '_date' ] ) ) {
-				$dates_to_update[ $date_type ] = $data[ $date_type . '_date' ];
+				$date_type_key = ( 'start' === $date_type ) ? 'date_created' : $date_type;
+				$dates_to_update[ $date_type_key ] = $data[ $date_type . '_date' ];
 			}
 		}
 
@@ -456,16 +459,16 @@ class WC_API_Subscriptions extends WC_API_Orders {
 		}
 
 		$subscription_data['billing_schedule'] = array(
-			'period'          => $subscription->billing_period,
-			'interval'        => $subscription->billing_interval,
-			'start_at'        => $this->get_formatted_datetime( $subscription, 'start' ),
+			'period'          => $subscription->get_billing_period(),
+			'interval'        => $subscription->get_billing_interval(),
+			'start_at'        => $this->get_formatted_datetime( $subscription, 'date_created' ),
 			'trial_end_at'    => $this->get_formatted_datetime( $subscription, 'trial_end' ),
 			'next_payment_at' => $this->get_formatted_datetime( $subscription, 'next_payment' ),
 			'end_at'          => $this->get_formatted_datetime( $subscription, 'end' ),
 		);
 
-		if ( ! empty( $subscription->order ) ) {
-			$subscription_data['parent_order_id'] = $subscription->order->id;
+		if ( $subscription->get_parent_id() ) {
+			$subscription_data['parent_order_id'] = $subscription->get_parent_id();
 		} else {
 			$subscription_data['parent_order_id'] = array();
 		}

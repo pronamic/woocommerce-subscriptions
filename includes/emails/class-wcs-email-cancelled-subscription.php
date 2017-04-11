@@ -64,7 +64,7 @@ class WCS_Email_Cancelled_Subscription extends WC_Email {
 			return;
 		}
 
-		update_post_meta( $subscription->id, '_cancelled_email_sent', 'true' );
+		update_post_meta( $subscription->get_id(), '_cancelled_email_sent', 'true' );
 		$this->send( $this->get_recipient(), $this->get_subject(), $this->get_content(), $this->get_headers(), $this->get_attachments() );
 	}
 

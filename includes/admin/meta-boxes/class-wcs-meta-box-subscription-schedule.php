@@ -49,19 +49,20 @@ class WCS_Meta_Box_Schedule {
 
 			$dates = array();
 
-			foreach ( wcs_get_subscription_date_types() as $date_key => $date_label ) {
+			foreach ( wcs_get_subscription_date_types() as $date_type => $date_label ) {
+				$date_key = wcs_normalise_date_type_key( $date_type );
 
-				if ( 'last_payment' == $date_key ) {
+				if ( 'last_order_date_created' == $date_key ) {
 					continue;
 				}
 
-				$utc_timestamp_key = $date_key . '_timestamp_utc';
+				$utc_timestamp_key = $date_type . '_timestamp_utc';
 
-				// A subscription needs a start date, even if it wasn't set
-				if ( isset( $_POST[ $utc_timestamp_key ] ) ) {
-					$datetime = $_POST[ $utc_timestamp_key ];
-				} elseif ( 'start' === $date_key ) {
+				// A subscription needs a created date, even if it wasn't set or is empty
+				if ( 'date_created' === $date_key && empty( $_POST[ $utc_timestamp_key ] ) ) {
 					$datetime = current_time( 'timestamp', true );
+				} elseif ( isset( $_POST[ $utc_timestamp_key ] ) ) {
+					$datetime = $_POST[ $utc_timestamp_key ];
 				} else { // No date to set
 					continue;
 				}
@@ -76,6 +77,8 @@ class WCS_Meta_Box_Schedule {
 			} catch ( Exception $e ) {
 				wcs_add_admin_notice( $e->getMessage(), 'error' );
 			}
+
+			$subscription->save();
 		}
 	}
 }

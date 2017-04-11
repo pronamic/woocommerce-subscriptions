@@ -87,7 +87,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="form-row">
 			<?php wp_nonce_field( 'wcs_change_payment_method', '_wcsnonce', true, true ); ?>
 			<?php echo wp_kses( apply_filters( 'woocommerce_change_payment_button_html', '<input type="submit" class="button alt" id="place_order" value="' . esc_attr( $pay_order_button_text ) . '" data-value="' . esc_attr( $pay_order_button_text ) . '" />' ), array( 'input' => array( 'type' => array(), 'class' => array(), 'id' => array(), 'value' => array(), 'data-value' => array() ) ) ); ?>
-			<input type="hidden" name="woocommerce_change_payment" value="<?php echo esc_attr( $subscription->id ); ?>" />
+			<input type="hidden" name="woocommerce_change_payment" value="<?php echo esc_attr( $subscription->get_id() ); ?>" />
 		</div>
 		<?php endif; ?>
 

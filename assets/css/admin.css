@@ -15,6 +15,17 @@
 }
 
 /* Subscriptions Admin Page */
+.post-type-shop_subscription .tablenav input,
+.post-type-shop_subscription .tablenav select {
+	line-height: 32px;
+	height: 32px;
+}
+.post-type-shop_subscription .tablenav .select2-container {
+	width: 200px !important;
+	font-size: 14px;
+	vertical-align: middle;
+	margin: 1px 6px 4px 1px;
+}
 .post-type-shop_subscription .widefat .column-status,
 .post-type-shop_subscription .widefat .column-order_id,
 .post-type-shop_subscription .widefat .column-order_title {
@@ -201,29 +212,44 @@ a.close-subscriptions-search {
 	display: none !important;
 }
 
-/* Variation Pricing Fields in WooCommerce 2.3 */
-.variable_subscription_pricing_2_3 .wc_input_subscription_price {
-	max-width: 24%;
-	clear: left;
+/* Variation Pricing Fields with WooCommerce 3.0+ */
+.wc-metaboxes-wrapper .variable_subscription_trial label,
+.wc-metaboxes-wrapper .variable_subscription_pricing label,
+.wc-metaboxes-wrapper .variable_subscription_sync label {
+	display: block;
+}
+.wc-metaboxes-wrapper .wc_input_subscription_trial_period,
+.wc-metaboxes-wrapper .wc_input_subscription_period,
+.wc-metaboxes-wrapper .wc_input_subscription_period_interval,
+.wc-metaboxes-wrapper .wc_input_subscription_length,
+.wc-metaboxes-wrapper .wc_input_subscription_payment_sync_day,
+.wc-metaboxes-wrapper .wc_input_subscription_payment_sync_month {
+	padding: 4px 6px;
+	height: 31px;
+}
+
+/* Variation Pricing Fields in WooCommerce 2.3+ */
+.variable_subscription_pricing_2_3 .wc_input_subscription_price,
+.variable_subscription_pricing_2_3 .wc_input_subscription_period_interval {
+	max-width: 33%;
 	float: left;
 }
-.variable_subscription_pricing_2_3 .wc_input_subscription_period_interval {
-	max-width: 41%;
-	float: left;
+.variable_subscription_pricing_2_3 .wc_input_subscription_price {
+	clear: left;
 }
 .variable_subscription_pricing_2_3 .wc_input_subscription_period {
-	max-width: 32%;
+	max-width: 34%;
 	float: right;
 }
 .variable_subscription_pricing_2_3.variable_subscription_trial p.form-row {
 	margin-bottom: 0;
 }
-.variable_subscription_pricing_2_3 .wc_input_subscription_trial_period {
-	max-width: 47%;
-	float: right;
-}
+.variable_subscription_pricing_2_3 .wc_input_subscription_trial_period,
 .variable_subscription_pricing_2_3 .wc_input_subscription_trial_length {
-	max-width: 48%;
+	max-width: 50%;
+}
+.variable_subscription_pricing_2_3 .wc_input_subscription_trial_period {
+	float: right;
 }
 .variable_subscription_pricing_2_3 .variable_subscription_length,
 .variable_subscription_pricing_2_3 .variable_subscription_trial_sign_up {
@@ -270,6 +296,7 @@ a.close-subscriptions-search {
 
 /* Add/Edit Subscription Screen */
 #woocommerce-subscription-data .handlediv,
+#woocommerce-subscription-data h2.hndle,
 #woocommerce-subscription-data h3.hndle {
 	display: none;
 }
