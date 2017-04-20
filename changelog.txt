@@ -1,10 +1,15 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2017.04.12 - version 2.2.4
+* Fix: WooCommerce 3.0: Correctly handle switching between grouped products in WooCommerce 3.0 where a product can have more than one parent grouped product. PR#2063
+* Fix: Do not incorrectly create pending renewal orders and suspend PayPal Standard Subscriptions at the time their payment is due. PayPal controls the billing schedule for these subscriptions. PR#2069
+* Tweak: Add 'woocommerce_subscriptions_order_type_dropdown' filter. PR#2065
+
 2017.04.07 - version 2.2.3
 * Fix: WooCommerce 3.0: Improve backward compatibility of get_date( 'start' ) calls for subscriptions without a date created set by WooCommerce 3.0 (which happens when manually adding a new subscriptions). PR#2047
 * Fix: WooCommerce 3.0: Prevent saving subscriptions with a 0 start date/date created by making sure we set a default date created value when manually adding a new subscription. PR#2048
 * Fix: WooCommerce 3.0: Remove the correct 3.0 core function responsible for sending order emails to avoid sending both WooCommerce order emails and Subscriptions order emails. PR#2045
-* Fix: WooCommerce 3.0: Make sure synchronised product meta data is set correctly on subscriptino line items by using WooCommerce 3.0 compatible hook. PR#2049
+* Fix: WooCommerce 3.0: Make sure synchronised product meta data is set correctly on subscription line items by using WooCommerce 3.0 compatible hook. PR#2049
 * Fix: Make sure filters are applied when getting customer subscriptions with REST API endpoints by using WC_API_Subscriptions::get_subscriptions() instead of a custom query to get customer subscriptions. PR#1806
 * Fix: Display correct variable subscription product "From" prices and grouped subscription products prices to match tax settings. PR#2054
 * Fix: Don't attempt to save shipping and billing fields which aren't set when submitting the Edit Subscription screen to avoid notices. PR#2053

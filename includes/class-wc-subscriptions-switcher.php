@@ -447,11 +447,12 @@ class WC_Subscriptions_Switcher {
 		}
 
 		$product = wc_get_product( $item['product_id'] );
+		$parent_products       = WC_Subscriptions_Product::get_parent_ids( $product );
 		$additional_query_args = array();
 
 		// Grouped product
-		if ( wcs_get_objects_property( $product, 'parent_id' ) ) {
-			$switch_url = get_permalink( wcs_get_objects_property( $product, 'parent_id' ) );
+		if ( ! empty( $parent_products ) ) {
+			$switch_url = get_permalink( reset( $parent_products ) );
 		} else {
 			$switch_url = get_permalink( $product->get_id() );
 
@@ -1040,11 +1041,14 @@ class WC_Subscriptions_Switcher {
 			// Check if there is a switch for this variation product
 			foreach ( $switch_items as $switch_item_details ) {
 
-				$switch_product = wc_get_product( wcs_get_order_items_product_id( $switch_item_details['item_id'] ) );
+				$switch_product  = wc_get_product( wcs_get_order_items_product_id( $switch_item_details['item_id'] ) );
+				$parent_products = WC_Subscriptions_Product::get_parent_ids( $product );
 
 				// If the switch is for a grouped product, we need to check the other products grouped with this one
-				if ( wcs_get_objects_property( $product, 'parent_id' ) ) {
-					$switch_product_ids = array_unique( array_merge( $switch_product_ids, wc_get_product( wcs_get_objects_property( $product, 'parent_id' ) )->get_children() ) );
+				if ( $parent_products ) {
+					foreach ( $parent_products as $parent_id ) {
+						$switch_product_ids = array_unique( array_merge( $switch_product_ids, wc_get_product( $parent_id )->get_children() ) );
+					}
 				} elseif ( $switch_product->is_type( 'subscription_variation' ) ) {
 					$switch_product_ids[] = $switch_product->get_parent_id();
 				} else {
@@ -1166,9 +1170,15 @@ class WC_Subscriptions_Switcher {
 			$item = wcs_get_order_item( absint( $_GET['item'] ), $subscription );
 
 			// Else it's a valid switch
-			$product = wc_get_product( $item['product_id'] );
+			$product         = wc_get_product( $item['product_id'] );
+			$parent_products = WC_Subscriptions_Product::get_parent_ids( $product );
+			$child_products  = array();
 
-			$child_products = ( wcs_get_objects_property( $product, 'parent_id' ) ) ? wc_get_product( wcs_get_objects_property( $product, 'parent_id' ) )->get_children() : array();
+			if ( ! empty( $parent_products ) ) {
+				foreach ( $parent_products as $parent_id ) {
+					$child_products = array_unique( array_merge( $child_products, wc_get_product( $parent_id )->get_children() ) );
+				}
+			}
 
 			if ( $product_id != $item['product_id'] && ! in_array( $item['product_id'], $child_products ) ) {
 				return $cart_item_data;
