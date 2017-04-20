@@ -133,10 +133,10 @@ function wcs_is_product_switchable_type( $product ) {
 				$is_product_switchable = ( $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) ) ? true : false;
 				break;
 			case 'grouped' :
-				$is_product_switchable = ( ! empty( $parent_id ) ) ? true : false;
+				$is_product_switchable = ( WC_Subscriptions_Product::get_parent_ids( $product ) ) ? true : false;
 				break;
 			case 'variable_grouped' :
-				$is_product_switchable = ( $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) || ! empty( $parent_id ) ) ? true : false;
+				$is_product_switchable = ( $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) || WC_Subscriptions_Product::get_parent_ids( $product ) ) ? true : false;
 				break;
 			case 'no' :
 			default:
