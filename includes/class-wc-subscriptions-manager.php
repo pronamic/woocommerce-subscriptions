@@ -88,7 +88,7 @@ class WC_Subscriptions_Manager {
 		}
 
 		// If the subscription is using manual payments, the gateway isn't active or it manages scheduled payments
-		if ( 0 == $subscription->get_total() || $subscription->is_manual() || '' != $subscription->get_payment_method() || ! $subscription->payment_method_supports( 'gateway_scheduled_payments' ) ) {
+		if ( 0 == $subscription->get_total() || $subscription->is_manual() || '' == $subscription->get_payment_method() || ! $subscription->payment_method_supports( 'gateway_scheduled_payments' ) ) {
 
 			// Always put the subscription on hold in case something goes wrong while trying to process renewal
 			$subscription->update_status( 'on-hold', _x( 'Subscription renewal payment due:', 'used in order note as reason for why subscription status changed', 'woocommerce-subscriptions' ) );
@@ -1831,7 +1831,7 @@ class WC_Subscriptions_Manager {
 		}
 
 		// If the subscription is using manual payments, the gateway isn't active or it manages scheduled payments
-		if ( 0 == $subscription->get_total() || $subscription->is_manual() || '' != $subscription->get_payment_method() || ! $subscription->payment_method_supports( 'gateway_scheduled_payments' ) ) {
+		if ( 0 == $subscription->get_total() || $subscription->is_manual() || '' == $subscription->get_payment_method() || ! $subscription->payment_method_supports( 'gateway_scheduled_payments' ) ) {
 			$subscription->update_status( 'on-hold', _x( 'Subscription renewal payment due:', 'used in order note as reason for why subscription status changed', 'woocommerce-subscriptions' ) );
 		}
 	}
