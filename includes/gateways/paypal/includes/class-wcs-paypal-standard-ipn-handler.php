@@ -103,29 +103,42 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 			exit;
 		}
 
-		if ( isset( $transaction_details['ipn_track_id'] ) ) {
+		if ( isset( $transaction_details['txn_id'] ) ) {
 
 			// Make sure the IPN request has not already been handled
-			$handled_ipn_requests = get_post_meta( $subscription->get_id(), '_paypal_ipn_tracking_ids', true );
+			$handled_transactions = get_post_meta( $subscription->get_id(), '_paypal_ipn_tracking_ids', true );
 
-			if ( empty( $handled_ipn_requests ) ) {
-				$handled_ipn_requests = array();
+			if ( empty( $handled_transactions ) ) {
+				$handled_transactions = array();
 			}
 
-			// The 'ipn_track_id' is not a unique ID and is shared between different transaction types, so create a unique ID by prepending the transaction type
-			$ipn_id = $transaction_details['txn_type'] . '_' . $transaction_details['ipn_track_id'];
+			// $ipn_transaction_id will be 'txn_id'_'txn_type'_'payment_status'_'ipn_track_id'
+			$ipn_transaction_id = $transaction_details['txn_id'];
 
-			if ( in_array( $ipn_id, $handled_ipn_requests ) ) {
-				WC_Gateway_Paypal::log( 'Subscription IPN Error: IPN ' . $ipn_id . ' message has already been correctly handled.' );
+			if ( isset( $transaction_details['txn_type'] ) ) {
+				$ipn_transaction_id .= '_' . $transaction_details['txn_type'];
+			}
+
+			// The same transaction ID is used for different payment statuses, so make sure we handle it only once. See: http://stackoverflow.com/questions/9240235/paypal-ipn-unique-identifier
+			if ( isset( $transaction_details['payment_status'] ) ) {
+				$ipn_transaction_id .= '_' . $transaction_details['payment_status'];
+			}
+
+			if ( isset( $transaction_details['ipn_track_id'] ) ) {
+				$ipn_transaction_id .= '_' . $transaction_details['ipn_track_id'];
+			}
+
+			if ( in_array( $ipn_transaction_id, $handled_transactions ) ) {
+				WC_Gateway_Paypal::log( 'Subscription IPN Error: transaction ' . $ipn_transaction_id . ' has already been correctly handled.' );
 				exit;
 			}
 
 			// Make sure we're not in the process of handling this IPN request on a server under extreme load and therefore, taking more than a minute to process it (which is the amount of time PayPal allows before resending the IPN request)
-			$ipn_lock_transient_name = 'wcs_pp_' . $ipn_id; // transient names need to be less than 45 characters and the $ipn_id will be around 30 characters, e.g. subscr_payment_5ab4c38e1f39d
+			$ipn_lock_transient_name = 'wcs_pp_' . md5( $ipn_transaction_id ); // transient names need to be less than 45 characters and the $ipn_id will be long, e.g. 34292625HU746553V_subscr_payment_completed_5ab4c38e1f39d, so md5
 
 			if ( 'in-progress' == get_transient( $ipn_lock_transient_name ) && 'recurring_payment_suspended_due_to_max_failed_payment' !== $transaction_details['txn_type'] ) {
 
-				WC_Gateway_Paypal::log( 'Subscription IPN Error: an older IPN request with ID ' . $ipn_id . ' is still in progress.' );
+				WC_Gateway_Paypal::log( 'Subscription IPN Error: an older IPN request with ID ' . $ipn_transaction_id . ' is still in progress.' );
 
 				// We need to send an error code to make sure PayPal does retry the IPN after our lock expires, in case something is actually going wrong and the server isn't just taking a long time to process the request
 				status_header( 503 );
@@ -134,33 +147,6 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 
 			// Set a transient to block IPNs with this transaction ID for the next 4 days (An IPN message may be present in PayPal up to 4 days after the original was sent)
 			set_transient( $ipn_lock_transient_name, 'in-progress', apply_filters( 'woocommerce_subscriptions_paypal_ipn_request_lock_time', 4 * DAY_IN_SECONDS ) );
-
-		}
-
-		if ( isset( $transaction_details['txn_id'] ) ) {
-
-			// Make sure the IPN request has not already been handled
-			$handled_transactions = get_post_meta( $subscription->get_id(), '_paypal_transaction_ids', true );
-
-			if ( empty( $handled_transactions ) ) {
-				$handled_transactions = array();
-			}
-
-			$transaction_id = $transaction_details['txn_id'];
-
-			if ( isset( $transaction_details['txn_type'] ) ) {
-				$transaction_id .= '_' . $transaction_details['txn_type'];
-			}
-
-			// The same transaction ID is used for different payment statuses, so make sure we handle it only once. See: http://stackoverflow.com/questions/9240235/paypal-ipn-unique-identifier
-			if ( isset( $transaction_details['payment_status'] ) ) {
-				$transaction_id .= '_' . $transaction_details['payment_status'];
-			}
-
-			if ( in_array( $transaction_id, $handled_transactions ) ) {
-				WC_Gateway_Paypal::log( 'Subscription IPN Error: transaction ' . $transaction_id . ' has already been correctly handled.' );
-				exit;
-			}
 		}
 
 		$is_renewal_sign_up_after_failure = false;
@@ -491,14 +477,9 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 		}
 
 		// Store the transaction IDs to avoid handling requests duplicated by PayPal
-		if ( isset( $transaction_details['ipn_track_id'] ) ) {
-			$handled_ipn_requests[] = $ipn_id;
-			update_post_meta( $subscription->get_id(), '_paypal_ipn_tracking_ids', $handled_ipn_requests );
-		}
-
 		if ( isset( $transaction_details['txn_id'] ) ) {
-			$handled_transactions[] = $transaction_id;
-			update_post_meta( $subscription->get_id(), '_paypal_transaction_ids', $handled_transactions );
+			$handled_transactions[] = $ipn_transaction_id;
+			update_post_meta( $subscription->get_id(), '_paypal_ipn_tracking_ids', $handled_transactions );
 		}
 
 		// And delete the transient that's preventing other IPN's being processed

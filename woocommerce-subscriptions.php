@@ -5,7 +5,7 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: http://prospress.com/
- * Version: 2.2.4
+ * Version: 2.2.7
  *
  * Copyright 2016 Prospress, Inc.  (email : freedoms@prospress.com)
  *
@@ -126,7 +126,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.2.4';
+	public static $version = '2.2.7';
 
 	private static $total_subscription_count = null;
 
@@ -721,6 +721,8 @@ class WC_Subscriptions {
 
 		require_once( 'includes/class-wcs-user-change-status-handler.php' );
 
+		require_once( 'includes/class-wcs-my-account-payment-methods.php' );
+
 		if ( self::is_woocommerce_pre( '3.0' ) ) {
 
 			require_once( 'includes/legacy/class-wc-subscription-legacy.php' );
@@ -737,10 +739,8 @@ class WC_Subscriptions {
 			if ( ! class_exists( 'WC_DateTime' ) ) {
 				require_once( 'includes/libraries/class-wc-datetime.php' );
 			}
-
 		} else {
-
-			require_once( 'includes/class-wc-order-item-pending-switch.php');
+			require_once( 'includes/class-wc-order-item-pending-switch.php' );
 
 			require_once( 'includes/data-stores/class-wcs-subscription-data-store-cpt.php' );
 

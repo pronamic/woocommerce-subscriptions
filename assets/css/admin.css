@@ -192,6 +192,11 @@ a.close-subscriptions-search {
 	margin: 0;
 }
 
+.subscription_pricing ._subscription_price_field input[type=text],
+.subscription_pricing ._subscription_trial_length_field input[type=text] {
+	padding: 4px;
+}
+
 #woocommerce-product-data .wc-metaboxes-wrapper .wc-metabox table td p._subscription_trial_period_field select {
 	margin-left: 5px;
 }
@@ -226,6 +231,14 @@ a.close-subscriptions-search {
 .wc-metaboxes-wrapper .wc_input_subscription_payment_sync_month {
 	padding: 4px 6px;
 	height: 31px;
+}
+
+.variable_subscription_trial .form-row input[type=text],
+.variable_subscription_pricing .form-row input[type=text],
+.variable_subscription_trial .form-row select,
+.variable_subscription_pricing .form-row select {
+	margin: 2px 0 0;
+	padding: 6px;
 }
 
 /* Variation Pricing Fields in WooCommerce 2.3+ */

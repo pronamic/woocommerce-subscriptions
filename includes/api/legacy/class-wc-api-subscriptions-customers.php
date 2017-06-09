@@ -66,16 +66,22 @@ class WC_API_Subscriptions_Customers extends WC_API_Customers {
 		if ( is_wp_error( $id ) ) {
 			return $id;
 		}
-		$subscription_ids      = array();
-		$filter['customer_id'] = $id;
-		$subscriptions         = WC()->api->WC_API_Subscriptions->get_subscriptions( $fields, $filter, null, -1 );
+
+		$customer_subscriptions = $subscription_ids = array();
+		$filter['customer_id']  = $id;
+		$subscriptions          = WC()->api->WC_API_Subscriptions->get_subscriptions( $fields, $filter, null, -1 );
 
 		if ( ! empty( $subscriptions['subscriptions'] ) && is_array( $subscriptions['subscriptions'] ) ) {
 			foreach ( $subscriptions['subscriptions'] as $subscription ) {
-				$subscription_ids[] = $subscription['id'];
+				if ( isset( $subscription['billing_schedule']['interval'] ) ) { // make sure the interval is not a string to fully support backwards compat.
+					$subscription['billing_schedule']['interval'] = intval( $subscription['billing_schedule']['interval'] );
+				}
+
+				$customer_subscriptions[] = array( 'subscription' => $subscription );
+				$subscription_ids[]       = $subscription['id'];
 			}
 		}
 
-		return array( 'customer_subscriptions' => apply_filters( 'wc_subscriptions_api_customer_subscriptions', $subscriptions, $id, $fields, $subscription_ids, $this->server ) );
+		return array( 'customer_subscriptions' => apply_filters( 'wc_subscriptions_api_customer_subscriptions', $customer_subscriptions, $id, $fields, $subscription_ids, $this->server ) );
 	}
 }

@@ -64,8 +64,7 @@ class WCS_Upgrade_1_2 {
 			$sign_up_fee_total = WC_Subscriptions_Order::get_meta( $order, '_sign_up_fee_total', 0 );
 
 			// Create recurring_* meta data from existing cart totals
-
-			$cart_discount = $order->get_cart_discount();
+			$cart_discount = $order->get_total_discount();
 			update_post_meta( $order_id, '_order_recurring_discount_cart', $cart_discount );
 
 			$order_discount = $order->get_order_discount();

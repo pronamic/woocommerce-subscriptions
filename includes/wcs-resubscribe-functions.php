@@ -22,8 +22,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function wcs_order_contains_resubscribe( $order ) {
 
-	if ( ! is_object( $order ) ) {
-		$order = new WC_Order( $order );
+	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
+		$order = wc_get_order( $order );
 	}
 
 	if ( wcs_get_objects_property( $order, 'subscription_resubscribe' ) ) {
@@ -138,7 +138,7 @@ function wcs_cart_contains_resubscribe( $cart = '' ) {
  */
 function wcs_get_subscriptions_for_resubscribe_order( $order ) {
 
-	if ( ! is_object( $order ) ) {
+	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
 		$order = wc_get_order( $order );
 	}
 

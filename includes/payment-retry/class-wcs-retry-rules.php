@@ -89,13 +89,11 @@ class WCS_Retry_Rules {
 
 		$rule = null;
 
-		if ( isset( $this->default_retry_rules[ $retry_number ] ) ) {
+		$rule_array = ( isset( $this->default_retry_rules[ $retry_number ] ) ) ? $this->default_retry_rules[ $retry_number ] : array();
+		$rule_array = apply_filters( 'wcs_get_retry_rule_raw', $rule_array, $retry_number, $order_id );
 
-			$rule_array = apply_filters( 'wcs_get_retry_rule_raw', $this->default_retry_rules[ $retry_number ], $retry_number, $order_id );
-
-			if ( ! empty( $rule_array ) ) {
-				$rule = new $this->retry_rule_class( $rule_array );
-			}
+		if ( ! empty( $rule_array ) ) {
+			$rule = new $this->retry_rule_class( $rule_array );
 		}
 
 		return apply_filters( 'wcs_get_retry_rule', $rule, $retry_number, $order_id );

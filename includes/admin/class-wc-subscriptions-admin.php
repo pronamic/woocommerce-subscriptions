@@ -84,7 +84,7 @@ class WC_Subscriptions_Admin {
 
 		// Save variable subscription meta
 		add_action( 'woocommerce_process_product_meta_variable-subscription', __CLASS__ . '::process_product_meta_variable_subscription' );
-		add_action( 'woocommerce_ajax_save_product_variations', __CLASS__ . '::process_product_meta_variable_subscription' );
+		add_action( 'woocommerce_save_product_variation',  __CLASS__ . '::save_product_variation', 20, 2 );
 
 		add_action( 'woocommerce_subscription_pre_update_status', __CLASS__ . '::check_customer_is_set', 10, 3 );
 
@@ -122,6 +122,11 @@ class WC_Subscriptions_Admin {
 		add_filter( 'woocommerce_get_formatted_order_total', __CLASS__ . '::maybe_remove_formatted_order_total_filter', 0, 2 );
 
 		add_action( 'woocommerce_payment_gateways_settings', __CLASS__ . '::add_recurring_payment_gateway_information', 10 , 1 );
+
+		// Change text for when order items cannot be edited
+		add_action( 'woocommerce_admin_order_totals_after_refunded', __CLASS__ . '::maybe_attach_gettext_callback', 10, 1 );
+		// Unhook gettext callback to prevent extra call impact
+		add_action( 'woocommerce_order_item_add_action_buttons', __CLASS__ . '::maybe_unattach_gettext_callback', 10, 1 );
 	}
 
 	/**
@@ -205,7 +210,7 @@ class WC_Subscriptions_Admin {
 		?><p class="form-field _subscription_price_fields _subscription_price_field">
 			<label for="_subscription_price"><?php printf( esc_html__( 'Subscription price (%s)', 'woocommerce-subscriptions' ), esc_html( get_woocommerce_currency_symbol() ) ); ?></label>
 			<span class="wrap">
-				<input type="text" id="_subscription_price" name="_subscription_price" class="wc_input_subscription_price" placeholder="<?php echo esc_attr_x( 'e.g. 5.90', 'example price', 'woocommerce-subscriptions' ); ?>" step="any" min="0" value="<?php echo esc_attr( $chosen_price ); ?>" />
+				<input type="text" id="_subscription_price" name="_subscription_price" class="wc_input_price wc_input_subscription_price" placeholder="<?php echo esc_attr_x( 'e.g. 5.90', 'example price', 'woocommerce-subscriptions' ); ?>" step="any" min="0" value="<?php echo esc_attr( $chosen_price ); ?>" />
 				<label for="_subscription_period_interval" class="wcs_hidden_label"><?php esc_html_e( 'Subscription interval', 'woocommerce-subscriptions' ); ?></label>
 				<select id="_subscription_period_interval" name="_subscription_period_interval" class="wc_input_subscription_period_interval">
 				<?php foreach ( wcs_get_subscription_period_interval_strings() as $value => $label ) { ?>
@@ -236,7 +241,7 @@ class WC_Subscriptions_Admin {
 		// Sign-up Fee
 		woocommerce_wp_text_input( array(
 			'id'          => '_subscription_sign_up_fee',
-			'class'       => 'wc_input_subscription_intial_price short',
+			'class'       => 'wc_input_subscription_intial_price wc_input_price  short',
 			// translators: %s is a currency symbol / code
 			'label'       => sprintf( __( 'Sign-up fee (%s)', 'woocommerce-subscriptions' ), get_woocommerce_currency_symbol() ),
 			'placeholder' => _x( 'e.g. 9.90', 'example price', 'woocommerce-subscriptions' ),
@@ -576,74 +581,70 @@ class WC_Subscriptions_Admin {
 	 */
 	public static function process_product_meta_variable_subscription( $post_id ) {
 
-		if ( ! WC_Subscriptions_Product::is_subscription( $post_id ) || empty( $_POST['_wcsnonce_save_variations'] ) || ! wp_verify_nonce( $_POST['_wcsnonce_save_variations'], 'wcs_subscription_variations' ) ) {
+		if ( ! WC_Subscriptions_Product::is_subscription( $post_id ) || empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( $_POST['_wcsnonce'], 'wcs_subscription_meta' ) ) {
 			return;
 		}
 
 		// Make sure WooCommerce calculates correct prices
 		$_POST['variable_regular_price'] = isset( $_POST['variable_subscription_price'] ) ? $_POST['variable_subscription_price'] : 0;
 
-		if ( ! isset( $_REQUEST['variable_post_id'] ) ) {
-			return;
-		}
-
-		$variable_post_ids = $_POST['variable_post_id'];
-
-		$max_loop = max( array_keys( $variable_post_ids ) );
-
-		// Save each variations details
-		for ( $i = 0; $i <= $max_loop; $i ++ ) {
-
-			if ( ! isset( $variable_post_ids[ $i ] ) ) {
-				continue;
-			}
-
-			$variation_id = absint( $variable_post_ids[ $i ] );
-
-			if ( isset( $_POST['variable_subscription_price'] ) && is_array( $_POST['variable_subscription_price'] ) ) {
-				$subscription_price = wc_format_decimal( $_POST['variable_subscription_price'][ $i ] );
-				update_post_meta( $variation_id, '_subscription_price', $subscription_price );
-				update_post_meta( $variation_id, '_regular_price', $subscription_price );
-			}
-
-			// Make sure trial period is within allowable range
-			$subscription_ranges = wcs_get_subscription_ranges();
-
-			$max_trial_length = count( $subscription_ranges[ $_POST['variable_subscription_trial_period'][ $i ] ] ) - 1;
-
-			$_POST['variable_subscription_trial_length'][ $i ] = absint( $_POST['variable_subscription_trial_length'][ $i ] );
-
-			if ( $_POST['variable_subscription_trial_length'][ $i ] > $max_trial_length ) {
-				$_POST['variable_subscription_trial_length'][ $i ] = $max_trial_length;
-			}
-
-			// Work around a WPML bug which means 'variable_subscription_trial_period' is not set when using "Edit Product" as the product translation interface
-			if ( $_POST['variable_subscription_trial_length'][ $i ] < 0 ) {
-				$_POST['variable_subscription_trial_length'][ $i ] = 0;
-			}
-
-			$subscription_fields = array(
-				'_subscription_sign_up_fee',
-				'_subscription_period',
-				'_subscription_period_interval',
-				'_subscription_length',
-				'_subscription_trial_period',
-				'_subscription_trial_length',
-			);
-
-			foreach ( $subscription_fields as $field_name ) {
-				if ( isset( $_POST[ 'variable' . $field_name ][ $i ] ) ) {
-					update_post_meta( $variation_id, $field_name, wc_clean( $_POST[ 'variable' . $field_name ][ $i ] ) );
-				}
-			}
-		}
-
-		// Now that all the variation's meta is saved, sync the min variation price
+		// Sync the min variation price
 		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
 			$variable_subscription = wc_get_product( $post_id );
 			$variable_subscription->variable_product_sync();
 		} else {
 			WC_Product_Variable::sync( $post_id );
+		}
+	}
+
+	/**
+	 * Save meta info for subscription variations
+	 *
+	 * @param int $variation_id
+	 * @param int $i
+	 * return void
+	 * @since 2.0
+	 */
+	public static function save_product_variation( $variation_id, $index ) {
+
+		if ( ! WC_Subscriptions_Product::is_subscription( $variation_id ) || empty( $_POST['_wcsnonce_save_variations'] ) || ! wp_verify_nonce( $_POST['_wcsnonce_save_variations'], 'wcs_subscription_variations' ) ) {
+			return;
+		}
+
+		if ( isset( $_POST['variable_subscription_price'][ $index ] ) ) {
+			$subscription_price = wc_format_decimal( $_POST['variable_subscription_price'][ $index ] );
+			update_post_meta( $variation_id, '_subscription_price', $subscription_price );
+			update_post_meta( $variation_id, '_regular_price', $subscription_price );
+		}
+
+		// Make sure trial period is within allowable range
+		$subscription_ranges = wcs_get_subscription_ranges();
+		$max_trial_length    = count( $subscription_ranges[ $_POST['variable_subscription_trial_period'][ $index ] ] ) - 1;
+
+		$_POST['variable_subscription_trial_length'][ $index ] = absint( $_POST['variable_subscription_trial_length'][ $index ] );
+
+		if ( $_POST['variable_subscription_trial_length'][ $index ] > $max_trial_length ) {
+			$_POST['variable_subscription_trial_length'][ $index ] = $max_trial_length;
+		}
+
+		// Work around a WPML bug which means 'variable_subscription_trial_period' is not set when using "Edit Product" as the product translation interface
+		if ( $_POST['variable_subscription_trial_length'][ $index ] < 0 ) {
+			$_POST['variable_subscription_trial_length'][ $index ] = 0;
+		}
+
+		$subscription_fields = array(
+			'_subscription_sign_up_fee',
+			'_subscription_period',
+			'_subscription_period_interval',
+			'_subscription_length',
+			'_subscription_trial_period',
+			'_subscription_trial_length',
+		);
+
+		foreach ( $subscription_fields as $field_name ) {
+			if ( isset( $_POST[ 'variable' . $field_name ][ $index ] ) ) {
+				update_post_meta( $variation_id, $field_name, wc_clean( $_POST[ 'variable' . $field_name ][ $index ] ) );
+			}
 		}
 	}
 
@@ -1516,6 +1517,57 @@ class WC_Subscriptions_Admin {
 		}
 
 		return $formatted_total;
+	}
+
+	/**
+	* Only attach the gettext callback when on admin shop subscription screen
+	*
+	* @since 2.2.7
+	*/
+	public static function maybe_attach_gettext_callback() {
+
+		$screen = get_current_screen();
+
+		if ( is_object( $screen ) && 'shop_subscription' == $screen->id ) {
+			add_filter( 'gettext', __CLASS__ . '::change_order_item_editable_text', 10, 3 );
+		}
+	}
+
+	/**
+	* Only unattach the gettext callback when it was attached
+	*
+	* @since 2.2.7
+	*/
+	public static function maybe_unattach_gettext_callback() {
+
+		$screen = get_current_screen();
+
+		if ( is_object( $screen ) && 'shop_subscription' == $screen->id ) {
+			remove_filter( 'gettext', __CLASS__ . '::change_order_item_editable_text', 10, 3 );
+		}
+	}
+
+
+	/**
+	* When subscription items not editable (such as due to the payment gateway not supporting modifications),
+	* change the text to explain why
+	*
+	* @since 2.2.7
+	*/
+	public static function change_order_item_editable_text( $translated_text, $text, $domain ) {
+
+		switch ( $text ) {
+
+			case 'This order is no longer editable.':
+				$translated_text = __( 'Subscription items can no longer be edited.', 'woocommerce-subscriptions' );
+				break;
+
+			case 'To edit this order change the status back to "Pending"':
+				$translated_text = __( 'This subscription is no longer editable because the payment gateway does not allow modification of recurring amounts.', 'woocommerce-subscriptions' );
+				break;
+		}
+
+		return $translated_text;
 	}
 
 	/**

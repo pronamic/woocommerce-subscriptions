@@ -259,4 +259,54 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 			return $return;
 		}
 	}
+
+	/**
+	 * Update subscription dates in the database.
+	 *
+	 * @param WC_Subscription $subscription
+	 * @return array The date properties saved to the database in the format: array( $prop_name => DateTime Object )
+	 * @since 2.2.6
+	 */
+	public function save_dates( $subscription ) {
+		$saved_dates    = array();
+		$changes        = $subscription->get_changes();
+		$date_meta_keys = array(
+			'_schedule_trial_end',
+			'_schedule_next_payment',
+			'_schedule_cancelled',
+			'_schedule_end',
+			'_schedule_payment_retry',
+		);
+
+		$date_meta_keys_to_props = array_intersect_key( $this->subscription_meta_keys_to_props, array_flip( $date_meta_keys ) );
+
+		// Save the changes to scheduled dates
+		foreach ( $this->get_props_to_update( $subscription, $date_meta_keys_to_props ) as $meta_key => $prop ) {
+			update_post_meta( $subscription->get_id(), $meta_key, $subscription->get_date( $prop ) );
+			$saved_dates[ $prop ] = wcs_get_datetime_from( $subscription->get_time( $prop ) );
+		}
+
+		$post_data = array();
+
+		// Save any changes to the created date
+		if ( isset( $changes['date_created'] ) ) {
+			$post_data['post_date']      = gmdate( 'Y-m-d H:i:s', $subscription->get_date_created( 'edit' )->getOffsetTimestamp() );
+			$post_data['post_date_gmt']  = gmdate( 'Y-m-d H:i:s', $subscription->get_date_created( 'edit' )->getTimestamp() );
+			$saved_dates['date_created'] = $subscription->get_date_created();
+		}
+
+		// Save any changes to the modified date
+		if ( isset( $changes['date_modified'] ) ) {
+			$post_data['post_modified']     = gmdate( 'Y-m-d H:i:s', $subscription->get_date_modified( 'edit' )->getOffsetTimestamp() );
+			$post_data['post_modified_gmt'] = gmdate( 'Y-m-d H:i:s', $subscription->get_date_modified( 'edit' )->getTimestamp() );
+			$saved_dates['date_modified']   = $subscription->get_date_modified();
+		}
+
+		if ( ! empty( $post_data ) ) {
+			$post_data['ID'] = $subscription->get_id();
+			wp_update_post( $post_data );
+		}
+
+		return $saved_dates;
+	}
 }

@@ -539,7 +539,8 @@ class WC_Subscription_Legacy extends WC_Subscription {
 	public function set_status( $new_status, $note = '', $manual_update = false ) {
 
 		$old_status = $this->get_status();
-		$new_status = 'wc-' === substr( $new_status, 0, 3 ) ? substr( $new_status, 3 ) : $new_status;
+		$prefix     = substr( $new_status, 0, 3 );
+		$new_status = 'wc-' === $prefix ? substr( $new_status, 3 ) : $new_status;
 
 		wp_update_post( array( 'ID' => $this->get_id(), 'post_status' => wcs_maybe_prefix_key( $new_status, 'wc-' ) ) );
 		$this->post_status = $this->post->post_status = wcs_maybe_prefix_key( $new_status, 'wc-' );
@@ -745,5 +746,15 @@ class WC_Subscription_Legacy extends WC_Subscription {
 		} else {
 			update_post_meta( $this->get_id(), $key, $value );
 		}
+	}
+
+	/**
+	 * Save subscription date changes to the database.
+	 * Nothing to do here as all date properties are saved when calling @see $this->set_prop().
+	 *
+	 * @since 2.2.6
+	 */
+	public function save_dates() {
+		// Nothing to do here.
 	}
 }

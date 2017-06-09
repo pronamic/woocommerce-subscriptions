@@ -181,7 +181,7 @@ function wcs_cart_totals_shipping_method_price_label( $method, $cart ) {
 				$price_label .= ' <small>' . WC()->countries->inc_tax_or_vat() . '</small>';
 			}
 		}
-	} else {
+	} elseif ( ! empty( $cart->recurring_cart_key ) ) {
 		$price_label .= _x( 'Free', 'shipping method price', 'woocommerce-subscriptions' );
 	}
 
