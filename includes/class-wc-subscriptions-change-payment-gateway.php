@@ -81,7 +81,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 		} else {
 
 			// If we're changing the payment method, we want to make sure a number of totals return $0 (to prevent payments being processed now)
-			add_filter( 'woocommerce_order_get_total', __CLASS__ . '::maybe_zero_total', 11, 2 );
+			add_filter( 'woocommerce_subscription_get_total', __CLASS__ . '::maybe_zero_total', 11, 2 );
 
 		}
 	}

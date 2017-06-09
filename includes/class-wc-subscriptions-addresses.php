@@ -154,8 +154,12 @@ class WC_Subscriptions_Addresses {
 			$subscription = wcs_get_subscription( absint( $_GET['subscription'] ) );
 
 			foreach ( array_keys( $address ) as $key ) {
-				$function_name            = 'get_' . $key;
-				$address[ $key ]['value'] = $subscription->$function_name();
+
+				$function_name = 'get_' . $key;
+
+				if ( is_callable( array( $subscription, $function_name ) ) ) {
+					$address[ $key ]['value'] = $subscription->$function_name();
+				}
 			}
 		}
 

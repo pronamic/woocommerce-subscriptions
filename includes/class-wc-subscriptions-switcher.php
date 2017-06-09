@@ -970,17 +970,16 @@ class WC_Subscriptions_Switcher {
 
 			// Select the subscriptions which had item/s switched to this subscription by its parent order
 			if ( ! empty( $post->post_parent ) ) {
-				$switched_ids = wcs_get_objects_property( wc_get_order( $post->post_parent ), 'subscription_switch', 'multiple' );
+				$switched_subscriptions = wcs_get_subscriptions_for_switch_order( $post->post_parent );
 			}
 
 		// On the Edit Order screen, show any subscriptions with items switched by this order
 		} else {
-			$switched_ids = wcs_get_objects_property( wc_get_order( $post->ID ), 'subscription_switch', 'multiple' );
+			$switched_subscriptions = wcs_get_subscriptions_for_switch_order( $post->ID );
 		}
 
-		if ( is_array( $switched_ids ) ) {
-			foreach ( $switched_ids as $subscription_id ) {
-				$subscription = wcs_get_subscription( $subscription_id );
+		if ( is_array( $switched_subscriptions ) ) {
+			foreach ( $switched_subscriptions as $subscription_id => $subscription ) {
 				wcs_set_objects_property( $subscription, 'relationship', __( 'Switched Subscription', 'woocommerce-subscriptions' ), 'set_prop_only' );
 				$orders[ $subscription_id ] = $subscription;
 			}

@@ -355,7 +355,7 @@ function wcs_validate_new_order_type( $type ) {
  * @return array
  */
 function wcs_get_order_address( $order, $address_type = 'shipping' ) {
-	if ( ! is_object( $order ) ) {
+	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
 		return array();
 	}
 
@@ -405,8 +405,8 @@ function wcs_order_contains_subscription( $order, $order_type = array( 'parent',
 		$order_type = array( $order_type );
 	}
 
-	if ( ! is_object( $order ) ) {
-		$order = new WC_Order( $order );
+	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
+		$order = wc_get_order( $order );
 	}
 
 	$contains_subscription = false;

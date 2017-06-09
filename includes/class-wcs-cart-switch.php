@@ -28,6 +28,19 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal {
 	}
 
 	/**
+	 * Attach WooCommerce version dependent hooks
+	 *
+	 * @since 2.2.0
+	 */
+	public function attach_dependant_hooks() {
+		parent::attach_dependant_hooks();
+
+		// Remove version dependent callbacks which don't apply to switch carts
+		remove_filter( 'woocommerce_checkout_update_customer_data', array( &$this, 'maybe_update_subscription_customer_data' ), 10 );
+		remove_filter( 'woocommerce_checkout_update_user_meta', array( &$this, 'maybe_update_subscription_address_data' ), 10 );
+	}
+
+	/**
 	 * Add flag to payment url for failed/ pending switch orders.
 	 *
 	 * @since 2.1

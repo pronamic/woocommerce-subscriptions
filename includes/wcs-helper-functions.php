@@ -179,9 +179,9 @@ function wcs_maybe_prefix_key( $key, $prefix = '_' ) {
  */
 function wcs_get_calling_function_name() {
 
-	$backtrace         = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 3 );
+	$backtrace         = version_compare( phpversion(), '5.4.0', '>=' ) ? debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 3 ) : debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ); // the 2nd param for debug_backtrace() was added in PHP 5.4
 	$calling_function  = isset( $backtrace[2]['class'] ) ? $backtrace[2]['class'] : '';
-	$calling_function .= isset( $backtrace[2]['type'] ) ? $backtrace[2]['type'] : '';
+	$calling_function .= isset( $backtrace[2]['type'] ) ? ( ( '->' == $backtrace[2]['type'] ) ? '::' : $backtrace[2]['type'] ) : ''; // Ternary abuses
 	$calling_function .= isset( $backtrace[2]['function'] ) ? $backtrace[2]['function'] : '';
 
 	return $calling_function;

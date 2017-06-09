@@ -109,7 +109,7 @@ class WCS_Change_Payment_Method_Admin {
 
 		$valid_payment_methods = self::get_valid_payment_methods( $subscription );
 
-		if ( ! isset( $valid_payment_methods[ $payment_method ] ) ) {
+		if ( ! isset( $valid_payment_methods[ $payment_method ] ) && ! ( isset( $payment_gateways[ $payment_method ] ) && $subscription->get_payment_method() == $payment_gateways[ $payment_method ]->id ) ) {
 			throw new Exception( __( 'Please choose a valid payment gateway to change to.', 'woocommerce-subscriptions' ) );
 		}
 

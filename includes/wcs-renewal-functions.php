@@ -45,7 +45,7 @@ function wcs_create_renewal_order( $subscription ) {
  */
 function wcs_order_contains_renewal( $order ) {
 
-	if ( ! is_object( $order ) ) {
+	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
 		$order = wc_get_order( $order );
 	}
 
@@ -111,14 +111,14 @@ function wcs_cart_contains_failed_renewal_order_payment() {
  */
 function wcs_get_subscriptions_for_renewal_order( $order ) {
 
-	if ( ! is_object( $order ) ) {
+	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
 		$order = wc_get_order( $order );
 	}
 
 	$subscriptions = array();
 
 	// Only use the order if we actually found a valid order object
-	if ( is_object( $order ) ) {
+	if ( is_a( $order, 'WC_Abstract_Order' ) ) {
 		$subscription_ids = wcs_get_objects_property( $order, 'subscription_renewal', 'multiple' );
 
 		foreach ( $subscription_ids as $subscription_id ) {

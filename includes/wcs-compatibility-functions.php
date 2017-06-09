@@ -195,7 +195,7 @@ function wcs_get_objects_property( $object, $property, $single = 'single', $defa
 					}
 				} elseif ( 'single' === $single && isset( $object->$property ) ) { // WC < 3.0
 					$value = $object->$property;
-				} elseif ( metadata_exists( 'post', wcs_get_objects_property( $object, 'id' ), $prefixed_key ) ) {
+				} elseif ( strtolower( $property ) !== 'id' && metadata_exists( 'post', wcs_get_objects_property( $object, 'id' ), $prefixed_key ) ) {
 					// If we couldn't find a property or function, fallback to using post meta as that's what many __get() methods in WC < 3.0 did
 					if ( 'single' === $single ) {
 						$value = get_post_meta( wcs_get_objects_property( $object, 'id' ), $prefixed_key, true );
@@ -344,7 +344,7 @@ function wcs_is_order( $order ) {
 	if ( method_exists( $order, 'get_type' ) ) {
 		$is_order = ( 'shop_order' === $order->get_type() );
 	} else {
-		$is_order = ( 'simple' === $order->order_type );
+		$is_order = ( isset( $order->order_type ) && 'simple' === $order->order_type );
 	}
 
 	return $is_order;
@@ -451,6 +451,7 @@ function wcs_get_coupon_property( $coupon, $property ) {
 			'exclude_product_categories' => 'get_excluded_product_categories',
 			'customer_email'             => 'get_email_restrictions',
 			'enable_free_shipping'       => 'get_free_shipping',
+			'coupon_amount'              => 'get_amount',
 		);
 
 		switch ( true ) {
@@ -493,6 +494,7 @@ function wcs_set_coupon_property( &$coupon, $property, $value ) {
 			'exclude_product_categories' => 'set_excluded_product_categories',
 			'customer_email'             => 'set_email_restrictions',
 			'enable_free_shipping'       => 'set_free_shipping',
+			'coupon_amount'              => 'set_amount',
 		);
 
 		switch ( true ) {

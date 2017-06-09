@@ -356,6 +356,16 @@ jQuery(document).ready(function($){
 
 			$( '#_subscription_one_time_shipping' ).prop( 'disabled', is_synced_or_has_trial );
 		},
+		showHideSubscriptionsPanels: function() {
+			var tab = $( 'div.panel-wrap' ).find( 'ul.wc-tabs li' ).eq( 0 ).find( 'a' );
+			var panel = tab.attr( 'href' );
+			var visible = $( panel ).children( '.options_group' ).filter( function() {
+				return 'none' != $( this ).css( 'display' );
+			});
+			if ( 0 != visible.length ) {
+				tab.click().parent().show();
+			}
+		},
 	});
 
 	$('.options_group.pricing ._sale_price_field .description').prepend('<span id="sale-price-period" style="display: none;"></span>');
@@ -363,7 +373,6 @@ jQuery(document).ready(function($){
 	// Move the subscription pricing section to the same location as the normal pricing section
 	$('.options_group.subscription_pricing').not('.variable_subscription_pricing .options_group.subscription_pricing').insertBefore($('.options_group.pricing:first'));
 	$('.show_if_subscription.clear').insertAfter($('.options_group.subscription_pricing'));
-	$( '.show_if_variable' ).addClass( 'show_if_variable-subscription' );
 
 	// Move the subscription variation pricing section to a better location in the DOM on load
 	if($('#variable_product_options .variable_subscription_pricing').length > 0) {
@@ -385,6 +394,7 @@ jQuery(document).ready(function($){
 		$.setTrialPeriods();
 		$.showHideSyncOptions();
 		$.disableEnableOneTimeShipping();
+		$.showHideSubscriptionsPanels();
 	}
 
 	// Update subscription ranges when subscription period or interval is changed
@@ -404,6 +414,7 @@ jQuery(document).ready(function($){
 		$.showHideSubscriptionMeta();
 		$.showHideVariableSubscriptionMeta();
 		$.showHideSyncOptions();
+		$.showHideSubscriptionsPanels();
 	});
 
 	$('input#_downloadable, input#_virtual').change(function(){

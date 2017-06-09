@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		// Subscription Price
 		woocommerce_wp_text_input( array(
 			'id'            => 'variable_subscription_price[' . $loop . ']',
-			'class'         => 'wc_input_subscription_price',
+			'class'         => 'wc_input_subscription_price wc_input_price',
 			'wrapper_class' => '_subscription_price_field',
 			// translators: placeholder is a currency symbol / code
 			'label'         => sprintf( __( 'Subscription Price (%s)', 'woocommerce-subscriptions' ), get_woocommerce_currency_symbol() ),

@@ -694,7 +694,16 @@ class WC_API_Subscriptions extends WC_API_Orders {
 			$query_args['post_status'] = $statuses;
 
 			unset( $args['status'] );
+		}
 
+		if ( ! empty( $args['customer_id'] ) ) {
+			$query_args['meta_query'] = array(
+				array(
+					'key'     => '_customer_user',
+					'value'   => absint( $args['customer_id'] ),
+					'compare' => '=',
+				),
+			);
 		}
 
 		$query_args = $this->merge_query_args( $query_args, $args );
