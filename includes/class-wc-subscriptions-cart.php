@@ -665,7 +665,6 @@ class WC_Subscriptions_Cart {
 
 		if ( WC_Subscriptions_Product::is_subscription( $product ) && ! wcs_cart_contains_renewal() ) {
 
-
 			if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
 				$product_price_filter = 'woocommerce_get_price';
 			} else {

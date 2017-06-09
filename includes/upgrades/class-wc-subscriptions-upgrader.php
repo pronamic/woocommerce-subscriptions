@@ -88,6 +88,8 @@ class WC_Subscriptions_Upgrader {
 
 		// Sometimes redirect to the Welcome/About page after an upgrade
 		add_action( 'woocommerce_subscriptions_upgraded', __CLASS__ . '::maybe_redirect_after_upgrade_complete', 100, 2 );
+
+		add_action( 'wcs_repair_end_of_prepaid_term_actions', __CLASS__ . '::repair_end_of_prepaid_term_actions' );
 	}
 
 	/**
@@ -182,6 +184,12 @@ class WC_Subscriptions_Upgrader {
 
 			// Schedule report cache updates in the hopes that the data is ready and waiting for the store owner the first time they visit the reports pages
 			do_action( 'woocommerce_subscriptions_reports_schedule_cache_updates' );
+		}
+
+		// Repair missing end_of_prepaid_term scheduled actions
+		if ( version_compare( self::$active_version, '2.2.0', '>=' ) && version_compare( self::$active_version, '2.2.7', '<' ) ) {
+			include_once( 'class-wcs-upgrade-2-2-7.php' );
+			WCS_Upgrade_2_2_7::schedule_end_of_prepaid_term_repair();
 		}
 
 		self::upgrade_complete();
@@ -728,6 +736,16 @@ class WC_Subscriptions_Upgrader {
 			WCS_Upgrade_Logger::add( '*** PayPal IPN Request blocked: ' . print_r( wp_unslash( $_POST ), true ) ); // No CSRF needed as it's from outside
 			wp_die( 'PayPal IPN Request Failure', 'PayPal IPN', array( 'response' => 409 ) );
 		}
+	}
+
+	/**
+	 * Run the end of prepaid term repair script.
+	 *
+	 * @since 2.2.7
+	 */
+	public static function repair_end_of_prepaid_term_actions() {
+		include_once( 'class-wcs-upgrade-2-2-7.php' );
+		WCS_Upgrade_2_2_7::repair_pending_cancelled_subscriptions();
 	}
 
 	/**

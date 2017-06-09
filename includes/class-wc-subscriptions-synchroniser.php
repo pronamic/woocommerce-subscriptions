@@ -64,7 +64,7 @@ class WC_Subscriptions_Synchroniser {
 
 		// Save sync options when a variable subscription product is saved
 		add_action( 'woocommerce_process_product_meta_variable-subscription', __CLASS__ . '::process_product_meta_variable_subscription' );
-		add_action( 'woocommerce_ajax_save_product_variations', __CLASS__ . '::process_product_meta_variable_subscription' );
+		add_action( 'woocommerce_save_product_variation',  __CLASS__ . '::save_product_variation', 20, 2 );
 
 		// Make sure the expiration dates are calculated from the synced start date
 		add_filter( 'woocommerce_subscriptions_product_trial_expiration_date', __CLASS__ . '::recalculate_product_trial_expiration_date', 10, 2 );
@@ -331,43 +331,36 @@ class WC_Subscriptions_Synchroniser {
 			return;
 		}
 
-		$variable_post_ids = $_POST['variable_post_id'];
-
-		$max_loop = max( array_keys( $variable_post_ids ) );
-
 		// Make sure the parent product doesn't have a sync value (in case it was once a simple subscription)
 		update_post_meta( $post_id, self::$post_meta_key, 0 );
+	}
+
+	/**
+	 * Save sync options when a variable subscription product is saved
+	 *
+	 * @since 1.5
+	 */
+	public static function save_product_variation( $variation_id, $index ) {
+
+		if ( empty( $_POST['_wcsnonce_save_variations'] ) || ! wp_verify_nonce( $_POST['_wcsnonce_save_variations'], 'wcs_subscription_variations' ) || ! isset( $_POST['variable_post_id'] ) || ! is_array( $_POST['variable_post_id'] ) ) {
+			return;
+		}
 
 		$day_field   = 'variable' . self::$post_meta_key_day;
 		$month_field = 'variable' . self::$post_meta_key_month;
 
-		// Save each variations details
-		for ( $i = 0; $i <= $max_loop; $i ++ ) {
+		if ( 'year' == $_POST['variable_subscription_period'][ $index ] ) { // save the day & month for the date rather than just the day
 
-			if ( ! isset( $variable_post_ids[ $i ] ) ) {
-				continue;
-			}
+			$_POST[ 'variable' . self::$post_meta_key ][ $index ] = array(
+				'day'    => isset( $_POST[ $day_field ][ $index ] ) ? $_POST[ $day_field ][ $index ] : 0,
+				'month'  => isset( $_POST[ $month_field ][ $index ] ) ? $_POST[ $month_field ][ $index ] : 0,
+			);
 
-			$variation_id = absint( $variable_post_ids[ $i ] );
-
-			if ( 'year' == $_POST['variable_subscription_period'][ $i ] ) { // save the day & month for the date rather than just the day
-
-				$_POST[ 'variable' . self::$post_meta_key ][ $i ] = array(
-					'day'    => isset( $_POST[ $day_field ][ $i ] ) ? $_POST[ $day_field ][ $i ] : 0,
-					'month'  => isset( $_POST[ $month_field ][ $i ] ) ? $_POST[ $month_field ][ $i ] : 0,
-				);
-
-			} else {
-
-				if ( ! isset( $_POST[ 'variable' . self::$post_meta_key ][ $i ] ) ) {
-					$_POST[ 'variable' . self::$post_meta_key ][ $i ] = 0;
-				}
-			}
-
-			if ( isset( $_POST[ 'variable' . self::$post_meta_key ][ $i ] ) ) {
-				update_post_meta( $variation_id, self::$post_meta_key, $_POST[ 'variable' . self::$post_meta_key ][ $i ] );
-			}
+		} elseif ( ! isset( $_POST[ 'variable' . self::$post_meta_key ][ $index ] ) ) {
+			$_POST[ 'variable' . self::$post_meta_key ][ $index ] = 0;
 		}
+
+		update_post_meta( $variation_id, self::$post_meta_key, $_POST[ 'variable' . self::$post_meta_key ][ $index ] );
 	}
 
 	/**
