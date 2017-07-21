@@ -64,7 +64,14 @@ function wcs_cart_totals_shipping_html() {
 				}
 
 				$chosen_initial_method   = isset( WC()->session->chosen_shipping_methods[ $i ] ) ? WC()->session->chosen_shipping_methods[ $i ] : '';
-				$chosen_recurring_method = isset( WC()->session->chosen_shipping_methods[ $recurring_cart_key . '_' . $i ] ) ? WC()->session->chosen_shipping_methods[ $recurring_cart_key . '_' . $i ] : $chosen_initial_method;
+
+				if ( isset( WC()->session->chosen_shipping_methods[ $recurring_cart_key . '_' . $i ] ) ) {
+					$chosen_recurring_method = WC()->session->chosen_shipping_methods[ $recurring_cart_key . '_' . $i ];
+				} elseif ( in_array( $chosen_initial_method, $package['rates'] ) ) {
+					$chosen_recurring_method = $chosen_initial_method;
+				} else {
+					$chosen_recurring_method = current( $package['rates'] )->id;
+				}
 
 				$shipping_selection_displayed = false;
 

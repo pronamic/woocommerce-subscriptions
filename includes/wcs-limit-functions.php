@@ -24,7 +24,7 @@ function wcs_get_product_limitation( $product ) {
 		$product = wc_get_product( $product );
 	}
 
-	return apply_filters( 'woocommerce_subscriptions_product_limitation', WC_Subscriptions_Product::get_meta_data( $product, 'subscription_limit', 0 ), $product );
+	return apply_filters( 'woocommerce_subscriptions_product_limitation', WC_Subscriptions_Product::get_meta_data( $product, 'subscription_limit', 'no', 'use_default_value' ), $product );
 }
 
 /**

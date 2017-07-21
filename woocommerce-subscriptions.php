@@ -5,9 +5,9 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: http://prospress.com/
- * Version: 2.2.7
+ * Version: 2.2.10
  *
- * Copyright 2016 Prospress, Inc.  (email : freedoms@prospress.com)
+ * Copyright 2017 Prospress, Inc.  (email : freedoms@prospress.com)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,7 +126,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.2.7';
+	public static $version = '2.2.10';
 
 	private static $total_subscription_count = null;
 
@@ -414,9 +414,12 @@ class WC_Subscriptions {
 
 			self::add_notice( __( 'A subscription has been removed from your cart. Products and subscriptions can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
 
-			// Redirect to cart page to remove subscription & notify shopper
-			add_filter( 'add_to_cart_fragments', __CLASS__ . '::redirect_ajax_add_to_cart' );
-
+			if ( WC_Subscriptions::is_woocommerce_pre( '3.0.8' ) ) {
+				// Redirect to cart page to remove subscription & notify shopper
+				add_filter( 'add_to_cart_fragments', __CLASS__ . '::redirect_ajax_add_to_cart' );
+			} else {
+				add_filter( 'woocommerce_add_to_cart_fragments', __CLASS__ . '::redirect_ajax_add_to_cart' );
+			}
 		}
 
 		return $valid;
@@ -973,7 +976,35 @@ class WC_Subscriptions {
 	 */
 	public static function is_duplicate_site() {
 
-		$is_duplicate = ( get_site_url() !== self::get_site_url() ) ? true : false;
+		if ( defined( 'WP_SITEURL' ) ) {
+			$site_url = WP_SITEURL;
+		} else {
+			$site_url = get_site_url();
+		}
+
+		$wp_site_url_parts  = wp_parse_url( $site_url );
+		$wcs_site_url_parts = wp_parse_url( self::get_site_url() );
+
+		if ( ! isset( $wp_site_url_parts['path'] ) && ! isset( $wcs_site_url_parts['path'] ) ) {
+			$paths_match = true;
+		} elseif ( isset( $wp_site_url_parts['path'] ) && isset( $wcs_site_url_parts['path'] ) && $wp_site_url_parts['path'] == $wcs_site_url_parts['path'] ) {
+			$paths_match = true;
+		} else {
+			$paths_match = false;
+		}
+
+		if ( isset( $wp_site_url_parts['host'] ) && isset( $wcs_site_url_parts['host'] ) && $wp_site_url_parts['host'] == $wcs_site_url_parts['host'] ) {
+			$hosts_match = true;
+		} else {
+			$hosts_match = false;
+		}
+
+		// Check the host and path, do not check the protocol/scheme to avoid issues with WP Engine and other occasions where the WP_SITEURL constant may be set, but being overridden (e.g. by FORCE_SSL_ADMIN)
+		if ( $paths_match && $hosts_match ) {
+			$is_duplicate = false;
+		} else {
+			$is_duplicate = true;
+		}
 
 		return apply_filters( 'woocommerce_subscriptions_is_duplicate_site', $is_duplicate );
 	}

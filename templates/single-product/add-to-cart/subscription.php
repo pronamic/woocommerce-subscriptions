@@ -20,11 +20,13 @@ if ( ! $product->is_purchasable() && ( ! is_user_logged_in() || 'no' == wcs_get_
 
 $user_id = get_current_user_id();
 
-// Availability
-$availability = $product->get_availability();
-
-if ( $availability['availability'] ) :
-	echo wp_kses_post( apply_filters( 'woocommerce_stock_html', '<p class="stock '.$availability['class'].'">'.$availability['availability'].'</p>', $availability['availability'] ) );
+if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) :
+	$availability = $product->get_availability();
+	if ( $availability['availability'] ) :
+		echo wp_kses_post( apply_filters( 'woocommerce_stock_html', '<p class="stock '.$availability['class'].'">'.$availability['availability'].'</p>', $availability['availability'] ) );
+	endif;
+else :
+	echo wp_kses_post( wc_get_stock_html( $product ) );
 endif;
 
 if ( ! $product->is_in_stock() ) : ?>

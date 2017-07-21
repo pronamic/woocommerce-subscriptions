@@ -111,9 +111,9 @@ wc_print_notices();
 						<td class="product-name">
 							<?php
 							if ( $_product && ! $_product->is_visible() ) {
-								echo esc_html( apply_filters( 'woocommerce_order_item_name', $item['name'], $item ) );
+								echo esc_html( apply_filters( 'woocommerce_order_item_name', $item['name'], $item, false ) );
 							} else {
-								echo wp_kses_post( apply_filters( 'woocommerce_order_item_name', sprintf( '<a href="%s">%s</a>', get_permalink( $item['product_id'] ), $item['name'] ), $item ) );
+								echo wp_kses_post( apply_filters( 'woocommerce_order_item_name', sprintf( '<a href="%s">%s</a>', get_permalink( $item['product_id'] ), $item['name'] ), $item, false ) );
 							}
 
 							echo wp_kses_post( apply_filters( 'woocommerce_order_item_quantity_html', ' <strong class="product-quantity">' . sprintf( '&times; %s', $item['qty'] ) . '</strong>', $item ) );

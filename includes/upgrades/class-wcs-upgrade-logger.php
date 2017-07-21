@@ -25,7 +25,7 @@ class WCS_Upgrade_Logger {
 
 	public static function init() {
 
-		add_action( 'woocommerce_subscriptions_upgraded', __CLASS__ . '::schedule_cleanup' );
+		add_action( 'woocommerce_subscriptions_upgraded', __CLASS__ . '::schedule_cleanup', 10, 2 );
 	}
 
 	/**
@@ -66,8 +66,9 @@ class WCS_Upgrade_Logger {
 	/**
 	 * Schedule a hook to automatically clear the log after 8 weeks
 	 */
-	public static function schedule_cleanup() {
-		self::add( sprintf( '%s upgrade complete.', WC_Subscriptions::$version ) );
+	public static function schedule_cleanup( $current_version, $old_version ) {
+		$wc_version = defined( 'WC_VERSION' ) ? WC_VERSION : 'undefined';
+		self::add( sprintf( '%s upgrade complete from Subscriptions v%s while WooCommerce WC_VERSION %s and database version %s was active.', $current_version, $old_version, $wc_version, get_option( 'woocommerce_db_version' ) ) );
 	}
 }
 WCS_Upgrade_Logger::init();

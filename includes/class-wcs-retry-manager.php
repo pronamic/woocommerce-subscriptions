@@ -55,6 +55,8 @@ class WCS_Retry_Manager {
 			add_action( 'woocommerce_subscription_renewal_payment_failed', __CLASS__ . '::maybe_apply_retry_rule', 10, 2 );
 
 			add_action( 'woocommerce_scheduled_subscription_payment_retry', __CLASS__ . '::maybe_retry_payment' );
+
+			add_filter( 'woocommerce_subscriptions_is_failed_renewal_order', __CLASS__ . '::compare_order_and_retry_statuses', 10, 3 );
 		}
 	}
 
@@ -322,6 +324,23 @@ class WCS_Retry_Manager {
 
 			do_action( 'woocommerce_subscriptions_after_payment_retry', $last_retry, $last_order );
 		}
+	}
+
+	/**
+	* Determines if a renewal order and the last retry statuses are the same (used to determine if a payment method
+	* change is needed)
+	*
+	* @since 2.2.8
+	*/
+	public static function compare_order_and_retry_statuses( $is_failed_order, $order_id, $order_status ) {
+
+		$last_retry = self::store()->get_last_retry_for_order( $order_id );
+
+		if ( null !== $last_retry && $order_status === $last_retry->get_rule()->get_status_to_apply( 'order' ) ) {
+			$is_failed_order = true;
+		}
+
+		return $is_failed_order;
 	}
 
 	/**

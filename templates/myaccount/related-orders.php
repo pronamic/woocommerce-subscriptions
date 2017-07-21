@@ -54,7 +54,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<td class="order-actions">
 					<?php $actions = array();
 
-					if ( in_array( $order->get_status(), apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'failed' ), $order ) ) ) {
+					if ( in_array( $order->get_status(), apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'failed' ), $order ) ) && wcs_get_objects_property( $order, 'id' ) == $subscription->get_last_order() ) {
 						$actions['pay'] = array(
 							'url'  => $order->get_checkout_payment_url(),
 							'name' => esc_html_x( 'Pay', 'pay for a subscription', 'woocommerce-subscriptions' ),
