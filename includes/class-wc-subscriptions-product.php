@@ -382,14 +382,25 @@ class WC_Subscriptions_Product {
 	}
 
 	/**
-	 * Returns the price per period for a product if it is a subscription.
+	 * Returns the active price per period for a product if it is a subscription.
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return float The price charged per period for the subscription, or an empty string if the product is not a subscription.
 	 * @since 1.0
 	 */
 	public static function get_price( $product ) {
-		return apply_filters( 'woocommerce_subscriptions_product_price', self::get_meta_data( $product, 'subscription_price', 0 ), self::maybe_get_product_instance( $product ) );
+
+		$product = self::maybe_get_product_instance( $product );
+
+		$subscription_price = self::get_meta_data( $product, 'subscription_price', 0 );
+		$sale_price         = self::get_sale_price( $product );
+		$active_price       = ( $subscription_price ) ? $subscription_price : self::get_regular_price( $product );
+
+		if ( $product->is_on_sale() && $subscription_price > $sale_price ) {
+			$active_price = $sale_price;
+		}
+
+		return apply_filters( 'woocommerce_subscriptions_product_price', $active_price, $product );
 	}
 
 	/**
@@ -1057,7 +1068,7 @@ class WC_Subscriptions_Product {
 		global $wpdb;
 		$parent_product_ids = array();
 
-		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) && $product->get_parent() ) {
 			$parent_product_ids[] = $product->get_parent();
 		} else {
 			$parent_product_ids = $wpdb->get_col( $wpdb->prepare(

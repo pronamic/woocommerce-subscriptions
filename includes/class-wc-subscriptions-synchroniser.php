@@ -1043,8 +1043,12 @@ class WC_Subscriptions_Synchroniser {
 	 * @since 2.2.3
 	 */
 	public static function maybe_add_meta_for_new_line_item( $item_id, $item, $subscription_id ) {
-		if ( is_callable( array( $item, 'get_product_id' ) ) && self::is_product_synced( $item->get_product_id() ) ) {
-			self::maybe_add_subscription_meta( $subscription_id );
+		if ( is_callable( array( $item, 'get_product_id' ) ) ) {
+			$product_id = wcs_get_canonical_product_id( $item );
+
+			if ( self::is_product_synced( $product_id ) ) {
+				self::maybe_add_subscription_meta( $subscription_id );
+			}
 		}
 	}
 

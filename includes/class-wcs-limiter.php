@@ -17,7 +17,7 @@ class WCS_Limiter {
 	public static function init() {
 
 		//Add limiting subscriptions options on edit product page
-		add_action( 'woocommerce_product_options_reviews', __CLASS__ . '::admin_edit_product_fields' );
+		add_action( 'woocommerce_product_options_advanced', __CLASS__ . '::admin_edit_product_fields' );
 
 		add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
 
@@ -37,7 +37,6 @@ class WCS_Limiter {
 	public static function admin_edit_product_fields() {
 		global $post;
 
-		echo '</div>';
 		echo '<div class="options_group limit_subscription show_if_subscription show_if_variable-subscription">';
 
 		// Only one Subscription per customer
@@ -52,6 +51,7 @@ class WCS_Limiter {
 				'any'     => __( 'Limit to one of any status', 'woocommerce-subscriptions' ),
 			),
 		) );
+		echo '</div>';
 
 		do_action( 'woocommerce_subscriptions_product_options_advanced' );
 	}
