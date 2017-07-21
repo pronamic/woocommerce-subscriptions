@@ -480,7 +480,6 @@ class WC_Subscription extends WC_Order {
 					case 'on-hold' :
 						// Record date of suspension - 'post_modified' column?
 						$this->set_suspension_count( $this->get_suspension_count() + 1 );
-						wcs_maybe_make_user_inactive( $this->get_user_id() );
 					break;
 					case 'cancelled' :
 					case 'switched' :
@@ -498,7 +497,6 @@ class WC_Subscription extends WC_Order {
 						}
 
 						$this->update_dates( $dates_to_update );
-						wcs_maybe_make_user_inactive( $this->get_user_id() );
 					break;
 				}
 
@@ -1790,7 +1788,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Get parent order object.
 	 *
-	 * @return int
+	 * @return WC_Order
 	 */
 	public function get_parent() {
 		return wc_get_order( $this->get_parent_id() );
@@ -2047,7 +2045,15 @@ class WC_Subscription extends WC_Order {
 	 * @return bool
 	 */
 	public function is_download_permitted() {
-		return apply_filters( 'woocommerce_order_is_download_permitted', ( $this->has_status( 'active' ) || $this->has_status( 'pending-cancel' ) ), $this );
+		$sending_email = did_action( 'woocommerce_email_before_order_table' ) > did_action( 'woocommerce_email_after_order_table' );
+		$is_download_permitted = $this->has_status( 'active' ) || $this->has_status( 'pending-cancel' );
+
+		// WC Emails are sent before the subscription status is updated to active etc. so we need a way to ensure download links are added to the emails before being sent
+		if ( $sending_email && ! $is_download_permitted ) {
+			$is_download_permitted = true;
+		}
+
+		return apply_filters( 'woocommerce_order_is_download_permitted', $is_download_permitted, $this );
 	}
 
 	/**

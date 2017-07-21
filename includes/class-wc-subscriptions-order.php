@@ -65,6 +65,8 @@ class WC_Subscriptions_Order {
 
 		add_action( 'woocommerce_subscription_details_after_subscription_table', __CLASS__ . '::get_related_orders_template', 10, 1 );
 
+		add_filter( 'woocommerce_my_account_my_orders_actions', __CLASS__ . '::maybe_remove_pay_action', 10, 2 );
+
 		add_action( 'woocommerce_order_partially_refunded', __CLASS__ . '::maybe_cancel_subscription_on_partial_refund' );
 		add_action( 'woocommerce_order_fully_refunded', __CLASS__ . '::maybe_cancel_subscription_on_full_refund' );
 
@@ -782,6 +784,27 @@ class WC_Subscriptions_Order {
 		if ( 0 !== count( $subscription_orders ) ) {
 			wc_get_template( 'myaccount/related-orders.php', array( 'subscription_orders' => $subscription_orders, 'subscription' => $subscription ), '', plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/' );
 		}
+	}
+
+	/**
+	* Unset pay action for an order if a more recent order exists
+	*
+	* @since 2.2.9
+	*/
+	public static function maybe_remove_pay_action( $actions, $order ) {
+
+		if ( isset( $actions['pay'] ) && wcs_order_contains_subscription( $order, array( 'any' ) ) ) {
+			$subscriptions = wcs_get_subscriptions_for_order( wcs_get_objects_property( $order, 'id' ), array( 'order_type' => 'any' ) );
+
+			foreach ( $subscriptions as $subscription ) {
+				if ( wcs_get_objects_property( $order, 'id' ) != $subscription->get_last_order() ) {
+					unset( $actions['pay'] );
+					break;
+				}
+			}
+		}
+
+		return $actions;
 	}
 
 	/**

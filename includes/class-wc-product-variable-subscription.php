@@ -87,7 +87,8 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 
 		$price = WC_Subscriptions_Product::get_price( $this );
 		$price = 'incl' == $tax_display_mode ? wcs_get_price_including_tax( $this, array( 'price' => $price ) ) : wcs_get_price_excluding_tax( $this, array( 'price' => $price ) );
-		$price = apply_filters( 'woocommerce_variable_price_html', wcs_get_price_html_from_text( $this ) . wc_price( $price ) . $this->get_price_suffix(), $this );
+		$price = $this->get_price_prefix( $prices ) . wc_price( $price ) . $this->get_price_suffix();
+		$price = apply_filters( 'woocommerce_variable_price_html', $price, $this );
 		$price = WC_Subscriptions_Product::get_price_string( $this, array( 'price' => $price ) );
 
 		return apply_filters( 'woocommerce_variable_subscription_price_html', apply_filters( 'woocommerce_get_price_html', $price, $this ), $this );
@@ -225,5 +226,29 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 
 		// Sync prices with children
 		self::sync( $product_id );
+	}
+
+	/**
+	 * Get the suffix to display before prices.
+	 *
+	 * @return string
+	 */
+	protected function get_price_prefix( $prices ) {
+
+		// Are the subscription details of all variations identical?
+		$child_variation_ids = array_keys( $prices['price'] );
+		$variation_hash      = md5( json_encode( $child_variation_ids ) );
+
+		if ( empty( $this->min_max_variation_data[ $variation_hash ] ) ) {
+			$this->min_max_variation_data[ $variation_hash ] = wcs_get_min_max_variation_data( $this, $child_variation_ids );
+		}
+
+		if ( $this->min_max_variation_data[ $variation_hash ]['identical'] ) {
+			$prefix = '';
+		} else {
+			$prefix = wcs_get_price_html_from_text( $this );
+		}
+
+		return $prefix;
 	}
 }

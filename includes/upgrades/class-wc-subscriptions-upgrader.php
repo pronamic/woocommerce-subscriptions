@@ -90,6 +90,8 @@ class WC_Subscriptions_Upgrader {
 		add_action( 'woocommerce_subscriptions_upgraded', __CLASS__ . '::maybe_redirect_after_upgrade_complete', 100, 2 );
 
 		add_action( 'wcs_repair_end_of_prepaid_term_actions', __CLASS__ . '::repair_end_of_prepaid_term_actions' );
+
+		add_action( 'wcs_repair_subscriptions_containing_synced_variations', __CLASS__ . '::repair_subscription_contains_sync_meta' );
 	}
 
 	/**
@@ -190,6 +192,12 @@ class WC_Subscriptions_Upgrader {
 		if ( version_compare( self::$active_version, '2.2.0', '>=' ) && version_compare( self::$active_version, '2.2.7', '<' ) ) {
 			include_once( 'class-wcs-upgrade-2-2-7.php' );
 			WCS_Upgrade_2_2_7::schedule_end_of_prepaid_term_repair();
+		}
+
+		// Repair missing _contains_synced_subscription post meta
+		if ( version_compare( get_option( 'woocommerce_db_version' ), '3.0', '>=' ) && version_compare( self::$active_version, '2.2.0', '>=' ) && version_compare( self::$active_version, '2.2.9', '<' ) ) {
+			include_once( 'class-wcs-upgrade-2-2-9.php' );
+			WCS_Upgrade_2_2_9::schedule_repair();
 		}
 
 		self::upgrade_complete();
@@ -746,6 +754,16 @@ class WC_Subscriptions_Upgrader {
 	public static function repair_end_of_prepaid_term_actions() {
 		include_once( 'class-wcs-upgrade-2-2-7.php' );
 		WCS_Upgrade_2_2_7::repair_pending_cancelled_subscriptions();
+	}
+
+	/**
+	 * Repair subscriptions with missing contains_synced_subscription post meta.
+	 *
+	 * @since 2.2.9
+	 */
+	public static function repair_subscription_contains_sync_meta() {
+		include_once( 'class-wcs-upgrade-2-2-9.php' );
+		WCS_Upgrade_2_2_9::repair_subscriptions_containing_synced_variations();
 	}
 
 	/**

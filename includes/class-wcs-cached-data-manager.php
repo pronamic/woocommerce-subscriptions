@@ -22,6 +22,9 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 		add_action( 'updated_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
 		add_action( 'deleted_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
 		add_action( 'added_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
+
+		add_action( 'admin_init', array( $this, 'initialize_cron_check_size' ) ); // setup cron task to truncate big logs.
+		add_filter( 'cron_schedules', array( $this, 'add_weekly_cron_schedule' ) ); // create a weekly cron schedule
 	}
 
 	/**
@@ -133,6 +136,70 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 		}
 
 		delete_transient( $key );
+	}
+
+	/**
+	 * If the log is bigger than a threshold it will be
+	 * truncated to 0 bytes.
+	 */
+	public static function cleanup_logs() {
+		$file = wc_get_log_file_path( 'wcs-cache' );
+		$max_cache_size = apply_filters( 'wcs_max_log_size', 50 * 1024 * 1024 );
+
+		if ( filesize( $file ) >= $max_cache_size ) {
+			$size_to_keep = apply_filters( 'wcs_log_size_to_keep', 25 * 1024 );
+			$lines_to_keep = apply_filters( 'wcs_log_lines_to_keep', 1000 );
+
+			$fp = fopen( $file, 'r' );
+			fseek( $fp, -1 * $size_to_keep, SEEK_END );
+			$data = '';
+			while ( ! feof( $fp ) ) {
+				$data .= fread( $fp, $size_to_keep );
+			}
+			fclose( $fp );
+
+			// Remove first line (which is probably incomplete) and also any empty line
+			$lines = explode( "\n", $data );
+			$lines = array_filter( array_slice( $lines, 1 ) );
+			$lines = array_slice( $lines, -1000 );
+			$lines[] = '---- log file automatically truncated ' . gmdate( 'Y-m-d H:i:s' ) . ' ---';
+
+			file_put_contents( $file, implode( "\n", $lines ), LOCK_EX );
+		}
+	}
+
+	/**
+	 * Check once each week if the log file has exceeded the limits.
+	 *
+	 * @since 2.2.9
+	 */
+	public function initialize_cron_check_size() {
+
+		$hook = 'wcs_cleanup_big_logs';
+
+		if ( ! wp_next_scheduled( $hook ) ) {
+			wp_schedule_event( time(), 'weekly', $hook );
+		}
+
+		add_action( $hook, __CLASS__ . '::cleanup_logs' );
+	}
+
+	/**
+	 * Add a weekly schedule for clearing up the cache
+	 *
+	 * @param $scheduled array
+	 * @since 2.2.9
+	 */
+	function add_weekly_cron_schedule( $schedules ) {
+
+		if ( ! isset( $schedules['weekly'] ) ) {
+			$schedules['weekly'] = array(
+				'interval' => WEEK_IN_SECONDS,
+				'display'  => __( 'Weekly', 'woocommerce-subscriptions' ),
+			);
+		}
+
+		return $schedules;
 	}
 
 	/* Deprecated Functions */

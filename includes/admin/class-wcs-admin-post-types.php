@@ -564,70 +564,15 @@ class WCS_Admin_Post_Types {
 						break;
 					case 1 :
 						foreach ( $subscription_items as $item ) {
-							$_product       = apply_filters( 'woocommerce_order_item_product', $the_subscription->get_product_from_item( $item ), $item );
-							$item_meta      = wcs_get_order_item_meta( $item, $_product );
-							$item_meta_html = $item_meta->display( true, true );
-							$item_quantity  = absint( $item['qty'] );
-
-							$item_name = '';
-							if ( wc_product_sku_enabled() && $_product && $_product->get_sku() ) {
-								$item_name .= $_product->get_sku() . ' - ';
-							}
-
-							$item_name .= apply_filters( 'woocommerce_order_item_name', $item['name'], $item );
-							$item_name  = esc_html( $item_name );
-
-							if ( $item_quantity > 1 ) {
-								$item_name = sprintf( '%s &times; %s', absint( $item_quantity ), $item_name );
-							}
-							if ( $_product ) {
-								$item_name = sprintf( '<a href="%s">%s</a>', get_edit_post_link( ( $_product->is_type( 'variation' ) ) ? wcs_get_objects_property( $_product, 'parent_id' ) : $_product->get_id() ), $item_name );
-							}
-
-							$column_content .= '<div class="order-item">';
-							$column_content .= wp_kses( $item_name, array( 'a' => array( 'href' => array() ) ) );
-
-							if ( $item_meta_html ) {
-								$column_content .= wcs_help_tip( $item_meta_html );
-							}
-
-							$column_content .= '</div>';
+							$column_content .= self::get_item_display( $item, $the_subscription );
 						}
 						break;
 					default :
 						$column_content .= '<a href="#" class="show_order_items">' . esc_html( apply_filters( 'woocommerce_admin_order_item_count', sprintf( _n( '%d item', '%d items', $the_subscription->get_item_count(), 'woocommerce-subscriptions' ), $the_subscription->get_item_count() ), $the_subscription ) ) . '</a>';
 						$column_content .= '<table class="order_items" cellspacing="0">';
 
-						foreach ( $the_subscription->get_items() as $item ) {
-							$_product       = apply_filters( 'woocommerce_order_item_product', $the_subscription->get_product_from_item( $item ), $item );
-							$item_meta      = wcs_get_order_item_meta( $item, $_product );
-							$item_meta_html = $item_meta->display( true, true );
-							ob_start();
-							?>
-							<tr class="<?php echo esc_attr( apply_filters( 'woocommerce_admin_order_item_class', '', $item ) ); ?>">
-								<td class="qty"><?php echo absint( $item['qty'] ); ?></td>
-								<td class="name">
-									<?php
-									$item_name = '';
-									if ( wc_product_sku_enabled() && $_product && $_product->get_sku() ) {
-										$item_name .= $_product->get_sku() . ' - ';
-									}
-
-									$item_name .= apply_filters( 'woocommerce_order_item_name', $item['name'], $item );
-									$item_name  = esc_html( $item_name );
-
-									if ( $_product ) {
-										$item_name = sprintf( '<a href="%s">%s</a>', get_edit_post_link( $_product->get_id() ), $item_name );
-									}
-
-									echo wp_kses( $item_name, array( 'a' => array( 'href' => array() ) ) );
-									if ( $item_meta_html ) {
-										echo wcs_help_tip( $item_meta_html );
-									} ?>
-								</td>
-							</tr>
-							<?php
-							$column_content .= ob_get_clean();
+						foreach ( $subscription_items as $item ) {
+							$column_content .= self::get_item_display( $item, $the_subscription, 'row' );
 						}
 
 						$column_content .= '</table>';
@@ -1017,6 +962,135 @@ class WCS_Admin_Post_Types {
 		}
 
 		return $actions;
+	}
+
+	/**
+	 * Get the HTML for an order item to display on the Subscription list table.
+	 *
+	 * @param array $actions
+	 * @param object $post
+	 * @return array
+	 */
+	protected static function get_item_display( $item, $the_subscription, $element = 'div' ) {
+
+		$_product       = apply_filters( 'woocommerce_order_item_product', $the_subscription->get_product_from_item( $item ), $item );
+		$item_meta_html = self::get_item_meta_html( $item, $_product );
+
+		if ( 'div' === $element ) {
+			$item_html = self::get_item_display_div( $item, self::get_item_name_html( $item, $_product ), $item_meta_html );
+		} else {
+			$item_html = self::get_item_display_row( $item, self::get_item_name_html( $item, $_product, 'do_not_include_quantity' ), $item_meta_html );
+		}
+
+		return $item_html;
+	}
+
+	/**
+	 * Get the HTML for order item meta to display on the Subscription list table.
+	 *
+	 * @param WC_Order_Item $item
+	 * @param WC_Product $product
+	 * @return string
+	 */
+	protected static function get_item_meta_html( $item, $_product ) {
+
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+			$item_meta      = wcs_get_order_item_meta( $item, $_product );
+			$item_meta_html = $item_meta->display( true, true );
+		} else {
+			$item_meta_html = wc_display_item_meta( $item, array(
+				'before'    => '',
+				'after'     => '',
+				'separator' => '\n',
+				'echo'      => false,
+			) );
+		}
+
+		return $item_meta_html;
+	}
+
+	/**
+	 * Get the HTML for order item meta to display on the Subscription list table.
+	 *
+	 * @param WC_Order_Item $item
+	 * @param WC_Product $product
+	 * @return string
+	 */
+	protected static function get_item_name_html( $item, $_product, $include_quantity = 'include_quantity' ) {
+
+		$item_quantity  = absint( $item['qty'] );
+
+		$item_name = '';
+
+		if ( wc_product_sku_enabled() && $_product && $_product->get_sku() ) {
+			$item_name .= $_product->get_sku() . ' - ';
+		}
+
+		$item_name .= apply_filters( 'woocommerce_order_item_name', $item['name'], $item, false );
+		$item_name  = esc_html( $item_name );
+
+		if ( 'include_quantity' === $include_quantity && $item_quantity > 1 ) {
+			$item_name = sprintf( '%s &times; %s', absint( $item_quantity ), $item_name );
+		}
+
+		if ( $_product ) {
+			$item_name = sprintf( '<a href="%s">%s</a>', get_edit_post_link( ( $_product->is_type( 'variation' ) ) ? wcs_get_objects_property( $_product, 'parent_id' ) : $_product->get_id() ), $item_name );
+		}
+
+		return $item_name;
+	}
+
+	/**
+	 * Get the HTML for order item to display on the Subscription list table using a div element
+	 * as the wrapper, which is done for subscriptions with a single line item.
+	 *
+	 * @param array $actions
+	 * @param object $post
+	 * @return array
+	 */
+	protected static function get_item_display_div( $item, $item_name, $item_meta_html ) {
+
+		$item_html  = '<div class="order-item">';
+		$item_html .= wp_kses( $item_name, array( 'a' => array( 'href' => array() ) ) );
+
+		if ( $item_meta_html ) {
+			$item_html .= wcs_help_tip( $item_meta_html );
+		}
+
+		$item_html .= '</div>';
+
+		return $item_html;
+	}
+
+	/**
+	 * Get the HTML for order item to display on the Subscription list table using a table element
+	 * as the wrapper, which is done for subscriptions with multilpe line items.
+	 *
+	 * @param array $actions
+	 * @param object $post
+	 * @return array
+	 */
+	protected static function get_item_display_row( $item, $item_name, $item_meta_html ) {
+
+		ob_start();
+		?>
+		<tr class="<?php echo esc_attr( apply_filters( 'woocommerce_admin_order_item_class', '', $item ) ); ?>">
+			<td class="qty"><?php echo absint( $item['qty'] ); ?></td>
+			<td class="name">
+				<?php
+
+				echo wp_kses( $item_name, array( 'a' => array( 'href' => array() ) ) );
+
+				if ( $item_meta_html ) {
+					echo wcs_help_tip( $item_meta_html );
+				} ?>
+			</td>
+		</tr>
+		<?php
+
+		$item_html = ob_get_clean();
+
+		return $item_html;
 	}
 }
 

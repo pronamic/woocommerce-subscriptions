@@ -48,6 +48,8 @@ class WC_Subscriptions_Coupon {
 			// WC 3.0 only sets a coupon type if it is a pre-defined supported type, so we need to temporarily add our pseudo types. We don't want to add these on admin pages.
 			add_filter( 'woocommerce_coupon_discount_types', __CLASS__ . '::add_pseudo_coupon_types' );
 		}
+
+		add_filter( 'woocommerce_cart_totals_coupon_label', __CLASS__ . '::get_pseudo_coupon_label', 10, 2 );
 	}
 
 	/**
@@ -441,14 +443,14 @@ class WC_Subscriptions_Coupon {
 
 		$subtotal = 0;
 
-		foreach ( $renewal_coupons as $subscription_id => $coupons ) {
+		foreach ( $renewal_coupons as $order_id => $coupons ) {
 
 			foreach ( $coupons as $coupon_code => $coupon_properties ) {
 
 				if ( $coupon_code == $code ) {
 
-					if ( $subscription = wcs_get_subscription( $subscription_id ) ) {
-						$subtotal = $subscription->get_subtotal();
+					if ( $order = wc_get_order( $order_id ) ) {
+						$subtotal = $order->get_subtotal();
 					}
 					break;
 				}
@@ -505,6 +507,24 @@ class WC_Subscriptions_Coupon {
 				'renewal_cart'    => __( 'Renewal cart discount', 'woocommerce-subscriptions' ),
 			)
 		);
+	}
+
+	/**
+	 * Filter the default coupon cart label for renewal pseudo coupons
+	 *
+	 * @param  string $label
+	 * @param  WC_Coupon $coupon
+	 * @return string
+	 * @since 2.2.8
+	 */
+	public static function get_pseudo_coupon_label( $label, $coupon ) {
+
+		// If the coupon is one of our pseudo coupons, rather than displaying "Coupon: discount_renewal" display a nicer label.
+		if ( 'renewal_cart' === wcs_get_coupon_property( $coupon, 'discount_type' ) ) {
+			$label = esc_html( __( 'Renewal Discount', 'woocommerce-subscriptions' ) );
+		}
+
+		return $label;
 	}
 
 	/* Deprecated */

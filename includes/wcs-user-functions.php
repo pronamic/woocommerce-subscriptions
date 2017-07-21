@@ -42,6 +42,22 @@ function wcs_maybe_make_user_inactive( $user_id ) {
 }
 
 /**
+ * Wrapper for wcs_maybe_make_user_inactive() that accepts a subscription instead of a user ID.
+ * Handy for hooks that pass a subscription object.
+ *
+ * @since 2.2.9
+ * @param WC_Subscription|WC_Order
+ */
+function wcs_maybe_make_user_inactive_for( $subscription ) {
+	wcs_maybe_make_user_inactive( $subscription->get_user_id() );
+}
+add_action( 'woocommerce_subscription_status_failed', 'wcs_maybe_make_user_inactive_for', 10, 1 );
+add_action( 'woocommerce_subscription_status_on-hold', 'wcs_maybe_make_user_inactive_for', 10, 1 );
+add_action( 'woocommerce_subscription_status_cancelled', 'wcs_maybe_make_user_inactive_for', 10, 1 );
+add_action( 'woocommerce_subscription_status_switched', 'wcs_maybe_make_user_inactive_for', 10, 1 );
+add_action( 'woocommerce_subscription_status_expired', 'wcs_maybe_make_user_inactive_for', 10, 1 );
+
+/**
  * Update a user's role to a special subscription's role
  *
  * @param int $user_id The ID of a user

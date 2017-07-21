@@ -954,9 +954,9 @@ class WC_Subscriptions_Switcher {
 	 */
 	public static function switch_order_meta_box_rows( $post ) {
 
-		$subscriptions = array();
-		$switched_ids  = array();
-		$orders        = array();
+		$subscriptions          = array();
+		$switched_subscriptions = array();
+		$orders                 = array();
 
 		// On the subscription page, just show related orders
 		if ( wcs_is_subscription( $post->ID ) ) {
@@ -1365,6 +1365,16 @@ class WC_Subscriptions_Switcher {
 			// Find the actual recurring amount charged for the old subscription (we need to use the '_recurring_line_total' meta here rather than '_subscription_recurring_amount' because we want the recurring amount to include extra from extensions, like Product Add-ons etc.)
 			$old_recurring_total = $existing_item['line_total'];
 
+			// Use previous parent or renewal order's actual line item total instead of what is due, to guard against not yet paid amounts in multi-switching
+			$last_order = $subscription->get_last_order( 'all' );
+			$last_order_items = $last_order->get_items();
+			foreach ( $last_order_items as $last_order_item ) {
+				if ( wcs_get_canonical_product_id( $last_order_item ) == $product_id ) {
+					$old_recurring_total = $last_order_item['line_total'];
+					break;
+				}
+			}
+
 			if ( $subscription->get_prices_include_tax() ) {
 				$old_recurring_total += $existing_item['line_tax'];
 			}
@@ -1384,8 +1394,10 @@ class WC_Subscriptions_Switcher {
 				$days_in_new_cycle = wcs_get_days_in_cycle( WC_Subscriptions_Product::get_period( $item_data ), WC_Subscriptions_Product::get_interval( $item_data ) );
 			}
 
-			// We need to use the cart items price to ensure we include extras added by extensions like Product Add-ons
+			// We need to use the cart items price to ensure we include extras added by extensions like Product Add-ons, but we don't want the sign-up fee accounted for in the price, so make sure WC_Subscriptions_Cart::set_subscription_prices_for_calculation() isn't adding that.
+			remove_filter( 'woocommerce_product_get_price', 'WC_Subscriptions_Cart::set_subscription_prices_for_calculation', 100 );
 			$new_price_per_day = ( WC_Subscriptions_Product::get_price( $item_data ) * $cart_item['quantity'] ) / $days_in_new_cycle;
+			add_filter( 'woocommerce_product_get_price', 'WC_Subscriptions_Cart::set_subscription_prices_for_calculation', 100, 2 );
 
 			if ( $old_price_per_day < $new_price_per_day ) {
 

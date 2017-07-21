@@ -401,8 +401,11 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 			// Admins can suspend subscription at PayPal triggering this IPN
 			case 'recurring_payment_suspended':
 
+				// When a subscriber suspends a PayPal Standard subscription, PayPal will notify WooCommerce by sending an IPN that uses an Express Checkout Recurring Payment payload, instead of an IPN payload for a PayPal Standard Subscription. This means the payload uses the 'recurring_payment_id' key for the subscription ID, not the 'subscr_id' key.
+				$ipn_profile_id = ( isset( $transaction_details['subscr_id'] ) ) ? $transaction_details['subscr_id'] : $transaction_details['recurring_payment_id'];
+
 				// Make sure subscription hasn't been linked to a new payment method
-				if ( wcs_get_paypal_id( $subscription ) != $transaction_details['subscr_id'] ) {
+				if ( wcs_get_paypal_id( $subscription ) != $ipn_profile_id ) {
 
 					WC_Gateway_Paypal::log( sprintf( 'IPN "recurring_payment_suspended" ignored for subscription %d - PayPal profile ID has changed', $subscription->id ) );
 
@@ -546,59 +549,37 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 			}
 		}
 
-		// Couldn't find the order ID by subscr_id, so it's either not set on the order yet or the $args doesn't have a subscr_id, either way, let's get it from the args
+		// Couldn't find the order ID by subscr_id, so it's either not set on the order yet or the $args doesn't have a subscr_id (?!), either way, let's get it from the args
 		if ( empty( $order_id ) && isset( $args['custom'] ) ) {
-			// WC < 1.6.5
-			if ( is_numeric( $args['custom'] ) && 'shop_order' == $order_type ) {
 
-				$order_id  = $args['custom'];
-				$order_key = $args['invoice'];
+			$order_details = json_decode( $args['custom'] );
 
-			} else {
+			if ( is_object( $order_details ) ) { // WC 2.3.11+ converted the custom value to JSON, if we have an object, we've got valid JSON
 
-				$order_details = json_decode( $args['custom'] );
+				if ( 'shop_order' == $order_type ) {
+					$order_id  = $order_details->order_id;
+					$order_key = $order_details->order_key;
+				} elseif ( isset( $order_details->subscription_id ) ) {
+					// Subscription created with Subscriptions 2.0+
+					$order_id  = $order_details->subscription_id;
+					$order_key = $order_details->subscription_key;
+				} else {
+					// Subscription created with Subscriptions < 2.0
+					$subscriptions = wcs_get_subscriptions_for_order( absint( $order_details->order_id ), array( 'order_type' => array( 'parent' ) ) );
 
-				if ( is_object( $order_details ) ) { // WC 2.3.11+ converted the custom value to JSON, if we have an object, we've got valid JSON
-
-					if ( 'shop_order' == $order_type ) {
-						$order_id  = $order_details->order_id;
-						$order_key = $order_details->order_key;
-					} elseif ( isset( $order_details->subscription_id ) ) {
-						// Subscription created with Subscriptions 2.0+
-						$order_id  = $order_details->subscription_id;
-						$order_key = $order_details->subscription_key;
-					} else {
-						// Subscription created with Subscriptions < 2.0
-						$subscriptions = wcs_get_subscriptions_for_order( $order_details->order_id, array( 'order_type' => array( 'parent' ) ) );
-
-						if ( ! empty( $subscriptions ) ) {
-							$subscription = array_pop( $subscriptions );
-							$order_id  = $subscription->get_id();
-							$order_key = $subscription->get_order_key();
-						}
+					if ( ! empty( $subscriptions ) ) {
+						$subscription = array_pop( $subscriptions );
+						$order_id  = $subscription->get_id();
+						$order_key = $subscription->get_order_key();
 					}
-				} elseif ( preg_match( '/^a:2:{/', $args['custom'] ) && ! preg_match( '/[CO]:\+?[0-9]+:"/', $args['custom'] ) && ( $order_details = maybe_unserialize( $args['custom'] ) ) ) {  // WC 2.0 - WC 2.3.11, only allow serialized data in the expected format, do not allow objects or anything nasty to sneak in
-
-					if ( 'shop_order' == $order_type ) {
-						$order_id  = $order_details[0];
-						$order_key = $order_details[1];
-					} else {
-
-						// Subscription, but we didn't have the subscription data in old, serialized value, so we need to pull it based on the order
-						$subscriptions = wcs_get_subscriptions_for_order( $order_details[0], array( 'order_type' => array( 'parent' ) ) );
-
-						if ( ! empty( $subscriptions ) ) {
-							$subscription = array_pop( $subscriptions );
-							$order_id  = $subscription->get_id();
-							$order_key = $subscription->get_order_key();
-						}
-					}
-				} else { // WC 1.6.5 - WC 2.0 or invalid data
-
-					$order_id  = str_replace( WCS_PayPal::get_option( 'invoice_prefix' ), '', $args['invoice'] );
-					$order_key = $args['custom'];
-
 				}
+			} else { // WC < 2.3.11, we could have a variety of payloads, but something has gone wrong if we got to here as we should only be here on new purchases where the '_paypal_subscription_id' is not already set, so throw an exception
+
+				$message = __( 'Invalid PayPal IPN Payload: unable to find matching subscription.', 'woocommerce-subscriptions' );
+
+				WC_Gateway_Paypal::log( $message );
+
+				throw new Exception( $message );
 			}
 		}
 

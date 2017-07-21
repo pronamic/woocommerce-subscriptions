@@ -779,7 +779,7 @@ class WC_Subscriptions_Manager {
 	 */
 	public static function maybe_cancel_subscription( $post_id ) {
 
-		if ( 'shop_subscription' == get_post_type( $post_id ) ) {
+		if ( 'shop_subscription' == get_post_type( $post_id ) && 'auto-draft' !== get_post_status( $post_id ) ) {
 
 			$subscription = wcs_get_subscription( $post_id );
 
