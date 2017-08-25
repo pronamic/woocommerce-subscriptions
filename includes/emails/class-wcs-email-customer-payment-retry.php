@@ -15,9 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WCS_Email_Customer_Payment_Retry extends WCS_Email_Customer_Renewal_Invoice {
 
-	var $find;
-	var $replace;
-
 	/**
 	 * Constructor
 	 */

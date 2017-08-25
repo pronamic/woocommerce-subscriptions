@@ -1488,9 +1488,10 @@ class WC_Subscription extends WC_Order {
 				$line_subtotal = $this->get_line_subtotal( $item, true );
 			}
 			$subtotal = wcs_price_string( $this->get_price_string_details( $line_subtotal ) );
+			$subtotal = apply_filters( 'woocommerce_order_formatted_line_subtotal', $subtotal, $item, $this );
 		}
 
-		return apply_filters( 'woocommerce_order_formatted_line_subtotal', $subtotal, $item, $this );
+		return $subtotal;
 	}
 
 	/**

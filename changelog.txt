@@ -1,5 +1,15 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2017.08.01 - version 2.2.11
+* Fix: Do not save subscription product meta data on other post types, including WooCommerce Tab Manager and Jetpack post types. PR#2203
+* Fix: Do not apply 'woocommerce_get_price' or 'woocommerce_product_get_price' filters to tax inclusive/exclusive prices to avoid ever applying them twice or to non price prices, like sign-up fees. Introduced in Subscriptions v2.2.5. PR#2261
+* Fix: Copy custom and third-party order line item meta to cart line items during the renewal/resubscribe process so that the meta persists on the renewal/resubscribe orders and subscription. PR#2258
+* Fix: Always use correct minimum variation price when generating variable price HTML, even if there is a free trial on one variation. PR#2254
+* Fix: Never apply 'woocommerce_order_formatted_line_subtotal' filter twice. PR#2239
+* Fix: Format plain text email for Subscription renewals correctly. PR#2255
+* Tweak: Add Woo plugin header to be compatible with WooCommerce 3.1's updater. PR#2252
+* Tweak: Add base composer.json for using Subscriptions with Composer. PR#2229
+
 2017.07.20 - version 2.2.10
 * Fix: Do not attempt to call WC 3.0 only method when WC 2.6 is active by fixing version check from 2.6 to 3.0. Props @lkraav. PR#2236
 * Fix: Display "Limit Subscription" option on Edit Product screen even when Reviews are disabled. PR#2233

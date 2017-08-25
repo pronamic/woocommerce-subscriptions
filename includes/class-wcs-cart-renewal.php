@@ -118,6 +118,26 @@ class WCS_Cart_Renewal {
 
 		// If the shipping address on a renewal order differs to the order's billing address, check the "Ship to different address" automatically to make sure the renewal order's fields are used by default
 		add_filter( 'woocommerce_ship_to_different_address_checked', array( &$this, 'maybe_check_ship_to_different_address' ), 100, 1 );
+
+		add_filter( 'woocommerce_get_item_data', array( &$this, 'display_line_item_data_in_cart' ), 10, 2 );
+
+		// Attach hooks which depend on WooCommerce version constants. Differs from @see attach_dependant_hooks() in that this is hooked inside an inherited function and so extended classes will also inherit these callbacks
+		add_action( 'woocommerce_loaded', array( &$this, 'attach_dependant_callbacks' ), 10 );
+	}
+
+	/**
+	 * Attach callbacks dependant on WC versions
+	 *
+	 * @since 2.2.11
+	 */
+	public function attach_dependant_callbacks() {
+
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+			add_action( 'woocommerce_add_order_item_meta', array( &$this, 'add_order_item_meta' ), 10, 2 );
+			add_action( 'woocommerce_add_subscription_item_meta', array( &$this, 'add_order_item_meta' ), 10, 2 );
+		} else {
+			add_action( 'woocommerce_checkout_create_order_line_item',  array( &$this, 'add_order_line_item_meta' ), 10, 3 );
+		}
 	}
 
 	/**
@@ -205,6 +225,22 @@ class WCS_Cart_Renewal {
 
 			$variations = array();
 			$item_data  = array();
+			$custom_line_item_meta   = array();
+			$reserved_item_meta_keys = array(
+				'_item_meta',
+				'_item_meta_array',
+				'_qty',
+				'_tax_class',
+				'_product_id',
+				'_variation_id',
+				'_line_subtotal',
+				'_line_total',
+				'_line_tax',
+				'_line_tax_data',
+				'_line_subtotal_tax',
+				'_cart_item_key_' . $this->cart_item_key, // This value is unique per checkout attempt and so shouldn't be copied from existing line items.
+				'Backordered', // WC will reapply this meta if the line item is backordered. Therefore it shouldn't be copied through the cart.
+			);
 
 			// Load all product info including variation data
 			if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
@@ -219,6 +255,8 @@ class WCS_Cart_Renewal {
 						$variations[ $meta_name ] = $meta_value[0];
 					} elseif ( meta_is_product_attribute( $meta_name, $meta_value[0], $product_id ) ) {
 						$variations[ $meta_name ] = $meta_value[0];
+					} elseif ( ! in_array( $meta_name, $reserved_item_meta_keys ) ) {
+						$custom_line_item_meta[ $meta_name ] = $meta_value[0];
 					}
 				}
 			} else {
@@ -233,6 +271,8 @@ class WCS_Cart_Renewal {
 						$variations[ $meta->key ] = $meta->value;
 					} elseif ( meta_is_product_attribute( $meta->key, $meta->value, $product_id ) ) {
 						$variations[ $meta->key ] = $meta->value;
+					} elseif ( ! in_array( $meta->key, $reserved_item_meta_keys ) ) {
+						$custom_line_item_meta[ $meta->key ] = $meta->value;
 					}
 				}
 			}
@@ -260,7 +300,8 @@ class WCS_Cart_Renewal {
 				}
 			}
 
-			$cart_item_data['line_item_id'] = $item_id;
+			$cart_item_data['line_item_id']          = $item_id;
+			$cart_item_data['custom_line_item_meta'] = $custom_line_item_meta;
 
 			$item_data = apply_filters( 'woocommerce_order_again_cart_item_data', array( $this->cart_item_key => $cart_item_data ), $line_item, $subscription );
 
@@ -1153,6 +1194,66 @@ class WCS_Cart_Renewal {
 
 			$subscription->set_address( $billing_address, 'billing' );
 			$subscription->set_address( $shipping_address, 'shipping' );
+		}
+	}
+
+	/**
+	 * Add custom line item meta to the cart item data so it's displayed in the cart.
+	 *
+	 * @param array $cart_item_data
+	 * @param array $cart_item
+	 * @since 2.2.11
+	 */
+	public function display_line_item_data_in_cart( $cart_item_data, $cart_item ) {
+
+		if ( ! empty( $cart_item[ $this->cart_item_key ]['custom_line_item_meta'] ) ) {
+			foreach ( $cart_item[ $this->cart_item_key ]['custom_line_item_meta'] as $item_meta_key => $value ) {
+
+				$cart_item_data[] = array(
+					'key'    => $item_meta_key,
+					'value'  => $value,
+					'hidden' => substr( $item_meta_key, 0, 1 ) === '_', // meta keys prefixed with an `_` are hidden by default
+				);
+			}
+		}
+
+		return $cart_item_data;
+	}
+
+	/**
+	 * Add custom line item meta from the old line item into the new line item meta.
+	 *
+	 * Used when WC versions prior to 3.0 are active. When WC 3.0 or newer is active,
+	 * @see WCS_Cart_Renewal->add_order_line_item_meta() replaces this function
+	 *
+	 * @param int $item_id
+	 * @param array $cart_item_data
+	 * @since 2.2.11
+	 */
+	public function add_order_item_meta( $item_id, $cart_item_data ) {
+		if ( ! empty( $cart_item_data[ $this->cart_item_key ]['custom_line_item_meta'] ) ) {
+			foreach ( $cart_item_data[ $this->cart_item_key ]['custom_line_item_meta'] as $meta_key => $value ) {
+				woocommerce_add_order_item_meta( $item_id, $meta_key, $value );
+			}
+		}
+	}
+
+	/**
+	 * Add custom line item meta from the old line item into the new line item meta.
+	 *
+	 * Used when WC 3.0 or newer is active. When prior versions are active,
+	 * @see WCS_Cart_Renewal->add_order_item_meta() replaces this function
+	 *
+	 * @param WC_Order_Item_Product
+	 * @param string $cart_item_key
+	 * @param array $cart_item_data
+	 * @since 2.2.11
+	 */
+	public function add_order_line_item_meta( $item, $cart_item_key, $cart_item_data ) {
+		if ( ! empty( $cart_item_data[ $this->cart_item_key ]['custom_line_item_meta'] ) ) {
+			foreach ( $cart_item_data[ $this->cart_item_key ]['custom_line_item_meta'] as $meta_key => $value ) {
+				$item->add_meta_data( $meta_key, $value );
+			}
 		}
 	}
 

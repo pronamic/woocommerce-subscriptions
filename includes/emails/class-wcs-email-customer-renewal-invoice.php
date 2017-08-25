@@ -15,9 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 
-	var $find;
-	var $replace;
-
 	// fields used in WC_Email_Customer_Invoice this class doesn't need
 	var $subject_paid = null;
 	var $heading_paid = null;

@@ -6,4 +6,5 @@ Tested up to: 4.5
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 WC requires at least: 2.5
-WC tested up to: 3.0
+WC tested up to: 3.1
+Woo: 27147:6115e6d7e297b623a169fdcf5728b224
