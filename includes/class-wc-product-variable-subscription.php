@@ -85,7 +85,7 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 
 		$tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
 
-		$price = WC_Subscriptions_Product::get_price( $this );
+		$price = WC_Subscriptions_Product::get_price( $this->get_meta( '_min_price_variation_id' ) );
 		$price = 'incl' == $tax_display_mode ? wcs_get_price_including_tax( $this, array( 'price' => $price ) ) : wcs_get_price_excluding_tax( $this, array( 'price' => $price ) );
 		$price = $this->get_price_prefix( $prices ) . wc_price( $price ) . $this->get_price_suffix();
 		$price = apply_filters( 'woocommerce_variable_price_html', $price, $this );

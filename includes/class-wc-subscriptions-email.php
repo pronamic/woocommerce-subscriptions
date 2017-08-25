@@ -253,7 +253,7 @@ class WC_Subscriptions_Email {
 				add_filter( 'woocommerce_order_is_paid', $show_purchase_note_callback );
 
 				if ( function_exists( 'wc_get_email_order_items' ) ) { // WC 3.0+
-					$items_table = wc_get_email_order_items( $order );
+					$items_table = wc_get_email_order_items( $order, $args );
 				} else {
 					$items_table = $order->email_order_items_table( $args );
 				}
