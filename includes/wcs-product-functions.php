@@ -27,13 +27,11 @@ function wcs_get_price_including_tax( $product, $args = array() ) {
 
 	if ( function_exists( 'wc_get_price_including_tax' ) ) { // WC 3.0+
 		$price = wc_get_price_including_tax( $product, $args );
-		$filter = 'woocommerce_product_get_price';
 	} else { // WC < 3.0
 		$price = $product->get_price_including_tax( $args['qty'], $args['price'] );
-		$filter = 'woocommerce_get_price';
 	}
 
-	return apply_filters( $filter, $price , $product );
+	return $price;
 }
 
 /**
@@ -53,13 +51,11 @@ function wcs_get_price_excluding_tax( $product, $args = array() ) {
 
 	if ( function_exists( 'wc_get_price_excluding_tax' ) ) { // WC 3.0+
 		$price = wc_get_price_excluding_tax( $product, $args );
-		$filter = 'woocommerce_product_get_price';
 	} else { // WC < 3.0
 		$price = $product->get_price_excluding_tax( $args['qty'], $args['price'] );
-		$filter = 'woocommerce_get_price';
 	}
 
-	return apply_filters( $filter, $price , $product );
+	return $price;
 }
 
 /**
