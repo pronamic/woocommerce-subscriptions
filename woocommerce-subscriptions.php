@@ -5,7 +5,7 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: http://prospress.com/
- * Version: 2.2.11
+ * Version: 2.2.13
  *
  * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
  *
@@ -128,12 +128,13 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.2.11';
+	public static $version = '2.2.13';
 
 	private static $total_subscription_count = null;
 
 	private static $scheduler;
 
+	/** @var WCS_Cache_Manager */
 	public static $cache;
 
 	/**
@@ -272,7 +273,7 @@ class WC_Subscriptions {
 	 * will appear. If that's empty, the long, explanatory one will appear in the table.
 	 *
 	 * Filters:
-	 * - woocommerce_subscriptions_not_empty: gets passed the option value. false or 'yes'. 'yes' means the subscriptions
+	 * - woocommerce_subscriptions_not_empty: gets passed the boolean option value. 'true' means the subscriptions
 	 * list is not empty, the user is familiar with how it works, and standard message appears.
 	 * - woocommerce_subscriptions_not_found_label: gets the original message for other plugins to modify, in case
 	 * they want to add more links, or modify any of the messages.
@@ -281,7 +282,8 @@ class WC_Subscriptions {
 	 * @return string what appears in the list table of the subscriptions
 	 */
 	private static function get_not_found_text() {
-		if ( true === apply_filters( 'woocommerce_subscriptions_not_empty', wcs_do_subscriptions_exist() ) ) {
+		$subscriptions_exist = self::$cache->cache_and_get( 'wcs_do_subscriptions_exist', 'wcs_do_subscriptions_exist' );
+		if ( true === apply_filters( 'woocommerce_subscriptions_not_empty', $subscriptions_exist ) ) {
 			$not_found_text = __( 'No Subscriptions found', 'woocommerce-subscriptions' );
 		} else {
 			$not_found_text = '<p>' . __( 'Subscriptions will appear here for you to view and manage once purchased by a customer.', 'woocommerce-subscriptions' ) . '</p>';
@@ -1023,7 +1025,7 @@ class WC_Subscriptions {
 		$plugin_links = array(
 			'<a href="' . WC_Subscriptions_Admin::settings_tab_url() . '">' . __( 'Settings', 'woocommerce-subscriptions' ) . '</a>',
 			'<a href="http://docs.woocommerce.com/document/subscriptions/">' . _x( 'Docs', 'short for documents', 'woocommerce-subscriptions' ) . '</a>',
-			'<a href="https://www.woocommerce.com/my-account/create-a-ticket/">' . __( 'Support', 'woocommerce-subscriptions' ) . '</a>',
+			'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/">' . __( 'Support', 'woocommerce-subscriptions' ) . '</a>',
 		);
 
 		return array_merge( $plugin_links, $links );
@@ -1144,7 +1146,7 @@ class WC_Subscriptions {
 
 			echo '<div class="update-nag">';
 			echo sprintf( esc_html__( 'Warning! You are running version %s of WooCommerce Subscriptions plugin code but your database has been upgraded to Subscriptions version 2.0. This will cause major problems on your store.', 'woocommerce-subscriptions' ), esc_html( self::$version ) ) . '<br />';
-			echo sprintf( esc_html__( 'Please upgrade the WooCommerce Subscriptions plugin to version 2.0 or newer immediately. If you need assistance, after upgrading to Subscriptions v2.0, please %sopen a support ticket%s.', 'woocommerce-subscriptions' ), '<a href="https://www.woocommerce.com/my-account/create-a-ticket/">', '</a>' );
+			echo sprintf( esc_html__( 'Please upgrade the WooCommerce Subscriptions plugin to version 2.0 or newer immediately. If you need assistance, after upgrading to Subscriptions v2.0, please %sopen a support ticket%s.', 'woocommerce-subscriptions' ), '<a href="https://woocommerce.com/my-account/marketplace-ticket-form/">', '</a>' );
 			echo '</div> ';
 
 		}

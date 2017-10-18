@@ -556,7 +556,7 @@ class WC_Subscriptions_Product {
 				$from_date = gmdate( 'Y-m-d H:i:s' );
 			}
 
-			// If the subscription has a free trial period, the first renewal is the same as the expiration of the free trial
+			// If the subscription has a free trial period, the first renewal payment date is the same as the expiration of the free trial
 			if ( $trial_length > 0 ) {
 
 				$first_renewal_timestamp = wcs_date_to_time( self::get_trial_expiration_date( $product_id, $from_date ) );

@@ -18,7 +18,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 		// Add filters for update / delete / trash post to purge cache
 		add_action( 'trashed_post', array( $this, 'purge_delete' ), 9999 ); // trashed posts aren't included in 'any' queries
 		add_action( 'untrashed_post', array( $this, 'purge_delete' ), 9999 ); // however untrashed posts are
-		add_action( 'deleted_post', array( $this, 'purge_delete' ), 9999 ); // if forced delete is enabled
+		add_action( 'before_delete_post', array( $this, 'purge_delete' ), 9999 ); // if forced delete is enabled
 		add_action( 'updated_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
 		add_action( 'deleted_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
 		add_action( 'added_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
@@ -74,13 +74,17 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * @param $post_id integer the ID of a post
 	 */
 	public function purge_delete( $post_id ) {
-		if ( 'shop_order' !== get_post_type( $post_id ) ) {
-			return;
+		if ( 'shop_order' === get_post_type( $post_id ) ) {
+			foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'any' ) ) as $subscription ) {
+				$this->log( 'Calling purge delete on ' . current_filter() . ' for ' . $subscription->get_id() );
+				$this->clear_related_order_cache( $subscription );
+			}
 		}
 
-		foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'any' ) ) as $subscription ) {
-			$this->log( 'Calling purge delete on ' . current_filter() . ' for ' . $subscription->get_id() );
-			$this->clear_related_order_cache( $subscription );
+		// Purge wcs_do_subscriptions_exist cache, but only on the before_delete_post hook.
+		if ( 'shop_subscription' === get_post_type( $post_id ) && doing_action( 'before_delete_post' ) ) {
+			$this->log( "Subscription {$post_id} deleted. Purging subscription cache." );
+			$this->delete_cached( 'wcs_do_subscriptions_exist' );
 		}
 	}
 

@@ -109,7 +109,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 			if ( 0 == $args['order']->get_total() ) {
 
 				$this->add_parameters( array(
-					'PAYMENTREQUEST_0_AMT'           => 0, // a zero amount is use so that no DoExpressCheckout action is required and instead CreateBillingAgreement is used to first create a billing agreement not attached to any order and then DoReferenceTransaction is used to charge both the initial order and renewal order amounts
+					'PAYMENTREQUEST_0_AMT'           => 0, // a zero amount is used so that no DoExpressCheckout action is required and instead CreateBillingAgreement is used to first create a billing agreement not attached to any order and then DoReferenceTransaction is used to charge both the initial order and renewal order amounts
 					'PAYMENTREQUEST_0_ITEMAMT'       => 0,
 					'PAYMENTREQUEST_0_SHIPPINGAMT'   => 0,
 					'PAYMENTREQUEST_0_TAXAMT'        => 0,
@@ -277,7 +277,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 			);
 		}
 
-		if ( $this->skip_line_items( $order ) ) {
+		if ( $this->skip_line_items( $order, $order_items ) ) {
 
 			$total_amount = $this->round( $order->get_total() );
 
@@ -292,7 +292,6 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 			$item_names = array();
 
 			foreach ( $order_items as $item ) {
-
 				$item_names[] = sprintf( '%1$s x %2$s', $item['NAME'], $item['QTY'] );
 			}
 
@@ -306,7 +305,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 			), 0, $use_deprecated_params );
 
 			// add order-level parameters
-			//  - Do not sent the TAXAMT due to rounding errors
+			//  - Do not send the TAXAMT due to rounding errors
 			if ( $use_deprecated_params ) {
 				$this->add_parameters( array(
 					'AMT'              => $total_amount,
@@ -334,7 +333,6 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 
 			// add individual order items
 			foreach ( $order_items as $item ) {
-
 				$this->add_line_item_parameters( $item, $item_count++, $use_deprecated_params );
 				$calculated_total += $this->round( $item['AMT'] * $item['QTY'] );
 			}
@@ -369,11 +367,6 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 					'PAYMENTREQUESTID' => wcs_get_objects_property( $order, 'id' ),
 					'CUSTOM'           => json_encode( array( 'order_id' => wcs_get_objects_property( $order, 'id' ), 'order_key' => wcs_get_objects_property( $order, 'order_key' ) ) ),
 				) );
-			}
-
-			// offset the discrepency between the WooCommerce cart total and PayPal's calculated total by adjusting the cost of the first item
-			if ( $total_amount !== $calculated_total ) {
-				$this->parameters['L_PAYMENTREQUEST_0_AMT0'] = $this->parameters['L_PAYMENTREQUEST_0_AMT0'] - ( $calculated_total - $total_amount );
 			}
 		}
 	}
@@ -633,9 +626,26 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * @param WC_Order $order Optional. The WC_Order object. Default null.
 	 * @return bool true if line items should be skipped, false otherwise
 	 */
-	private function skip_line_items( $order = null ) {
+	private function skip_line_items( $order = null, $order_items = null ) {
 
 		$skip_line_items = wcs_get_objects_property( $order, 'prices_include_tax' );
+
+		// Also check actual totals add up just in case totals have been manually modified to amounts that can not round correctly, see https://github.com/Prospress/woocommerce-subscriptions/issues/2213
+		if ( true != $skip_line_items && ! is_null( $order ) && ! is_null( $order_items ) ) {
+
+			$calculated_total = 0;
+
+			foreach ( $order_items as $item ) {
+				$calculated_total += $this->round( $item['AMT'] * $item['QTY'] );
+			}
+
+			$calculated_total += $this->round( $order->get_total_shipping() ) + $this->round( $order->get_total_tax() );
+			$total_amount      = $this->round( $order->get_total() );
+
+			if ( $total_amount !== $calculated_total ) {
+				$skip_line_items = true;
+			}
+		}
 
 		/**
 		 * Filter whether line items should be skipped or not

@@ -36,7 +36,7 @@ class WC_Subscriptions_Coupon {
 		add_filter( 'woocommerce_coupon_get_discount_amount', __CLASS__ . '::get_discount_amount', 10, 5 );
 
 		// Validate subscription coupons
-		add_filter( 'woocommerce_coupon_is_valid', __CLASS__ . '::validate_subscription_coupon', 10, 2 );
+		add_filter( 'woocommerce_coupon_is_valid', __CLASS__ . '::validate_subscription_coupon', 10, 3 );
 
 		// Remove coupons which don't apply to certain cart calculations
 		add_action( 'woocommerce_before_calculate_totals', __CLASS__ . '::remove_coupons', 10 );
@@ -75,11 +75,33 @@ class WC_Subscriptions_Coupon {
 	 *
 	 * @since 2.0.10
 	 */
-	public static function get_discount_amount( $discount, $discounting_amount, $cart_item, $single, $coupon ) {
+	public static function get_discount_amount( $discount, $discounting_amount, $item, $single, $coupon ) {
+
+		if ( is_a( $item, 'WC_Order_Item' ) ) { // WC 3.2 support for applying coupons to line items via admin edit subscription|order screen
+			$discount = self::get_discount_amount_for_line_item( $item, $discount, $discounting_amount, $single, $coupon );
+		} else {
+			$discount = self::get_discount_amount_for_cart_item( $item, $discount, $discounting_amount, $single, $coupon );
+		}
+
+		return $discount;
+	}
+
+	/**
+	 * Get the discount amount which applies for a cart item for subscription coupon types
+	 *
+	 * @since 2.2.13
+	 * @param array $cart_item
+	 * @param float $discount the original discount amount
+	 * @param float $discounting_amount the cart item price/total which the coupon should apply to
+	 * @param boolean $single True if discounting a single qty item, false if it's the line
+	 * @param WC_Coupon $coupon
+	 * @return float the discount amount which applies to the cart item
+	 */
+	public static function get_discount_amount_for_cart_item( $cart_item, $discount, $discounting_amount, $single, $coupon ) {
 
 		$coupon_type = wcs_get_coupon_property( $coupon, 'discount_type' );
 
-		// Only deal with subscriptions coupon types
+		// Only deal with subscriptions coupon types which apply to cart items
 		if ( ! in_array( $coupon_type, array( 'recurring_fee', 'recurring_percent', 'sign_up_fee', 'sign_up_fee_percent', 'renewal_fee', 'renewal_percent', 'renewal_cart' ) ) ) {
 			return $discount;
 		}
@@ -201,6 +223,50 @@ class WC_Subscriptions_Coupon {
 	}
 
 	/**
+	 * Get the discount amount which applies for a line item for subscription coupon types
+	 *
+	 * Uses methods and data structures introduced in WC 3.0.
+	 *
+	 * @since 2.2.13
+	 * @param WC_Order_Item $line_item
+	 * @param float $discount the original discount amount
+	 * @param float $discounting_amount the line item price/total
+	 * @param boolean $single True if discounting a single qty item, false if it's the line
+	 * @param WC_Coupon $coupon
+	 * @return float the discount amount which applies to the line item
+	 */
+	public static function get_discount_amount_for_line_item( $line_item, $discount, $discounting_amount, $single, $coupon ) {
+
+		if ( ! is_callable( array( $line_item, 'get_order' ) ) ) {
+			return $discount;
+		}
+
+		$coupon_type = wcs_get_coupon_property( $coupon, 'discount_type' );
+		$order       = $line_item->get_order();
+		$product     = $line_item->get_product();
+
+		// Recurring coupons can be applied to subscriptions or any order which contains a subscription
+		if ( in_array( $coupon_type, array( 'recurring_fee', 'recurring_percent' ) ) && ( wcs_is_subscription( $order ) || wcs_order_contains_subscription( $order, 'any' ) ) ) {
+			if ( 'recurring_fee' === $coupon_type ) {
+				$discount = min( $coupon->get_amount(), $discounting_amount );
+				$discount = $single ? $discount : $discount * $line_item->get_quantity();
+			} else { // recurring_percent
+				$discount = (float) $coupon->get_amount() * ( $discounting_amount / 100 );
+			}
+		// Sign-up fee coupons apply to parent order line items which are subscription products and have a signup fee
+		} elseif ( in_array( $coupon_type, array( 'sign_up_fee', 'sign_up_fee_percent' ) ) && WC_Subscriptions_Product::is_subscription( $product ) && wcs_order_contains_subscription( $order, 'parent' ) && 0 !== WC_Subscriptions_Product::get_sign_up_fee( $product ) ) {
+			if ( 'sign_up_fee' === $coupon_type ) {
+				$discount = min( $coupon->get_amount(), WC_Subscriptions_Product::get_sign_up_fee( $product ) );
+				$discount = $single ? $discount : $discount * $line_item->get_quantity();
+			} else { // sign_up_fee_percent
+				$discount = (float) $coupon->get_amount() * ( WC_Subscriptions_Product::get_sign_up_fee( $product ) / 100 );
+			}
+		}
+
+		return $discount;
+	}
+
+	/**
 	 * Determine if the cart contains a discount code of a given coupon type.
 	 *
 	 * Used internally for checking if a WooCommerce discount coupon ('core') has been applied, or for if a specific
@@ -239,14 +305,46 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Check if a subscription coupon is valid before applying
 	 *
+	 * @param boolean $valid
+	 * @param WC_Coupon $coupon
+	 * @param WC_Discounts $discount Added in WC 3.2 the WC_Discounts object contains information about the coupon being applied to either carts or orders - Optional
+	 * @return boolean Whether the coupon is valid or not
 	 * @since 1.2
 	 */
-	public static function validate_subscription_coupon( $valid, $coupon ) {
+	public static function validate_subscription_coupon( $valid, $coupon, $discount = null ) {
 
 		if ( ! apply_filters( 'woocommerce_subscriptions_validate_coupon_type', true, $coupon, $valid ) ) {
 			return $valid;
 		}
 
+		if ( is_a( $discount, 'WC_Discounts' ) ) { // WC 3.2+
+			$discount_items = $discount->get_items();
+
+			if ( is_array( $discount_items ) && ! empty( $discount_items ) ) {
+				$item = reset( $discount_items );
+
+				if ( isset( $item->object ) && is_a( $item->object, 'WC_Order_Item' ) ) {
+					$valid = self::validate_subscription_coupon_for_order( $valid, $coupon, $item->object->get_order() );
+				} else {
+					$valid = self::validate_subscription_coupon_for_cart( $valid, $coupon );
+				}
+			}
+		} else {
+			$valid = self::validate_subscription_coupon_for_cart( $valid, $coupon );
+		}
+
+		return $valid;
+	}
+
+	/**
+	 * Check if a subscription coupon is valid for the cart.
+	 *
+	 * @since 2.2.13
+	 * @param boolean $valid
+	 * @param WC_Coupon $coupon
+	 * @return bool whether the coupon is valid
+	 */
+	public static function validate_subscription_coupon_for_cart( $valid, $coupon ) {
 		self::$coupon_error = '';
 		$coupon_type        = wcs_get_coupon_property( $coupon, 'discount_type' );
 
@@ -284,6 +382,37 @@ class WC_Subscriptions_Coupon {
 		if ( ! empty( self::$coupon_error ) ) {
 			$valid = false;
 			add_filter( 'woocommerce_coupon_error', __CLASS__ . '::add_coupon_error', 10 );
+		}
+
+		return $valid;
+	}
+
+	/**
+	 * Check if a subscription coupon is valid for an order/subscription.
+	 *
+	 * @since 2.2.13
+	 * @param WC_Coupon $coupon The subscription coupon being validated. Can accept recurring_fee, recurring_percent, sign_up_fee or sign_up_fee_percent coupon types.
+	 * @param WC_Order|WC_Subscription $order The order or subscription object to which the coupon is being applied
+	 * @return bool whether the coupon is valid
+	 */
+	public static function validate_subscription_coupon_for_order( $valid, $coupon, $order ) {
+		$coupon_type   = wcs_get_coupon_property( $coupon, 'discount_type' );
+		$error_message = '';
+
+		// Recurring coupons can be applied to subscriptions and renewal orders
+		if ( in_array( $coupon_type, array( 'recurring_fee', 'recurring_percent' ) ) && ! ( wcs_is_subscription( $order ) || wcs_order_contains_subscription( $order, 'any' ) ) ) {
+			$error_message = __( 'Sorry, recurring coupons can only be applied to subscriptions or subscription orders.', 'woocommerce-subscriptions' );
+		// Sign-up fee coupons can be applied to parent orders which contain subscription products with at least one sign up fee
+		} elseif ( in_array( $coupon_type, array( 'sign_up_fee', 'sign_up_fee_percent' ) ) && ! ( wcs_order_contains_subscription( $order, 'parent' ) || 0 !== WC_Subscriptions_Order::get_sign_up_fee( $order ) ) ) {
+			// translators: placeholder is coupon code
+			$error_message = sprintf( __( 'Sorry, "%s" can only be applied to subscription parent orders which contain a product with signup fees.', 'woocommerce-subscriptions' ), wcs_get_coupon_property( $coupon, 'code' ) );
+		// Only recurring coupons can be applied to subscriptions
+		} elseif ( ! in_array( $coupon_type, array( 'recurring_fee', 'recurring_percent' ) ) && wcs_is_subscription( $order ) ) {
+			$error_message = __( 'Sorry, only recurring coupons can only be applied to subscriptions.', 'woocommerce-subscriptions' );
+		}
+
+		if ( ! empty( $error_message ) ) {
+			throw new Exception( $error_message );
 		}
 
 		return $valid;

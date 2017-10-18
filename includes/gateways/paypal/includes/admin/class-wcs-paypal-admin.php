@@ -170,20 +170,24 @@ class WCS_PayPal_Admin {
 				);
 			}
 
-			$last_ipn_error = get_option( 'wcs_fatal_error_handling_ipn', '' );
+			$last_ipn_error        = get_option( 'wcs_fatal_error_handling_ipn', '' );
+			$failed_ipn_log_handle = 'wcs-ipn-failures';
 
 			if ( ! empty( $last_ipn_error ) && ( false == get_option( 'wcs_fatal_error_handling_ipn_ignored', false ) || isset( $_GET['wcs_reveal_your_ipn_secrets'] ) ) ) {
 				$notices[] = array(
 					'type' => 'error',
-					'text' => sprintf( esc_html__( '%sA fatal error has occurred when processing a recent subscription payment with PayPal. Please %sopen a new ticket at WooCommerce Support%s immediately to get this resolved.%sIn order to get the quickest possible response please attach a %sTemporary Admin Login%s and a copy of your PHP error logs to your support ticket.%sLast recorded error: %s', 'woocommerce-subscriptions' ),
+					'text' => sprintf( esc_html__( '%sA fatal error has occurred when processing a recent subscription payment with PayPal. Please %sopen a new ticket at WooCommerce Support%s immediately to get this resolved.%sIn order to get the quickest possible response please attach a %sTemporary Admin Login%s and a copy of your PHP error logs to your support ticket.%sLast recorded error: %sTo see the full error, view the %s log file from the %sWooCommerce logs screen.%s', 'woocommerce-subscriptions' ),
 						'<p>',
-						'<a href="https://www.woocommerce.com/my-account/create-a-ticket/" target="_blank">',
+						'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">',
 						'</a>',
 						'<br>',
 						'<a href="https://docs.woocommerce.com/document/create-new-admin-account-wordpress/" target="_blank">',
 						'</a>',
 						'</p>',
-						'<code>' . esc_html( $last_ipn_error ) . '</code><div style="margin: 5px 0;"><a class="button" href="' . esc_url( wp_nonce_url( add_query_arg( 'wcs_ipn_error_notice', 'ignore' ), 'wcs_ipn_error_notice', '_wcsnonce' ) ) . '">' . esc_html__( 'Ignore this error (not recommended!)', 'woocommerce-subscriptions' ) . '</a> <a class="button button-primary" href="https://www.woocommerce.com/my-account/create-a-ticket/">' . esc_html__( 'Open up a ticket now!', 'woocommerce-subscriptions' ) . '</a></div>'
+						'<code>' . esc_html( $last_ipn_error ) . '</code><p>',
+						'<code>' . $failed_ipn_log_handle . '</code>',
+						'<a href="' . admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&log_file=%s-%s-log', $failed_ipn_log_handle, sanitize_file_name( wp_hash( $failed_ipn_log_handle ) ) ) )  . '">',
+						'</a></p><div style="margin: 5px 0;"><a class="button" href="' . esc_url( wp_nonce_url( add_query_arg( 'wcs_ipn_error_notice', 'ignore' ), 'wcs_ipn_error_notice', '_wcsnonce' ) ) . '">' . esc_html__( 'Ignore this error (not recommended!)', 'woocommerce-subscriptions' ) . '</a> <a class="button button-primary" href="https://woocommerce.com/my-account/marketplace-ticket-form/">' . esc_html__( 'Open up a ticket now!', 'woocommerce-subscriptions' ) . '</a></div>'
 					),
 				);
 			}

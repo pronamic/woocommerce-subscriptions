@@ -411,7 +411,7 @@ function wcs_get_subscriptions( $args ) {
 			'product_id'             => 0,
 			'variation_id'           => 0,
 			'order_id'               => 0,
-			'subscription_status'    => 'any',
+			'subscription_status'    => array( 'any' ),
 			'meta_query_relation'    => 'AND',
 		)
 	);
@@ -421,9 +421,21 @@ function wcs_get_subscriptions( $args ) {
 		return array();
 	}
 
+	// Ensure subscription_status is an array.
+	$args['subscription_status'] = $args['subscription_status'] ? (array) $args['subscription_status'] : array();
+
+	// Grab the native post stati, removing pending and adding any.
+	$builtin = get_post_stati( array( '_builtin' => true ) );
+	unset( $builtin['pending'] );
+	$builtin['any'] = 'any';
+
 	// Make sure status starts with 'wc-'
-	if ( ! in_array( $args['subscription_status'], array( 'any', 'trash' ) ) ) {
-		$args['subscription_status'] = wcs_sanitize_subscription_status_key( $args['subscription_status'] );
+	foreach ( $args['subscription_status'] as &$status ) {
+		if ( isset( $builtin[ $status ] ) ) {
+			continue;
+		}
+
+		$status = wcs_sanitize_subscription_status_key( $status );
 	}
 
 	// Prepare the args for WP_Query
@@ -515,7 +527,7 @@ function wcs_get_subscriptions_for_product( $product_ids, $fields = 'ids' ) {
 
 	// If we have an array of IDs, convert them to a comma separated list and sanatise them to make sure they're all integers
 	if ( is_array( $product_ids ) ) {
-		$ids_for_query = implode( "', '", array_map( 'absint', array_unique( $product_ids ) ) );
+		$ids_for_query = implode( "', '", array_map( 'absint', array_unique( array_filter( $product_ids ) ) ) );
 	} else {
 		$ids_for_query = absint( $product_ids );
 	}

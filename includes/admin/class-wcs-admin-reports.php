@@ -12,10 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 } // Exit if accessed directly
 
-if ( class_exists( 'WCS_Admin_Reports' ) ) {
-	return new WCS_Admin_Reports();
-}
-
 /**
  * WCS_Admin_Reports Class
  *
@@ -161,7 +157,7 @@ class WCS_Admin_Reports {
 
 		switch ( $screen->id ) {
 			case 'dashboard' :
-				include( 'reports/class-wcs-report-dashboard.php' );
+				include_once( 'reports/class-wcs-report-dashboard.php' );
 			break;
 		}
 
