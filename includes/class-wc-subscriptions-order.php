@@ -797,7 +797,7 @@ class WC_Subscriptions_Order {
 			$subscriptions = wcs_get_subscriptions_for_order( wcs_get_objects_property( $order, 'id' ), array( 'order_type' => 'any' ) );
 
 			foreach ( $subscriptions as $subscription ) {
-				if ( wcs_get_objects_property( $order, 'id' ) != $subscription->get_last_order() ) {
+				if ( wcs_get_objects_property( $order, 'id' ) != $subscription->get_last_order( 'ids', 'any' ) ) {
 					unset( $actions['pay'] );
 					break;
 				}

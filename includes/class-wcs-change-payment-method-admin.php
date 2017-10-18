@@ -67,7 +67,7 @@ class WCS_Change_Payment_Method_Admin {
 
 					foreach ( $meta as $meta_key => $meta_data ) {
 
-						$field_id       = sprintf( '_payment_method_meta[%s][%s]', $meta_table , $meta_key );
+						$field_id       = sprintf( '_payment_method_meta[%s][%s][%s]', $payment_method_id, $meta_table, $meta_key );
 						$field_label    = ( ! empty( $meta_data['label'] ) ) ? $meta_data['label'] : $meta_key ;
 						$field_value    = ( ! empty( $meta_data['value'] ) ) ? $meta_data['value'] : null ;
 						$field_disabled = ( isset( $meta_data['disabled'] ) && true == $meta_data['disabled'] ) ? ' readonly' : '';
@@ -76,7 +76,6 @@ class WCS_Change_Payment_Method_Admin {
 						echo '<label for="' . esc_attr( $field_id ) . '">' . esc_html( $field_label ) . '</label>';
 						echo '<input type="text" class="short" name="' . esc_attr( $field_id ) . '" id="' . esc_attr( $field_id ) . '" value="' . esc_attr( $field_value ) . '" placeholder="" ' . esc_attr( $field_disabled ) . '>';
 						echo '</p>';
-
 					}
 				}
 
@@ -122,7 +121,7 @@ class WCS_Change_Payment_Method_Admin {
 				}
 
 				foreach ( $meta as $meta_key => $meta_data ) {
-					$payment_method_meta[ $meta_table ][ $meta_key ]['value'] = isset( $_POST['_payment_method_meta'][ $meta_table ][ $meta_key ] ) ? $_POST['_payment_method_meta'][ $meta_table ][ $meta_key ] : '';
+					$payment_method_meta[ $meta_table ][ $meta_key ]['value'] = isset( $_POST['_payment_method_meta'][ $payment_method ][ $meta_table ][ $meta_key ] ) ? $_POST['_payment_method_meta'][ $payment_method ][ $meta_table ][ $meta_key ] : '';
 				}
 			}
 		}

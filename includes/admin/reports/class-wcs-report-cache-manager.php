@@ -73,7 +73,6 @@ class WCS_Report_Cache_Manager {
 	 * Attach callbacks to manage cache updates
 	 *
 	 * @since 2.1
-	 * @return null
 	 */
 	public function __construct() {
 
@@ -101,6 +100,9 @@ class WCS_Report_Cache_Manager {
 
 		// Notify store owners that report data can be out-of-date
 		add_action( 'admin_notices', array( $this, 'admin_notices' ), 0 );
+
+		// Add system status information.
+		add_filter( 'wcs_system_status', array( $this, 'add_system_status_info' ) );
 	}
 
 	/**
@@ -131,7 +133,6 @@ class WCS_Report_Cache_Manager {
 	 * @see $this->set_reports_to_update().
 	 *
 	 * @since 2.1
-	 * @return null
 	 */
 	public function schedule_cache_updates() {
 
@@ -185,6 +186,15 @@ class WCS_Report_Cache_Manager {
 	 * @return null
 	 */
 	public function update_cache( $report_class ) {
+		/**
+		 * Filter whether Report Cache Updates are enabled.
+		 *
+		 * @param bool   $enabled      Whether report updates are enabled.
+		 * @param string $report_class The report class to use.
+		 */
+		if ( ! apply_filters( 'wcs_report_cache_updates_enabled', 'yes' === get_option( 'woocommerce_subscriptions_cache_updates_enabled', 'yes' ), $report_class ) ) {
+			return;
+		}
 
 		// Validate the report class
 		$valid_report_class = false;
@@ -199,6 +209,9 @@ class WCS_Report_Cache_Manager {
 		if ( false === $valid_report_class ) {
 			return;
 		}
+
+		// Hook our error catcher.
+		add_action( 'shutdown', array( $this, 'catch_unexpected_shutdown' ) );
 
 		// Load report class dependencies
 		require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
@@ -226,6 +239,9 @@ class WCS_Report_Cache_Manager {
 				$report->get_data( array( 'no_cache' => true ) );
 			}
 		}
+
+		// Remove our error catcher.
+		remove_action( 'shutdown', array( $this, 'catch_unexpected_shutdown' ) );
 	}
 
 	/**
@@ -274,5 +290,68 @@ class WCS_Report_Cache_Manager {
 			wcs_add_admin_notice( __( 'Please note: data for this report is cached. The data displayed may be out of date by up to 24 hours. The cache is updated each morning at 4am in your site\'s timezone.', 'woocommerce-subscriptions' ) );
 		}
 	}
+
+	/**
+	 * Handle error instances that lead to an unexpected shutdown.
+	 *
+	 * This attempts to detect if there was an error, and proactively prevent errors
+	 * from piling up.
+	 *
+	 * @author Jeremy Pry
+	 */
+	public function catch_unexpected_shutdown() {
+		$error = error_get_last();
+		if ( null === $error || ! isset( $error['type'] ) ) {
+			return;
+		}
+
+		// Check for the error types that matter to us.
+		if ( $error['type'] & ( E_ERROR | E_PARSE | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR ) ) {
+			$failures = get_option( 'woocommerce_subscriptions_cache_updates_failures', 0 );
+			$failures++;
+			update_option( 'woocommerce_subscriptions_cache_updates_failures', $failures, false );
+
+			/**
+			 * Filter the allowed number of detected failures before we turn off cache updates.
+			 *
+			 * @param int $threshold The failure count threshold.
+			 */
+			if ( $failures > apply_filters( 'woocommerce_subscriptions_cache_updates_failures_threshold', 2 ) ) {
+				update_option( 'woocommerce_subscriptions_cache_updates_enabled', 'no', false );
+			}
+		}
+	}
+
+	/**
+	 * Add system status information to include failure count and cache update status.
+	 *
+	 * @author Jeremy Pry
+	 *
+	 * @param array $data Existing status data.
+	 *
+	 * @return array Filtered status data.
+	 */
+	public function add_system_status_info( $data ) {
+		$cache_enabled = ( 'yes' === get_option( 'woocommerce_subscriptions_cache_updates_enabled', 'yes' ) );
+		$failures      = get_option( 'woocommerce_subscriptions_cache_updates_failures', 0 );
+		$new_data      = array(
+			'wcs_report_cache_enabled'  => array(
+				'name'    => _x( 'Report Cache Enabled', 'Whether the Report Cache has been enabled', 'woocommerce-subscriptions' ),
+				'note'    => $cache_enabled ? __( 'Yes', 'woocommerce-subscriptions' ) : __( 'No', 'woocommerce-subscriptions' ),
+				'success' => $cache_enabled,
+			),
+			'wcs_cache_update_failures' => array(
+				'name'    => __( 'Cache Update Failures', 'woocommerce-subscriptions' ),
+				/* translators: %d refers to the number of times we have detected cache update failures */
+				'note'    => sprintf( _n( '%d failures', '%d failure', $failures, 'woocommerce-subscriptions' ), $failures ),
+				'success' => 0 === $failures,
+			),
+		);
+
+		$data = array_merge( $data, $new_data );
+
+		return $data;
+	}
 }
+
 return new WCS_Report_Cache_Manager();

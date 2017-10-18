@@ -31,6 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</thead>
 
 	<tbody>
+	<?php /** @var WC_Subscription $subscription */ ?>
 	<?php foreach ( $subscriptions as $subscription_id => $subscription ) : ?>
 		<tr class="order">
 			<td class="subscription-id order-number" data-title="<?php esc_attr_e( 'ID', 'woocommerce-subscriptions' ); ?>">

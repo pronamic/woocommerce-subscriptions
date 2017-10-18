@@ -218,7 +218,7 @@ function wcs_get_objects_property( $object, $property, $single = 'single', $defa
  * @param string $key The meta key name without '_' prefix
  * @param mixed $value The data to set as the value of the meta
  * @param string $save Whether to write the data to the database or not. Use 'save' to write to the database, anything else to only update it in memory.
- * @param int $meta_id The meta ID of exiting meta data if you wish to overwrite an existing piece of meta.
+ * @param int $meta_id The meta ID of existing meta data if you wish to overwrite an existing piece of meta.
  * @param string $prefix_meta_key Whether the key should be prefixed with an '_' when stored in meta. Defaulted to 'prefix_meta_key', pass any other value to bypass automatic prefixing (optional)
  * @since  2.2.0
  * @return mixed

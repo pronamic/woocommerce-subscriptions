@@ -79,8 +79,7 @@ class WCS_Remove_Item {
 					if ( ! empty( $removed_item[ $item_id ] ) && $subscription->get_id() == $removed_item[ $item_id ] ) {
 
 						// restore the item
-						wc_update_order_item( $item_id, array( 'order_item_type' => 'line_item' ) );
-						unset( $removed_item[ $item_id ] );
+						wcs_update_order_item_type( $item_id, 'line_item', $subscription->get_id() );
 
 						WC()->session->set( 'removed_subscription_items', $removed_item );
 
@@ -119,7 +118,7 @@ class WCS_Remove_Item {
 					WCS_Download_Handler::revoke_downloadable_file_permission( $product_id, $subscription->get_id(), $subscription->get_user_id() );
 
 					// remove the line item from subscription but preserve its data in the DB
-					wc_update_order_item( $item_id, array( 'order_item_type' => 'line_item_removed' ) );
+					wcs_update_order_item_type( $item_id, 'line_item_removed', $subscription->get_id() );
 
 					// translators: 1$: product name, 2$: product id
 					$subscription->add_order_note( sprintf( _x( 'Customer removed "%1$s" (Product ID: #%2$d) via the My Account page.', 'used in order note', 'woocommerce-subscriptions' ), wcs_get_line_item_name( $line_item ), $product_id ) );
