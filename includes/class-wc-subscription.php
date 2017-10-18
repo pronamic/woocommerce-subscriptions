@@ -1285,7 +1285,7 @@ class WC_Subscription extends WC_Order {
 		}
 
 		if ( ! empty( $message ) ) {
-			throw new Exception( $message );
+			throw new Exception( sprintf( __( 'Subscription #%d: ', 'woocommerce-subscriptions' ), $this->get_id() ) . $message );
 		}
 
 		$this->set_date_prop( $date_type, 0 );
@@ -1789,10 +1789,17 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Get parent order object.
 	 *
-	 * @return WC_Order
+	 * @return mixed WC_Order|bool
 	 */
 	public function get_parent() {
-		return wc_get_order( $this->get_parent_id() );
+		$parent_id = $this->get_parent_id();
+		$order     = false;
+
+		if ( $parent_id > 0 ) {
+			$order = wc_get_order( $parent_id );
+		}
+
+		return $order;
 	}
 
 	/**
@@ -2335,7 +2342,7 @@ class WC_Subscription extends WC_Order {
 
 		// Don't validate dates while the subscription is being read, only dates set outside of instantiation require the strict validation rules to apply
 		if ( $this->object_read && ! empty( $messages ) ) {
-			throw new Exception( join( ' ', $messages ) );
+			throw new Exception( sprintf( __( 'Subscription #%d: ', 'woocommerce-subscriptions' ), $this->get_id() ) . join( ' ', $messages ) );
 		}
 
 		return array_merge( $dates, $delete_date_types );
@@ -2480,5 +2487,4 @@ class WC_Subscription extends WC_Order {
 
 		return $datetime;
 	}
-
 }

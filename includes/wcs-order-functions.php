@@ -547,6 +547,24 @@ function wcs_get_order_item( $item_id, $order ) {
 }
 
 /**
+ * A wrapper for wc_update_order_item() which consistently deletes the cached item after update, unlike WC.
+ *
+ * @param int $item_id The ID of an order item
+ * @param string $new_type The new type to set as the 'order_item_type' value on the order item.
+ * @param int $order_or_subscription_id The order or subscription ID the line item belongs to - optional. Deletes the order item cache if provided.
+ * @since 2.2.12
+ */
+function wcs_update_order_item_type( $item_id, $new_type, $order_or_subscription_id = 0 ) {
+	wc_update_order_item( $item_id, array( 'order_item_type' => $new_type ) );
+	wp_cache_delete( 'item-' . $item_id, 'order-items' );
+
+	// When possible, also clear the order items' cache for the object to which this item relates (double cache :sob:)
+	if ( ! empty( $order_or_subscription_id ) ) {
+		wp_cache_delete( 'order-items-' . $order_or_subscription_id, 'orders' );
+	}
+}
+
+/**
  * Get an instance of WC_Order_Item_Meta for an order item
  *
  * @param array

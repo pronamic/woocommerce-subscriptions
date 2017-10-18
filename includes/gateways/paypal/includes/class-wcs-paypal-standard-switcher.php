@@ -168,6 +168,7 @@ class WCS_PayPal_Standard_Switcher {
 					if ( ! wcs_is_paypal_profile_a( $paypal_id, 'billing_agreement' ) ) {
 						update_post_meta( $order_id, '_old_payment_method', 'paypal_standard' );
 						update_post_meta( $order_id, '_old_paypal_subscription_id', $paypal_id );
+						update_post_meta( $subscription->get_id(), '_switched_paypal_subscription_id', $paypal_id );
 					}
 				}
 			}

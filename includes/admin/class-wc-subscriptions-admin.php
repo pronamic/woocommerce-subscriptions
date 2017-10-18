@@ -210,7 +210,7 @@ class WC_Subscriptions_Admin {
 		?><p class="form-field _subscription_price_fields _subscription_price_field">
 			<label for="_subscription_price"><?php printf( esc_html__( 'Subscription price (%s)', 'woocommerce-subscriptions' ), esc_html( get_woocommerce_currency_symbol() ) ); ?></label>
 			<span class="wrap">
-				<input type="text" id="_subscription_price" name="_subscription_price" class="wc_input_price wc_input_subscription_price" placeholder="<?php echo esc_attr_x( 'e.g. 5.90', 'example price', 'woocommerce-subscriptions' ); ?>" step="any" min="0" value="<?php echo esc_attr( $chosen_price ); ?>" />
+				<input type="text" id="_subscription_price" name="_subscription_price" class="wc_input_price wc_input_subscription_price" placeholder="<?php echo esc_attr_x( 'e.g. 5.90', 'example price', 'woocommerce-subscriptions' ); ?>" step="any" min="0" value="<?php echo esc_attr( wc_format_localized_price( $chosen_price ) ); ?>" />
 				<label for="_subscription_period_interval" class="wcs_hidden_label"><?php esc_html_e( 'Subscription interval', 'woocommerce-subscriptions' ); ?></label>
 				<select id="_subscription_period_interval" name="_subscription_period_interval" class="wc_input_subscription_period_interval">
 				<?php foreach ( wcs_get_subscription_period_interval_strings() as $value => $label ) { ?>
@@ -248,6 +248,7 @@ class WC_Subscriptions_Admin {
 			'description' => __( 'Optionally include an amount to be charged at the outset of the subscription. The sign-up fee will be charged immediately, even if the product has a free trial or the payment dates are synced.', 'woocommerce-subscriptions' ),
 			'desc_tip'    => true,
 			'type'        => 'text',
+			'data_type'   => 'price',
 			'custom_attributes' => array(
 				'step' => 'any',
 				'min'  => '0',
@@ -611,6 +612,11 @@ class WC_Subscriptions_Admin {
 			return;
 		}
 
+		if ( isset( $_POST['variable_subscription_sign_up_fee'][ $index ] ) ) {
+			$subscription_sign_up_fee = wc_format_decimal( $_POST['variable_subscription_sign_up_fee'][ $index ] );
+			update_post_meta( $variation_id, '_subscription_sign_up_fee', $subscription_sign_up_fee );
+		}
+
 		if ( isset( $_POST['variable_subscription_price'][ $index ] ) ) {
 			$subscription_price = wc_format_decimal( $_POST['variable_subscription_price'][ $index ] );
 			update_post_meta( $variation_id, '_subscription_price', $subscription_price );
@@ -633,7 +639,6 @@ class WC_Subscriptions_Admin {
 		}
 
 		$subscription_fields = array(
-			'_subscription_sign_up_fee',
 			'_subscription_period',
 			'_subscription_period_interval',
 			'_subscription_length',
@@ -1359,34 +1364,40 @@ class WC_Subscriptions_Admin {
 	 * @return string
 	 */
 	public static function do_subscriptions_shortcode( $attributes ) {
-		$attributes = wp_parse_args(
-			$attributes,
+		$attributes = shortcode_atts(
 			array(
 				'user_id' => 0,
 				'status'  => 'active',
-			)
+			),
+			$attributes,
+			'subscriptions'
 		);
 
 		$subscriptions = wcs_get_users_subscriptions( $attributes['user_id'] );
 
-		if ( empty( $subscriptions ) ) {
-			return '<ul class="user-subscriptions no-user-subscriptions">
-						<li>' . esc_html_x( 'No subscriptions found.', 'in [subscriptions] shortcode', 'woocommerce-subscriptions' ) . '</li>
-					</ul>';
-		}
-
-		$list = '<ul class="user-subscriptions">';
-
-		foreach ( $subscriptions as $subscription ) {
-			if ( 'all' == $attributes['status'] || $subscription->has_status( $attributes['status'] ) ) {
-				// translators: order number
-				$shortcode_translate = sprintf( esc_html_x( 'Subscription %s', 'in [subscriptions] shortcode', 'woocommerce-subscriptions' ), $subscription->get_order_number() );
-				$list .= sprintf( '<li><a href="%s">%s</a></li>', $subscription->get_view_order_url(), $shortcode_translate );
+		// Limit subscriptions to the appropriate status if it's not "any" or "all".
+		if ( 'all' !== $attributes['status'] && 'any' !== $attributes['status'] ) {
+			/** @var WC_Subscription $subscription */
+			foreach ( $subscriptions as $index => $subscription ) {
+				if ( ! $subscription->has_status( $attributes['status'] ) ) {
+					unset( $subscriptions[ $index ] );
+				}
 			}
 		}
-		$list .= '</ul>';
 
-		return $list;
+		// Load the subscription template, and return its content using Output Buffering.
+		ob_start();
+		wc_get_template(
+			'myaccount/my-subscriptions.php',
+			array(
+				'subscriptions' => $subscriptions,
+				'user_id'       => $attributes['user_id'],
+			),
+			'',
+			plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/'
+		);
+
+		return ob_get_clean();
 	}
 
 	/**

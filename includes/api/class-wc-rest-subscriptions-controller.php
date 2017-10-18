@@ -125,8 +125,6 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 				$subscription->set_total( wc_format_decimal( $request['order_total'], get_option( 'woocommerce_price_num_decimals' ) ) );
 			}
 
-			$subscription->save();
-
 			// Store the post meta on the subscription after it's saved, this is to avoid compat. issue with the filters in WC_Subscriptions::set_payment_method_meta() expecting the $subscription to have an ID (therefore it needs to be called after the WC_Subscription has been saved)
 			$payment_data = ( ! empty( $request['payment_details'] ) ) ? $request['payment_details'] : array();
 			if ( empty( $payment_data['payment_details']['method_id'] ) && ! empty( $request['payment_method'] ) ) {
@@ -374,6 +372,8 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 				}
 			}
 		}
+
+		$subscription->save();
 
 		try {
 			if ( ! empty( $dates_to_update ) ) {

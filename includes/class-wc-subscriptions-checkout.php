@@ -352,8 +352,10 @@ class WC_Subscriptions_Checkout {
 
 		// Allow plugins to add order item meta
 		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+			do_action( 'woocommerce_add_order_item_meta', $item_id, $cart_item, $cart_item_key );
 			do_action( 'woocommerce_add_subscription_item_meta', $item_id, $cart_item, $cart_item_key );
 		} else {
+			wc_do_deprecated_action( 'woocommerce_add_order_item_meta', array( $item_id, $cart_item, $cart_item_key ), '3.0', 'CRUD and woocommerce_checkout_create_order_line_item action instead' );
 			wc_do_deprecated_action( 'woocommerce_add_subscription_item_meta', array( $item_id, $cart_item, $cart_item_key ), '3.0', 'CRUD and woocommerce_checkout_create_order_line_item action instead' );
 		}
 
