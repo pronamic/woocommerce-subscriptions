@@ -245,8 +245,8 @@ class WC_Subscriptions_Coupon {
 		$order       = $line_item->get_order();
 		$product     = $line_item->get_product();
 
-		// Recurring coupons can be applied to subscriptions or any order which contains a subscription
-		if ( in_array( $coupon_type, array( 'recurring_fee', 'recurring_percent' ) ) && ( wcs_is_subscription( $order ) || wcs_order_contains_subscription( $order, 'any' ) ) ) {
+		// Recurring coupons can be applied to subscriptions, any renewal line item or subscription products in other order types
+		if ( in_array( $coupon_type, array( 'recurring_fee', 'recurring_percent' ) ) && ( wcs_is_subscription( $order ) || wcs_order_contains_renewal( $order ) || WC_Subscriptions_Product::is_subscription( $product ) ) ) {
 			if ( 'recurring_fee' === $coupon_type ) {
 				$discount = min( $coupon->get_amount(), $discounting_amount );
 				$discount = $single ? $discount : $discount * $line_item->get_quantity();

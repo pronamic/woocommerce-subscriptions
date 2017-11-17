@@ -257,7 +257,7 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 						ON wcsubs.ID = wcsmeta.post_id AND wcsmeta.meta_key = %s
 				) ON DATE( wcsubs.post_date ) <= searchdate.Date
 					AND wcsubs.post_type IN ( 'shop_subscription' )
-					AND wcsubs.post_status NOT IN( 'wc-pending', 'trash' )
+					AND wcsubs.post_status NOT IN( 'wc-pending', 'trash', 'auto-draft' )
 					AND (
 						DATE( wcsmeta.meta_value ) >= searchdate.Date
 						OR wcsmeta.meta_value = 0

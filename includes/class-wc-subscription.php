@@ -2053,7 +2053,7 @@ class WC_Subscription extends WC_Order {
 	 * @return bool
 	 */
 	public function is_download_permitted() {
-		$sending_email = did_action( 'woocommerce_email_before_order_table' ) > did_action( 'woocommerce_email_after_order_table' );
+		$sending_email = did_action( 'woocommerce_email_header' ) > did_action( 'woocommerce_email_footer' );
 		$is_download_permitted = $this->has_status( 'active' ) || $this->has_status( 'pending-cancel' );
 
 		// WC Emails are sent before the subscription status is updated to active etc. so we need a way to ensure download links are added to the emails before being sent

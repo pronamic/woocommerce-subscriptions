@@ -284,22 +284,22 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 
 		// Handle the billing fields.
 		foreach ( self::$billing_fields as $key => $field ) {
-			$prefixed_key = "_billing_{$key}";
-			if ( ! isset( $_POST[ $prefixed_key ] ) ) {
+			$field['id'] = isset( $field['id'] ) ? $field['id'] : "_billing_{$key}";
+			if ( ! isset( $_POST[ $field['id'] ] ) ) {
 				continue;
 			}
 
-			wcs_set_objects_property( $subscription, $prefixed_key, wc_clean( $_POST[ $prefixed_key ] ) );
+			wcs_set_objects_property( $subscription, $field['id'], wc_clean( $_POST[ $field['id'] ] ) );
 		}
 
 		// Handle the shipping fields.
 		foreach ( self::$shipping_fields as $key => $field ) {
-			$prefixed_key = "_shipping_{$key}";
-			if ( ! isset( $_POST[ $prefixed_key ] ) ) {
+			$field['id'] = isset( $field['id'] ) ? $field['id'] : "_shipping_{$key}";
+			if ( ! isset( $_POST[ $field['id'] ] ) ) {
 				continue;
 			}
 
-			wcs_set_objects_property( $subscription, $prefixed_key, wc_clean( $_POST[ $prefixed_key ] ) );
+			wcs_set_objects_property( $subscription, $field['id'], wc_clean( $_POST[ $field['id'] ] ) );
 		}
 
 		try {

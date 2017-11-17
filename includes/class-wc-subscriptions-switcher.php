@@ -1444,6 +1444,12 @@ class WC_Subscriptions_Switcher {
 						}
 					} else {
 
+						// If we've already calculated the prorated price recalculate the amounts but reset the values so we don't double the amounts
+						if ( 0 < wcs_get_objects_property( WC()->cart->cart_contents[ $cart_item_key ]['data'], 'subscription_price_prorated', 'single', 0 ) ) {
+							$prorated_signup_fee = wcs_get_objects_property( WC()->cart->cart_contents[ $cart_item_key ]['data'], 'subscription_sign_up_fee_prorated', 'single' );
+							wcs_set_objects_property( WC()->cart->cart_contents[ $cart_item_key ]['data'], 'subscription_sign_up_fee', $prorated_signup_fee, 'set_prop_only' );
+						}
+
 						$extra_to_pay = $days_until_next_payment * ( $new_price_per_day - $old_price_per_day );
 
 						// when calculating a subscription with one length (no more next payment date and the end date may have been pushed back) we need to pay for those extra days at the new price per day between the old next payment date and new end date
