@@ -134,7 +134,7 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal {
 			WC()->session->set( 'order_awaiting_payment', $order_id );
 			$this->set_cart_hash( $order_id );
 
-			wp_safe_redirect( WC()->cart->get_checkout_url() );
+			wp_safe_redirect( wc_get_checkout_url() );
 			exit;
 		}
 	}

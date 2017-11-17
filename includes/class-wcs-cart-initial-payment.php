@@ -70,7 +70,7 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 					// Set cart hash for orders paid in WC >= 2.6
 					$this->set_cart_hash( $order_id );
 
-					wp_safe_redirect( WC()->cart->get_checkout_url() );
+					wp_safe_redirect( wc_get_checkout_url() );
 					exit;
 				}
 			}

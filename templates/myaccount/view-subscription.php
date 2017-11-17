@@ -84,12 +84,12 @@ wc_print_notices();
 		<?php endforeach; ?>
 	</ol>
 <?php endif; ?>
-<?php $allow_remove_item = wcs_can_items_be_removed( $subscription ); ?>
+<?php $allow_remove_items = wcs_can_items_be_removed( $subscription ); ?>
 <h2><?php esc_html_e( 'Subscription Totals', 'woocommerce-subscriptions' ); ?></h2>
 <table class="shop_table order_details">
 	<thead>
 		<tr>
-			<?php if ( $allow_remove_item ) : ?>
+			<?php if ( $allow_remove_items ) : ?>
 			<th class="product-remove" style="width: 3em;">&nbsp;</th>
 			<?php endif; ?>
 			<th class="product-name"><?php echo esc_html_x( 'Product', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
@@ -105,8 +105,13 @@ wc_print_notices();
 				if ( apply_filters( 'woocommerce_order_item_visible', true, $item ) ) {
 					?>
 					<tr class="<?php echo esc_attr( apply_filters( 'woocommerce_order_item_class', 'order_item', $item, $subscription ) ); ?>">
-						<?php if ( $allow_remove_item ) : ?>
-							<td class="remove_item"><a href="<?php echo esc_url( WCS_Remove_Item::get_remove_url( $subscription->get_id(), $item_id ) );?>" class="remove" onclick="return confirm('<?php printf( esc_html__( 'Are you sure you want remove this item from your subscription?', 'woocommerce-subscriptions' ) ); ?>');">&times;</a></td>
+							<td class="remove_item">
+								<?php if ( wcs_can_item_be_removed( $item, $subscription ) ) : ?>
+									<?php $confirm_notice = apply_filters( 'woocommerce_subscriptions_order_item_remove_confirmation_text', __( 'Are you sure you want remove this item from your subscription?', 'woocommerce-subscriptions' ), $item, $_product, $subscription );?>
+									<a href="<?php echo esc_url( WCS_Remove_Item::get_remove_url( $subscription->get_id(), $item_id ) );?>" class="remove" onclick="return confirm('<?php printf( esc_html( $confirm_notice ) ); ?>');">&times;</a>
+								<?php endif; ?>
+							</td>
+						<?php if ( $allow_remove_items ) : ?>
 						<?php endif; ?>
 						<td class="product-name">
 							<?php
@@ -154,7 +159,7 @@ wc_print_notices();
 			foreach ( $totals as $key => $total ) {
 				?>
 			<tr>
-				<th scope="row" <?php echo ( $allow_remove_item ) ? 'colspan="2"' : ''; ?>><?php echo esc_html( $total['label'] ); ?></th>
+				<th scope="row" <?php echo ( $allow_remove_items ) ? 'colspan="2"' : ''; ?>><?php echo esc_html( $total['label'] ); ?></th>
 				<td><?php echo wp_kses_post( $total['value'] ); ?></td>
 			</tr>
 				<?php

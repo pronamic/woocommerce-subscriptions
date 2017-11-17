@@ -589,6 +589,17 @@ function wcs_can_items_be_removed( $subscription ) {
 }
 
 /**
+ * Checks if the user can be granted the permission to remove a particular line item from the subscription.
+ *
+ * @param WC_Order_item $item An instance of a WC_Order_item object
+ * @param WC_Subscription $subscription An instance of a WC_Subscription object
+ * @since 2.2.15
+ */
+function wcs_can_item_be_removed( $item, $subscription ) {
+	return apply_filters( 'wcs_can_item_be_removed', true, $item, $subscription );
+}
+
+/**
  * Get the Product ID for an order's line item (only the product ID, not the variation ID, even if the order item
  * is for a variation).
  *

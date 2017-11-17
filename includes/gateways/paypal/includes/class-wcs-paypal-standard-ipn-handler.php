@@ -93,26 +93,34 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 			return;
 		}
 
-		// If the IPN is for a cancellation after a failed payment on a PayPal Standard subscription created with Subscriptions < 2.0, the subscription won't be found, but that doesn't mean we should throw an exception, we should  just ignore it
-		if ( empty( $subscription ) && in_array( $transaction_details['txn_type'], array( 'subscr_cancel', 'subscr_eot' ) ) ) {
+		if ( empty( $subscription ) ) {
 
-			// Check if the reason the subscription can't be found is because it has since been changed to a new PayPal Subscription and this IPN is for the cancellation after a renewal sign-up
-			$subscription_id_and_key = self::get_order_id_and_key( $transaction_details, 'shop_subscription', '_old_paypal_subscriber_id' );
+			// If the IPN is for a cancellation after a failed payment on a PayPal Standard subscription created with Subscriptions < 2.0, the subscription won't be found, but that doesn't mean we should throw an exception, we should  just ignore it
+			if ( in_array( $transaction_details['txn_type'], array( 'subscr_cancel', 'subscr_eot' ) ) ) {
 
-			if ( ! empty( $subscription_id_and_key['order_id'] ) ) {
-				WC_Gateway_Paypal::log( 'IPN subscription cancellation request ignored - new PayPal Profile ID linked to this subscription, for subscription ' . $subscription_id_and_key['order_id'] );
-				return;
+				// Check if the reason the subscription can't be found is because it has since been changed to a new PayPal Subscription and this IPN is for the cancellation after a renewal sign-up
+				$subscription_id_and_key = self::get_order_id_and_key( $transaction_details, 'shop_subscription', '_old_paypal_subscriber_id' );
+
+				if ( ! empty( $subscription_id_and_key['order_id'] ) ) {
+					WC_Gateway_Paypal::log( 'IPN subscription cancellation request ignored - new PayPal Profile ID linked to this subscription, for subscription ' . $subscription_id_and_key['order_id'] );
+					return;
+				}
 			}
-		}
 
-		// If the IPN is for a suspension after a switch on a PayPal Standard subscription created with Subscriptions < 2.0, the subscription won't be found, but that doesn't mean we should throw an exception, we should just ignore it
-		if ( empty( $subscription ) && 'recurring_payment_suspended' === $transaction_details['txn_type'] ) {
+			// If the IPN is for a suspension after a switch on a PayPal Standard subscription created with Subscriptions < 2.0, the subscription won't be found, but that doesn't mean we should throw an exception, we should just ignore it
+			if ( 'recurring_payment_suspended' === $transaction_details['txn_type'] ) {
 
-			// Check if the reason the subscription can't be found is because it has since been changed after a successful subscription switch
-			$subscription_id_and_key = self::get_order_id_and_key( $transaction_details, 'shop_subscription', '_switched_paypal_subscription_id' );
+				// Check if the reason the subscription can't be found is because it has since been changed after a successful subscription switch
+				$subscription_id_and_key = self::get_order_id_and_key( $transaction_details, 'shop_subscription', '_switched_paypal_subscription_id' );
 
-			if ( ! empty( $subscription_id_and_key['order_id'] ) ) {
-				WC_Gateway_Paypal::log( 'IPN subscription suspension request ignored - subscription payment gateway changed via switch' . $subscription_id_and_key['order_id'] );
+				if ( ! empty( $subscription_id_and_key['order_id'] ) ) {
+					WC_Gateway_Paypal::log( 'IPN subscription suspension request ignored - subscription payment gateway changed via switch' . $subscription_id_and_key['order_id'] );
+					return;
+				}
+			}
+
+			if ( empty( $transaction_details['custom'] ) || ! $this->is_woocommerce_payload( $transaction_details['custom'] ) ) {
+				WC_Gateway_Paypal::log( 'IPN request ignored - payload is not in a WooCommerce recognizable format' );
 				return;
 			}
 		}
@@ -535,6 +543,23 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	 */
 	public function get_transaction_types() {
 		return $this->transaction_types;
+	}
+
+
+	/**
+	 * Checks if a string may include a WooCommerce order key.
+	 *
+	 * This function expects a generic payload, in any serialization format. It looks for an 'order key' code. This
+	 * function uses regular expressions and looks for 'order key'. WooCommerce allows plugins to modify the order
+	 * keys through filtering, unfortunatelly we only check for the original
+	 *
+	 * @param string $payload	PayPal payload data
+	 *
+	 * @return bool
+	 */
+	protected function is_woocommerce_payload( $payload ) {
+		return is_numeric( $payload ) ||
+			(bool) preg_match( '/(wc_)?order_[a-f0-9]{5,20}/', $payload );
 	}
 
 	/**
