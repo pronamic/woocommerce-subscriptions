@@ -79,7 +79,7 @@ class WCS_Webhooks {
 						'woocommerce_process_shop_subscription_meta',
 					),
 					'subscription.updated' => array(
-						'wc_api_subscription_updated',
+						'wcs_api_subscription_updated',
 						'woocommerce_subscription_status_changed',
 						'wcs_webhook_subscription_updated',
 						'woocommerce_process_shop_subscription_meta',

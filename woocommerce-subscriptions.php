@@ -5,8 +5,10 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: http://prospress.com/
- * Version: 2.2.13
+ * Version: 2.2.15
  *
+ * WC requires at least: 2.5
+ * WC tested up to: 3.2
  * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
  *
  * Copyright 2017 Prospress, Inc.  (email : freedoms@prospress.com)
@@ -128,7 +130,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.2.13';
+	public static $version = '2.2.15';
 
 	private static $total_subscription_count = null;
 
@@ -462,7 +464,7 @@ class WC_Subscriptions {
 
 				wc_clear_notices();
 
-				$url = WC()->cart->get_checkout_url();
+				$url = wc_get_checkout_url();
 
 			// Redirect to the same page (if the customer wouldn't be redirected to the cart) to ensure the cart widget loads correctly
 			} elseif ( 'yes' != get_option( 'woocommerce_cart_redirect_after_add' ) && self::is_woocommerce_pre( '2.5' ) ) {

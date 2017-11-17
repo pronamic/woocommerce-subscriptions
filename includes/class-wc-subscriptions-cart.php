@@ -304,7 +304,12 @@ class WC_Subscriptions_Cart {
 			self::$cached_recurring_cart = $recurring_cart;
 
 			// No fees recur (yet)
-			$recurring_cart->fees = array();
+			if ( is_callable( array( $recurring_cart, 'fees_api' ) ) ) { // WC 3.2 +
+				$recurring_cart->fees_api()->remove_all_fees();
+			} else {
+				$recurring_cart->fees = array();
+			}
+
 			$recurring_cart->fee_total = 0;
 			WC()->shipping->reset_shipping();
 			self::maybe_restore_shipping_methods();
@@ -333,9 +338,21 @@ class WC_Subscriptions_Cart {
 
 		// If there is no sign-up fee and a free trial, and no products being purchased with the subscription, we need to zero the fees for the first billing period
 		if ( 0 == self::get_cart_subscription_sign_up_fee() && self::all_cart_items_have_free_trial() ) {
-			foreach ( WC()->cart->get_fees() as $fee_index => $fee ) {
-				WC()->cart->fees[ $fee_index ]->amount = 0;
-				WC()->cart->fees[ $fee_index ]->tax = 0;
+			$cart_fees = WC()->cart->get_fees();
+
+			if ( WC_Subscriptions::is_woocommerce_pre( '3.2' ) ) {
+				foreach ( $cart_fees as $fee_index => $fee ) {
+					WC()->cart->fees[ $fee_index ]->amount = 0;
+					WC()->cart->fees[ $fee_index ]->tax = 0;
+				}
+			} else {
+				foreach ( $cart_fees as $fee ) {
+					$fee->amount = 0;
+					$fee->tax    = 0;
+					$fee->total  = 0;
+				}
+
+				WC()->cart->fees_api()->set_fees( $cart_fees );
 			}
 			WC()->cart->fee_total = 0;
 		}

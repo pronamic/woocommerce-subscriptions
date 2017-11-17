@@ -29,6 +29,7 @@ function wcs_create_renewal_order( $subscription ) {
 	$renewal_order = wcs_create_order_from_subscription( $subscription, 'renewal_order' );
 
 	if ( is_wp_error( $renewal_order ) ) {
+		do_action( 'wcs_failed_to_create_renewal_order', $renewal_order, $subscription );
 		return new WP_Error( 'renewal-order-error', $renewal_order->get_error_message() );
 	}
 

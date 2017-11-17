@@ -91,7 +91,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 					wc_add_notice( __( 'Complete checkout to resubscribe.', 'woocommerce-subscriptions' ), 'success' );
 				}
 
-				$redirect_to = WC()->cart->get_checkout_url();
+				$redirect_to = wc_get_checkout_url();
 			}
 
 			wp_safe_redirect( $redirect_to );
@@ -132,8 +132,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 					}
 				}
 
-				$redirect_to = WC()->cart->get_checkout_url();
-				wp_safe_redirect( $redirect_to );
+				wp_safe_redirect( wc_get_checkout_url() );
 				exit;
 			}
 		}
