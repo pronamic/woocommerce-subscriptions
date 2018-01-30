@@ -2,9 +2,9 @@
 /**
  * Subscription Product Add to Cart
  *
- * @author 		Prospress
- * @package 	WooCommerce-Subscriptions/Templates
- * @version     2.0.18
+ * @author  Prospress
+ * @package WooCommerce-Subscriptions/Templates
+ * @version 2.0.18
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

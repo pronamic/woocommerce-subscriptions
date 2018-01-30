@@ -2,6 +2,8 @@
 /**
  * Outputs a subscription variation's pricing fields for WooCommerce 2.3+
  *
+ * @version 2.2.12
+ *
  * @var int $loop
  * @var WP_POST $variation
  * @var WC_Product_Subscription_Variation $variation_product
@@ -61,7 +63,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</p>
 	<p class="form-row form-row-last show_if_variable-subscription _subscription_length_field">
 		<label for="variable_subscription_length[<?php echo esc_attr( $loop ); ?>]">
-			<?php esc_html_e( 'Subscription length', 'woocommerce-subscriptions' ); ?>
+			<?php esc_html_e( 'Expire after', 'woocommerce-subscriptions' ); ?>
 			<?php echo wcs_help_tip( _x( 'Automatically expire the subscription after this length of time. This length is in addition to any free trial or amount of time provided before a synchronised first renewal date.', 'Subscription Length dropdown\'s description in pricing fields', 'woocommerce-subscriptions' ) ); ?>
 		</label>
 		<select name="variable_subscription_length[<?php echo esc_attr( $loop ); ?>]" class="wc_input_subscription_length">

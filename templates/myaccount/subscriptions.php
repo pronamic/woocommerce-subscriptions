@@ -2,9 +2,9 @@
 /**
  * My Account > Subscriptions page
  *
- * @author		Prospress
- * @category	WooCommerce Subscriptions/Templates
- * @version		2.0.15
+ * @author   Prospress
+ * @category WooCommerce Subscriptions/Templates
+ * @version  2.0.15
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

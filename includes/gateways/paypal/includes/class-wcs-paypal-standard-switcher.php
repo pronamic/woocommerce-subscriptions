@@ -245,7 +245,7 @@ class WCS_PayPal_Standard_Switcher {
 		_deprecated_function( __METHOD__, '2.1', __CLASS__ . 'cancel_paypal_standard_after_switch( $order )' );
 
 		$order = wc_get_order( $order_id );
-		$order_completed = in_array( $new_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id ), 'processing', 'completed' ) ) && in_array( $old_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ), $order ) );
+		$order_completed = in_array( $new_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id, $order ), 'processing', 'completed' ) ) && in_array( $old_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ), $order ) );
 
 		if ( $order_completed && wcs_order_contains_switch( $order_id ) ) {
 			self::cancel_paypal_standard_after_switch( $order );

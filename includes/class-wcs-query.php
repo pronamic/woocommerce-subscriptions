@@ -20,6 +20,7 @@ class WCS_Query extends WC_Query {
 
 			// Inserting your new tab/page into the My Account page.
 			add_filter( 'woocommerce_account_menu_items', array( $this, 'add_menu_items' ) );
+			add_filter( 'woocommerce_get_endpoint_url', array( $this, 'maybe_redirect_to_only_subscription' ), 10, 2 );
 			add_action( 'woocommerce_account_subscriptions_endpoint', array( $this, 'endpoint_content' ) );
 		}
 
@@ -109,15 +110,41 @@ class WCS_Query extends WC_Query {
 	 * @return array
 	 */
 	public function add_menu_items( $menu_items ) {
+		if ( 1 == count( wcs_get_users_subscriptions() ) ) {
+			$label = __( 'My Subscription', 'woocommerce-subscriptions' );
+		} else {
+			$label = __( 'Subscriptions', 'woocommerce-subscriptions' );
+		}
 
 		// Add our menu item after the Orders tab if it exists, otherwise just add it to the end
 		if ( array_key_exists( 'orders', $menu_items ) ) {
-			$menu_items = wcs_array_insert_after( 'orders', $menu_items, 'subscriptions', __( 'Subscriptions', 'woocommerce-subscriptions' ) );
+			$menu_items = wcs_array_insert_after( 'orders', $menu_items, 'subscriptions', $label );
 		} else {
-			$menu_items['subscriptions'] = __( 'Subscriptions', 'woocommerce-subscriptions' );
+			$menu_items['subscriptions'] = $label;
 		}
 
 		return $menu_items;
+	}
+
+	/**
+	 * Changes the URL for the subscriptions endpoint when there's only one user subscription.
+	 *
+	 * @since 2.2.17
+	 * @param string $url
+	 * @param string $endpoint
+	 * @return string
+	 */
+	public function maybe_redirect_to_only_subscription( $url, $endpoint ) {
+		if ( 'subscriptions' == $endpoint ) {
+			$subscriptions = wcs_get_users_subscriptions();
+
+			if ( 1 == count( $subscriptions ) ) {
+				$subscription = reset( $subscriptions );
+				$url = $subscription->get_view_order_url();
+			}
+		}
+
+		return $url;
 	}
 
 	/**

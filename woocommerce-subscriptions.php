@@ -5,10 +5,10 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: http://prospress.com/
- * Version: 2.2.15
+ * Version: 2.2.17
  *
  * WC requires at least: 2.5
- * WC tested up to: 3.2
+ * WC tested up to: 3.3
  * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
  *
  * Copyright 2017 Prospress, Inc.  (email : freedoms@prospress.com)
@@ -130,7 +130,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.2.15';
+	public static $version = '2.2.17';
 
 	private static $total_subscription_count = null;
 
@@ -375,8 +375,8 @@ class WC_Subscriptions {
 	public static function redirect_ajax_add_to_cart( $fragments ) {
 
 		$data = array(
-			'error' => true,
-			'product_url' => WC()->cart->get_cart_url(),
+			'error'       => true,
+			'product_url' => wc_get_cart_url(),
 		);
 
 		return $data;
@@ -400,25 +400,26 @@ class WC_Subscriptions {
 
 		if ( $is_subscription && 'yes' != get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase', 'no' ) ) {
 
-			WC()->cart->empty_cart();
-
+			if ( ! WC_Subscriptions_Cart::cart_contains_product( $canonical_product_id ) ) {
+				WC()->cart->empty_cart();
+			}
 		} elseif ( $is_subscription && wcs_cart_contains_renewal() && ! $multiple_subscriptions_possible && ! $manual_renewals_enabled ) {
 
 			self::remove_subscriptions_from_cart();
 
-			self::add_notice( __( 'A subscription renewal has been removed from your cart. Multiple subscriptions can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
+			wc_add_notice( __( 'A subscription renewal has been removed from your cart. Multiple subscriptions can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
 
 		} elseif ( $is_subscription && $cart_contains_subscription && ! $multiple_subscriptions_possible && ! $manual_renewals_enabled && ! WC_Subscriptions_Cart::cart_contains_product( $canonical_product_id ) ) {
 
 			self::remove_subscriptions_from_cart();
 
-			self::add_notice( __( 'A subscription has been removed from your cart. Due to payment gateway restrictions, different subscription products can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
+			wc_add_notice( __( 'A subscription has been removed from your cart. Due to payment gateway restrictions, different subscription products can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
 
 		} elseif ( $cart_contains_subscription && 'yes' != get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase', 'no' ) ) {
 
 			self::remove_subscriptions_from_cart();
 
-			self::add_notice( __( 'A subscription has been removed from your cart. Products and subscriptions can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
+			wc_add_notice( __( 'A subscription has been removed from your cart. Products and subscriptions can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
 
 			if ( WC_Subscriptions::is_woocommerce_pre( '3.0.8' ) ) {
 				// Redirect to cart page to remove subscription & notify shopper
@@ -1083,26 +1084,6 @@ class WC_Subscriptions {
 	}
 
 	/**
-	 * Add WooCommerce error or success notice regardless of the version of WooCommerce running.
-	 *
-	 * @param  string $message The text to display in the notice.
-	 * @param  string $notice_type The singular name of the notice type - either error, success or notice. [optional]
-	 * @since version 1.4.5
-	 */
-	public static function add_notice( $message, $notice_type = 'success' ) {
-		wc_add_notice( $message, $notice_type );
-	}
-
-	/**
-	 * Print WooCommerce messages regardless of the version of WooCommerce running.
-	 *
-	 * @since version 1.4.5
-	 */
-	public static function print_notices() {
-		wc_print_notices();
-	}
-
-	/**
 	 * Renewals use a lot more memory on WordPress multisite (10-15mb instead of 0.1-1mb) so
 	 * we need to reduce the number of renewals run in each request.
 	 *
@@ -1155,6 +1136,30 @@ class WC_Subscriptions {
 	}
 
 	/* Deprecated Functions */
+
+	/**
+	 * Add WooCommerce error or success notice regardless of the version of WooCommerce running.
+	 *
+	 * @param  string $message The text to display in the notice.
+	 * @param  string $notice_type The singular name of the notice type - either error, success or notice. [optional]
+	 * @since version 1.4.5
+	 * @deprecated 2.2.16
+	 */
+	public static function add_notice( $message, $notice_type = 'success' ) {
+		wcs_deprecated_function( __METHOD__, '2.2.16', 'wc_add_notice( $message, $notice_type )' );
+		wc_add_notice( $message, $notice_type );
+	}
+
+	/**
+	 * Print WooCommerce messages regardless of the version of WooCommerce running.
+	 *
+	 * @since version 1.4.5
+	 * @deprecated 2.2.16
+	 */
+	public static function print_notices() {
+		wcs_deprecated_function( __METHOD__, '2.2.16', 'wc_print_notices()' );
+		wc_print_notices();
+	}
 
 	/**
 	 * Workaround the last day of month quirk in PHP's strtotime function.

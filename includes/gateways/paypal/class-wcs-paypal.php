@@ -111,6 +111,12 @@ class WCS_PayPal {
 	 * @since 2.0
 	 */
 	public static function get_option( $setting_key ) {
+
+		// Post WC 3.3 PayPal's sandbox and live API credentials are stored separately. When requesting the API keys make sure we return the active keys - live or sandbox depending on the mode.
+		if ( ! WC_Subscriptions::is_woocommerce_pre( '3.3' ) && in_array( $setting_key, array( 'api_username', 'api_password', 'api_signature' ) ) && 'yes' === self::get_option( 'testmode' ) ) {
+			$setting_key = 'sandbox_' . $setting_key;
+		}
+
 		return ( isset( self::$paypal_settings[ $setting_key ] ) ) ? self::$paypal_settings[ $setting_key ] : '';
 	}
 
@@ -253,14 +259,14 @@ class WCS_PayPal {
 
 					} else {
 
-						wp_safe_redirect( WC()->cart->get_cart_url() );
+						wp_safe_redirect( wc_get_cart_url() );
 
 					}
 				} catch ( Exception $e ) {
 
 					wc_add_notice( __( 'An error occurred, please try again or try an alternate form of payment.', 'woocommerce-subscriptions' ), 'error' );
 
-					wp_redirect( WC()->cart->get_cart_url() );
+					wp_redirect( wc_get_cart_url() );
 				}
 
 				exit;

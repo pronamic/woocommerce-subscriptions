@@ -1,5 +1,39 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2018.01.29 - version 2.2.17
+* Fix: Use line item meta values in a WC version compatible way. PR#2469
+* Fix: Only log cache manager messages if the logger has been loaded. PR#2468
+* Fix: Init `WC()->mailer()` to make sure our retry email classes are available and loaded. PR#2476
+* Fix: Update calls to 'woocommerce_payment_complete_order_status' to include order as 3rd argument. PR#2503
+* Fix: Prevent wp_kses from stripping off the allow_clear attribute of Select2 elements. PR#2354
+* Fix: Update `woocommerce_cart_totals_coupon_html` filter to include an extra arg introduced in WC 3.0. PR#2447
+* Fix: Ensure the Upcoming Revenue report correctly calculates revenue in periods beyond the next payment date. PR#2461
+* Fix: [WC3.2] Print the order downloads table in renewal order emails. PR#2522
+* Fix: [WC3.3] Replace uses of deprecated `woocommerce_params` with 'woocommerce_get_script_data'. PR#2509
+* Fix: [WC3.3] Get the active set of PayPal API credential depending on the gateway mode. PR#2514
+* Fix: [WC3.3] Display the filter by customer on the admin subscriptions table. PR#2521
+* Tweak: Add Subscriptions template overrides to system status. PR#2422
+* Tweak: Do not empty cart when adding additional units of a subscription product when mixed checkout is disabled. PR#2464
+* Tweak: Trigger a `do_action` when customers remove and readd line items to their subscription. PR#2458
+* Tweak: Untrash subscriptions when parent order is untrashed. PR#2472
+* Tweak: Skip the My Account Subscriptions table, linking directly to the subscription if customer only has one. PR#2474
+* Tweak: Change the subscription product length/expiration label from 'Expire after' to Subscription length. PR#2483
+* Tweak: Reword the Mixed Checkout setting description. PR#2490
+* Tweak: Cache user subscriptions to improve performance of limitation queries and user API functions. PR#2388
+* Tweak: Pass the `$number` parameter to callbacks hooked onto `woocommerce_subscription_periods` and `woocommerce_subscription_trial_periods`. PR#2520
+
+2017.12.07 - version 2.2.16
+* Fix: Update PayPal doc links. PR#2414
+* Fix: [WC3.2] Make sure Subscriptions checks if the PayPal credentials have changed on correct hook. PR#2430
+* Fix: Only allow subscription line items to be removed from the My Account page when they should be allowed. PR#2440
+* Fix: Fix subscription ranges transient key when user has different language/locale than site default. PR#2286
+* Fix: Replace use of deprecated function with wc_get_cart_url(). PR#2442
+* Fix: Force payment method selection when switching when manual renewals are disabled. PR#2348
+* Tweak: Deprecate WC_Subscriptions::add_notice() and WC_Subscriptions::print_notices(). PR#2453
+* Tweak: Display "Free" for shipping that costs 0 only. PR#2437
+* Tweak: Format PayPal totals as strings when comparing. PR#2271
+* Tweak: Improve recurring fee support. PR#2462
+
 2017.11.07 - version 2.2.15
 * Fix: Don't include auto-draft subscriptions in the current subscriptions count in reports. PR#2414
 * Fix: Reset cart item prorated amounts between calculations to avoid displaying double prorated prices. PR#2413

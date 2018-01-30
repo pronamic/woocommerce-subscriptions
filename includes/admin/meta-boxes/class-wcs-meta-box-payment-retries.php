@@ -24,6 +24,8 @@ class WCS_Meta_Box_Payment_Retries {
 	 */
 	public static function output( $post ) {
 
+		WC()->mailer();
+
 		$retries = WCS_Retry_Manager::store()->get_retries_for_order( $post->ID );
 
 		include_once( 'views/html-retries-table.php' );

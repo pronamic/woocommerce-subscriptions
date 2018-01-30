@@ -2,9 +2,9 @@
 /**
  * Cancelled Subscription email
  *
- * @author	Prospress
+ * @author  Prospress
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 2.1
+ * @version 2.1.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
