@@ -477,7 +477,7 @@ class WC_Subscriptions_Order {
 			$subscriptions   = wcs_get_subscriptions_for_order( $order_id, array( 'order_type' => 'parent' ) );
 			$was_activated   = false;
 			$order           = wc_get_order( $order_id );
-			$order_completed = in_array( $new_order_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id ), 'processing', 'completed' ) ) && in_array( $old_order_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ), $order ) );
+			$order_completed = in_array( $new_order_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id, $order ), 'processing', 'completed' ) ) && in_array( $old_order_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ), $order ) );
 
 			foreach ( $subscriptions as $subscription ) {
 

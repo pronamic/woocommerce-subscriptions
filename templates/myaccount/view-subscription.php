@@ -4,9 +4,9 @@
  *
  * Shows the details of a particular subscription on the account page
  *
- * @author    Prospress
- * @package   WooCommerce_Subscription/Templates
- * @version   2.2.0
+ * @author  Prospress
+ * @package WooCommerce_Subscription/Templates
+ * @version 2.2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -105,13 +105,13 @@ wc_print_notices();
 				if ( apply_filters( 'woocommerce_order_item_visible', true, $item ) ) {
 					?>
 					<tr class="<?php echo esc_attr( apply_filters( 'woocommerce_order_item_class', 'order_item', $item, $subscription ) ); ?>">
+						<?php if ( $allow_remove_items ) : ?>
 							<td class="remove_item">
 								<?php if ( wcs_can_item_be_removed( $item, $subscription ) ) : ?>
 									<?php $confirm_notice = apply_filters( 'woocommerce_subscriptions_order_item_remove_confirmation_text', __( 'Are you sure you want remove this item from your subscription?', 'woocommerce-subscriptions' ), $item, $_product, $subscription );?>
 									<a href="<?php echo esc_url( WCS_Remove_Item::get_remove_url( $subscription->get_id(), $item_id ) );?>" class="remove" onclick="return confirm('<?php printf( esc_html( $confirm_notice ) ); ?>');">&times;</a>
 								<?php endif; ?>
 							</td>
-						<?php if ( $allow_remove_items ) : ?>
 						<?php endif; ?>
 						<td class="product-name">
 							<?php

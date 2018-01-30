@@ -284,8 +284,8 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 			// calculate the total as PayPal would
 			$calculated_total += $this->round( $order_subtotal + $order->get_cart_tax() ) + $this->round( $order->get_total_shipping() + $order->get_shipping_tax() );
 
-			// offset the discrepency between the WooCommerce cart total and PayPal's calculated total by adjusting the order subtotal
-			if ( $total_amount !== $calculated_total ) {
+			// offset the discrepancy between the WooCommerce cart total and PayPal's calculated total by adjusting the order subtotal
+			if ( $this->price_format( $total_amount ) !== $this->price_format( $calculated_total ) ) {
 				$order_subtotal = $order_subtotal - ( $calculated_total - $total_amount );
 			}
 
@@ -334,11 +334,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 			// add individual order items
 			foreach ( $order_items as $item ) {
 				$this->add_line_item_parameters( $item, $item_count++, $use_deprecated_params );
-				$calculated_total += $this->round( $item['AMT'] * $item['QTY'] );
 			}
-
-			// add shipping and tax to calculated total
-			$calculated_total += $this->round( $order->get_total_shipping() ) + $this->round( $order->get_total_tax() );
 
 			$total_amount = $this->round( $order->get_total() );
 
@@ -589,7 +585,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 
 				// PayPal requires locale-specific number formats (e.g. USD is 123.45)
 				// PayPal requires the decimal separator to be a period (.)
-				$this->parameters[ $key ] = number_format( $value, 2, '.', '' );
+				$this->parameters[ $key ] = $this->price_format( $value );
 			}
 		}
 
@@ -642,7 +638,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 			$calculated_total += $this->round( $order->get_total_shipping() ) + $this->round( $order->get_total_tax() );
 			$total_amount      = $this->round( $order->get_total() );
 
-			if ( $total_amount !== $calculated_total ) {
+			if ( $this->price_format( $total_amount ) !== $this->price_format( $calculated_total ) ) {
 				$skip_line_items = true;
 			}
 		}
@@ -666,5 +662,17 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 */
 	private function round( $number, $precision = 2 ) {
 		return round( (float) $number, $precision );
+	}
+
+	/**
+	 * Format prices.
+	 *
+	 * @since 2.2.12
+	 * @param float|int $price
+	 * @param int $decimals Optional. The number of decimal points.
+	 * @return string
+	 */
+	private function price_format( $price, $decimals = 2 ) {
+		return number_format( $price, $decimals, '.', '' );
 	}
 }

@@ -102,6 +102,8 @@ class WCS_Remove_Item {
 						// translators: 1$: product name, 2$: product id
 						$subscription->add_order_note( sprintf( _x( 'Customer added "%1$s" (Product ID: #%2$d) via the My Account page.', 'used in order note', 'woocommerce-subscriptions' ), wcs_get_line_item_name( $line_item ), $product_id ) );
 
+						do_action( 'wcs_user_readded_item', $line_item, $subscription );
+
 					} else {
 						wc_add_notice( __( 'Your request to undo your previous action was unsuccessful.', 'woocommerce-subscriptions' ) );
 					}
@@ -125,6 +127,8 @@ class WCS_Remove_Item {
 
 					// translators: placeholders are 1$: item name, and, 2$: opening and, 3$: closing link tags
 					wc_add_notice( sprintf( __( 'You have successfully removed "%1$s" from your subscription. %2$sUndo?%3$s', 'woocommerce-subscriptions' ), $line_item['name'], '<a href="' . esc_url( self::get_undo_remove_url( $subscription->get_id(), $item_id, $subscription->get_view_order_url() ) ) . '" >', '</a>' ) );
+
+					do_action( 'wcs_user_removed_item', $line_item, $subscription );
 				}
 			}
 

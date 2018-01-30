@@ -231,7 +231,7 @@ class WC_Subscriptions_Admin {
 		woocommerce_wp_select( array(
 			'id'          => '_subscription_length',
 			'class'       => 'wc_input_subscription_length select short',
-			'label'       => __( 'Subscription length', 'woocommerce-subscriptions' ),
+			'label'       => __( 'Expire after', 'woocommerce-subscriptions' ),
 			'options'     => wcs_get_subscription_ranges( $chosen_period ),
 			'desc_tip'    => true,
 			'description' => __( 'Automatically expire the subscription after this length of time. This length is in addition to any free trial or amount of time provided before a synchronised first renewal date.', 'woocommerce-subscriptions' ),
@@ -354,7 +354,7 @@ class WC_Subscriptions_Admin {
 				<option value="variable_subscription_sign_up_fee"><?php esc_html_e( 'Subscription sign-up fee', 'woocommerce-subscriptions' ); ?></option>
 				<option value="variable_subscription_period_interval"><?php esc_html_e( 'Subscription billing interval', 'woocommerce-subscriptions' ); ?></option>
 				<option value="variable_subscription_period"><?php esc_html_e( 'Subscription period', 'woocommerce-subscriptions' ); ?></option>
-				<option value="variable_subscription_length"><?php esc_html_e( 'Subscription length', 'woocommerce-subscriptions' ); ?></option>
+				<option value="variable_subscription_length"><?php esc_html_e( 'Expire after', 'woocommerce-subscriptions' ); ?></option>
 				<option value="variable_subscription_trial_length"><?php esc_html_e( 'Free trial length', 'woocommerce-subscriptions' ); ?></option>
 				<option value="variable_subscription_trial_period"><?php esc_html_e( 'Free trial period', 'woocommerce-subscriptions' ); ?></option>
 			</optgroup>
@@ -1142,11 +1142,11 @@ class WC_Subscriptions_Admin {
 
 			array(
 				'name'          => __( 'Mixed Checkout', 'woocommerce-subscriptions' ),
-				'desc'          => __( 'Allow subscriptions and products to be purchased simultaneously.', 'woocommerce-subscriptions' ),
+				'desc'          => __( 'Allow multiple subscriptions and products to be purchased simultaneously.', 'woocommerce-subscriptions' ),
 				'id'            => self::$option_prefix . '_multiple_purchase',
 				'default'       => 'no',
 				'type'          => 'checkbox',
-				'desc_tip'      => __( 'Allow subscriptions and products to be purchased in a single transaction.', 'woocommerce-subscriptions' ),
+				'desc_tip'      => __( 'Allow a subscription product to be purchased with other products and subscriptions in the same transaction.', 'woocommerce-subscriptions' ),
 			),
 
 			array(
@@ -1419,6 +1419,14 @@ class WC_Subscriptions_Admin {
 			'success' => ( WC_Subscriptions::is_duplicate_site() ) ? 0 : 1,
 		);
 
+		$theme_overrides = self::get_theme_overrides();
+		$debug_data['wcs_theme_overrides'] = array(
+			'name'      => _x( 'Subscriptions Template Theme Overrides', 'label for the system status page', 'woocommerce-subscriptions' ),
+			'mark'      => '',
+			'mark_icon' => $theme_overrides['has_outdated_templates'] ? 'warning' : 'yes',
+			'data'      => $theme_overrides,
+		);
+
 		$debug_data = apply_filters( 'wcs_system_status', $debug_data );
 
 		include( plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/admin/status.php' );
@@ -1663,6 +1671,57 @@ class WC_Subscriptions_Admin {
 		}
 
 		return apply_filters( 'wcs_admin_is_subscription_product_save_request', $is_subscription_product_save_request, $post_id, $product_types );
+	}
+
+	/**
+	 * Determine which of our files have been overridden by the theme.
+	 *
+	 * @author Jeremy Pry
+	 * @return array Theme override data.
+	 */
+	private static function get_theme_overrides() {
+		$wcs_template_dir = dirname( WC_Subscriptions::$plugin_file ) . '/templates/';
+		$wc_template_path = trailingslashit( wc()->template_path() );
+		$theme_root       = trailingslashit( get_theme_root() );
+		$overridden       = array();
+		$outdated         = false;
+		$templates        = WC_Admin_Status::scan_template_files( $wcs_template_dir );
+
+		foreach ( $templates as $file ) {
+			$theme_file = $is_outdated = false;
+			$locations  = array(
+				get_stylesheet_directory() . "/{$file}",
+				get_stylesheet_directory() . "/{$wc_template_path}{$file}",
+				get_template_directory() . "/{$file}",
+				get_template_directory() . "/{$wc_template_path}{$file}",
+			);
+
+			foreach ( $locations as $location ) {
+				if ( is_readable( $location ) ) {
+					$theme_file = $location;
+					break;
+				}
+			}
+
+			if ( ! empty( $theme_file ) ) {
+				$core_version  = WC_Admin_Status::get_file_version( $wcs_template_dir . $file );
+				$theme_version = WC_Admin_Status::get_file_version( $theme_file );
+				if ( $core_version && ( empty( $theme_version ) || version_compare( $theme_version, $core_version, '<' ) ) ) {
+					$outdated = $is_outdated = true;
+				}
+				$overridden[] = array(
+					'file'         => str_replace( $theme_root, '', $theme_file ),
+					'version'      => $theme_version,
+					'core_version' => $core_version,
+					'is_outdated'  => $is_outdated,
+				);
+			}
+		}
+
+		return array(
+			'has_outdated_templates' => $outdated,
+			'overridden_templates'   => $overridden,
+		);
 	}
 
 	/**

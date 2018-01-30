@@ -2,9 +2,9 @@
 /**
  * Recurring totals
  *
- * @author 		Prospress
- * @package 	WooCommerce Subscriptions/Templates
- * @version     2.0
+ * @author  Prospress
+ * @package WooCommerce Subscriptions/Templates
+ * @version 2.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -57,19 +57,15 @@ $display_th = true;
 		<?php if ( WC()->cart->needs_shipping() && WC()->cart->show_shipping() ) : ?>
 			<?php wcs_cart_totals_shipping_html(); ?>
 		<?php endif; ?>
-
-		<?php foreach ( WC()->cart->get_fees() as $fee ) : ?>
-			<?php foreach ( $recurring_carts as $recurring_cart_key => $recurring_cart ) : ?>
-				<?php if ( 0 == $recurring_cart->next_payment_date ) : ?>
-					<?php continue; ?>
-				<?php endif; ?>
-				<?php foreach ( $recurring_cart->get_fees() as $recurring_fee ) : ?>
-					<?php if ( $recurring_fee->id !== $fee->id ) { continue; } ?>
-					<tr class="fee recurring-total">
-						<th><?php echo esc_html( $fee->name ); ?></th>
-						<td><?php wc_cart_totals_fee_html( $fee ); ?></td>
-					</tr>
-				<?php endforeach; ?>
+		<?php foreach ( $recurring_carts as $recurring_cart_key => $recurring_cart ) : ?>
+			<?php if ( 0 == $recurring_cart->next_payment_date ) : ?>
+				<?php continue; ?>
+			<?php endif; ?>
+			<?php foreach ( $recurring_cart->get_fees() as $recurring_fee ) : ?>
+				<tr class="fee recurring-total">
+					<th><?php echo esc_html( $recurring_fee->name ); ?></th>
+					<td><?php wc_cart_totals_fee_html( $recurring_fee ); ?></td>
+				</tr>
 			<?php endforeach; ?>
 		<?php endforeach; ?>
 

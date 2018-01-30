@@ -26,6 +26,7 @@ class WC_Subscriptions_Email {
 
 		add_filter( 'woocommerce_resend_order_emails_available', __CLASS__ . '::renewal_order_emails_available', -1 ); // run before other plugins so we don't remove their emails
 
+		add_action( 'woocommerce_subscriptions_email_order_details', __CLASS__ . '::order_download_details', 10, 4 );
 		add_action( 'woocommerce_subscriptions_email_order_details', __CLASS__ . '::order_details', 10, 4 );
 	}
 
@@ -340,6 +341,21 @@ class WC_Subscriptions_Email {
 			add_action( $hook, array( 'WC_Emails', 'queue_transactional_email' ), $priority, $accepted_args );
 		} else {
 			add_action( $hook, array( 'WC_Emails', 'send_transactional_email' ), $priority, $accepted_args );
+		}
+	}
+
+	/**
+	 * With WooCommerce 3.2+ active display the downloads table.
+	 *
+	 * @param WC_Order $order
+	 * @param bool $sent_to_admin Whether the email is sent to admin - defaults to false
+	 * @param bool $plain_text Whether the email should use plain text templates - defaults to false
+	 * @param WC_Email $email
+	 * @since 2.2.17
+	 */
+	public static function order_download_details( $order, $sent_to_admin = false, $plain_text = false, $email = '' ) {
+		if ( is_callable( array( 'WC_Emails', 'order_downloads' ) ) ) {
+			WC_Emails::instance()->order_downloads( $order, $sent_to_admin, $plain_text, $email );
 		}
 	}
 

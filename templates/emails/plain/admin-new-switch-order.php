@@ -2,9 +2,9 @@
 /**
  * Admin new switch order email (plain text)
  *
- * @author	Brent Shepherd
+ * @author  Brent Shepherd
  * @package WooCommerce_Subscriptions/Templates/Emails/Plain
- * @version 1.5
+ * @version 1.5.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

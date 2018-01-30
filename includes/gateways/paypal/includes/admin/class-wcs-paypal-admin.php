@@ -36,6 +36,9 @@ class WCS_PayPal_Admin {
 
 		// Add the PayPal subscription information to the billing information
 		add_action( 'woocommerce_admin_order_data_after_billing_address', __CLASS__ . '::profile_link' );
+
+		// Before WC updates the PayPal settings remove credentials error flag
+		add_action( 'load-woocommerce_page_wc-settings', __CLASS__ . '::maybe_update_credentials_error_flag', 9 );
 	}
 
 	/**
@@ -87,8 +90,6 @@ class WCS_PayPal_Admin {
 
 		self::maybe_disable_invalid_profile_notice();
 
-		self::maybe_update_credentials_error_flag();
-
 		if ( ! in_array( get_woocommerce_currency(), apply_filters( 'woocommerce_paypal_supported_currencies', array( 'AUD', 'BRL', 'CAD', 'MXN', 'NZD', 'HKD', 'SGD', 'USD', 'EUR', 'JPY', 'TRY', 'NOK', 'CZK', 'DKK', 'HUF', 'ILS', 'MYR', 'PHP', 'PLN', 'SEK', 'CHF', 'TWD', 'THB', 'GBP', 'RMB' ) ) ) ) {
 			$valid_for_use = false;
 		} else {
@@ -107,7 +108,7 @@ class WCS_PayPal_Admin {
 					'type' => 'warning',
 					// translators: placeholders are opening and closing link tags. 1$-2$: to docs on woocommerce, 3$-4$ to gateway settings on the site
 					'text'  => sprintf( esc_html__( 'PayPal is inactive for subscription transactions. Please %1$sset up the PayPal IPN%2$s and %3$senter your API credentials%4$s to enable PayPal for Subscriptions.', 'woocommerce-subscriptions' ),
-						'<a href="http://docs.woocommerce.com/document/subscriptions/store-manager-guide/#section-4" target="_blank">',
+						'<a href="https://docs.woocommerce.com/document/subscriptions/store-manager-guide/#ipn-setup" target="_blank">',
 						'</a>',
 						'<a href="' . esc_url( $payment_gateway_tab_url ) . '">',
 						'</a>'
@@ -119,14 +120,13 @@ class WCS_PayPal_Admin {
 				$notices[] = array(
 					'type' => 'warning',
 					// translators: placeholders are opening and closing strong and link tags. 1$-2$: strong tags, 3$-8$ link to docs on woocommerce
-					'text'  => sprintf( esc_html__( '%1$sPayPal Reference Transactions are not enabled on your account%2$s, some subscription management features are not enabled. Please contact PayPal and request they %3$senable PayPal Reference Transactions%4$s on your account. %5$sCheck PayPal Account%6$s  %7$sLearn more %8$s', 'woocommerce-subscriptions' ),
+					'text'  => sprintf( esc_html__( '%1$sPayPal Reference Transactions are not enabled on your account%2$s, some subscription management features are not enabled. Please contact PayPal and request they %3$senable PayPal Reference Transactions%4$s on your account. %5$sCheck PayPal Account%6$s  %3$sLearn more %7$s', 'woocommerce-subscriptions' ),
 						'<strong>',
 						'</strong>',
-						'<a href="http://docs.woocommerce.com/document/subscriptions/store-manager-guide/#section-4" target="_blank">',
+						'<a href="https://docs.woocommerce.com/document/subscriptions/faq/paypal-reference-transactions/" target="_blank">',
 						'</a>',
 						'</p><p><a class="button" href="' . esc_url( wp_nonce_url( add_query_arg( 'wcs_paypal', 'check_reference_transaction_support' ), __CLASS__ ) ) . '">',
 						'</a>',
-						'<a class="button button-primary" href="http://docs.woocommerce.com/document/subscriptions/store-manager-guide/#section-4" target="_blank">',
 						'&raquo;</a>'
 					),
 				);
@@ -218,7 +218,7 @@ class WCS_PayPal_Admin {
 	 *
 	 * @since 2.0
 	 */
-	protected static function maybe_update_credentials_error_flag() {
+	public static function maybe_update_credentials_error_flag() {
 
 		// Check if the API credentials are being saved - we can't do this on the 'woocommerce_update_options_payment_gateways_paypal' hook because it is triggered after 'admin_notices'
 		if ( ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'woocommerce-settings' ) && isset( $_POST['woocommerce_paypal_api_username'] ) || isset( $_POST['woocommerce_paypal_api_password'] ) || isset( $_POST['woocommerce_paypal_api_signature'] ) ) {

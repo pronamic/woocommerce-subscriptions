@@ -2,9 +2,9 @@
 /**
  * Related Orders table on the View Subscription page
  *
- * @author 		Prospress
- * @category 	WooCommerce Subscriptions/Templates
- * @version     2.0.0
+ * @author   Prospress
+ * @category WooCommerce Subscriptions/Templates
+ * @version  2.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

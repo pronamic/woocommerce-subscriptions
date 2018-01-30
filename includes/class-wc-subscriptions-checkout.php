@@ -32,15 +32,27 @@ class WC_Subscriptions_Checkout {
 		// Restore the settings after switching them for the checkout form
 		add_action( 'woocommerce_after_checkout_form', __CLASS__ . '::restore_checkout_registration_settings', 100 );
 
-		// Make sure guest checkout is not enabled in option param passed to WC JS
-		add_filter( 'woocommerce_params', __CLASS__ . '::filter_woocommerce_script_paramaters', 10, 1 );
-		add_filter( 'wc_checkout_params', __CLASS__ . '::filter_woocommerce_script_paramaters', 10, 1 );
+		// Some callbacks need to hooked after WC has loaded.
+		add_action( 'woocommerce_loaded', array( __CLASS__, 'attach_dependant_hooks' ) );
 
 		// Force registration during checkout process
 		add_action( 'woocommerce_before_checkout_process', __CLASS__ . '::force_registration_during_checkout', 10 );
 
 		// When a line item is added to a subscription on checkout, ensure the backorder data added by WC is removed
 		add_action( 'woocommerce_checkout_create_order_line_item', __CLASS__ . '::remove_backorder_meta_from_subscription_line_item', 10, 4 );
+	}
+
+	/**
+	 * @since 2.2.17
+	 */
+	public static function attach_dependant_hooks() {
+		// Make sure guest checkout is not enabled in option param passed to WC JS
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.3' ) ) {
+			add_filter( 'woocommerce_params', __CLASS__ . '::filter_woocommerce_script_paramaters', 10, 1 );
+			add_filter( 'wc_checkout_params', __CLASS__ . '::filter_woocommerce_script_paramaters', 10, 1 );
+		} else {
+			add_filter( 'woocommerce_get_script_data', __CLASS__ . '::filter_woocommerce_script_paramaters', 10, 2 );
+		}
 	}
 
 	/**
@@ -445,7 +457,11 @@ class WC_Subscriptions_Checkout {
 	 *
 	 * @since 1.1
 	 */
-	public static function filter_woocommerce_script_paramaters( $woocommerce_params ) {
+	public static function filter_woocommerce_script_paramaters( $woocommerce_params, $handle = '' ) {
+		// WC 3.3+ deprecates handle-specific filters in favor of 'woocommerce_get_script_data'.
+		if ( 'woocommerce_get_script_data' === current_filter() && ! in_array( $handle, array( 'woocommerce', 'wc-checkout' ) ) ) {
+			return $woocommerce_params;
+		}
 
 		if ( WC_Subscriptions_Cart::cart_contains_subscription() && ! is_user_logged_in() && isset( $woocommerce_params['option_guest_checkout'] ) && 'yes' == $woocommerce_params['option_guest_checkout'] ) {
 			$woocommerce_params['option_guest_checkout'] = 'no';

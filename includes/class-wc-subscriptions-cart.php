@@ -122,6 +122,8 @@ class WC_Subscriptions_Cart {
 		add_filter( 'woocommerce_shipping_free_shipping_is_available', __CLASS__ . '::maybe_recalculate_shipping_method_availability', 10, 2 );
 
 		add_filter( 'woocommerce_add_to_cart_handler', __CLASS__ . '::add_to_cart_handler', 10, 2 );
+
+		add_action( 'woocommerce_cart_calculate_fees', __CLASS__ . '::apply_recurring_fees', 1000, 1 );
 	}
 
 	/**
@@ -1259,6 +1261,29 @@ class WC_Subscriptions_Cart {
 		}
 
 		return $is_available;
+	}
+
+	/**
+	 * Allow third-parties to apply fees which apply to the cart to recurring carts.
+	 *
+	 * @param WC_Cart
+	 * @since 2.2.16
+	 */
+	public static function apply_recurring_fees( $cart ) {
+
+		if ( ! empty( $cart->recurring_cart_key ) ) {
+
+			foreach ( WC()->cart->get_fees() as $fee ) {
+
+				if ( apply_filters( 'woocommerce_subscriptions_is_recurring_fee', false, $fee, $cart ) ) {
+					if ( is_callable( array( $cart, 'fees_api' ) ) ) { // WC 3.2 +
+						$cart->fees_api()->add_fee( $fee );
+					} else {
+						$cart->add_fee( $fee->name, $fee->amount, $fee->taxable, $fee->tax_class );
+					}
+				}
+			}
+		}
 	}
 
 	/* Deprecated */

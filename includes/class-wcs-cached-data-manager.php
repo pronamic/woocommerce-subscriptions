@@ -19,12 +19,16 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 		add_action( 'trashed_post', array( $this, 'purge_delete' ), 9999 ); // trashed posts aren't included in 'any' queries
 		add_action( 'untrashed_post', array( $this, 'purge_delete' ), 9999 ); // however untrashed posts are
 		add_action( 'before_delete_post', array( $this, 'purge_delete' ), 9999 ); // if forced delete is enabled
+		add_action( 'update_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 );
 		add_action( 'updated_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
 		add_action( 'deleted_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
 		add_action( 'added_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
 
 		add_action( 'admin_init', array( $this, 'initialize_cron_check_size' ) ); // setup cron task to truncate big logs.
 		add_filter( 'cron_schedules', array( $this, 'add_weekly_cron_schedule' ) ); // create a weekly cron schedule
+
+		// Add actions to handle cache purge for users.
+		add_action( 'save_post', array( $this, 'purge_delete' ), 9999, 2 );
 	}
 
 	/**
@@ -40,7 +44,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * @param string $message Message to log
 	 */
 	public function log( $message ) {
-		if ( defined( 'WCS_DEBUG' ) && WCS_DEBUG ) {
+		if ( is_object( $this->logger ) && defined( 'WCS_DEBUG' ) && WCS_DEBUG ) {
 			$this->logger->add( 'wcs-cache', $message );
 		}
 	}
@@ -71,20 +75,29 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	/**
 	 * Clearing cache when a post is deleted
 	 *
-	 * @param $post_id integer the ID of a post
+	 * @param int     $post_id The ID of a post
+	 * @param WP_Post $post    The post object (on certain hooks).
 	 */
-	public function purge_delete( $post_id ) {
-		if ( 'shop_order' === get_post_type( $post_id ) ) {
+	public function purge_delete( $post_id, $post = null ) {
+		$post_type = get_post_type( $post_id );
+		if ( 'shop_order' === $post_type ) {
 			foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'any' ) ) as $subscription ) {
 				$this->log( 'Calling purge delete on ' . current_filter() . ' for ' . $subscription->get_id() );
 				$this->clear_related_order_cache( $subscription );
 			}
 		}
 
-		// Purge wcs_do_subscriptions_exist cache, but only on the before_delete_post hook.
-		if ( 'shop_subscription' === get_post_type( $post_id ) && doing_action( 'before_delete_post' ) ) {
-			$this->log( "Subscription {$post_id} deleted. Purging subscription cache." );
-			$this->delete_cached( 'wcs_do_subscriptions_exist' );
+		if ( 'shop_subscription' === $post_type ) {
+			// Purge wcs_do_subscriptions_exist cache, but only on the before_delete_post hook.
+			if ( doing_action( 'before_delete_post' ) ) {
+				$this->log( "Subscription {$post_id} deleted. Purging subscription cache." );
+				$this->delete_cached( 'wcs_do_subscriptions_exist' );
+			}
+
+			// Purge cache for a specific user on the save_post hook.
+			if ( doing_action( 'save_post' ) ) {
+				$this->purge_subscription_user_cache( $post_id );
+			}
 		}
 	}
 
@@ -97,13 +110,37 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * @param $meta_value mixed the ID of the subscription that relates to the order
 	 */
 	public function purge_from_metadata( $meta_id, $object_id, $meta_key, $meta_value ) {
-		if ( ! in_array( $meta_key, array( '_subscription_renewal', '_subscription_resubscribe', '_subscription_switch' ) ) || 'shop_order' !== get_post_type( $object_id ) ) {
+		static $combined_keys = null;
+		static $order_keys = array(
+			'_subscription_renewal'     => 1,
+			'_subscription_resubscribe' => 1,
+			'_subscription_switch'      => 1,
+		);
+		static $subscription_keys = array(
+			'_customer_user' => 1,
+		);
+
+		if ( null === $combined_keys ) {
+			$combined_keys = array_merge( $order_keys, $subscription_keys );
+		}
+
+		// Ensure we're handling a meta key we actually care about.
+		if ( ! isset( $combined_keys[ $meta_key ] ) ) {
 			return;
 		}
 
-		$this->log( 'Calling purge from ' . current_filter() . ' on object ' . $object_id . ' and meta value ' . $meta_value . ' due to ' . $meta_key . ' meta key.' );
-
-		$this->clear_related_order_cache( $meta_value );
+		if ( 'shop_order' === get_post_type( $object_id ) && isset( $order_keys[ $meta_key ] ) ) {
+			$this->log( sprintf(
+				'Calling purge from %1$s on object %2$s and meta value %3$s due to %4$s meta key.',
+				current_filter(),
+				$object_id,
+				$meta_value,
+				$meta_key
+			) );
+			$this->clear_related_order_cache( $meta_value );
+		} elseif ( 'shop_subscription' === get_post_type( $object_id ) && isset( $subscription_keys[ $meta_key ] ) ) {
+			$this->purge_subscription_user_cache( $object_id );
+		}
 	}
 
 	/**
@@ -133,13 +170,15 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * Delete cached data with key
 	 *
 	 * @param string $key Key that needs deleting
+	 *
+	 * @return bool
 	 */
 	public function delete_cached( $key ) {
 		if ( ! is_string( $key ) || empty( $key ) ) {
-			return;
+			return false;
 		}
 
-		delete_transient( $key );
+		return delete_transient( $key );
 	}
 
 	/**
@@ -204,6 +243,24 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 		}
 
 		return $schedules;
+	}
+
+	/**
+	 * Purge the cache for the subscription's user.
+	 *
+	 * @author Jeremy Pry
+	 *
+	 * @param int $subscription_id The subscription to purge.
+	 */
+	protected function purge_subscription_user_cache( $subscription_id ) {
+		$subscription         = wcs_get_subscription( $subscription_id );
+		$subscription_user_id = $subscription->get_user_id();
+		$this->log( sprintf(
+			'Clearing cache for user ID %1$s on %2$s hook.',
+			$subscription_user_id,
+			current_action()
+		) );
+		$this->delete_cached( "wcs_user_subscriptions_{$subscription_user_id}" );
 	}
 
 	/* Deprecated Functions */

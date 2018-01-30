@@ -2,7 +2,7 @@
 /**
  * Order/Subscription details table shown in emails.
  *
- * @author Prospress
+ * @author  Prospress
  * @package WooCommerce_Subscriptions/Templates/Emails/Plain
  * @version 2.1.0
  */
