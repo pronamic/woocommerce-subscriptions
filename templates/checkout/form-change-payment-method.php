@@ -3,9 +3,9 @@
  * Pay for order form displayed after a customer has clicked the "Change Payment method" button
  * next to a subscription on their My Account page.
  *
- * @author 		Prospress
- * @package 	WooCommerce/Templates
- * @version     1.6.4
+ * @author  Prospress
+ * @package WooCommerce/Templates
+ * @version 1.6.4
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -34,7 +34,8 @@ function wcs_get_subscription_period_strings( $number = 1, $period = '' ) {
 			'month' => sprintf( _nx( 'month', '%s months', $number, 'Subscription billing period.', 'woocommerce-subscriptions' ), $number ),
 			// translators: placeholder is number of years. (e.g. "Bill this every year / 4 years")
 			'year'  => sprintf( _nx( 'year',  '%s years',  $number, 'Subscription billing period.', 'woocommerce-subscriptions' ), $number ),
-		)
+		),
+		$number
 	);
 
 	return ( ! empty( $period ) ) ? $translated_periods[ $period ] : $translated_periods;
@@ -55,7 +56,8 @@ function wcs_get_subscription_trial_period_strings( $number = 1, $period = '' ) 
 			'week'  => sprintf( _n( '%s week', 'a %s-week', $number, 'woocommerce-subscriptions' ), $number ),
 			'month' => sprintf( _n( '%s month', 'a %s-month', $number, 'woocommerce-subscriptions' ), $number ),
 			'year'  => sprintf( _n( '%s year', 'a %s-year', $number, 'woocommerce-subscriptions' ), $number ),
-		)
+		),
+		$number
 	);
 
 	return ( ! empty( $period ) ) ? $translated_periods[ $period ] : $translated_periods;
@@ -123,7 +125,7 @@ function wcs_get_subscription_ranges( $subscription_period = '' ) {
 		$subscription_period = '';
 	}
 
-	$locale = get_locale();
+	$locale = function_exists( 'get_user_locale' ) ? get_user_locale() : get_locale();
 
 	$subscription_ranges = WC_Subscriptions::$cache->cache_and_get( 'wcs-sub-ranges-' . $locale, 'wcs_get_non_cached_subscription_ranges', array(), 3 * HOUR_IN_SECONDS );
 

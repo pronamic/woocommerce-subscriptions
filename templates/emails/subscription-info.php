@@ -2,9 +2,9 @@
 /**
  * Subscription information template
  *
- * @author	Brent Shepherd / Chuck Mac
+ * @author  Brent Shepherd / Chuck Mac
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 1.5
+ * @version 1.5.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

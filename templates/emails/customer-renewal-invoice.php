@@ -2,9 +2,9 @@
 /**
  * Customer renewal invoice email
  *
- * @author	Brent Shepherd
+ * @author  Brent Shepherd
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 1.4
+ * @version 1.4.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

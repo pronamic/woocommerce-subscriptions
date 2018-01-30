@@ -51,6 +51,7 @@ class WCS_Admin_Post_Types {
 
 		add_action( 'restrict_manage_posts', array( $this, 'restrict_by_product' ) );
 		add_action( 'restrict_manage_posts', array( $this, 'restrict_by_payment_method' ) );
+		add_action( 'restrict_manage_posts', array( $this, 'restrict_by_customer' ) );
 
 		add_action( 'list_table_primary_column', array( $this, 'list_table_primary_column' ), 10, 2 );
 		add_filter( 'post_row_actions', array( $this, 'shop_subscription_row_actions' ), 10, 2 );
@@ -1091,6 +1092,41 @@ class WCS_Admin_Post_Types {
 		$item_html = ob_get_clean();
 
 		return $item_html;
+	}
+
+	/**
+	 * Renders the dropdown for the customer filter.
+	 *
+	 * @since 2.2.17
+	 */
+	public static function restrict_by_customer() {
+		global $typenow;
+
+		// Prior to WC 3.3 this was handled by WC core so exit early if an earlier version of WC is active.
+		if ( 'shop_subscription' !== $typenow || WC_Subscriptions::is_woocommerce_pre( '3.3' ) ) {
+			return;
+		}
+
+		$user_string = '';
+		$user_id     = '';
+
+		if ( ! empty( $_GET['_customer_user'] ) ) {
+			$user_id = absint( $_GET['_customer_user'] );
+			$user    = get_user_by( 'id', $user_id );
+
+			$user_string = sprintf(
+				/* translators: 1: user display name 2: user ID 3: user email */
+				esc_html__( '%1$s (#%2$s &ndash; %3$s)', 'woocommerce-subscriptions' ),
+				$user->display_name,
+				absint( $user->ID ),
+				$user->user_email
+			);
+		}
+		?>
+		<select class="wc-customer-search" name="_customer_user" data-placeholder="<?php esc_attr_e( 'Search for a customer&hellip;', 'woocommerce-subscriptions' ); ?>" data-allow_clear="true">
+			<option value="<?php echo esc_attr( $user_id ); ?>" selected="selected"><?php echo wp_kses_post( $user_string ); ?></option>
+		</select>
+		<?php
 	}
 }
 

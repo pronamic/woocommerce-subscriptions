@@ -175,7 +175,7 @@ function wcs_cart_totals_shipping_method_price_label( $method, $cart ) {
 
 	$price_label = '';
 
-	if ( $method->cost > 0 ) {
+	if ( $method->cost != 0 ) {
 
 		if ( WC()->cart->tax_display_cart == 'excl' ) {
 			$price_label .= wcs_cart_price_string( $method->cost, $cart );
@@ -207,11 +207,14 @@ function wcs_cart_totals_taxes_total_html( $cart ) {
 }
 
 /**
- * Display a recurring coupon's value
+ * Display a recurring coupon's value.
+ *
+ * @see wc_cart_totals_coupon_html()
  *
  * @access public
- * @param string $coupon
- * @return void
+ *
+ * @param string|WC_Coupon $coupon
+ * @param WC_Cart          $cart
  */
 function wcs_cart_totals_coupon_html( $coupon, $cart ) {
 	if ( is_string( $coupon ) ) {
@@ -235,10 +238,11 @@ function wcs_cart_totals_coupon_html( $coupon, $cart ) {
 	// get rid of empty array elements
 	$value = implode( ', ', array_filter( $value ) );
 
-	// Apply WooCommerce core filter
-	$value = apply_filters( 'woocommerce_cart_totals_coupon_html', $value, $coupon );
+	// Apply filters.
+	$html = apply_filters( 'wcs_cart_totals_coupon_html', $value, $coupon, $cart );
+	$html = apply_filters( 'woocommerce_cart_totals_coupon_html', $html, $coupon, $discount_html );
 
-	echo wp_kses_post( apply_filters( 'wcs_cart_totals_coupon_html', wcs_cart_price_string( $value, $cart ), $coupon, $cart ) );
+	echo wp_kses( $html, array_replace_recursive( wp_kses_allowed_html( 'post' ), array( 'a' => array( 'data-coupon' => true ) ) ) );
 }
 
 /**
@@ -278,7 +282,7 @@ function wcs_cart_totals_order_total_html( $cart ) {
  * Return a formatted price string for a given cart object
  *
  * @access public
- * @return void
+ * @return string
  */
 function wcs_cart_price_string( $recurring_amount, $cart ) {
 

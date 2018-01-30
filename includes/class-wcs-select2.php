@@ -87,7 +87,7 @@ class WCS_Select2 {
 		$allowed_attributes = array_map( array( $this, 'get_property_name' ), array_keys( $this->attributes ) );
 		$allowed_attributes = array_fill_keys( $allowed_attributes, array() );
 
-		echo wp_kses( $this->get_html(), array( 'input' => $allowed_attributes, 'select' => $allowed_attributes, 'option' => $allowed_attributes ) );
+		echo wp_kses_allow_underscores( $this->get_html(), array( 'input' => $allowed_attributes, 'select' => $allowed_attributes, 'option' => $allowed_attributes ) );
 	}
 
 	/**

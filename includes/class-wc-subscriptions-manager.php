@@ -50,6 +50,9 @@ class WC_Subscriptions_Manager {
 		// Order is trashed, trash subscription
 		add_action( 'wp_trash_post', __CLASS__ . '::maybe_trash_subscription', 10 );
 
+		// Order is restored (untrashed), restore subscription
+		add_action( 'untrashed_post', __CLASS__ . '::maybe_untrash_subscription', 10 );
+
 		// When order is deleted, delete the subscription.
 		add_action( 'before_delete_post', array( __CLASS__, 'maybe_delete_subscription' ) );
 
@@ -788,6 +791,19 @@ class WC_Subscriptions_Manager {
 			// delete subscription
 			foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'parent' ) ) as $subscription ) {
 				wp_trash_post( $subscription->get_id() );
+			}
+		}
+	}
+
+	/**
+	 * Untrash all subscriptions attached to an order when it's restored.
+	 * @param int $post_id The post ID of the WC Order being restored
+	 * @since 2.2.17
+	 */
+	public static function maybe_untrash_subscription( $post_id ) {
+		if ( 'shop_order' == get_post_type( $post_id ) ) {
+			foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'parent', 'subscription_status' => array( 'trash' ) ) ) as $subscription ) {
+				wp_untrash_post( $subscription->get_id() );
 			}
 		}
 	}
