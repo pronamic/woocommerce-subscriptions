@@ -544,22 +544,14 @@ jQuery(document).ready(function($){
 			$switchSettingsRows.hide();
 		}
 
-		$('#woocommerce_subscriptions_allow_switching').on('change',function(){
-			if('no'==$(this).val()){
-				$switchSettingsRows.children('td, th').animate({paddingTop:0, paddingBottom:0}).wrapInner('<div />').children().slideUp(function(){
-					$(this).closest('tr').hide();
-					$(this).replaceWith($(this).html());
-				});
-			} else if('no'==allowSwitching) { // switching was previously disable, so settings will be hidden
+		$( '#woocommerce_subscriptions_allow_switching' ).on( 'change', function() {
+			if ( 'no' == $( this ).val() ) {
+				$switchSettingsRows.fadeOut();
+			} else if ( 'no' == allowSwitching ) { // switching was previously disable, so settings will be hidden
 				$switchSettingsRows.fadeIn();
-				$switchSettingsRows.children('td, th').css({paddingTop:0, paddingBottom:0}).animate({paddingTop:'15px', paddingBottom:'15px'}).wrapInner('<div style="display: none;"/>').children().slideDown(function(){
-					$switchSettingsRows.children('td, th').removeAttr('style');
-					$(this).replaceWith($(this).html());
-				});
 			}
-			allowSwitching = $(this).val();
-		});
-
+			allowSwitching = $( this ).val();
+		} );
 
 		// Show/hide suspension extension setting
 		if ($('#woocommerce_subscriptions_max_customer_suspensions').val() > 0) {

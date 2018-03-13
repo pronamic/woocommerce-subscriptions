@@ -2,10 +2,10 @@
 # This file is distributed under the same license as the WooCommerce Subscriptions package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 2.2.17\n"
+"Project-Id-Version: WooCommerce Subscriptions 2.2.18\n"
 "Report-Msgid-Bugs-To: "
 "https://github.com/Prospress/woocommerce-subscriptions/issues\n"
-"POT-Creation-Date: 2018-01-29 04:39:30+00:00\n"
+"POT-Creation-Date: 2018-02-12 01:49:18+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -188,9 +188,9 @@ msgstr ""
 #: includes/admin/class-wc-subscriptions-admin.php:989
 #: includes/admin/class-wcs-admin-reports.php:51
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:654
-#: includes/class-wcs-query.php:96 includes/class-wcs-query.php:116
-#: templates/admin/status.php:21 woocommerce-subscriptions.php:229
-#: woocommerce-subscriptions.php:242
+#: includes/class-wcs-query.php:99 includes/class-wcs-query.php:119
+#: includes/class-wcs-query.php:235 templates/admin/status.php:21
+#: woocommerce-subscriptions.php:229 woocommerce-subscriptions.php:242
 msgid "Subscriptions"
 msgstr ""
 
@@ -1988,7 +1988,7 @@ msgid "Choose a new subscription."
 msgstr ""
 
 #: includes/class-wc-subscriptions-switcher.php:198
-#: includes/class-wc-subscriptions-switcher.php:1020
+#: includes/class-wc-subscriptions-switcher.php:1036
 msgid ""
 "Your cart contained an invalid subscription switch request. It has been "
 "removed."
@@ -2012,122 +2012,122 @@ msgid ""
 "subscription."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:328
+#: includes/class-wc-subscriptions-switcher.php:344
 msgid "Switching"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:331
+#: includes/class-wc-subscriptions-switcher.php:347
 #. translators: placeholders are opening and closing link tags
 msgid ""
 "Allow subscribers to switch (upgrade or downgrade) between different "
 "subscriptions. %sLearn more%s."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:336
+#: includes/class-wc-subscriptions-switcher.php:352
 msgid "Allow Switching"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:337
+#: includes/class-wc-subscriptions-switcher.php:353
 msgid ""
 "Allow subscribers to switch between subscriptions combined in a grouped "
 "product, different variations of a Variable subscription or don't allow "
 "switching."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:353
+#: includes/class-wc-subscriptions-switcher.php:369
 msgid "Prorate Recurring Payment"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:354
+#: includes/class-wc-subscriptions-switcher.php:370
 msgid ""
 "When switching to a subscription with a different recurring payment or "
 "billing period, should the price paid for the existing billing period be "
 "prorated when switching to the new subscription?"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:371
+#: includes/class-wc-subscriptions-switcher.php:387
 msgid "Prorate Sign up Fee"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:372
+#: includes/class-wc-subscriptions-switcher.php:388
 msgid ""
 "When switching to a subscription with a sign up fee, you can require the "
 "customer pay only the gap between the existing subscription's sign up fee "
 "and the new subscription's sign up fee (if any)."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:387
+#: includes/class-wc-subscriptions-switcher.php:403
 msgid "Prorate Subscription Length"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:388
+#: includes/class-wc-subscriptions-switcher.php:404
 msgid ""
 "When switching to a subscription with a length, you can take into account "
 "the payments already completed by the customer when determining how many "
 "payments the subscriber needs to make for the new subscription."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:403
+#: includes/class-wc-subscriptions-switcher.php:419
 msgid "Switch Button Text"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:404
+#: includes/class-wc-subscriptions-switcher.php:420
 msgid ""
 "Customise the text displayed on the button next to the subscription on the "
 "subscriber's account page. The default is \"Switch Subscription\", but you "
 "may wish to change this to \"Upgrade\" or \"Change Subscription\"."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:408
-#: includes/class-wc-subscriptions-switcher.php:434
-#: includes/class-wc-subscriptions-switcher.php:2370
+#: includes/class-wc-subscriptions-switcher.php:424
+#: includes/class-wc-subscriptions-switcher.php:450
+#: includes/class-wc-subscriptions-switcher.php:2386
 msgid "Upgrade or Downgrade"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:885
+#: includes/class-wc-subscriptions-switcher.php:901
 msgid "Switch order cancelled due to a new switch order being created #%s."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:972
+#: includes/class-wc-subscriptions-switcher.php:988
 msgid "Switch Order"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:987
+#: includes/class-wc-subscriptions-switcher.php:1003
 msgid "Switched Subscription"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1092
+#: includes/class-wc-subscriptions-switcher.php:1108
 msgid "You can only switch to a subscription product."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1098
+#: includes/class-wc-subscriptions-switcher.php:1114
 msgid "We can not find your old subscription item."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1120
+#: includes/class-wc-subscriptions-switcher.php:1136
 msgid "You can not switch to the same subscription."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1167
+#: includes/class-wc-subscriptions-switcher.php:1183
 msgid ""
 "You can not switch this subscription. It appears you do not own the "
 "subscription."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1208
+#: includes/class-wc-subscriptions-switcher.php:1224
 msgid "There was an error locating the switch details."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1929
-#: includes/class-wc-subscriptions-switcher.php:2277
+#: includes/class-wc-subscriptions-switcher.php:1945
+#: includes/class-wc-subscriptions-switcher.php:2293
 msgid "The original subscription item being switched cannot be found."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1931
+#: includes/class-wc-subscriptions-switcher.php:1947
 msgid "The item on the switch order cannot be found."
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:2314
+#: includes/class-wc-subscriptions-switcher.php:2330
 msgid "Failed to update the subscription shipping method."
 msgstr ""
 
@@ -2329,8 +2329,20 @@ msgstr ""
 msgid "%s ending in %s"
 msgstr ""
 
-#: includes/class-wcs-query.php:114
+#: includes/class-wcs-query.php:117
 msgid "My Subscription"
+msgstr ""
+
+#: includes/class-wcs-query.php:236
+msgid "Endpoint for the My Account &rarr; Subscriptions page"
+msgstr ""
+
+#: includes/class-wcs-query.php:244
+msgid "View subscription"
+msgstr ""
+
+#: includes/class-wcs-query.php:245
+msgid "Endpoint for the My Account &rarr; View Subscription page"
 msgstr ""
 
 #: includes/class-wcs-remove-item.php:108
@@ -4418,7 +4430,7 @@ msgctxt "hash before order number"
 msgid "#%s"
 msgstr ""
 
-#: includes/class-wcs-query.php:93
+#: includes/class-wcs-query.php:96
 msgctxt "hash before order number"
 msgid "Subscription #%s"
 msgstr ""
@@ -4587,7 +4599,7 @@ msgctxt "Subscription status"
 msgid "On-hold"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:2511 wcs-functions.php:212
+#: includes/class-wc-subscriptions-switcher.php:2527 wcs-functions.php:212
 msgctxt "Subscription status"
 msgid "Switched"
 msgstr ""
@@ -4639,100 +4651,100 @@ msgctxt "An order type"
 msgid "Non-subscription"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:344
-#: includes/class-wc-subscriptions-switcher.php:361
-#: includes/class-wc-subscriptions-switcher.php:395
+#: includes/class-wc-subscriptions-switcher.php:360
+#: includes/class-wc-subscriptions-switcher.php:377
+#: includes/class-wc-subscriptions-switcher.php:411
 #: includes/class-wc-subscriptions-synchroniser.php:174
 msgctxt "when to allow a setting"
 msgid "Never"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:345
+#: includes/class-wc-subscriptions-switcher.php:361
 msgctxt "when to allow switching"
 msgid "Between Subscription Variations"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:346
+#: includes/class-wc-subscriptions-switcher.php:362
 msgctxt "when to allow switching"
 msgid "Between Grouped Subscriptions"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:347
+#: includes/class-wc-subscriptions-switcher.php:363
 msgctxt "when to allow switching"
 msgid "Between Both Variations & Grouped Subscriptions"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:362
+#: includes/class-wc-subscriptions-switcher.php:378
 msgctxt "when to prorate recurring fee when switching"
 msgid "For Upgrades of Virtual Subscription Products Only"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:363
+#: includes/class-wc-subscriptions-switcher.php:379
 msgctxt "when to prorate recurring fee when switching"
 msgid "For Upgrades of All Subscription Products"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:364
+#: includes/class-wc-subscriptions-switcher.php:380
 msgctxt "when to prorate recurring fee when switching"
 msgid "For Upgrades & Downgrades of Virtual Subscription Products Only"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:365
+#: includes/class-wc-subscriptions-switcher.php:381
 msgctxt "when to prorate recurring fee when switching"
 msgid "For Upgrades & Downgrades of All Subscription Products"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:379
+#: includes/class-wc-subscriptions-switcher.php:395
 msgctxt "when to prorate signup fee when switching"
 msgid "Never (do not charge a sign up fee)"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:380
+#: includes/class-wc-subscriptions-switcher.php:396
 msgctxt "when to prorate signup fee when switching"
 msgid "Never (charge the full sign up fee)"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:381
+#: includes/class-wc-subscriptions-switcher.php:397
 msgctxt "when to prorate signup fee when switching"
 msgid "Always"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:396
+#: includes/class-wc-subscriptions-switcher.php:412
 #: includes/class-wc-subscriptions-synchroniser.php:175
 msgctxt "when to prorate first payment / subscription length"
 msgid "For Virtual Subscription Products Only"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:397
+#: includes/class-wc-subscriptions-switcher.php:413
 #: includes/class-wc-subscriptions-synchroniser.php:176
 msgctxt "when to prorate first payment / subscription length"
 msgid "For All Subscription Products"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1815
+#: includes/class-wc-subscriptions-switcher.php:1831
 msgctxt "a switch order"
 msgid "Downgrade"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1818
+#: includes/class-wc-subscriptions-switcher.php:1834
 msgctxt "a switch order"
 msgid "Upgrade"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1821
+#: includes/class-wc-subscriptions-switcher.php:1837
 msgctxt "a switch order"
 msgid "Crossgrade"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1826
+#: includes/class-wc-subscriptions-switcher.php:1842
 #. translators: %1: product subtotal, %2: HTML span tag, %3: direction
 #. (upgrade, downgrade, crossgrade), %4: closing HTML span tag
 msgctxt "product subtotal string"
 msgid "%1$s %2$s(%3$s)%4$s"
 msgstr ""
 
-#: includes/class-wc-subscriptions-switcher.php:1942
-#: includes/class-wc-subscriptions-switcher.php:2288
+#: includes/class-wc-subscriptions-switcher.php:1958
+#: includes/class-wc-subscriptions-switcher.php:2304
 #. translators: 1$: old item, 2$: new item when switching
 msgctxt "used in order notes"
 msgid "Customer switched from: %1$s to %2$s."
