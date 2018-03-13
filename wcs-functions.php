@@ -466,14 +466,15 @@ function wcs_get_subscriptions( $args ) {
 		case 'trial_end_date' :
 		case 'end_date' :
 			// We need to orderby post meta value: http://www.paulund.co.uk/order-meta-query
+			$date_type  = str_replace( '_date', '', $args['orderby'] );
 			$query_args = array_merge( $query_args, array(
 				'orderby'   => 'meta_value',
-				'meta_key'  => wcs_get_date_meta_key( $args['orderby'] ),
+				'meta_key'  => wcs_get_date_meta_key( $date_type ),
 				'meta_type' => 'DATETIME',
 			) );
 			$query_args['meta_query'][] = array(
-				'key'     => wcs_get_date_meta_key( $args['orderby'] ),
-				'value'   => 'EXISTS',
+				'key'     => wcs_get_date_meta_key( $date_type ),
+				'compare' => 'EXISTS',
 				'type'    => 'DATETIME',
 			);
 			break;

@@ -1,5 +1,12 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2018.02.12 - version 2.2.18
+New: Provide custom options for subscription My Account endpoints. PR#2511
+Fix: Reinitialize tooltips after changing switching settings. PR#2517
+Fix: Only add inclusive tax rates to renewal cart items if product is taxable. PR#2524
+Fix: [WC3.3] Fix switching between grouped products by ensuring the switch request arguments are posted to the add to cart form. PR#2535
+Fix: Use correct meta key and compare argument when getting subscriptions with wcs_get_subscriptions() when ordered by end or trial date. PR#2528
+
 2018.01.29 - version 2.2.17
 * Fix: Use line item meta values in a WC version compatible way. PR#2469
 * Fix: Only log cache manager messages if the logger has been loaded. PR#2468

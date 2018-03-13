@@ -296,23 +296,39 @@ class WC_Subscriptions_Switcher {
 	/**
 	 * Slightly more awkward implementation for WooCommerce versions that do not have the woocommerce_grouped_product_list_link filter.
 	 *
-	 * @param string $permalink The permalink of the product belonging to the group
-	 * @param object $post a WP_Post object
+	 * @param string  $permalink The permalink of the product belonging to the group
+	 * @param WP_Post $post      The WP_Post object
+	 *
 	 * @return string modified string with the query arg present
 	 */
 	public static function add_switch_query_arg_post_link( $permalink, $post ) {
-
 		if ( ! isset( $_GET['switch-subscription'] ) || ! is_main_query() || ! is_product() || 'product' !== $post->post_type ) {
 			return $permalink;
 		}
 
 		$product = wc_get_product( $post );
+		$type    = wcs_get_objects_property( $product, 'type' );
 
-		if ( ! $product->is_type( 'subscription' ) ) {
-			return $permalink;
+		switch ( $type ) {
+			case 'variable-subscription':
+			case 'subscription':
+				return self::add_switch_query_args( $_GET['switch-subscription'], $_GET['item'], $permalink );
+
+			case 'grouped':
+				// Check to see if the group contains a subscription.
+				$children = $product->get_children();
+				foreach ( $children as $child ) {
+					$child_product = wc_get_product( $child );
+					if ( 'subscription' === wcs_get_objects_property( $child_product, 'type' ) ) {
+						return self::add_switch_query_args( $_GET['switch-subscription'], $_GET['item'], $permalink );
+					}
+				}
+
+				// break omitted intentionally to fall through to default.
+
+			default:
+				return $permalink;
 		}
-
-		return self::add_switch_query_args( $_GET['switch-subscription'], $_GET['item'], $permalink );
 	}
 
 	/**

@@ -15,16 +15,19 @@ class WCS_Query extends WC_Query {
 
 		if ( ! is_admin() ) {
 			add_filter( 'query_vars', array( $this, 'add_query_vars' ), 0 );
+			add_action( 'parse_request', array( $this, 'parse_request' ), 0 );
 			add_filter( 'woocommerce_get_breadcrumb', array( $this, 'add_breadcrumb' ), 10 );
 			add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ), 11 );
 
 			// Inserting your new tab/page into the My Account page.
 			add_filter( 'woocommerce_account_menu_items', array( $this, 'add_menu_items' ) );
+			add_filter( 'woocommerce_get_endpoint_url', array( $this, 'get_endpoint_url' ), 10, 4 );
 			add_filter( 'woocommerce_get_endpoint_url', array( $this, 'maybe_redirect_to_only_subscription' ), 10, 2 );
 			add_action( 'woocommerce_account_subscriptions_endpoint', array( $this, 'endpoint_content' ) );
 		}
 
 		$this->init_query_vars();
+		add_filter( 'woocommerce_account_settings', array( $this, 'add_endpoint_account_settings' ) );
 	}
 
 	/**
@@ -34,7 +37,7 @@ class WCS_Query extends WC_Query {
 	 */
 	public function init_query_vars() {
 		$this->query_vars = array(
-			'view-subscription' => get_option( 'woocommerce_myaccount_view_subscriptions_endpoint', 'view-subscription' ),
+			'view-subscription' => $this->get_view_subscription_endpoint(),
 		);
 		if ( ! WC_Subscriptions::is_woocommerce_pre( '2.6' ) ) {
 			$this->query_vars['subscriptions'] = get_option( 'woocommerce_myaccount_subscriptions_endpoint', 'subscriptions' );
@@ -196,6 +199,95 @@ class WCS_Query extends WC_Query {
 				add_filter( 'redirect_canonical', '__return_false' );
 			}
 		}
+	}
+
+	/**
+	 * Reset the woocommerce_myaccount_view_subscriptions_endpoint option name to woocommerce_myaccount_view_subscription_endpoint
+	 *
+	 * @return mixed Value set for the option
+	 * @since 2.2.18
+	 */
+	private function get_view_subscription_endpoint() {
+		$value = get_option( 'woocommerce_myaccount_view_subscriptions_endpoint', null );
+
+		if ( isset( $value ) ) {
+			wcs_doing_it_wrong( 'woocommerce_myaccount_view_subscriptions_endpoint', sprintf( '%1$s option is deprecated. Use %2$s option instead.', 'woocommerce_myaccount_view_subscriptions_endpoint', 'woocommerce_myaccount_view_subscription_endpoint' ), '2.2.17' );
+
+			// Update the current option name with the value that was set in the deprecated option name
+			update_option( 'woocommerce_myaccount_view_subscription_endpoint', $value );
+			// Now that things are upto date, do away with the deprecated option name
+			delete_option( 'woocommerce_myaccount_view_subscriptions_endpoint' );
+		}
+
+		return get_option( 'woocommerce_myaccount_view_subscription_endpoint', 'view-subscription' );
+	}
+
+	/**
+	 * Add UI option for changing Subscription endpoints in WC settings
+	 *
+	 * @param mixed $account_settings
+	 * @return mixed $account_settings
+	 */
+	public function add_endpoint_account_settings( $settings ) {
+		$new_settings = array();
+		$order_endpoint_found = false;
+		$subscriptions_endpoint_setting = array(
+			'title'    => __( 'Subscriptions', 'woocommerce-subscriptions' ),
+			'desc'     => __( 'Endpoint for the My Account &rarr; Subscriptions page', 'woocommerce-subscriptions' ),
+			'id'       => 'woocommerce_myaccount_subscriptions_endpoint',
+			'type'     => 'text',
+			'default'  => 'subscriptions',
+			'desc_tip' => true,
+		);
+
+		$view_subscription_endpoint_setting = array(
+			'title'    => __( 'View subscription', 'woocommerce-subscriptions' ),
+			'desc'     => __( 'Endpoint for the My Account &rarr; View Subscription page', 'woocommerce-subscriptions' ),
+			'id'       => 'woocommerce_myaccount_view_subscription_endpoint',
+			'type'     => 'text',
+			'default'  => 'view-subscription',
+			'desc_tip' => true,
+		);
+
+		// Loop over and look for View Order Endpoint and include Subscriptions endpoint options after that.
+		foreach ( $settings as $value ) {
+
+			if ( 'woocommerce_myaccount_view_order_endpoint' === $value['id'] ) {
+				$order_endpoint_found = true;
+				$new_settings[] = $value;
+				$new_settings[] = $subscriptions_endpoint_setting;
+				$new_settings[] = $view_subscription_endpoint_setting;
+				continue;
+			} elseif ( ! $order_endpoint_found && 'sectionend' === $value['type']  && 'account_endpoint_options' === $value['id'] ) {
+				// If we got to the end of the settings and didn't add our endpoints, add them to the end.
+				$new_settings[] = $subscriptions_endpoint_setting;
+				$new_settings[] = $view_subscription_endpoint_setting;
+			}
+			$new_settings[] = $value;
+		}
+		return $new_settings;
+	}
+
+	/**
+	 *	Get endpoint URL.
+	 *
+	 * Gets the URL for an endpoint, which varies depending on permalink settings.
+	 *
+	 * @param  string $endpoint
+	 * @param  string $value
+	 * @param  string $permalink
+	 *
+	 * @return string $url
+	 */
+
+	public function get_endpoint_url( $url, $endpoint, $value = '', $permalink = '') {
+
+		if ( ! empty( $this->query_vars[ $endpoint ] ) ) {
+			remove_filter( 'woocommerce_get_endpoint_url', array( $this, 'get_endpoint_url' ) );
+			$url = wc_get_endpoint_url( $this->query_vars[ $endpoint ], $value, $permalink );
+			add_filter( 'woocommerce_get_endpoint_url', array( $this, 'get_endpoint_url' ), 10, 4 );
+		}
+		return $url;
 	}
 }
 new WCS_Query();
