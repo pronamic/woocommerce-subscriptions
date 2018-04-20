@@ -48,10 +48,12 @@ class WCS_Meta_Box_Related_Orders {
 
 		$subscriptions = array();
 		$orders        = array();
+		$is_subscription_screen = wcs_is_subscription( $post->ID );
 
 		// On the subscription page, just show related orders
-		if ( wcs_is_subscription( $post->ID ) ) {
-			$subscriptions[] = wcs_get_subscription( $post->ID );
+		if ( $is_subscription_screen ) {
+			$this_subscription = wcs_get_subscription( $post->ID );
+			$subscriptions[]   = $this_subscription;
 		} elseif ( wcs_order_contains_subscription( $post->ID, array( 'parent', 'renewal' ) ) ) {
 			$subscriptions = wcs_get_subscriptions_for_order( $post->ID, array( 'order_type' => array( 'parent', 'renewal' ) ) );
 		}
@@ -65,9 +67,9 @@ class WCS_Meta_Box_Related_Orders {
 		//Resubscribed
 		$initial_subscriptions = array();
 
-		if ( wcs_is_subscription( $post->ID ) ) {
+		if ( $is_subscription_screen ) {
 
-			$initial_subscriptions = wcs_get_subscriptions_for_resubscribe_order( $post->ID );
+			$initial_subscriptions = wcs_get_subscriptions_for_resubscribe_order( $this_subscription );
 
 			$resubscribed_subscriptions = get_posts( array(
 				'meta_key'       => '_subscription_resubscribe',

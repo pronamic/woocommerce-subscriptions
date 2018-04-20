@@ -74,9 +74,9 @@ class WC_Subscriptions_Addresses {
 			} elseif ( ( ( isset( $wp->query_vars['edit-address'] ) && ! empty( $wp->query_vars['edit-address'] ) ) || isset( $_GET['address'] ) ) ) {
 
 				if ( isset( $wp->query_vars['edit-address'] ) ) {
-					$address_type = esc_attr( $wp->query_vars['edit-address'] ) . ' ';
+					$address_type = esc_attr( $wp->query_vars['edit-address'] );
 				} else {
-					$address_type = ( ! isset( $_GET['address'] ) ) ? esc_attr( $_GET['address'] ) . ' ' : '';
+					$address_type = ( ! isset( $_GET['address'] ) ) ? esc_attr( $_GET['address'] ) : '';
 				}
 
 				// translators: $1: address type (Shipping Address / Billing Address), $2: opening <strong> tag, $3: closing </strong> tag

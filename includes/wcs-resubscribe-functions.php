@@ -51,7 +51,7 @@ function wcs_create_resubscribe_order( $subscription ) {
 	$resubscribe_order = wcs_create_order_from_subscription( $subscription, 'resubscribe_order' );
 
 	if ( is_wp_error( $resubscribe_order ) ) {
-		return new WP_Error( 'resubscribe-order-error', $renewal_order->get_error_message() );
+		return new WP_Error( 'resubscribe-order-error', $resubscribe_order->get_error_message() );
 	}
 
 	// Keep a record of the original subscription's ID on the new order

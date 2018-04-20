@@ -38,5 +38,36 @@ function wcs_is_product_limited_for_user( $product, $user_id = 0 ) {
 		$product = wc_get_product( $product );
 	}
 
-	return ( ( 'active' == wcs_get_product_limitation( $product ) && wcs_user_has_subscription( $user_id, $product->get_id(), 'on-hold' ) ) || ( 'no' !== wcs_get_product_limitation( $product ) && wcs_user_has_subscription( $user_id, $product->get_id(), wcs_get_product_limitation( $product ) ) ) ) ? true : false;
+	if ( empty( $user_id ) ) {
+		$user_id = get_current_user_id();
+	}
+
+	$is_limited_for_user = false;
+	$product_limitation  = wcs_get_product_limitation( $product );
+
+	// If the subscription is limited to 1 active and the customer has a subscription to this product on-hold.
+	if ( 'active' == $product_limitation && wcs_user_has_subscription( $user_id, $product->get_id(), 'on-hold' ) ) {
+		$is_limited_for_user = true;
+	} elseif ( 'no' !== $product_limitation ) {
+		$is_limited_for_user = wcs_user_has_subscription( $user_id, $product->get_id(), $product_limitation );
+
+		// If the product is limited for any status, there exists a chance that the customer has cancelled subscriptions which cannot be resubscribed to as they have no completed payments.
+		if ( 'any' === $product_limitation && $is_limited_for_user ) {
+			$is_limited_for_user = false;
+			$user_subscriptions  = wcs_get_subscriptions( array(
+				'subscriptions_per_page' => -1,
+				'customer_id'            => $user_id,
+				'product_id'             => $product->get_id(),
+			) );
+
+			foreach ( $user_subscriptions as $subscription ) {
+				if ( ! $subscription->has_status( 'cancelled' ) || 0 !== $subscription->get_completed_payment_count() ) {
+					$is_limited_for_user = true;
+					break;
+				}
+			}
+		}
+	}
+
+	return apply_filters( 'woocommerce_subscriptions_product_limited_for_user', $is_limited_for_user, $product, $user_id );
 }

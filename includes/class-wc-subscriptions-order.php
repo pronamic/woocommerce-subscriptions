@@ -522,7 +522,7 @@ class WC_Subscriptions_Order {
 						$subscription->update_dates( $dates );
 					}
 
-					$subscription->payment_complete();
+					$subscription->payment_complete_for_order( $order );
 					$was_activated = true;
 
 				} elseif ( 'failed' == $new_order_status ) {
