@@ -5,7 +5,7 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: http://prospress.com/
- * Version: 2.2.18
+ * Version: 2.2.19
  *
  * WC requires at least: 2.5
  * WC tested up to: 3.3
@@ -117,6 +117,8 @@ require_once( 'includes/class-wcs-limiter.php' );
 
 require_once( 'includes/legacy/class-wcs-array-property-post-meta-black-magic.php' );
 
+require_once( 'includes/class-wcs-failed-scheduled-action-manager.php' );
+
 /**
  * The main subscriptions class.
  *
@@ -130,7 +132,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.2.18';
+	public static $version = '2.2.19';
 
 	private static $total_subscription_count = null;
 
@@ -165,7 +167,7 @@ class WC_Subscriptions {
 		add_action( 'wcopc_subscription_add_to_cart', __CLASS__ . '::wcopc_subscription_add_to_cart' ); // One Page Checkout compatibility
 
 		// Ensure a subscription is never in the cart with products
-		add_filter( 'woocommerce_add_to_cart_validation', __CLASS__ . '::maybe_empty_cart', 10, 4 );
+		add_filter( 'woocommerce_add_to_cart_validation', __CLASS__ . '::maybe_empty_cart', 10, 5 );
 
 		// Enqueue front-end styles, run after Storefront because it sets the styles to be empty
 		add_filter( 'woocommerce_enqueue_styles', __CLASS__ . '::enqueue_styles', 100, 1 );
@@ -358,13 +360,20 @@ class WC_Subscriptions {
 	 * Loads the my-subscriptions.php template on the My Account page.
 	 *
 	 * @since 1.0
+	 * @param int $current_page
 	 */
-	public static function get_my_subscriptions_template() {
+	public static function get_my_subscriptions_template( $current_page = 1 ) {
 
-		$subscriptions = wcs_get_users_subscriptions();
-		$user_id       = get_current_user_id();
+		$all_subscriptions  = wcs_get_users_subscriptions();
 
-		wc_get_template( 'myaccount/my-subscriptions.php', array( 'subscriptions' => $subscriptions, 'user_id' => $user_id ), '', plugin_dir_path( __FILE__ ) . 'templates/' );
+		$current_page    = empty( $current_page ) ? 1 : absint( $current_page );
+		$posts_per_page = get_option( 'posts_per_page' );
+
+		$max_num_pages = ceil( count( $all_subscriptions ) / $posts_per_page );
+
+		$subscriptions = array_slice( $all_subscriptions, ( $current_page - 1 ) * $posts_per_page, $posts_per_page );
+
+		wc_get_template( 'myaccount/my-subscriptions.php', array( 'subscriptions' => $subscriptions, 'current_page' => $current_page, 'max_num_pages' => $max_num_pages, 'paginate' => true ), '', plugin_dir_path( __FILE__ ) . 'templates/' );
 	}
 
 	/**
@@ -390,7 +399,7 @@ class WC_Subscriptions {
 	 *
 	 * @since 1.0
 	 */
-	public static function maybe_empty_cart( $valid, $product_id, $quantity, $variation_id = '' ) {
+	public static function maybe_empty_cart( $valid, $product_id, $quantity, $variation_id = '', $variations = array() ) {
 
 		$is_subscription                 = WC_Subscriptions_Product::is_subscription( $product_id );
 		$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription();
@@ -400,7 +409,13 @@ class WC_Subscriptions {
 
 		if ( $is_subscription && 'yes' != get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase', 'no' ) ) {
 
-			if ( ! WC_Subscriptions_Cart::cart_contains_product( $canonical_product_id ) ) {
+			// Generate a cart item key from variation and cart item data - which may be added by other plugins
+			$cart_item_data = (array) apply_filters( 'woocommerce_add_cart_item_data', array(), $product_id, $variation_id );
+			$cart_item_id   = WC()->cart->generate_cart_id( $product_id, $variation_id, $variations, $cart_item_data );
+			$product        = wc_get_product( $product_id );
+
+			// If the product is sold individually or if the cart doesn't already contain this product, empty the cart.
+			if ( ( $product && $product->is_sold_individually() ) || ! WC()->cart->find_product_in_cart( $cart_item_id ) ) {
 				WC()->cart->empty_cart();
 			}
 		} elseif ( $is_subscription && wcs_cart_contains_renewal() && ! $multiple_subscriptions_possible && ! $manual_renewals_enabled ) {
@@ -463,7 +478,18 @@ class WC_Subscriptions {
 			// Redirect to checkout if mixed checkout is disabled
 			if ( 'yes' != get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase', 'no' ) ) {
 
-				wc_clear_notices();
+				$quantity   = isset( $_REQUEST['quantity'] ) ? $_REQUEST['quantity'] : 1;
+				$product_id = $_REQUEST['add-to-cart'];
+
+				$add_to_cart_notice = wc_add_to_cart_message( array( $product_id => $quantity ), true, true );
+
+				if ( wc_has_notice( $add_to_cart_notice ) ) {
+					$notices                  = wc_get_notices();
+					$add_to_cart_notice_index = array_search( $add_to_cart_notice, $notices['success'] );
+
+					unset( $notices['success'][ $add_to_cart_notice_index ] );
+					wc_set_notices( $notices );
+				}
 
 				$url = wc_get_checkout_url();
 
@@ -773,6 +799,8 @@ class WC_Subscriptions {
 			require_once( 'includes/deprecated/class-wcs-dynamic-filter-deprecator.php' );
 		}
 
+		$failed_scheduled_action_manager = new WCS_Failed_Scheduled_Action_Manager( new WC_Logger() );
+		$failed_scheduled_action_manager->init();
 	}
 
 	/**

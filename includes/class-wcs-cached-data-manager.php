@@ -81,7 +81,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	public function purge_delete( $post_id, $post = null ) {
 		$post_type = get_post_type( $post_id );
 		if ( 'shop_order' === $post_type ) {
-			foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'any' ) ) as $subscription ) {
+			foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'renewal' ) ) as $subscription ) {
 				$this->log( 'Calling purge delete on ' . current_filter() . ' for ' . $subscription->get_id() );
 				$this->clear_related_order_cache( $subscription );
 			}

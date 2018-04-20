@@ -133,11 +133,11 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 
 			$this->update_payment_method( $subscription, $payment_data );
 
+			$subscription->save();
+
 			// Handle set paid.
 			if ( true === $request['set_paid'] ) {
 				$subscription->payment_complete( $request['transaction_id'] );
-			} else {
-				$subscription->save(); // $subscription->payment_complete() calls $subscription->update_status() which saves the subscription, so we only need to save it if not calling that
 			}
 
 			return $subscription->get_id();

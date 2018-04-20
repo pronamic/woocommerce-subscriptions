@@ -217,6 +217,10 @@ a.close-subscriptions-search {
 	display: none !important;
 }
 
+#woocommerce-product-data .woocommerce_variation .wcs-can-not-remove-variation-msg {
+	opacity: 0.5;
+}
+
 /* Variation Pricing Fields with WooCommerce 3.0+ */
 .wc-metaboxes-wrapper .variable_subscription_trial label,
 .wc-metaboxes-wrapper .variable_subscription_pricing label,

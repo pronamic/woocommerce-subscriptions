@@ -67,6 +67,9 @@ class WC_Subscriptions_Product {
 		// Handle bulk edits to subscription data in WC 2.4
 		add_action( 'woocommerce_bulk_edit_variations', __CLASS__ . '::bulk_edit_variations', 10, 4 );
 
+		// Adds a field flagging whether the variation is safe to be removed or not.
+		add_action( 'woocommerce_product_after_variable_attributes', array( __CLASS__, 'add_variation_removal_flag' ), 10, 3 );
+
 		// check product variations for sync'd or trial
 		add_action( 'wp_ajax_wcs_product_has_trial_or_is_synced', __CLASS__ . '::check_product_variations_for_syncd_or_trial' );
 
@@ -252,7 +255,7 @@ class WC_Subscriptions_Product {
 				if ( isset( $include['price'] ) ) {
 					$price = $include['price'];
 				} else {
-					$price = wcs_get_price_excluding_tax( $product, array( 'price' => $include['price'] ) );
+					$price = wcs_get_price_excluding_tax( $product );
 				}
 
 				if ( true === $include['sign_up_fee'] ) {
@@ -356,7 +359,9 @@ class WC_Subscriptions_Product {
 			$subscription_string = $price;
 		} elseif ( $include['subscription_period'] ) {
 			// translators: billing period (e.g. "every week")
-			$subscription_string = sprintf( __( 'every %s', 'woocommerce-subscriptions' ), wcs_get_subscription_period_strings( $billing_interval, $billing_period ) );
+			$subscription_string = '<span class="subscription-details">' . sprintf( __( 'every %s', 'woocommerce-subscriptions' ), wcs_get_subscription_period_strings( $billing_interval, $billing_period ) );
+		} else {
+			$subscription_string = '<span class="subscription-details">';
 		}
 
 		// Add the length to the end
@@ -892,6 +897,31 @@ class WC_Subscriptions_Product {
 
 				update_post_meta( $variation_id, '_subscription_price', $subscription_price );
 			}
+		}
+	}
+
+	/**
+	 *
+	 * Hooked to `woocommerce_product_after_variable_attributes`.
+	 * This function adds a hidden field to the backend's HTML output of product variations indicating whether the
+	 * variation is being used in subscriptions or not.
+	 * This is used by some admin JS code to prevent removal of certain variations and also display a tooltip message to the
+	 * admin.
+	 *
+	 * @param int     $loop            Position of the variation inside the variations loop.
+	 * @param array   $variation_data  Array of variation data.
+	 * @param WP_Post $variation       The variation's WP post.
+	 * @since 2.2.17
+	 */
+	public static function add_variation_removal_flag( $loop, $variation_data, $variation ) {
+		$related_subscriptions = wcs_get_subscriptions_for_product( $variation->ID );
+		$can_remove            = empty( $related_subscriptions );
+
+		printf( '<input type="hidden" class="wcs-can-remove-variation" value="%d" />', intval( $can_remove ) );
+
+		if ( ! $can_remove ) {
+			$msg = __( 'This variation can not be removed because it is associated with active subscriptions. To remove this variation, please cancel and delete the subscriptions for it.', 'woocommerce-subscriptions' );
+			printf( '<a href="#" class="tips delete wcs-can-not-remove-variation-msg" data-tip="%s"></a>', wc_sanitize_tooltip( $msg ) ); // XSS ok.
 		}
 	}
 
