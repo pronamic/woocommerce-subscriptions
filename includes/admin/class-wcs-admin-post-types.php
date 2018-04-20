@@ -1002,7 +1002,7 @@ class WCS_Admin_Post_Types {
 			$item_meta_html = wc_display_item_meta( $item, array(
 				'before'    => '',
 				'after'     => '',
-				'separator' => '\n',
+				'separator' => '',
 				'echo'      => false,
 			) );
 		}

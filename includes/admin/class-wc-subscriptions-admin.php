@@ -396,7 +396,7 @@ class WC_Subscriptions_Admin {
 		update_post_meta( $post_id, '_sale_price_dates_to', $date_to );
 
 		// Update price if on sale
-		if ( ! empty( $sale_price ) && ( ( empty( $date_to ) && empty( $date_from ) ) || ( $date_from < $now && ( empty( $date_to ) || $date_to > $now ) ) ) ) {
+		if ( '' !== $sale_price && ( ( empty( $date_to ) && empty( $date_from ) ) || ( $date_from < $now && ( empty( $date_to ) || $date_to > $now ) ) ) ) {
 			$price = $sale_price;
 		} else {
 			$price = $subscription_price;

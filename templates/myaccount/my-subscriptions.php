@@ -64,13 +64,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</tbody>
 
 	</table>
-	<?php else : ?>
+		<?php if ( 1 < $max_num_pages ) : ?>
+			<div class="woocommerce-pagination woocommerce-pagination--without-numbers woocommerce-Pagination">
+			<?php if ( 1 !== $current_page ) : ?>
+				<a class="woocommerce-button woocommerce-button--previous woocommerce-Button woocommerce-Button--previous button" href="<?php echo esc_url( wc_get_endpoint_url( 'subscriptions', $current_page - 1 ) ); ?>"><?php esc_html_e( 'Previous', 'woocommerce-subscriptions' ); ?></a>
+			<?php endif; ?>
 
+			<?php if ( intval( $max_num_pages ) !== $current_page ) : ?>
+				<a class="woocommerce-button woocommerce-button--next woocommerce-Button woocommerce-Button--next button" href="<?php echo esc_url( wc_get_endpoint_url( 'subscriptions', $current_page + 1 ) ); ?>"><?php esc_html_e( 'Next', 'woocommerce-subscriptions' ); ?></a>
+			<?php endif; ?>
+			</div>
+		<?php endif; ?>
+	<?php else : ?>
 		<p class="no_subscriptions">
-			<?php
-			// translators: placeholders are opening and closing link tags to take to the shop page
-			printf( esc_html__( 'You have no active subscriptions. Find your first subscription in the %sstore%s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( apply_filters( 'woocommerce_subscriptions_message_store_url', get_permalink( wc_get_page_id( 'shop' ) ) ) ) . '">', '</a>' );
-			?>
+			<?php if ( 1 < $current_page ) :
+				printf( esc_html__( 'You have reached the end of subscriptions. Go to the %sfirst page%s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( wc_get_endpoint_url( 'subscriptions', 1 ) ) . '">', '</a>' );
+			else :
+				// translators: placeholders are opening and closing link tags to take to the shop page
+				printf( esc_html__( 'You have no active subscriptions. Find your first subscription in the %sstore%s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( apply_filters( 'woocommerce_subscriptions_message_store_url', get_permalink( wc_get_page_id( 'shop' ) ) ) ) . '">', '</a>' );
+			endif; ?>
 		</p>
 
 	<?php endif; ?>

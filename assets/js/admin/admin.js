@@ -30,6 +30,9 @@ jQuery(document).ready(function($){
 			}
 		},
 		showHideVariableSubscriptionMeta: function(){
+			// In order for WooCommerce not to show the stock_status_field on variable subscriptions, make sure it has the hide if variable subscription class.
+			$( 'p.stock_status_field' ).addClass( 'hide_if_variable-subscription' );
+
 			if ($('select#product-type').val()=='variable-subscription') {
 
 				$( 'input#_downloadable' ).prop( 'checked', false );
@@ -46,10 +49,11 @@ jQuery(document).ready(function($){
 
 			} else {
 
-				if ($('select#product-type').val()=='variable') {
-					$('.show_if_variable-subscription').hide();
-					$('.show_if_variable').show();
-					$('.hide_if_variable').hide();
+				if ( 'variable' === $('select#product-type').val() ) {
+					$( '.show_if_variable-subscription' ).hide();
+					$( '.show_if_variable' ).show();
+					$( '.hide_if_variable' ).hide();
+					$( 'input#_manage_stock' ).change();
 				}
 
 				// Restore the sale price row width to half
@@ -366,6 +370,18 @@ jQuery(document).ready(function($){
 				tab.click().parent().show();
 			}
 		},
+		maybeDisableRemoveLinks: function() {
+			$( '#variable_product_options .woocommerce_variation' ).each( function() {
+				var $removeLink          = $( this ).find( '.remove_variation' );
+				var can_remove_variation = ( '1' === $( this ).find( 'input.wcs-can-remove-variation').val() );
+				var $msg                 = $( this ).find( '.wcs-can-not-remove-variation-msg' );
+
+				if ( ! can_remove_variation ) {
+					$msg.text( $removeLink.text() );
+					$removeLink.replaceWith( $msg );
+				}
+			} );
+		},
 	});
 
 	$('.options_group.pricing ._sale_price_field .description').prepend('<span id="sale-price-period" style="display: none;"></span>');
@@ -468,6 +484,11 @@ jQuery(document).ready(function($){
 			return confirm(WCSubscriptions.trashWarning);
 		}
 	});
+
+	$( '#variable_product_options' ).on( 'click', '.delete.wcs-can-not-remove-variation-msg', function( e ) {
+		e.preventDefault();
+		e.stopPropagation();
+	} );
 
 	// Notify the store manager that trashing an order via the admin orders table row action also deletes the associated subscription if it exists
 	$( '.row-actions .submitdelete' ).click( function() {
@@ -610,6 +631,11 @@ jQuery(document).ready(function($){
 			$.disableEnableOneTimeShipping();
 		}
 	});
+
+	// After variations have been loaded, check which ones are tied to subscriptions to prevent them from being deleted.
+	$( '#woocommerce-product-data' ).on( 'woocommerce_variations_loaded', function() {
+		$.maybeDisableRemoveLinks();
+	} );
 
 	// Triggered by $.disableEnableOneTimeShipping() after One Time shipping has been enabled or disabled for variations.
 	// If the One Time Shipping field needs updating, send the ajax request to update the product setting in the backend

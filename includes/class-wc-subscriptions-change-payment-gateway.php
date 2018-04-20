@@ -446,7 +446,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	public static function maybe_zero_total( $total, $subscription ) {
 		global $wp;
 
-		if ( ! empty( $_POST['_wcsnonce'] ) && wp_verify_nonce( $_POST['_wcsnonce'], 'wcs_change_payment_method' ) && isset( $_POST['woocommerce_change_payment'] ) && $subscription->get_order_key() == $_GET['key'] && $subscription->get_id() == absint( $_POST['woocommerce_change_payment'] ) ) {
+		if ( ! empty( $_POST['_wcsnonce'] ) && wp_verify_nonce( $_POST['_wcsnonce'], 'wcs_change_payment_method' ) && isset( $_POST['woocommerce_change_payment'] ) && wcs_is_subscription( $subscription ) && $subscription->get_order_key() == $_GET['key'] && $subscription->get_id() == absint( $_POST['woocommerce_change_payment'] ) ) {
 			$total = 0;
 		} elseif ( ! self::$is_request_to_change_payment && isset( $wp->query_vars['order-pay'] ) && wcs_is_subscription( absint( $wp->query_vars['order-pay'] ) ) ) {
 			// if the request to pay for the order belongs to a subscription but there's no GET params for changing payment method, the receipt page is being used to collect credit card details so we still need to $0 the total

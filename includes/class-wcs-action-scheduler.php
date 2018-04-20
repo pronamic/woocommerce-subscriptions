@@ -75,9 +75,15 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 
 				foreach ( $this->action_hooks as $action_hook => $date_type ) {
 
+					$event_time = $subscription->get_time( $date_type );
+
+					// If there's no payment retry date, avoid calling get_action_args() because it calls the resource intensive WC_Subscription::get_last_order() / get_related_orders()
+					if ( 'payment_retry' === $date_type && 0 === $event_time ) {
+						continue;
+					}
+
 					$action_args    = $this->get_action_args( $date_type, $subscription );
 					$next_scheduled = wc_next_scheduled_action( $action_hook, $action_args );
-					$event_time     = $subscription->get_time( $date_type );
 
 					// Maybe clear the existing schedule for this hook
 					if ( false !== $next_scheduled && $next_scheduled != $event_time ) {

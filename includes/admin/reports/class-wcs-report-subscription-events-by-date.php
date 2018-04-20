@@ -44,6 +44,10 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		$args = wp_parse_args( $args, $default_args );
 
 		$query_end_date = date( 'Y-m-d', strtotime( '+1 DAY', $this->end_date ) );
+		$offset  = get_option( 'gmt_offset' );
+
+		//Convert from Decimal format(eg. 11.5) to a suitable format(eg. +11:30) for  CONVERT_TZ() of SQL query.
+		$site_timezone = sprintf( '%+02d:%02d', (int) $offset, ( $offset - floor( $offset ) ) * 60 );
 
 		$this->report_data = new stdClass;
 
@@ -255,11 +259,11 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 					{$wpdb->posts} AS wcsubs
 					LEFT JOIN {$wpdb->postmeta} AS wcsmeta
 						ON wcsubs.ID = wcsmeta.post_id AND wcsmeta.meta_key = %s
-				) ON DATE( wcsubs.post_date ) <= searchdate.Date
+				) ON DATE( wcsubs.post_date ) < searchdate.Date
 					AND wcsubs.post_type IN ( 'shop_subscription' )
-					AND wcsubs.post_status NOT IN( 'wc-pending', 'trash', 'auto-draft' )
+					AND wcsubs.post_status NOT IN( 'trash', 'auto-draft' )
 					AND (
-						DATE( wcsmeta.meta_value ) >= searchdate.Date
+						DATE( CONVERT_TZ( wcsmeta.meta_value , '+00:00', %s ) ) >= searchdate.Date
 						OR wcsmeta.meta_value = 0
 						OR wcsmeta.meta_value IS NULL
 					)
@@ -268,7 +272,8 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 			$query_end_date,
 			date( 'Y-m-d', $this->start_date ),
 			$query_end_date,
-			wcs_get_date_meta_key( 'end' )
+			wcs_get_date_meta_key( 'end' ),
+			$site_timezone
 		);
 
 		$query_hash = md5( $query );
@@ -285,13 +290,13 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		 * Subscription cancellations
 		 */
 		$query = $wpdb->prepare(
-			"SELECT COUNT(DISTINCT wcsubs.ID) as count, wcsmeta_cancel.meta_value as cancel_date
+			"SELECT COUNT( DISTINCT wcsubs.ID ) as count, CONVERT_TZ( wcsmeta_cancel.meta_value, '+00:00', '{$site_timezone}' ) as cancel_date
 				FROM {$wpdb->posts} as wcsubs
 				JOIN {$wpdb->postmeta} AS wcsmeta_cancel
 					ON wcsubs.ID = wcsmeta_cancel.post_id
 					AND wcsmeta_cancel.meta_key = %s
-				WHERE wcsmeta_cancel.meta_value BETWEEN %s AND %s
-				GROUP BY YEAR(wcsmeta_cancel.meta_value), MONTH(wcsmeta_cancel.meta_value), DAY(wcsmeta_cancel.meta_value)
+				GROUP BY YEAR( cancel_date ), MONTH( cancel_date ), DAY( cancel_date )
+				HAVING cancel_date BETWEEN %s AND %s
 				ORDER BY wcsmeta_cancel.meta_value ASC",
 			wcs_get_date_meta_key( 'cancelled' ),
 			date( 'Y-m-d', $this->start_date ),
@@ -312,14 +317,13 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		 * Subscriptions ended
 		 */
 		$query = $wpdb->prepare(
-			"SELECT COUNT(DISTINCT wcsubs.ID) as count, wcsmeta_end.meta_value as end_date
+			"SELECT COUNT( DISTINCT wcsubs.ID ) as count, CONVERT_TZ( wcsmeta_end.meta_value, '+00:00', '{$site_timezone}' ) as end_date
 				FROM {$wpdb->posts} as wcsubs
 				JOIN {$wpdb->postmeta} AS wcsmeta_end
 					ON wcsubs.ID = wcsmeta_end.post_id
 						AND wcsmeta_end.meta_key = %s
-				WHERE
-						wcsmeta_end.meta_value BETWEEN %s AND %s
-				GROUP BY YEAR(wcsmeta_end.meta_value), MONTH(wcsmeta_end.meta_value), DAY(wcsmeta_end.meta_value)
+				GROUP BY YEAR( end_date ), MONTH( end_date ), DAY( end_date )
+				HAVING end_date BETWEEN %s AND %s
 				ORDER BY wcsmeta_end.meta_value ASC",
 			wcs_get_date_meta_key( 'end' ),
 			date( 'Y-m-d', $this->start_date ),

@@ -1,11 +1,41 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2018.04.04 - version 2.2.19
+* Fix: With Mixed Checkout disabled, only remove the add to cart notice when redirected straight to checkout. Fixes issue where error notices are removed incorrectly. PR#2541
+* Fix: With Mixed Checkout disabled, only empty cart when the variation ID is the same but with different attributes. PR#2540
+* Fix: Remove the "\n" character from variable subscription item tooltips in the admin subscriptions table. PR#2481
+* Fix: Allow users to purchase limited to any status subscription products under circumstances where the customer is blocked from purchasing because of cancelled orders. PR#2485
+* Fix: Prevent deletion of product variations in use by a subscription. PR#2507
+* Fix: Get default product price when no price arg is passed into `get_price_string()`. PR#2558
+* Fix: Avoid potential for division by zero errors when switching. PR#2574
+* Fix: Only force payment method selection during switch if a new subscription will be created. PR#2567
+* Fix: Remove trailing space from address_type variable. PR#2595
+* Fix: Ensure the opening span tag is present for all args passed to get_price_string(). PR#2597
+* Fix: Set the product's price to the sale price even if it's 0. Fixes display issues with subscription products on sale for $0. PR#2601
+* Fix: While resubscribing, ensure subscriptions with multiple line items charge the correct amount for all line items, not just the 1st. PR#2585
+* Fix: Hide product stock settings while editing variable products. PR#2563
+* Fix: Allow subscription coupons to be applied while switching subscriptions. PR#1863
+* Fix: Ensure subscriptions created via the API with an active status and a set_paid arg set to true are saved. PR#2609
+* Fix: Ensure Net Gain/Loss calculations for subscription reports convert dates correctly to match the site's timezone. PR#2593
+* Fix: Prevent the possibility for fatal errors caused by calling undeclared functions during the payment method change requests. PR#2613
+* Tweak: Ensure sign up fees are numeric before attempting to use them in calculations. PR#2551
+* Tweak: Only clear related order cache on renewal order changes. PR#2555
+* Tweak: Improve checkout performance by avoiding related renewal orders query. PR#2550
+* Tweak: Add the `$plain_text` arg to order item meta start and end hooks. PR#2515
+* Tweak: Refactor the view subscription template. PR#2575
+* Tweak: Add Subscription My Account endpoints to wpml-config.xml file. PR#2578
+* Tweak: Add 'woocommerce_subscriptions_product_limited_for_user' filter. PR#2596
+* Tweak: Clear the cart if the product being added to the cart is sold individually when mixed checkout is disabled. PR#2602
+* Tweak: Use WC_DateTime objects and `getTimestamp()` rather than `format( 'U' )` to avoid possible issues in earlier PHP versions. PR#2588
+* Tweak: Add pagination to the My Account Subscriptions table. PR#2537
+* Tweak: Catch, log and display an admin notice after a scheduled subscription action timeout. PR#2484
+
 2018.02.12 - version 2.2.18
-New: Provide custom options for subscription My Account endpoints. PR#2511
-Fix: Reinitialize tooltips after changing switching settings. PR#2517
-Fix: Only add inclusive tax rates to renewal cart items if product is taxable. PR#2524
-Fix: [WC3.3] Fix switching between grouped products by ensuring the switch request arguments are posted to the add to cart form. PR#2535
-Fix: Use correct meta key and compare argument when getting subscriptions with wcs_get_subscriptions() when ordered by end or trial date. PR#2528
+* New: Provide custom options for subscription My Account endpoints. PR#2511
+* Fix: Reinitialize tooltips after changing switching settings. PR#2517
+* Fix: Only add inclusive tax rates to renewal cart items if product is taxable. PR#2524
+* Fix: [WC3.3] Fix switching between grouped products by ensuring the switch request arguments are posted to the add to cart form. PR#2535
+* Fix: Use correct meta key and compare argument when getting subscriptions with wcs_get_subscriptions() when ordered by end or trial date. PR#2528
 
 2018.01.29 - version 2.2.17
 * Fix: Use line item meta values in a WC version compatible way. PR#2469

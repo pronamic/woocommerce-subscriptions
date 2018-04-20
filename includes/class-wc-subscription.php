@@ -721,7 +721,7 @@ class WC_Subscription extends WC_Order {
 	 */
 	public function get_failed_payment_count() {
 
-		$failed_payment_count = ( ( $parent_order = $this->get_parent() ) && $parent_order->has_status( 'wc-failed' ) ) ? 1 : 0;
+		$failed_payment_count = ( ( $parent_order = $this->get_parent() ) && $parent_order->has_status( 'failed' ) ) ? 1 : 0;
 
 		$failed_renewal_orders = get_posts( array(
 			'posts_per_page' => -1,
@@ -1651,7 +1651,7 @@ class WC_Subscription extends WC_Order {
 	}
 
 	/**
-	 * When payment is completed, either for the original purchase or a renewal payment, this function processes it.
+	 * Process payment on the subscription, which mainly means processing it for the last order on the subscription.
 	 *
 	 * @param $transaction_id string Optional transaction id to store in post meta
 	 */
@@ -1661,7 +1661,7 @@ class WC_Subscription extends WC_Order {
 			return;
 		}
 
-		// Clear the cached completed payment count
+		// Clear the cached completed payment count, kept here for backward compat even though it's also reset in $this->process_payment_complete()
 		$this->cached_completed_payment_count = false;
 
 		// Make sure the last order's status is updated
@@ -1671,6 +1671,19 @@ class WC_Subscription extends WC_Order {
 			$last_order->payment_complete( $transaction_id );
 		}
 
+		$this->payment_complete_for_order( $last_order );
+	}
+
+	/**
+	 * When payment is completed for a related order, reset any renewal related counters and reactive the subscription.
+	 *
+	 * @param WC_Order $order
+	 */
+	public function payment_complete_for_order( $last_order ) {
+
+		// Clear the cached completed payment count
+		$this->cached_completed_payment_count = false;
+
 		// Reset suspension count
 		$this->set_suspension_count( 0 );
 
@@ -1678,13 +1691,7 @@ class WC_Subscription extends WC_Order {
 		wcs_update_users_role( $this->get_user_id(), 'default_subscriber_role' );
 
 		// Add order note depending on initial payment
-		if ( 0 == $this->get_total_initial_payment() && 1 == $this->get_completed_payment_count() && false != $this->get_parent() ) {
-			$note = __( 'Sign-up complete.', 'woocommerce-subscriptions' );
-		} else {
-			$note = __( 'Payment received.', 'woocommerce-subscriptions' );
-		}
-
-		$this->add_order_note( $note );
+		$this->add_order_note( __( 'Payment status marked complete.', 'woocommerce-subscriptions' ) );
 
 		$this->update_status( 'active' ); // also saves the subscription
 
@@ -2149,11 +2156,12 @@ class WC_Subscription extends WC_Order {
 
 			} elseif ( 'true' === $line_item->get_meta( '_has_trial' ) ) {
 				// Sign up is amount paid for this item on original order, we can safely use 3.0 getters here because we know from the above condition 3.0 is active
-				$sign_up_fee = $original_order_item->get_total( 'edit' ) / $original_order_item->get_quantity( 'edit' );
+				$sign_up_fee = ( (float) $original_order_item->get_total( 'edit' ) ) / $original_order_item->get_quantity( 'edit' );
 			} else {
 				// Sign-up fee is any amount on top of recurring amount
-				$order_line_total        = $original_order_item->get_total( 'edit' ) / $original_order_item->get_quantity( 'edit' );
-				$subscription_line_total = $line_item->get_total( 'edit' ) / $line_item->get_quantity( 'edit' );
+				$order_line_total        = ( (float) $original_order_item->get_total( 'edit' ) ) / $original_order_item->get_quantity( 'edit' );
+				$subscription_line_total = ( (float) $line_item->get_total( 'edit' ) ) / $line_item->get_quantity( 'edit' );
+
 				$sign_up_fee = max( $order_line_total - $subscription_line_total, 0 );
 			}
 
@@ -2395,6 +2403,30 @@ class WC_Subscription extends WC_Order {
 		}
 
 		return $this->valid_date_types;
+	}
+
+	/************************
+	 * WC_Order overrides
+	 *
+	 * Make some WC_Order methods do nothing.
+	 ************************/
+
+	/**
+	 * Avoid running the expensive get_date_paid() query on related orders.
+	 *
+	 * @since 2.2.19
+	 */
+	public function maybe_set_date_paid() {
+		return null;
+	}
+
+	/**
+	 * Avoid running the expensive get_date_completed() query on related orders.
+	 *
+	 * @since 2.2.19
+	 */
+	protected function maybe_set_date_completed() {
+		return null;
 	}
 
 	/************************

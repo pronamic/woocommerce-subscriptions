@@ -117,7 +117,13 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 * @since 2.2.0
 	 */
 	public function update( &$subscription ) {
-		parent::update( $subscription );
+
+		// We don't want to call parent here becuase WC_Order_Data_Store_CPT includes a JIT setting of the paid date which is not needed for subscriptions, and also very resource intensive
+		Abstract_WC_Order_Data_Store_CPT::update( $subscription );
+
+		// We used to call parent::update() above, which triggered this hook, so we trigger it manually here for backward compatibilty (and to improve compatibility with 3rd party code which may run validation or additional operations on it which should also be applied to a subscription)
+		do_action( 'woocommerce_update_order', $subscription->get_id() );
+
 		do_action( 'woocommerce_update_subscription', $subscription->get_id() );
 	}
 
@@ -308,5 +314,35 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 		}
 
 		return $saved_dates;
+	}
+
+	/**
+	 * Get the props to update, and remove order meta data that isn't used on a subscription.
+	 *
+	 * Important for performance, because it avoids calling getters/setters on props that don't need
+	 * to be get/set, which in the case for get_date_paid(), or get_date_completed(), can be quite
+	 * resource intensive as it requires doing a related orders query. Also just avoids filling up the
+	 * post meta table more than is needed.
+	 *
+	 * @param  WC_Data $object              The WP_Data object (WC_Coupon for coupons, etc).
+	 * @param  array   $meta_key_to_props   A mapping of meta keys => prop names.
+	 * @param  string  $meta_type           The internal WP meta type (post, user, etc).
+	 * @return array                        A mapping of meta keys => prop names, filtered by ones that should be updated.
+	 */
+	protected function get_props_to_update( $object, $meta_key_to_props, $meta_type = 'post' ) {
+		$props_to_update = parent::get_props_to_update( $object, $meta_key_to_props, $meta_type );
+
+		$props_to_ignore = array(
+			'_transaction_id' => 'transaction_id',
+			'_date_completed' => 'date_completed',
+			'_date_paid'      => 'date_paid',
+			'_cart_hash'      => 'cart_hash',
+		);
+
+		foreach ( $props_to_ignore as $meta_key => $prop ) {
+			unset( $props_to_update[ $meta_key ] );
+		}
+
+		return $props_to_update;
 	}
 }

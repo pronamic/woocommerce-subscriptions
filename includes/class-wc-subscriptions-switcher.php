@@ -733,42 +733,15 @@ class WC_Subscriptions_Switcher {
 					$subscription  = wcs_get_subscription( $cart_item['subscription_switch']['subscription_id'] );
 					$existing_item = wcs_get_order_item( $cart_item['subscription_switch']['item_id'], $subscription );
 
-					// If there are no more payments due on the subscription, because we're in the last billing period, we need to use the subscription's expiration date, not next payment date
-					if ( 0 == ( $next_payment_timestamp = $subscription->get_time( 'next_payment' ) ) ) {
-						$next_payment_timestamp = $subscription->get_time( 'end' );
-					}
-
-					if ( WC_Subscriptions_Product::get_period( $cart_item['data'] ) != $subscription->get_billing_period() || WC_Subscriptions_Product::get_interval( $cart_item['data'] ) != $subscription->get_billing_interval() ) {
-						$is_different_billing_schedule = true;
-					} else {
-						$is_different_billing_schedule = false;
-					}
-
 					// If we haven't calculated a first payment date, fall back to the recurring cart's next payment date
 					if ( 0 == $cart_item['subscription_switch']['first_payment_timestamp'] ) {
 						$cart_item['subscription_switch']['first_payment_timestamp'] = wcs_date_to_time( $recurring_cart->next_payment_date );
 					}
 
-					if ( 0 !== $cart_item['subscription_switch']['first_payment_timestamp'] && $next_payment_timestamp !== $cart_item['subscription_switch']['first_payment_timestamp'] ) {
-						$is_different_payment_date = true;
-					} elseif ( 0 !== $cart_item['subscription_switch']['first_payment_timestamp'] && 0 == $subscription->get_time( 'next_payment' ) ) { // if the subscription doesn't have a next payment but the switched item does
-						$is_different_payment_date = true;
-					} else {
-						$is_different_payment_date = false;
-					}
-
-					if ( gmdate( 'Y-m-d', wcs_date_to_time( $recurring_cart->end_date ) ) !== gmdate( 'Y-m-d', $subscription->get_time( 'end' ) ) ) {
-						$is_different_length = true;
-					} else {
-						$is_different_length = false;
-					}
-
-					// WC_Abstract_Order::get_item_count() uses quantities, not just line item rows
-					if ( 1 == count( $subscription->get_items() ) ) {
-						$is_single_item_subscription = true;
-					} else {
-						$is_single_item_subscription = false;
-					}
+					$is_different_billing_schedule = self::has_different_billing_schedule( $cart_item, $subscription );
+					$is_different_payment_date     = self::has_different_payment_date( $cart_item, $subscription );
+					$is_different_length           = self::has_different_length( $recurring_cart, $subscription );
+					$is_single_item_subscription   = self::is_single_item_subscription( $subscription );
 
 					$switched_item_data = array( 'remove_line_item' => $cart_item['subscription_switch']['item_id'] );
 
@@ -1400,7 +1373,7 @@ class WC_Subscriptions_Switcher {
 			}
 
 			// Find the $price per day for the old subscription's recurring total
-			$old_price_per_day = $old_recurring_total / $days_in_old_cycle;
+			$old_price_per_day = $days_in_old_cycle > 0 ? $old_recurring_total / $days_in_old_cycle : $old_recurring_total;
 
 			// Find the price per day for the new subscription's recurring total
 			// If the subscription uses the same billing interval & cycle as the old subscription,
@@ -2060,19 +2033,15 @@ class WC_Subscriptions_Switcher {
 
 			$subscription = wcs_get_subscription( $cart_item['subscription_switch']['subscription_id'] );
 
-			// Check that the existing subscriptions are for $0 recurring
-			$old_recurring_total = $subscription->get_total();
+			$is_manual_subscription = $subscription->is_manual();
 
 			// Check for $0 / period to a non-zero $ / period and manual subscription
-			$switch_from_zero_manual_subscription = ( 0 == $old_recurring_total && $subscription->is_manual() );
+			$switch_from_zero_manual_subscription = $is_manual_subscription && 0 == $subscription->get_total();
 
-			// Check for manual renewals accepted, in case of automatic subscription switch with no proration
-			$accept_manual_renewals = ( 'yes' == get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals', 'no' ) );
+			// Force payment gateway selection for new subscriptions if the old subscription was automatic or manual renewals aren't accepted
+			$force_automatic_payments = ! $is_manual_subscription || 'no' === get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals', 'no' );
 
-			// Check if old subscription is automatic
-			$old_subscription_automatic = ! $subscription->is_manual();
-
-			if ( ( $switch_from_zero_manual_subscription || ! $accept_manual_renewals || ( $accept_manual_renewals && $old_subscription_automatic ) ) && $new_recurring_total > 0 && true === $has_future_payments ) {
+			if ( $new_recurring_total > 0 && true === $has_future_payments && ( $switch_from_zero_manual_subscription || ( $force_automatic_payments && self::cart_contains_subscription_creating_switch() ) ) ) {
 				WC()->cart->cart_contents[ $cart_item_key ]['subscription_switch']['force_payment'] = true;
 			}
 		}
@@ -2342,6 +2311,121 @@ class WC_Subscriptions_Switcher {
 				wc_add_order_item_meta( $item_id, $key, $value );
 			}
 		}
+	}
+
+	/**
+	 * Check if a cart item has a different billing schedule (period and interval) to the subscription being switched.
+	 *
+	 * Used to determine if a new subscription should be created as the result of a switch request.
+	 * @see self::cart_contains_subscription_creating_switch() and self::process_checkout().
+	 *
+	 * @param array $cart_item
+	 * @param WC_Subscription $subscription
+	 * @since 2.2.19
+	 */
+	protected static function has_different_billing_schedule( $cart_item, $subscription ) {
+		return WC_Subscriptions_Product::get_period( $cart_item['data'] ) != $subscription->get_billing_period() || WC_Subscriptions_Product::get_interval( $cart_item['data'] ) != $subscription->get_billing_interval();
+	}
+
+	/**
+	 * Check if a cart item contains a different payment timestamp to the subscription being switched.
+	 *
+	 * Used to determine if a new subscription should be created as the result of a switch request.
+	 * @see self::cart_contains_subscription_creating_switch() and self::process_checkout().
+	 *
+	 * @param array $cart_item
+	 * @param WC_Subscription $subscription
+	 * @since 2.2.19
+	 */
+	protected static function has_different_payment_date( $cart_item, $subscription ) {
+
+		// If there are no more payments due on the subscription, because we're in the last billing period, we need to use the subscription's expiration date, not next payment date
+		if ( 0 === ( $next_payment_timestamp = $subscription->get_time( 'next_payment' ) ) ) {
+			$next_payment_timestamp = $subscription->get_time( 'end' );
+		}
+
+		if ( 0 !== $cart_item['subscription_switch']['first_payment_timestamp'] && $next_payment_timestamp !== $cart_item['subscription_switch']['first_payment_timestamp'] ) {
+			$is_different_payment_date = true;
+		} elseif ( 0 !== $cart_item['subscription_switch']['first_payment_timestamp'] && 0 === $subscription->get_time( 'next_payment' ) ) { // if the subscription doesn't have a next payment but the switched item does
+			$is_different_payment_date = true;
+		} else {
+			$is_different_payment_date = false;
+		}
+
+		return $is_different_payment_date;
+	}
+
+	/**
+	 * Determine if a recurring cart has a different length (end date) to a subscription.
+	 *
+	 * Used to determine if a new subscription should be created as the result of a switch request.
+	 * @see self::cart_contains_subscription_creating_switch() and self::process_checkout().
+	 *
+	 * @param WC_Cart $recurring_cart
+	 * @param WC_Subscription $subscription
+	 * @return bool
+	 * @since 2.2.19
+	 */
+	protected static function has_different_length( $recurring_cart, $subscription ) {
+		$recurring_cart_end_date = gmdate( 'Y-m-d', wcs_date_to_time( $recurring_cart->end_date ) );
+		$subscription_end_date   = gmdate( 'Y-m-d', $subscription->get_time( 'end' ) );
+
+		return $recurring_cart_end_date !== $subscription_end_date;
+	}
+
+	/**
+	 * Checks if a subscription has a single line item.
+	 *
+	 * Used to determine if a new subscription should be created as the result of a switch request.
+	 * @see self::cart_contains_subscription_creating_switch() and self::process_checkout().
+	 *
+	 * @param WC_Subscription $subscription
+	 * @return bool
+	 * @since 2.2.19
+	 */
+	protected static function is_single_item_subscription( $subscription ) {
+		// WC_Abstract_Order::get_item_count() uses quantities, not just line item rows
+		return 1 === count( $subscription->get_items() );
+	}
+
+	/**
+	 * Check if the cart contains a subscription switch which will result in a new subscription being created.
+	 *
+	 * New subscriptions will be created when:
+	 *  - The current subscription has more than 1 line item @see self::is_single_item_subscription() and
+	 *  - the recurring cart has a different length @see self::has_different_length() or
+	 *  - the switched cart item has a different payment date @see self::has_different_payment_date() or
+	 *  - the switched cart item has a different billing schedule @see self::has_different_billing_schedule()
+	 *
+	 * @return bool
+	 * @since 2.2.19
+	 */
+	public static function cart_contains_subscription_creating_switch() {
+		$cart_contains_subscription_creating_switch = false;
+
+		foreach ( WC()->cart->recurring_carts as $recurring_cart_key => $recurring_cart ) {
+
+			foreach ( $recurring_cart->get_cart() as $cart_item_key => $cart_item ) {
+
+				if ( ! isset( $cart_item['subscription_switch']['subscription_id'] ) ) {
+					continue;
+				}
+
+				$subscription = wcs_get_subscription( $cart_item['subscription_switch']['subscription_id'] );
+
+				if (
+					! self::is_single_item_subscription( $subscription ) && (
+					self::has_different_length( $recurring_cart, $subscription ) ||
+					self::has_different_payment_date( $cart_item, $subscription ) ||
+					self::has_different_billing_schedule( $cart_item, $subscription ) )
+				) {
+					$cart_contains_subscription_creating_switch = true;
+					break 2;
+				}
+			}
+		}
+
+		return $cart_contains_subscription_creating_switch;
 	}
 
 	/** Deprecated Methods **/
