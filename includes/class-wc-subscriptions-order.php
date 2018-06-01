@@ -74,6 +74,8 @@ class WC_Subscriptions_Order {
 
 		// Autocomplete subscription orders when they only contain a synchronised subscription or a resubscribe
 		add_filter( 'woocommerce_payment_complete_order_status', __CLASS__ . '::maybe_autocomplete_order', 10, 2 );
+
+		add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'add_subscription_order_query_args' ), 10, 2 );
 	}
 
 	/*
@@ -1081,6 +1083,70 @@ class WC_Subscriptions_Order {
 		}
 
 		return $new_order_status;
+	}
+
+	/**
+	 * Map subscription related order arguments passed to @see wc_get_orders() to WP_Query args.
+	 *
+	 * @since 2.2.20
+	 * @param  array $query WP_Query arguments.
+	 * @param  array $args  @see wc_get_orders() arguments.
+	 * @return array The WP_Query query arguments.
+	 */
+	public static function add_subscription_order_query_args( $query, $args ) {
+		$order_type_meta_key_map = array(
+			'subscription_renewal'     => '_subscription_renewal',
+			'subscription_switch'      => '_subscription_switch',
+			'subscription_resubscribe' => '_subscription_resubscribe',
+		);
+
+		// Add meta query args when querying by subscription related orders.
+		foreach ( $order_type_meta_key_map as $order_type => $meta_key ) {
+			if ( ! isset( $args[ $order_type ] ) ) {
+				continue;
+			}
+
+			$value      = $args[ $order_type ];
+			$meta_query = array(
+				'key'     => $meta_key,
+				'value'   => $value,
+			);
+
+			// Map the value type to the appropriate compare arg.
+			if ( empty( $value ) ) {
+				$meta_query['compare'] = 'NOT EXISTS';
+				unset( $meta_query['value'] );
+			} elseif ( true === $value ) {
+				$meta_query['compare'] = 'EXISTS';
+				unset( $meta_query['value'] );
+			} elseif ( is_array( $value ) ) {
+				$meta_query['compare'] = 'IN';
+			} else {
+				$meta_query['compare'] = '=';
+			}
+
+			$query['meta_query'][] = $meta_query;
+		}
+
+		// Add query args when querying by subscription parent orders.
+		if ( isset( $args['subscription_parent'] ) ) {
+			$value = $args['subscription_parent'];
+
+			// Map the value type to post_in/post__not_in arg
+			if ( empty( $value ) ) {
+				$query['post__not_in'] = array_values( wcs_get_subscription_orders() );
+			} elseif ( true === $value ) {
+				$query['post__in']     = array_values( wcs_get_subscription_orders() );
+			} elseif ( is_array( $value ) ) {
+				$query['post__in']     = array_keys( array_flip( array_filter( array_map( 'wp_get_post_parent_id', $value ) ) ) );
+			} else {
+				if ( $parent = wp_get_post_parent_id( $value ) ) {
+					$query['post__in'] = array( $parent );
+				}
+			}
+		}
+
+		return $query;
 	}
 
 	/* Deprecated Functions */

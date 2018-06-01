@@ -1,5 +1,19 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2018.05.29 - version 2.2.21
+* Tweak: Update WooCommerce tested up to compatibility flag.
+* Fix: [GDPR] While processing erasure requests anonymise all user subscriptions with any status. PR#2720
+* Fix: Fix PHP warnings which appear on the WooCommerce > Settings > Accounts & Privacy page and while exporting user personal data. PR#2719
+
+2018.05.25 - version 2.2.20
+* New: [GDPR] Export and erase subscription personal data when processing user export and erasure requests. PR#2692
+* New: [GDPR] Add an automatic data removal system for ended subscriptions and their related orders. PR#2702
+* New: [GDPR] Add details about the personal data the plugin collects to the privacy policy guide. PR#2700
+* Tweak: Reorder wcs_get_subscriptions_for_order logic to be more performance friendly. PR#2697
+* Tweak: Replace remote image sources with an internal asset. PR#2690
+* Fix: [WC3.4] Prevent subscription related orders from being trashed/anonymised by WC's automatic clean up system. PR#2698
+* Fix: [WC3.4] Only trigger the woocommerce_before_add_to_cart_button action hook once on variable subscription single product pages. PR#2706
+
 2018.04.04 - version 2.2.19
 * Fix: With Mixed Checkout disabled, only remove the add to cart notice when redirected straight to checkout. Fixes issue where error notices are removed incorrectly. PR#2541
 * Fix: With Mixed Checkout disabled, only empty cart when the variation ID is the same but with different attributes. PR#2540

@@ -447,7 +447,7 @@ function wcs_get_subscriptions( $args ) {
 		'offset'         => $args['offset'],
 		'order'          => $args['order'],
 		'fields'         => 'ids',
-		'meta_query'     => array(), // just in case we need to filter or order by meta values later
+		'meta_query'     => isset( $args['meta_query'] ) ? $args['meta_query'] : array(), // just in case we need to filter or order by meta values later
 	);
 
 	// Maybe only get subscriptions created by a certain order
@@ -662,4 +662,15 @@ function wcs_is_view_subscription_page() {
 	global $wp;
 
 	return ( is_page( wc_get_page_id( 'myaccount' ) ) && isset( $wp->query_vars['view-subscription'] ) ) ? true : false;
+}
+
+/**
+ * Get a WooCommerce Subscription's image asset url.
+ *
+ * @param string $file_name The image file name.
+ * @return string The image asset url.
+ * @since 2.2.20
+ */
+function wcs_get_image_asset_url( $file_name ) {
+	return plugins_url( "/assets/images/{$file_name}", WC_Subscriptions::$plugin_file );
 }
