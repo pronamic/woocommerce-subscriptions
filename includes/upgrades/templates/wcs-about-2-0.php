@@ -44,7 +44,7 @@ $settings_page = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
 
 		<div class="feature-section two-col">
 			<div class="feature-image col">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/3t1s3d2D0a0I3l1o2L00/checkout-recurring-totals.png" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'checkout-recurring-totals.png' ) ); ?>" />
 			</div>
 
 			<div class="col last-feature feature-copy">
@@ -61,7 +61,7 @@ $settings_page = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
 		<div class="feature-section two-col">
 
 			<div class="col last-feature feature-right feature-image">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0Q312p1m1t1E1s3K2Q3p/add-edit-subscription-screen.png" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'add-edit-subscription-screen.png' ) ); ?>" />
 			</div>
 
 			<div class="col feature-copy">
@@ -80,7 +80,7 @@ $settings_page = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
 
 		<div class="feature-section two-col">
 			<div class="col feature-image">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/053S1G3c2L1G1w1L140A/view-subscription.png" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'view-subscription.png' ) ); ?>" />
 			</div>
 
 			<div class="col last-feature feature-copy">
@@ -104,7 +104,7 @@ $settings_page = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
 		<div class="feature-section three-col">
 
 			<div class="col">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0H1m1B1a0p1T462J0d14/drip-downloadable-content.jpg" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'drip-downloadable-content.jpg' ) ); ?>" />
 				<h3><?php esc_html_e( 'Drip Downloadable Content', 'woocommerce-subscriptions' ); ?></h3>
 				<p><?php
 					// translators: placeholders are for opening and closing link (<a>) tags
@@ -117,7 +117,7 @@ $settings_page = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
 			</div>
 
 			<div class="col">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/173h0H3f2i3Y1v1M3c34/admin-change-payment-method.jpg" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'admin-change-payment-method.jpg' ) ); ?>" />
 				<h3><?php echo esc_html_x( 'Change Payment Method', 'h3 on the About Subscriptions page for this new feature', 'woocommerce-subscriptions' ); ?></h3>
 				<p><?php
 					// translators: placeholders are opening and closing <strong> tags
@@ -130,7 +130,7 @@ $settings_page = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
 			</div>
 
 			<div class="col last-feature">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0Z0I2S0a2d2o0s2a3u1E/billing-schedules-meta-box.png" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'billing-schedules-meta-box.png' ) ); ?>" />
 				<h3><?php esc_html_e( 'Change Trial and End Dates', 'woocommerce-subscriptions' ); ?></h3>
 				<p><?php
 					// translators: placeholders are opening and closing <strong> tags

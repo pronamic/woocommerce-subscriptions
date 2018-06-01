@@ -54,15 +54,15 @@ function wcs_get_subscriptions_for_order( $order_id, $args = array() ) {
 		$subscriptions = wcs_get_subscriptions( $args );
 	}
 
-	if ( wcs_order_contains_resubscribe( $order_id ) && ( in_array( 'resubscribe', $args['order_type'] ) || $get_all ) ) {
+	if ( ( in_array( 'resubscribe', $args['order_type'] ) || $get_all ) && wcs_order_contains_resubscribe( $order_id ) ) {
 		$subscriptions += wcs_get_subscriptions_for_resubscribe_order( $order_id );
 	}
 
-	if ( wcs_order_contains_renewal( $order_id ) && ( in_array( 'renewal', $args['order_type'] ) || $get_all ) ) {
+	if ( ( in_array( 'renewal', $args['order_type'] ) || $get_all ) && wcs_order_contains_renewal( $order_id ) ) {
 		$subscriptions += wcs_get_subscriptions_for_renewal_order( $order_id );
 	}
 
-	if ( wcs_order_contains_switch( $order_id ) && ( in_array( 'switch', $args['order_type'] ) || $get_all ) ) {
+	if ( ( in_array( 'switch', $args['order_type'] ) || $get_all ) && wcs_order_contains_switch( $order_id ) ) {
 		$subscriptions += wcs_get_subscriptions_for_switch_order( $order_id );
 	}
 
