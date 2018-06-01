@@ -4,7 +4,7 @@
  *
  * @author  Prospress
  * @package WooCommerce-Subscriptions/Templates
- * @version 2.0.9
+ * @version 2.2.20
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -48,7 +48,14 @@ do_action( 'woocommerce_before_add_to_cart_form' ); ?>
 				</tbody>
 			</table>
 
-			<?php do_action( 'woocommerce_before_add_to_cart_button' ); ?>
+			<?php
+			/**
+			 * Post WC 3.4 the woocommerce_before_add_to_cart_button hook is triggered by the callback @see woocommerce_single_variation_add_to_cart_button() hooked onto woocommerce_single_variation.
+			 */
+			if ( WC_Subscriptions::is_woocommerce_pre( '3.4' ) ) {
+				do_action( 'woocommerce_before_add_to_cart_button' );
+			}
+			?>
 
 			<div class="single_variation_wrap">
 				<?php

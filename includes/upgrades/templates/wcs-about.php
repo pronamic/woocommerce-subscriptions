@@ -42,7 +42,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<div class="feature-section two-col">
 			<div class="feature-image col">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0q402L2r2e06201c2b1Q/subscription-reports.png" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'subscription-reports.png' ) ); ?>" />
 			</div>
 
 			<div class="col last-feature feature-copy">
@@ -60,7 +60,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="feature-section two-col">
 
 			<div class="col last-feature feature-right feature-image">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/1f220O1O0J3Z3f1P1r0c/renewal-retry-settings.png" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'renewal-retry-settings.png' ) ); ?>" />
 			</div>
 
 			<div class="col feature-copy">
@@ -83,7 +83,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<div class="feature-section two-col">
 			<div class="col feature-image">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/092P2f0r440f26220w0I/subscription-suspended-email.jpg" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'subscription-suspended-email.jpg' ) ); ?>" />
 			</div>
 
 			<div class="col last-feature feature-copy">
@@ -111,7 +111,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="feature-section three-col">
 
 			<div class="col">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/3t0Z292B1p2n0e2u1Q1m/gift-subscription.png" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'gift-subscription.png' ) ); ?>" />
 				<h3><?php esc_html_e( 'Subscription Gifting', 'woocommerce-subscriptions' ); ?></h3>
 				<p><?php esc_html_e( 'What happens when a customer wants to purchase a subscription product for someone else?', 'woocommerce-subscriptions' ); ?></p>
 				<p><?php esc_html_e( 'The free Gifting extension makes it possible for one person to purchase a subscription product for someone else. It then shares control of the subscription between the purchaser and recipient, allowing both to manage the subscription over its lifecycle.', 'woocommerce-subscriptions' ); ?></p>
@@ -122,7 +122,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 
 			<div class="col">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/3e0T1I0J2h1f1z1K1d06/subscriptions-importer-exporter.png" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'subscriptions-importer-exporter.png' ) ); ?>" />
 				<h3><?php echo esc_html_x( 'Import/Export Subscriptions', 'h3 on the About Subscriptions page for this new feature', 'woocommerce-subscriptions' ); ?></h3>
 				<p><?php esc_html_e( 'Import subscriptions to WooCommerce via CSV, or export your subscriptions from WooCommerce to a CSV with the WooCommerce Subscriptions Importer/Exporter extension.', 'woocommerce-subscriptions' ); ?></p>
 				<p><?php esc_html_e( 'This free extension makes it possible to migrate subscribers from 3rd party systems to WooCommerce. It also makes it possible to export your subscription data for analysis in spreadsheet tools or 3rd party apps.', 'woocommerce-subscriptions' ); ?></p>
@@ -133,7 +133,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 
 			<div class="col last-feature">
-				<img src="https://d3vv6lp55qjaqc.cloudfront.net/items/3P2j1u370E2p123v2K2i/subscribe-all-the-things.png" />
+				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'subscribe-all-the-things.png' ) ); ?>" />
 				<h3><?php esc_html_e( 'Subscribe All the Things', 'woocommerce-subscriptions' ); ?></h3>
 				<p><?php esc_html_e( 'Want your customers to be able to subscribe to non-subscription products?', 'woocommerce-subscriptions' ); ?></p>
 				<p><?php esc_html_e( 'With WooCommerce Subscribe All the Things, they can! This experimental extension is exploring how to convert any product, including Product Bundles and Composite Products, into a subscription product. It also offers customers a way to subscribe to a cart of non-subscription products.', 'woocommerce-subscriptions' ); ?></p>
