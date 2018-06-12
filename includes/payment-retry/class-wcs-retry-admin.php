@@ -69,7 +69,7 @@ class WCS_Retry_Admin {
 	}
 
 	/**
-	 * Dispay the number of retries on a renewal order in the Orders list table.
+	 * Display the number of retries on a renewal order in the Orders list table.
 	 *
 	 * @param string $column The string of the current column
 	 * @param int $post_id The ID of the order
