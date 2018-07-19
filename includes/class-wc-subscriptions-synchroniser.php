@@ -12,6 +12,7 @@ class WC_Subscriptions_Synchroniser {
 
 	public static $setting_id;
 	public static $setting_id_proration;
+	public static $setting_id_days_no_fee;
 
 	public static $post_meta_key       = '_subscription_payment_sync_date';
 	public static $post_meta_key_day   = '_subscription_payment_sync_date_day';
@@ -40,9 +41,9 @@ class WC_Subscriptions_Synchroniser {
 	 * @since 1.5
 	 */
 	public static function init() {
-
-		self::$setting_id           = WC_Subscriptions_Admin::$option_prefix . '_sync_payments';
-		self::$setting_id_proration = WC_Subscriptions_Admin::$option_prefix . '_prorate_synced_payments';
+		self::$setting_id             = WC_Subscriptions_Admin::$option_prefix . '_sync_payments';
+		self::$setting_id_proration   = WC_Subscriptions_Admin::$option_prefix . '_prorate_synced_payments';
+		self::$setting_id_days_no_fee = WC_Subscriptions_Admin::$option_prefix . '_days_no_fee';
 
 		self::$sync_field_label      = __( 'Synchronise renewals', 'woocommerce-subscriptions' );
 		self::$sync_description      = __( 'Align the payment date for all customers who purchase this subscription to a specific day of the week or month.', 'woocommerce-subscriptions' );
@@ -77,11 +78,11 @@ class WC_Subscriptions_Synchroniser {
 		add_action( 'woocommerce_subscriptions_product_first_renewal_payment_time', __CLASS__ . '::products_first_renewal_payment_time', 10, 4 );
 
 		// Maybe mock a free trial on the product for calculating totals and displaying correct shipping costs
-		add_filter( 'woocommerce_before_calculate_totals', __CLASS__ . '::maybe_set_free_trial', 0, 1 );
+		add_action( 'woocommerce_before_calculate_totals', __CLASS__ . '::maybe_set_free_trial', 0, 1 );
 		add_action( 'woocommerce_subscription_cart_before_grouping', __CLASS__ . '::maybe_unset_free_trial' );
 		add_action( 'woocommerce_subscription_cart_after_grouping', __CLASS__ . '::maybe_set_free_trial' );
-		add_action( 'wcs_recurring_cart_start_date', __CLASS__ . '::maybe_unset_free_trial', 0, 1 );
-		add_action( 'wcs_recurring_cart_end_date', __CLASS__ . '::maybe_set_free_trial', 100, 1 );
+		add_filter( 'wcs_recurring_cart_start_date', __CLASS__ . '::maybe_unset_free_trial', 0, 1 );
+		add_filter( 'wcs_recurring_cart_end_date', __CLASS__ . '::maybe_set_free_trial', 100, 1 );
 		add_filter( 'woocommerce_subscriptions_calculated_total', __CLASS__ . '::maybe_unset_free_trial', 10000, 1 );
 		add_action( 'woocommerce_cart_totals_before_shipping', __CLASS__ . '::maybe_set_free_trial' );
 		add_action( 'woocommerce_cart_totals_after_shipping', __CLASS__ . '::maybe_unset_free_trial' );
@@ -99,8 +100,10 @@ class WC_Subscriptions_Synchroniser {
 
 		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
 			add_action( 'woocommerce_order_add_product', __CLASS__ . '::maybe_add_meta_for_new_product', 10, 3 );
+			add_action( 'woocommerce_add_order_item_meta', array( __CLASS__, 'maybe_add_order_item_meta' ), 10, 2 );
 		} else {
 			add_action( 'woocommerce_new_order_item', __CLASS__ . '::maybe_add_meta_for_new_line_item', 10, 3 );
+			add_action( 'woocommerce_checkout_create_order_line_item', array( __CLASS__, 'maybe_add_line_item_meta' ), 10, 3 );
 		}
 
 		// Make sure the sign-up fee for a synchronised subscription is correct
@@ -110,6 +113,58 @@ class WC_Subscriptions_Synchroniser {
 		add_filter( 'woocommerce_order_item_quantity', __CLASS__ . '::maybe_do_not_reduce_stock', 10, 3 );
 
 		add_filter( 'woocommerce_subscriptions_recurring_cart_key', __CLASS__ . '::add_to_recurring_cart_key', 10, 2 );
+
+		// Add defaults for our options.
+		add_filter( 'default_option_' . self::$setting_id_days_no_fee, array( __CLASS__, 'option_default' ), 10, 3 );
+
+		// Sanitize options when saving.
+		add_filter( 'woocommerce_admin_settings_sanitize_option_' . self::$setting_id_days_no_fee, array( __CLASS__, 'sanitize_option' ), 10, 2 );
+
+		// Ensure options are the proper type.
+		add_filter( 'option_' . self::$setting_id_days_no_fee, 'intval' );
+	}
+
+	/**
+	 * Set default value of 'no' for our options.
+	 *
+	 * This only sets the default
+	 *
+	 * @author Jeremy Pry
+	 *
+	 * @param mixed  $default        The default value for the option.
+	 * @param string $option         The option name.
+	 * @param bool   $passed_default Whether get_option() was passed a default value.
+	 *
+	 * @return mixed The default option value.
+	 */
+	public static function option_default( $default, $option, $passed_default = null ) {
+		switch ( $option ) {
+			case self::$setting_id_days_no_fee:
+				$default = $passed_default ? $default : 0;
+				break;
+		}
+
+		return $default;
+	}
+
+	/**
+	 * Sanitize our options when they are saved in the admin area.
+	 *
+	 * @author Jeremy Pry
+	 *
+	 * @param mixed $value  The value being saved.
+	 * @param array $option The option data array.
+	 *
+	 * @return mixed The sanitized option value.
+	 */
+	public static function sanitize_option( $value, $option ) {
+		switch ( $option['id'] ) {
+			case self::$setting_id_days_no_fee:
+				$value = absint( $value );
+				break;
+		}
+
+		return $value;
 	}
 
 	/**
@@ -118,16 +173,16 @@ class WC_Subscriptions_Synchroniser {
 	 * @since 1.5
 	 */
 	public static function is_syncing_enabled() {
-		return ( 'yes' == get_option( self::$setting_id, 'no' ) ) ? true : false;
+		return 'yes' === get_option( self::$setting_id, 'no' );
 	}
 
 	/**
-	 * Check if payment syncing is enabled on the store.
+	 * Check if payments can be prorated on the store.
 	 *
 	 * @since 1.5
 	 */
 	public static function is_sync_proration_enabled() {
-		return ( 'no' != get_option( self::$setting_id_proration, 'no' ) ) ? true : false;
+		return 'no' !== get_option( self::$setting_id_proration, 'no' );
 	}
 
 	/**
@@ -137,7 +192,8 @@ class WC_Subscriptions_Synchroniser {
 	 */
 	public static function add_settings( $settings ) {
 
-		// Get the index of the index of the
+		// Get the index of the setting.
+		$index = 0;
 		foreach ( $settings as $i => $setting ) {
 			if ( 'title' == $setting['type'] && 'woocommerce_subscriptions_miscellaneous' == $setting['id'] ) {
 				$index = $i;
@@ -164,18 +220,28 @@ class WC_Subscriptions_Synchroniser {
 			),
 
 			array(
-				'name'          => __( 'Prorate First Payment', 'woocommerce-subscriptions' ),
-				'desc'          => __( 'If a subscription is synchronised to a specific day of the week, month or year, charge a prorated amount for the subscription at the time of sign up.', 'woocommerce-subscriptions' ),
-				'id'            => self::$setting_id_proration,
-				'css'           => 'min-width:150px;',
-				'default'       => 'no',
-				'type'          => 'select',
-				'options'       => array(
-					'no'           => _x( 'Never', 'when to allow a setting', 'woocommerce-subscriptions' ),
-					'virtual'      => _x( 'For Virtual Subscription Products Only', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
-					'yes'          => _x( 'For All Subscription Products', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
+				'name'     => __( 'Prorate First Renewal', 'woocommerce-subscriptions' ),
+				'desc'     => __( 'If a subscription is synchronised to a specific day of the week, month or year, charge a prorated amount for the subscription at the time of sign up.', 'woocommerce-subscriptions' ),
+				'id'       => self::$setting_id_proration,
+				'css'      => 'min-width:150px;',
+				'default'  => 'no',
+				'type'     => 'select',
+				'options'  => array(
+					'no'        => _x( 'Never (do not charge any recurring amount)', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
+					'recurring' => _x( 'Never (charge the full recurring amount at sign-up)', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
+					'virtual'   => _x( 'For Virtual Subscription Products Only', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
+					'yes'       => _x( 'For All Subscription Products', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
 				),
-				'desc_tip'      => true,
+				'desc_tip' => true,
+			),
+
+			array(
+				'name'     => __( 'Sign-up grace period', 'woocommerce-subscriptions' ),
+				'desc'     => _x( 'days prior to Renewal Day', "there's a number immediately in front of this text", 'woocommerce-subscriptions' ),
+				'id'       => self::$setting_id_days_no_fee,
+				'default'  => 0,
+				'type'     => 'number',
+				'desc_tip' => __( 'Subscriptions created within this many days prior to the Renewal Day will not be charged at sign-up. Set to zero for all new Subscriptions to be charged the full recurring amount. Must be a positive number.', 'woocommerce-subscriptions' ),
 			),
 
 			array( 'type' => 'sectionend', 'id' => self::$setting_id . '_title' ),
@@ -414,9 +480,12 @@ class WC_Subscriptions_Synchroniser {
 	 * at the time of sign-up but prorated to the sync day.
 	 *
 	 * @since 1.5.10
+	 *
+	 * @param WC_Product $product
+	 *
+	 * @return bool
 	 */
 	public static function is_product_prorated( $product ) {
-
 		if ( false === self::is_sync_proration_enabled() || false === self::is_product_synced( $product ) ) {
 			$is_product_prorated = false;
 		} elseif ( 'yes' == get_option( self::$setting_id_proration, 'no' ) && 0 == WC_Subscriptions_Product::get_trial_length( $product ) ) {
@@ -428,6 +497,66 @@ class WC_Subscriptions_Synchroniser {
 		}
 
 		return $is_product_prorated;
+	}
+
+	/**
+	 * Determine whether the payment for a subscription should be the full price upfront.
+	 *
+	 * This method is particularly concerned with synchronized subscriptions. It will only return
+	 * true when the following conditions are met:
+	 *
+	 * - There is no free trial
+	 * - The subscription is synchronized
+	 * - The store owner has determined that new subscribers need to pay for their subscription upfront.
+	 *
+	 * Additionally, if the store owner sets a number of days prior to the synchronization day that do not
+	 * require an upfront payment, this method will check to see whether the current date falls within that
+	 * period for the given product.
+	 *
+	 * @author Jeremy Pry
+	 *
+	 * @param WC_Product $product The product to check.
+	 *
+	 * @return bool Whether an upfront payment is required for the product.
+	 */
+	public static function is_payment_upfront( $product ) {
+		static $results = array();
+		$is_upfront = null;
+		if ( array_key_exists( $product->get_id(), $results ) ) {
+			return $results[ $product->get_id() ];
+		}
+
+		// Normal cases where we aren't concerned with an upfront payment.
+		if (
+			0 !== WC_Subscriptions_Product::get_trial_length( $product ) ||
+			! self::is_product_synced( $product ) ||
+			'recurring' !== get_option( self::$setting_id_proration, 'no' )
+		) {
+			$is_upfront = false;
+		}
+
+		// Maybe account for number of days without a fee.
+		if ( null === $is_upfront ) {
+			$no_fee_days = get_option( self::$setting_id_days_no_fee );
+
+			if ( $no_fee_days > 0 ) {
+				$payment_date = self::calculate_first_payment_date( $product, 'timestamp' );
+				$buffer_date  = $payment_date - ( $no_fee_days * DAY_IN_SECONDS );
+				$is_upfront   = wcs_strtotime_dark_knight( 'now' ) < $buffer_date;
+			} else {
+				$is_upfront = true;
+			}
+		}
+
+		/**
+		 * Filter whether payment is upfront for a given product.
+		 *
+		 * @param bool       $is_upfront Whether the product needs to be paid upfront.
+		 * @param WC_Product $product    The current product.
+		 */
+		$results[ $product->get_id() ] = apply_filters( 'woocommerce_subscriptions_payment_upfront', $is_upfront, $product );
+
+		return $results[ $product->get_id() ];
 	}
 
 	/**
@@ -708,7 +837,12 @@ class WC_Subscriptions_Synchroniser {
 	public static function maybe_set_free_trial( $total = '' ) {
 
 		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
-			if ( self::is_product_synced( $cart_item['data'] ) && ! self::is_product_prorated( $cart_item['data'] ) && ! self::is_today( self::calculate_first_payment_date( $cart_item['data'], 'timestamp' ) ) ) {
+			if (
+				self::is_product_synced( $cart_item['data'] ) &&
+				! self::is_payment_upfront( $cart_item['data'] ) &&
+				! self::is_product_prorated( $cart_item['data'] ) &&
+				! self::is_today( self::calculate_first_payment_date( $cart_item['data'], 'timestamp' ) )
+			) {
 				$current_trial_length = WC_Subscriptions_Product::get_trial_length( WC()->cart->cart_contents[ $cart_item_key ]['data'] );
 				$new_trial_length     = ( $current_trial_length > 1 ) ? $current_trial_length : 1;
 				wcs_set_objects_property( WC()->cart->cart_contents[ $cart_item_key ]['data'], 'subscription_trial_length', $new_trial_length, 'set_prop_only' );
@@ -851,6 +985,11 @@ class WC_Subscriptions_Synchroniser {
 	 * Removes the "set_subscription_prices_for_calculation" filter from the WC Product's woocommerce_get_price hook once
 	 *
 	 * @since 1.5.10
+	 *
+	 * @param int        $price   The current price.
+	 * @param WC_Product $product The product object.
+	 *
+	 * @return int
 	 */
 	public static function set_prorated_price_for_calculation( $price, $product ) {
 
@@ -1049,6 +1188,40 @@ class WC_Subscriptions_Synchroniser {
 			if ( self::is_product_synced( $product_id ) ) {
 				self::maybe_add_subscription_meta( $subscription_id );
 			}
+		}
+	}
+
+	/**
+	 * Store a synced product's signup fee on the line item on the subscription and order.
+	 *
+	 * When calculating prorated sign up fees during switches it's necessary to get the sign-up fee paid.
+	 * For synced product purchases we cannot rely on the order line item price as that might include a prorated recurring price or no recurring price all.
+	 *
+	 * Attached to WC 3.0+ hooks and uses WC 3.0 methods.
+	 *
+	 * @param WC_Order_Item_Product $item The order item object.
+	 * @param string $cart_item_key The hash used to identify the item in the cart
+	 * @param array $cart_item The cart item's data.
+	 * @since 2.3.0
+	 */
+	public static function maybe_add_line_item_meta( $item, $cart_item_key, $cart_item ) {
+		if ( self::is_product_synced( $cart_item['data'] ) && ! self::is_today( self::calculate_first_payment_date( $cart_item['data'], 'timestamp' ) ) ) {
+			$item->add_meta_data( '_synced_sign_up_fee', WC_Subscriptions_Product::get_sign_up_fee( $cart_item['data'] ) );
+		}
+	}
+
+	/**
+	 * Store a synced product's signup fee on the line item on the subscription and order.
+	 *
+	 * This function is a pre WooCommerce 3.0 version of @see WC_Subscriptions_Synchroniser::maybe_add_line_item_meta()
+	 *
+	 * @param int $item_id The order item ID.
+	 * @param array $cart_item The cart item's data.
+	 * @since 2.3.0
+	 */
+	public static function maybe_add_order_item_meta( $item_id, $cart_item ) {
+		if ( self::is_product_synced( $cart_item['data'] ) && ! self::is_today( self::calculate_first_payment_date( $cart_item['data'], 'timestamp' ) ) ) {
+			wc_update_order_item_meta( $item_id, '_synced_sign_up_fee', WC_Subscriptions_Product::get_sign_up_fee( $cart_item['data'] ) );
 		}
 	}
 

@@ -2,7 +2,7 @@
 /**
  * Outputs the Status section for Subscriptions.
  *
- * @version 2.2.17
+ * @version 2.3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,9 +17,9 @@ if ( ! isset( $debug_data ) || ! is_array( $debug_data ) ) {
 <table class="wc_status_table widefat" cellspacing="0">
 	<thead>
 	<tr>
-		<th colspan="3" data-export-label="subscriptions">
-			<h2><?php esc_html_e( 'Subscriptions', 'woocommerce-subscriptions' ); ?>
-				<?php echo wcs_help_tip( __( 'This section shows any information about Subscriptions.', 'woocommerce-subscriptions' ) ); ?>
+		<th colspan="3" data-export-label="<?php echo esc_attr( $section_title ); ?>">
+			<h2><?php echo esc_html( $section_title ); ?>
+				<?php echo wcs_help_tip( $section_tooltip ); ?>
 			</h2></th>
 	</tr>
 	</thead>
@@ -42,53 +42,43 @@ if ( ! isset( $debug_data ) || ! is_array( $debug_data ) ) {
 		} else {
 			$mark_icon = 'no-alt';
 		}
-
 		?>
 		<tr>
-			<td data-export-label="<?php echo esc_attr( $data['name'] ) ?>"><?php echo esc_html( $data['name'] ) ?>:</td>
+			<td data-export-label="<?php echo esc_attr( $data['label'] ) ?>"><?php echo esc_html( $data['name'] ) ?>:</td>
 			<td class="help">&nbsp;</td>
 			<td>
 				<?php
-				// If this isn't theme overrides, keep it simple.
-				if ( 'wcs_theme_overrides' !== $section ) {
-					?>
-					<mark class="<?php echo esc_html( $mark ) ?>">
-						<span class="dashicons dashicons-<?php echo esc_attr( $mark_icon ) ?>"></span>
-						<?php echo wp_kses_data( $data['note'] ); ?>
-					</mark>
-					<?php
-					continue;
-				}
+				if ( isset( $data['data'] ) ) {
 
-				// If we don't have template data, continue early.
-				if ( empty( $data['data'] ) || ! isset( $data['data']['overridden_templates'] ) || empty( $data['data']['overridden_templates'] ) ) {
-					echo '&ndash;';
-					continue;
-				}
-
-				foreach ( $data['data']['overridden_templates'] as $override ) {
-					printf( '<code>%s</code> ', esc_html( $override['file'] ) );
-					if ( $override['is_outdated'] ) {
-						printf(
-							/* translators: %1$s is the file version, %2$s is the core version */
-							esc_html__( 'version %1$s is out of date. The core version is %2$s', 'woocommerce-subscriptions' ),
-							'<strong style="color:red">' . esc_html( $override['version'] ) . '</strong>',
-							'<strong>' . esc_html( $override['core_version'] ) . '</strong>'
-						);
+					if ( empty( $data['data'] ) ) {
+						echo '&ndash;';
+						continue;
 					}
-					echo '<br />';
-				}
 
-				if ( $data['data']['has_outdated_templates'] ) {
-					?>
-					<br />
-					<mark class="error"><span class="dashicons dashicons-warning"></span></mark>
-					<a href="https://docs.woocommerce.com/document/fix-outdated-templates-woocommerce/" target="_blank">
-						<?php esc_html_e( 'Learn how to update', 'woocommerce-subscriptions' ) ?>
-					</a>
-					<?php
-				}
+					$row_number = count( $data['data'] );
 
+					foreach ( $data['data'] as $row ) {
+						echo wp_kses_post( $row );
+
+						if ( 1 != $row_number ) {
+							echo ', ';
+						}
+						echo '<br />';
+						$row_number--;
+					}
+				}
+				if ( isset( $data['note'] ) ) {
+					if ( empty( $mark ) ) {
+						echo wp_kses_post( $data['note'] );
+					} else { ?>
+						<mark class="<?php echo esc_html( $mark ) ?>"><?php
+						if ( $mark_icon ) {
+							echo '<span class="dashicons dashicons-' . esc_attr( $mark_icon ) . '"></span> ';
+						}
+						echo wp_kses_post( $data['note'] );?>
+						</mark><?php
+					}
+				}
 			?>
 			</td>
 		</tr>

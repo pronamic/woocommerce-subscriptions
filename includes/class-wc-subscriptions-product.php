@@ -310,44 +310,52 @@ class WC_Subscriptions_Product {
 			if ( $include_length && $subscription_length == $billing_interval ) {
 				$subscription_string = $price; // Only for one billing period so show "$5 for 3 months" instead of "$5 every 3 months for 3 months"
 			} elseif ( WC_Subscriptions_Synchroniser::is_product_synced( $product ) && in_array( $billing_period, array( 'week', 'month', 'year' ) ) ) {
+				$subscription_string = '';
+
+				// Include string for upfront payment.
+				if ( WC_Subscriptions_Synchroniser::is_payment_upfront( $product ) ) {
+					/* translators: %1$s refers to the price. This string is meant to prefix another string below, e.g. "$5 now, and $5 on March 15th each year" */
+					$subscription_string = sprintf( __( '%1$s now, and ', 'woocommerce-subscriptions' ), $price );
+				}
+
 				$payment_day = WC_Subscriptions_Synchroniser::get_products_payment_day( $product );
 				switch ( $billing_period ) {
 					case 'week':
 						$payment_day_of_week = WC_Subscriptions_Synchroniser::get_weekday( $payment_day );
 						if ( 1 == $billing_interval ) {
 							// translators: 1$: recurring amount string, 2$: day of the week (e.g. "$10 every Wednesday")
-							$subscription_string = sprintf( __( '%1$s every %2$s', 'woocommerce-subscriptions' ), $price, $payment_day_of_week );
+							$subscription_string .= sprintf( __( '%1$s every %2$s', 'woocommerce-subscriptions' ), $price, $payment_day_of_week );
 						} else {
 							// translators: 1$: recurring amount string, 2$: period, 3$: day of the week (e.g. "$10 every 2nd week on Wednesday")
-							$subscription_string = sprintf( __( '%1$s every %2$s on %3$s', 'woocommerce-subscriptions' ), $price, wcs_get_subscription_period_strings( $billing_interval, $billing_period ), $payment_day_of_week );
+							$subscription_string .= sprintf( __( '%1$s every %2$s on %3$s', 'woocommerce-subscriptions' ), $price, wcs_get_subscription_period_strings( $billing_interval, $billing_period ), $payment_day_of_week );
 						}
 						break;
 					case 'month':
 						if ( 1 == $billing_interval ) {
 							if ( $payment_day > 27 ) {
 								// translators: placeholder is recurring amount
-								$subscription_string = sprintf( __( '%s on the last day of each month', 'woocommerce-subscriptions' ), $price );
+								$subscription_string .= sprintf( __( '%s on the last day of each month', 'woocommerce-subscriptions' ), $price );
 							} else {
 								// translators: 1$: recurring amount, 2$: day of the month (e.g. "23rd") (e.g. "$5 every 23rd of each month")
-								$subscription_string = sprintf( __( '%1$s on the %2$s of each month', 'woocommerce-subscriptions' ), $price, WC_Subscriptions::append_numeral_suffix( $payment_day ) );
+								$subscription_string .= sprintf( __( '%1$s on the %2$s of each month', 'woocommerce-subscriptions' ), $price, WC_Subscriptions::append_numeral_suffix( $payment_day ) );
 							}
 						} else {
 							if ( $payment_day > 27 ) {
 								// translators: 1$: recurring amount, 2$: interval (e.g. "3rd") (e.g. "$10 on the last day of every 3rd month")
-								$subscription_string = sprintf( __( '%1$s on the last day of every %2$s month', 'woocommerce-subscriptions' ), $price, WC_Subscriptions::append_numeral_suffix( $billing_interval ) );
+								$subscription_string .= sprintf( __( '%1$s on the last day of every %2$s month', 'woocommerce-subscriptions' ), $price, WC_Subscriptions::append_numeral_suffix( $billing_interval ) );
 							} else {
 								// translators: 1$: <price> on the, 2$: <date> day of every, 3$: <interval> month (e.g. "$10 on the 23rd day of every 2nd month")
-								$subscription_string = sprintf( __( '%1$s on the %2$s day of every %3$s month', 'woocommerce-subscriptions' ), $price, WC_Subscriptions::append_numeral_suffix( $payment_day ), WC_Subscriptions::append_numeral_suffix( $billing_interval ) );
+								$subscription_string .= sprintf( __( '%1$s on the %2$s day of every %3$s month', 'woocommerce-subscriptions' ), $price, WC_Subscriptions::append_numeral_suffix( $payment_day ), WC_Subscriptions::append_numeral_suffix( $billing_interval ) );
 							}
 						}
 						break;
 					case 'year':
 						if ( 1 == $billing_interval ) {
 							// translators: 1$: <price> on, 2$: <date>, 3$: <month> each year (e.g. "$15 on March 15th each year")
-							$subscription_string = sprintf( __( '%1$s on %2$s %3$s each year', 'woocommerce-subscriptions' ), $price, $wp_locale->month[ $payment_day['month'] ], WC_Subscriptions::append_numeral_suffix( $payment_day['day'] ) );
+							$subscription_string .= sprintf( __( '%1$s on %2$s %3$s each year', 'woocommerce-subscriptions' ), $price, $wp_locale->month[ $payment_day['month'] ], WC_Subscriptions::append_numeral_suffix( $payment_day['day'] ) );
 						} else {
 							// translators: 1$: recurring amount, 2$: month (e.g. "March"), 3$: day of the month (e.g. "23rd") (e.g. "$15 on March 15th every 3rd year")
-							$subscription_string = sprintf( __( '%1$s on %2$s %3$s every %4$s year', 'woocommerce-subscriptions' ), $price, $wp_locale->month[ $payment_day['month'] ], WC_Subscriptions::append_numeral_suffix( $payment_day['day'] ), WC_Subscriptions::append_numeral_suffix( $billing_interval ) );
+							$subscription_string .= sprintf( __( '%1$s on %2$s %3$s every %4$s year', 'woocommerce-subscriptions' ), $price, $wp_locale->month[ $payment_day['month'] ], WC_Subscriptions::append_numeral_suffix( $payment_day['day'] ), WC_Subscriptions::append_numeral_suffix( $billing_interval ) );
 						}
 						break;
 				}
@@ -855,6 +863,27 @@ class WC_Subscriptions_Product {
 	 * @since 1.5.29
 	 */
 	public static function bulk_edit_variations( $bulk_action, $data, $variable_product_id, $variation_ids ) {
+		if ( 'delete_all_no_subscriptions' === $bulk_action && isset( $data['allowed'] ) && 'true' == $data['allowed'] ) {
+			$deleted = 0;
+
+			foreach ( $variation_ids as $variation_id ) {
+				$variation     = wc_get_product( $variation_id );
+				$subscriptions = wcs_get_subscriptions_for_product( $variation_id );
+
+				if ( empty( $subscriptions ) ) {
+					if ( is_callable( array( $variation, 'delete' ) ) ) {
+						$variation->delete( true );
+					} else {
+						wp_delete_post( $variation_id );
+					}
+
+					$deleted++;
+				}
+			}
+
+			echo intval( $deleted );
+			return;
+		}
 
 		if ( ! isset( $data['value'] ) ) {
 			return;
@@ -1059,6 +1088,10 @@ class WC_Subscriptions_Product {
 
 				$min_max_data = wcs_get_min_max_variation_data( $product, $child_variation_ids );
 
+				if ( is_callable( array( $product, 'set_min_and_max_variation_data' ) ) ) {
+					$product->set_min_and_max_variation_data( $min_max_data, $child_variation_ids );
+				}
+
 				$product->add_meta_data( '_min_price_variation_id', $min_max_data['min']['variation_id'], true );
 				$product->add_meta_data( '_max_price_variation_id', $min_max_data['max']['variation_id'], true );
 
@@ -1098,7 +1131,7 @@ class WC_Subscriptions_Product {
 		global $wpdb;
 		$parent_product_ids = array();
 
-		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) && $product->get_parent() ) {
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) && isset( $product->post->post_parent ) ) {
 			$parent_product_ids[] = $product->get_parent();
 		} else {
 			$parent_product_ids = $wpdb->get_col( $wpdb->prepare(
@@ -1107,6 +1140,30 @@ class WC_Subscriptions_Product {
 				WHERE meta_key = '_children' AND meta_value LIKE '%%i:%d;%%'",
 				$product->get_id()
 			) );
+		}
+
+		return $parent_product_ids;
+	}
+
+	/**
+	 * Get a product's list of parent IDs which are a grouped type.
+	 *
+	 * Unlike @see WC_Subscriptions_Product::get_parent_ids(), this function will return parent products which still exist, are visible and are a grouped product.
+	 *
+	 * @param WC_Product The product object to get parents from.
+	 * @return array The product's grouped parent IDs.
+	 * @since 2.3.0
+	 */
+	public static function get_visible_grouped_parent_product_ids( $product ) {
+		$parent_product_ids = self::get_parent_ids( $product );
+
+		// Verify that the parent products exist and are indeed grouped products
+		foreach ( $parent_product_ids as $index => $product_id ) {
+			$parent_product = wc_get_product( $product_id );
+
+			if ( ! is_a( $parent_product, 'WC_Product' ) || ! $parent_product->is_type( 'grouped' ) || 'publish' !== wcs_get_objects_property( $parent_product, 'post_status' ) ) {
+				unset( $parent_product_ids[ $index ] );
+			}
 		}
 
 		return $parent_product_ids;

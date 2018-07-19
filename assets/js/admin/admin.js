@@ -554,55 +554,66 @@ jQuery(document).ready(function($){
 		return data;
 	});
 
-	// We're on the Subscriptions settings page
-	if($('#woocommerce_subscriptions_allow_switching').length > 0 ){
-		var allowSwitching = $('#woocommerce_subscriptions_allow_switching').val(),
-			$switchSettingsRows = $('#woocommerce_subscriptions_allow_switching').parents('tr').siblings('tr'),
-			$syncProratationRow = $('#woocommerce_subscriptions_prorate_synced_payments').parents('tr'),
-			$suspensionExtensionRow = $('#woocommerce_subscriptions_recoup_suspension').parents('tr');
+	var $allowSwitching = $( document.getElementById( 'woocommerce_subscriptions_allow_switching' ) );
+	var $syncRenewals = $( document.getElementById( 'woocommerce_subscriptions_sync_payments' ) );
 
-		if('no'==allowSwitching){
+	// We're on the Subscriptions settings page
+	if ( $allowSwitching.length > 0 ) {
+		var allowSwitchingVal = $allowSwitching.val(),
+			$switchSettingsRows = $allowSwitching.parents( 'tr' ).siblings( 'tr' ),
+			$prorateFirstRenewal = $( document.getElementById( 'woocommerce_subscriptions_prorate_synced_payments' ) ),
+			$syncRows = $syncRenewals.parents( 'tr' ).siblings( 'tr' ),
+			$daysNoFeeRow = $( document.getElementById( 'woocommerce_subscriptions_days_no_fee' ) ).parents( 'tr' ),
+			$suspensionExtensionRow = $( '#woocommerce_subscriptions_recoup_suspension' ).parents( 'tr' );
+
+		// No animation for initial hiding when switching is disabled.
+		if ( 'no' === allowSwitchingVal ) {
 			$switchSettingsRows.hide();
 		}
 
-		$( '#woocommerce_subscriptions_allow_switching' ).on( 'change', function() {
-			if ( 'no' == $( this ).val() ) {
+		$allowSwitching.on( 'change', function() {
+			if ( 'no' === $( this ).val() ) {
 				$switchSettingsRows.fadeOut();
-			} else if ( 'no' == allowSwitching ) { // switching was previously disable, so settings will be hidden
+			} else if ( 'no' === allowSwitchingVal ) { // switching was previously disabled, so settings will be hidden
 				$switchSettingsRows.fadeIn();
 			}
-			allowSwitching = $( this ).val();
+			allowSwitchingVal = $( this ).val();
 		} );
 
 		// Show/hide suspension extension setting
-		if ($('#woocommerce_subscriptions_max_customer_suspensions').val() > 0) {
-			$suspensionExtensionRow.show();
-		} else {
-			$suspensionExtensionRow.hide();
-		}
-
-		$('#woocommerce_subscriptions_max_customer_suspensions').on('change', function(){
-			if ($(this).val() > 0) {
+		$( '#woocommerce_subscriptions_max_customer_suspensions' ).on( 'change', function() {
+			if ( $( this ).val() > 0 ) {
 				$suspensionExtensionRow.show();
 			} else {
 				$suspensionExtensionRow.hide();
 			}
-		});
+		} ).change();
 
-		// Show/hide sync proration setting
-		if ($('#woocommerce_subscriptions_sync_payments').is(':checked')) {
-			$syncProratationRow.show();
-		} else {
-			$syncProratationRow.hide();
+		// No animation when initially hiding prorated rows.
+		if ( ! $syncRenewals.is( ':checked' ) ) {
+			$syncRows.hide();
+		} else if ( 'recurring' !== $prorateFirstRenewal.val() ) {
+			$daysNoFeeRow.hide();
 		}
 
-		$('#woocommerce_subscriptions_sync_payments').on('change', function(){
-			if ($(this).is(':checked')) {
-				$syncProratationRow.show();
+		// Animate showing and hiding the synchronization rows.
+		$syncRenewals.on( 'change', function(){
+			if ( $( this ).is( ':checked' ) ) {
+				$syncRows.not( $daysNoFeeRow ).fadeIn();
+				$prorateFirstRenewal.change();
 			} else {
-				$syncProratationRow.hide();
+				$syncRows.fadeOut();
 			}
-		});
+		} );
+
+		// Watch the Prorate First Renewal field for changes.
+		$prorateFirstRenewal.on( 'change', function() {
+			if ( 'recurring' === $( this ).val() ) {
+				$daysNoFeeRow.fadeIn();
+			} else {
+				$daysNoFeeRow.fadeOut();
+			}
+		} );
 	}
 
 	// Don't display the variation notice for variable subscription products
@@ -666,4 +677,70 @@ jQuery(document).ready(function($){
 	$( '#general_product_data, #variable_product_options' ).on( 'change', '[class^="wc_input_subscription_payment_sync"], [class^="wc_input_subscription_trial_length"]', function() {
 		$.disableEnableOneTimeShipping();
 	});
+
+	/**
+	 * Prevents removal of variations in use by a subscription.
+	 */
+	var wcs_prevent_variation_removal = {
+		init: function() {
+			if ( 0 === $( '#woocommerce-product-data' ).length ) {
+				return;
+			}
+
+			$( 'body' ).on( 'woocommerce-product-type-change', this.product_type_change );
+			$( '#variable_product_options' ).on( 'reload', this.product_type_change );
+			$( 'select.variation_actions' ).on( 'delete_all_no_subscriptions_ajax_data', this.bulk_action_data );
+			this.product_type_change();
+		},
+
+		product_type_change: function() {
+			var product_type       = $( '#product-type' ).val();
+			var $variation_actions = $( 'select.variation_actions' );
+			var $delete_all        = $variation_actions.find( 'option[value="delete_all"], option[value="delete_all_no_subscriptions"]' );
+
+			if ( 'variable-subscription' === product_type && 'delete_all' === $delete_all.val() ) {
+				$delete_all.data( 'wcs_original_wc_label', $delete_all.text() )
+				           .attr( 'value', 'delete_all_no_subscriptions' )
+				           .text( WCSubscriptions.bulkDeleteOptionLabel );
+			} else if ( 'variable-subscription' !== product_type && 'delete_all_no_subscriptions' === $delete_all.val() ) {
+				$delete_all.text( $delete_all.data( 'wcs_original_wc_label' ) )
+					.attr( 'value', 'delete_all' );
+			}
+		},
+
+		bulk_action_data: function( event, data ) {
+			if ( window.confirm( woocommerce_admin_meta_boxes_variations.i18n_delete_all_variations ) ) {
+				if ( window.confirm( woocommerce_admin_meta_boxes_variations.i18n_last_warning ) ) {
+					data.allowed = true;
+
+					// do_variation_action() in woocommerce/assets/js/admin/meta-boxes-product-variation.js doesn't
+					// allow us to do anything after the AJAX request, so we need to listen to all AJAX requests for a
+					// little while to update the quantity and refresh the variation list.
+					$( document ).bind( 'ajaxComplete', wcs_prevent_variation_removal.update_qty_after_removal );
+				}
+			}
+
+			return data;
+		},
+
+		update_qty_after_removal: function( event, jqXHR, ajaxOptions ) {
+			var $variations = $( '#variable_product_options .woocommerce_variations' );
+			var removed;
+
+			// Not our bulk edit request. Ignore.
+			if ( -1 === ajaxOptions.data.indexOf( 'action=woocommerce_bulk_edit_variations' ) || -1 === ajaxOptions.data.indexOf( 'bulk_action=delete_all_no_subscriptions' ) ) {
+				return;
+			}
+
+			// Unbind so this doesn't get called every time an AJAX request is performed.
+			$( document ).unbind( 'ajaxComplete', wcs_prevent_variation_removal.update_qty_after_removal );
+
+			// Update variation quantity.
+			removed = ( 'OK' === jqXHR.statusText ) ? parseInt( jqXHR.responseText, 10 ) : 0;
+			$variations.attr( 'data-total', Math.max( 0, parseInt( $variations.attr( 'data-total' ), 10 ) - removed ) );
+			$( '#variable_product_options' ).trigger( 'reload' );
+		},
+	};
+	wcs_prevent_variation_removal.init();
+
 });

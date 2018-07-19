@@ -70,7 +70,7 @@ function wcs_cart_totals_shipping_html() {
 				} elseif ( in_array( $chosen_initial_method, $package['rates'] ) ) {
 					$chosen_recurring_method = $chosen_initial_method;
 				} else {
-					$chosen_recurring_method = current( $package['rates'] )->id;
+					$chosen_recurring_method = empty( $package['rates'] ) ? '' : current( $package['rates'] )->id;
 				}
 
 				$shipping_selection_displayed = false;
@@ -204,6 +204,18 @@ function wcs_cart_totals_shipping_method_price_label( $method, $cart ) {
 function wcs_cart_totals_taxes_total_html( $cart ) {
 	$value = apply_filters( 'woocommerce_cart_totals_taxes_total_html', $cart->get_taxes_total() );
 	echo wp_kses_post( apply_filters( 'wcs_cart_totals_taxes_total_html', wcs_cart_price_string( $value, $cart ), $cart ) );
+}
+
+/**
+ * Display the remove link for a coupon.
+ *
+ *  @access public
+ *
+ * @param WC_Coupon $coupon
+ */
+function wcs_cart_coupon_remove_link_html( $coupon ) {
+	$html = '<a href="' . esc_url( add_query_arg( 'remove_coupon', urlencode( wcs_get_coupon_property( $coupon, 'code' ) ), defined( 'WOOCOMMERCE_CHECKOUT' ) ? wc_get_checkout_url() : wc_get_cart_url() ) ) . '" class="woocommerce-remove-coupon" data-coupon="' . esc_attr( wcs_get_coupon_property( $coupon, 'code' ) ) . '">' . __( '[Remove]', 'woocommerce-subscriptions' ) . '</a>';
+	echo wp_kses( $html, array_replace_recursive( wp_kses_allowed_html( 'post' ), array( 'a' => array( 'data-coupon' => true ) ) ) );
 }
 
 /**

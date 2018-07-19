@@ -106,7 +106,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div class="changelog still-more">
 
 		<h2><?php esc_html_e( "But wait, there's more!", 'woocommerce-subscriptions' ); ?></h2>
-		<p><?php esc_html_e( "That's not all we've working on for the last 12 months when it comes to Subscriptions. We've also released free mini-extensions to help you get the most from your subscription store.", 'woocommerce-subscriptions' ); ?></p>
+		<p><?php esc_html_e( "That's not all we've working on for the last 12 months when it comes to Subscriptions. We've also released mini-extensions to help you get the most from your subscription store.", 'woocommerce-subscriptions' ); ?></p>
 
 		<div class="feature-section three-col">
 
@@ -114,10 +114,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<img src="<?php echo esc_url( wcs_get_image_asset_url( 'gift-subscription.png' ) ); ?>" />
 				<h3><?php esc_html_e( 'Subscription Gifting', 'woocommerce-subscriptions' ); ?></h3>
 				<p><?php esc_html_e( 'What happens when a customer wants to purchase a subscription product for someone else?', 'woocommerce-subscriptions' ); ?></p>
-				<p><?php esc_html_e( 'The free Gifting extension makes it possible for one person to purchase a subscription product for someone else. It then shares control of the subscription between the purchaser and recipient, allowing both to manage the subscription over its lifecycle.', 'woocommerce-subscriptions' ); ?></p>
+				<p><?php esc_html_e( 'The Gifting extension makes it possible for one person to purchase a subscription product for someone else. It then shares control of the subscription between the purchaser and recipient, allowing both to manage the subscription over its lifecycle.', 'woocommerce-subscriptions' ); ?></p>
 				<p><?php
 					// translators: placeholders are for opening and closing link (<a>) tags
-					printf( esc_html__( '%sLearn more &raquo;%s', 'woocommerce-subscriptions' ), '<a href="https://github.com/prospress/woocommerce-subscriptions-gifting/#woocommerce-subscriptions-gifting">', '</a>' ); ?>
+					printf( esc_html__( '%sLearn more &raquo;%s', 'woocommerce-subscriptions' ), '<a href="https://woocommerce.com/products/woocommerce-subscriptions-gifting/">', '</a>' ); ?>
 				</p>
 			</div>
 

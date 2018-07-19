@@ -27,15 +27,10 @@ abstract class WCS_Scheduler {
 	}
 
 	public function set_date_types_to_schedule() {
-		$this->date_types_to_schedule = apply_filters( 'woocommerce_subscriptions_date_types_to_schedule', array_keys( wcs_get_subscription_date_types() ) );
+		$date_types_to_schedule = wcs_get_subscription_date_types();
+		unset( $date_types_to_schedule['start'], $date_types_to_schedule['last_payment'] );
 
-		if ( isset( $this->date_types_to_schedule['start'] ) ) {
-			unset( $this->date_types_to_schedule['start'] );
-		}
-
-		if ( isset( $this->date_types_to_schedule['last_payment'] ) ) {
-			unset( $this->date_types_to_schedule['last_payment'] );
-		}
+		$this->date_types_to_schedule = apply_filters( 'woocommerce_subscriptions_date_types_to_schedule', array_keys( $date_types_to_schedule ) );
 	}
 
 	protected function get_date_types_to_schedule() {

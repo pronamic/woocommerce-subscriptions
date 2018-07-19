@@ -266,8 +266,8 @@ function wcs_add_months( $from_timestamp, $months_to_add ) {
  *
  * @param int $start_timestamp A Unix timestamp
  * @param int $end_timestamp A Unix timestamp at some time in the future
- * @param string $end_timestamp A unit of time, either day, week month or year.
- * @param string $unit_of_time A rounding method, either ceil (default) or floor for anything else
+ * @param string $unit_of_time A unit of time, either day, week month or year.
+ * @param string $rounding_method A rounding method, either ceil (default) or floor for anything else
  * @since 2.0
  */
 function wcs_estimate_periods_between( $start_timestamp, $end_timestamp, $unit_of_time = 'month', $rounding_method = 'ceil' ) {

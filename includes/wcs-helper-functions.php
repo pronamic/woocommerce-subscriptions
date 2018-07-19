@@ -172,6 +172,18 @@ function wcs_maybe_prefix_key( $key, $prefix = '_' ) {
 }
 
 /**
+ * Remove a prefix from a string if has it
+ *
+ * @param string $key
+ * @param string $prefix
+ * @since 2.2.0
+ * @return string
+ */
+function wcs_maybe_unprefix_key( $key, $prefix = '_' ) {
+	return ( substr( $key, 0, strlen( $prefix ) ) === $prefix ) ? substr( $key, strlen( $prefix ) ) : $key;
+}
+
+/**
  * Find the name of the function which called the function which called this function.
  *
  * @since 2.2.0
@@ -185,4 +197,37 @@ function wcs_get_calling_function_name() {
 	$calling_function .= isset( $backtrace[2]['function'] ) ? $backtrace[2]['function'] : '';
 
 	return $calling_function;
+}
+
+/**
+ * Get the value of a transient, even if it has expired.
+ *
+ * Handy when data cached in a transient will be valid even if the transient has expired.
+ *
+ * @param string $transient_key The key used to set/get the transient via get_transient()/set_transient()
+ * @return mixed If data exists in a transient, the value of the transient, else boolean false.
+ */
+function wcs_get_transient_even_if_expired( $transient_key ) {
+
+	// First, check if the transient exists via the Options API to access the value in the database without WordPress checking the transient's expiration time (and returning false if it's < now)
+	$transient_value = get_option( sprintf( '_transient_%s', $transient_key ) );
+
+	if ( false === $transient_value ) {
+		$transient_value = get_transient( $transient_key );
+	}
+
+	return $transient_value;
+}
+
+/**
+ * Get a minor version string from a full version string.
+ *
+ * @param  string $version Version string (eg 1.0.1).
+ * @return string          The minor release version string (eg 1.0).
+ * @since 2.3.0
+ */
+function wcs_get_minor_version_string( $version ) {
+	$version_parts = array_pad( array_map( 'intval', explode( '.', $version ) ), 2, 0 );
+
+	return $version_parts[0] . '.' . $version_parts[1];
 }

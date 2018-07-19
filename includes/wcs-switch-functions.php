@@ -50,24 +50,7 @@ function wcs_order_contains_switch( $order ) {
  * @since  2.0
  */
 function wcs_get_subscriptions_for_switch_order( $order ) {
-
-	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
-		$order = wc_get_order( $order );
-	}
-
-	$subscriptions    = array();
-	$subscription_ids = wcs_get_objects_property( $order, 'subscription_switch', 'multiple' );
-
-	foreach ( $subscription_ids as $subscription_id ) {
-
-		$subscription = wcs_get_subscription( $subscription_id );
-
-		if ( $subscription ) {
-			$subscriptions[ $subscription_id ] = $subscription;
-		}
-	}
-
-	return $subscriptions;
+	return wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'switch' ) );
 }
 
 /**
@@ -78,28 +61,8 @@ function wcs_get_subscriptions_for_switch_order( $order ) {
  * @since  2.0
  */
 function wcs_get_switch_orders_for_subscription( $subscription_id ) {
-
-	$orders = array();
-
-	// Select the orders which switched item/s from this subscription
-	$order_ids = get_posts( array(
-		'post_type'      => 'shop_order',
-		'post_status'    => 'any',
-		'fields'         => 'ids',
-		'posts_per_page' => -1,
-		'meta_query' => array(
-			array(
-				'key'   => '_subscription_switch',
-				'value' => $subscription_id,
-			),
-		),
-	) );
-
-	foreach ( $order_ids as $order_id ) {
-		$orders[ $order_id ] = wc_get_order( $order_id );
-	}
-
-	return $orders;
+	$subscription = wcs_get_subscription( $subscription_id );
+	return $subscription->get_related_orders( 'all', 'switch' );
 }
 
 /**
@@ -124,24 +87,22 @@ function wcs_is_product_switchable_type( $product ) {
 	} else {
 
 		// back compat for parent products
-		$parent_id = wcs_get_objects_property( $product, 'parent_id' );
-
-		if ( $product->is_type( 'subscription_variation' ) && ! empty( $parent_id ) ) {
+		if ( $product->is_type( 'subscription_variation' ) && $product->get_parent_id() ) {
 			$variation = $product;
-			$product   = wc_get_product( $parent_id );;
+			$product   = wc_get_product( $product->get_parent_id() );
 		}
 
 		$allow_switching = get_option( WC_Subscriptions_Admin::$option_prefix . '_allow_switching', 'no' );
 
 		switch ( $allow_switching ) {
 			case 'variable' :
-				$is_product_switchable = ( $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) ) ? true : false;
+				$is_product_switchable = $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) && 'publish' === wcs_get_objects_property( $product, 'post_status' );
 				break;
 			case 'grouped' :
-				$is_product_switchable = ( WC_Subscriptions_Product::get_parent_ids( $product ) ) ? true : false;
+				$is_product_switchable = (bool) WC_Subscriptions_Product::get_visible_grouped_parent_product_ids( $product );
 				break;
 			case 'variable_grouped' :
-				$is_product_switchable = ( $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) || WC_Subscriptions_Product::get_parent_ids( $product ) ) ? true : false;
+				$is_product_switchable = ( $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) && 'publish' === wcs_get_objects_property( $product, 'post_status' ) ) || WC_Subscriptions_Product::get_visible_grouped_parent_product_ids( $product );
 				break;
 			case 'no' :
 			default:

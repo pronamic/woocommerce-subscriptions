@@ -140,7 +140,7 @@ class WCS_Limiter {
 				if ( isset( $_GET['switch-subscription'] ) ) {
 					$is_purchasable = true;
 
-					//Validating when restring cart from session
+					//Validating when restoring cart from session
 				} elseif ( WC_Subscriptions_Switcher::cart_contains_switches() ) {
 					$is_purchasable = true;
 

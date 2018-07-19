@@ -337,11 +337,13 @@ class WCS_Report_Cache_Manager {
 		$new_data      = array(
 			'wcs_report_cache_enabled'  => array(
 				'name'    => _x( 'Report Cache Enabled', 'Whether the Report Cache has been enabled', 'woocommerce-subscriptions' ),
+				'label'   => 'Report Cache Enabled',
 				'note'    => $cache_enabled ? __( 'Yes', 'woocommerce-subscriptions' ) : __( 'No', 'woocommerce-subscriptions' ),
 				'success' => $cache_enabled,
 			),
 			'wcs_cache_update_failures' => array(
 				'name'    => __( 'Cache Update Failures', 'woocommerce-subscriptions' ),
+				'label'   => 'Cache Update Failures',
 				/* translators: %d refers to the number of times we have detected cache update failures */
 				'note'    => sprintf( _n( '%d failures', '%d failure', $failures, 'woocommerce-subscriptions' ), $failures ),
 				'success' => 0 === $failures,

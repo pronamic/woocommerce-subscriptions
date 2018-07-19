@@ -3,18 +3,23 @@
 /**
  * Class ActionScheduler_QueueRunner
  */
-class ActionScheduler_QueueRunner {
+class ActionScheduler_QueueRunner extends ActionScheduler_Abstract_QueueRunner {
 	const WP_CRON_HOOK = 'action_scheduler_run_queue';
 
 	const WP_CRON_SCHEDULE = 'every_minute';
 
 	/** @var ActionScheduler_QueueRunner  */
-	private static $runner = NULL;
-	/** @var ActionScheduler_Store */
-	private $store = NULL;
+	private static $runner = null;
 
-	/** @var ActionScheduler_FatalErrorMonitor */
-	private $monitor = NULL;
+	/**
+	 * The created time.
+	 *
+	 * Represents when the queue runner was constructed and used when calculating how long a PHP request has been running.
+	 * For this reason it should be as close as possible to the PHP request start time.
+	 *
+	 * @var int
+	 */
+	private $created_time;
 
 	/**
 	 * @return ActionScheduler_QueueRunner
@@ -28,8 +33,16 @@ class ActionScheduler_QueueRunner {
 		return self::$runner;
 	}
 
-	public function __construct( ActionScheduler_Store $store = NULL ) {
-		$this->store = $store ? $store : ActionScheduler_Store::instance();
+	/**
+	 * ActionScheduler_QueueRunner constructor.
+	 *
+	 * @param ActionScheduler_Store             $store
+	 * @param ActionScheduler_FatalErrorMonitor $monitor
+	 * @param ActionScheduler_QueueCleaner      $cleaner
+	 */
+	public function __construct( ActionScheduler_Store $store = null, ActionScheduler_FatalErrorMonitor $monitor = null, ActionScheduler_QueueCleaner $cleaner = null ) {
+		parent::__construct( $store, $monitor, $cleaner );
+		$this->created_time = microtime( true );
 	}
 
 	/**
@@ -53,29 +66,32 @@ class ActionScheduler_QueueRunner {
 		do_action( 'action_scheduler_before_process_queue' );
 		$this->run_cleanup();
 		$count = 0;
-		if ( $this->store->get_claim_count() < apply_filters( 'action_scheduler_queue_runner_concurrent_batches', 5 ) ) {
+		if ( $this->store->get_claim_count() < $this->get_allowed_concurrent_batches() ) {
 			$batch_size = apply_filters( 'action_scheduler_queue_runner_batch_size', 25 );
-			$this->monitor = new ActionScheduler_FatalErrorMonitor( $this->store );
 			$count = $this->do_batch( $batch_size );
-			unset( $this->monitor );
 		}
 
 		do_action( 'action_scheduler_after_process_queue' );
 		return $count;
 	}
 
-	protected function run_cleanup() {
-		$cleaner = new ActionScheduler_QueueCleaner( $this->store );
-		$cleaner->delete_old_actions();
-		$cleaner->reset_timeouts();
-		$cleaner->mark_failures();
-	}
-
 	protected function do_batch( $size = 100 ) {
 		$claim = $this->store->stake_claim($size);
 		$this->monitor->attach($claim);
-		$processed_actions = 0;
+		$processed_actions      = 0;
+		$maximum_execution_time = $this->get_maximum_execution_time();
+
 		foreach ( $claim->get_actions() as $action_id ) {
+			if ( 0 !== $processed_actions ) {
+				$time_elapsed            = $this->get_execution_time();
+				$average_processing_time = $time_elapsed / $processed_actions;
+
+				// Bail early if the time it has taken to process this batch is approaching the maximum execution time.
+				if ( $time_elapsed + ( $average_processing_time * 2 ) > $maximum_execution_time ) {
+					break;
+				}
+			}
+
 			// bail if we lost the claim
 			if ( ! in_array( $action_id, $this->store->find_actions_by_claim_id( $claim->get_id() ) ) ) {
 				break;
@@ -89,31 +105,6 @@ class ActionScheduler_QueueRunner {
 		return $processed_actions;
 	}
 
-	public function process_action( $action_id ) {
-		try {
-			do_action( 'action_scheduler_before_execute', $action_id );
-			$action = $this->store->fetch_action( $action_id );
-			$this->store->log_execution( $action_id );
-			$action->execute();
-			do_action( 'action_scheduler_after_execute', $action_id );
-			$this->store->mark_complete( $action_id );
-		} catch ( Exception $e ) {
-			$this->store->mark_failure( $action_id );
-			do_action( 'action_scheduler_failed_execution', $action_id, $e );
-		}
-		$this->schedule_next_instance( $action );
-	}
-
-	protected function schedule_next_instance( ActionScheduler_Action $action ) {
-
-		$schedule = $action->get_schedule();
-		$next     = $schedule->next( as_get_datetime_object() );
-
-		if ( ! is_null( $next ) && $schedule->is_recurring() ) {
-			$this->store->save_action( $action, $next );
-		}
-	}
-
 	/**
 	 * Running large batches can eat up memory, as WP adds data to its object cache.
 	 *
@@ -121,8 +112,6 @@ class ActionScheduler_QueueRunner {
 	 * as well, so this is disabled by default. To enable:
 	 *
 	 * add_filter( 'action_scheduler_queue_runner_flush_cache', '__return_true' );
-	 *
-	 * @return void
 	 */
 	protected function clear_caches() {
 		if ( ! wp_using_ext_object_cache() || apply_filters( 'action_scheduler_queue_runner_flush_cache', false ) ) {
@@ -138,5 +127,43 @@ class ActionScheduler_QueueRunner {
 
 		return $schedules;
 	}
+
+	/**
+	 * Get the maximum number of seconds a batch can run for.
+	 *
+	 * @return int The number of seconds.
+	 */
+	protected function get_maximum_execution_time() {
+
+		// There are known hosts with a strict 60 second execution time.
+		if ( defined( 'WPENGINE_ACCOUNT' ) || defined( 'PANTHEON_ENVIRONMENT' ) ) {
+			$maximum_execution_time = 60;
+		} elseif ( false !== strpos( getenv( 'HOSTNAME' ), '.siteground.' ) ) {
+			$maximum_execution_time = 120;
+		} else {
+			$maximum_execution_time = ini_get( 'max_execution_time' );
+		}
+
+		return absint( apply_filters( 'action_scheduler_maximum_execution_time', $maximum_execution_time ) );
+	}
+
+	/**
+	 * Get the number of seconds a batch has run for.
+	 *
+	 * @return int The number of seconds.
+	 */
+	protected function get_execution_time() {
+		$execution_time = microtime( true ) - $this->created_time;
+
+		// Get the CPU time if the hosting environment uses it rather than wall-clock time to calculate a process's execution time.
+		if ( function_exists( 'getrusage' ) && apply_filters( 'action_scheduler_use_cpu_execution_time', defined( 'PANTHEON_ENVIRONMENT' ) ) ) {
+			$resource_usages = getrusage();
+
+			if ( isset( $resource_usages['ru_stime.tv_usec'], $resource_usages['ru_stime.tv_usec'] ) ) {
+				$execution_time = $resource_usages['ru_stime.tv_sec'] + ( $resource_usages['ru_stime.tv_usec'] / 1000000 );
+			}
+		}
+
+		return $execution_time;
+	}
 }
- 

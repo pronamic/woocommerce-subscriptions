@@ -7,7 +7,7 @@
  */
 class WCS_Cart_Switch extends WCS_Cart_Renewal {
 
-	/* The flag used to indicate if a cart item is a renewal */
+	/* The flag used to indicate if a cart item is a subscription switch */
 	public $cart_item_key = 'subscription_switch';
 
 	/**

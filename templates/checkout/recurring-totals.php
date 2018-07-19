@@ -44,7 +44,8 @@ $display_th = true;
 							<tr class="cart-discount coupon-<?php echo esc_attr( $code ); ?> recurring-total">
 								<?php if ( $display_th ) : $display_th = false; ?>
 									<th rowspan="<?php echo esc_attr( $carts_with_multiple_payments ); ?>"><?php wc_cart_totals_coupon_label( $coupon ); ?></th>
-									<td data-title="<?php wc_cart_totals_coupon_label( $coupon ); ?>"><?php wcs_cart_totals_coupon_html( $recurring_coupon, $recurring_cart ); ?></td>
+									<td data-title="<?php wc_cart_totals_coupon_label( $coupon ); ?>"><?php wcs_cart_totals_coupon_html( $recurring_coupon, $recurring_cart ); ?>
+									<?php echo ' '; wcs_cart_coupon_remove_link_html( $recurring_coupon ); ?></td>
 								<?php else : ?>
 									<td><?php wcs_cart_totals_coupon_html( $recurring_coupon, $recurring_cart ); ?></td>
 								<?php endif; ?>
