@@ -55,7 +55,12 @@ class WC_Report_Subscription_By_Product extends WP_List_Table {
 		switch ( $column_name ) {
 
 			case 'product_name' :
-				return edit_post_link( $report_item->product_name, null, null, $report_item->product_id );
+				// If the product is a subscription variation, use the parent product's edit post link
+				if ( $report_item->parent_product_id > 0 ) {
+					return edit_post_link( $report_item->product_name, ' - ', null, $report_item->parent_product_id );
+				} else {
+					return edit_post_link( $report_item->product_name, null, null, $report_item->product_id );
+				}
 
 			case 'subscription_count' :
 				return sprintf( '<a href="%s%d">%d</a>', admin_url( 'edit.php?post_type=shop_subscription&_wcs_product=' ), $report_item->product_id, $report_item->subscription_count );
@@ -114,6 +119,7 @@ class WC_Report_Subscription_By_Product extends WP_List_Table {
 
 		$query = apply_filters( 'wcs_reports_product_query',
 			"SELECT product.id as product_id,
+					product.post_parent as parent_product_id,
 					product.post_title as product_name,
 					mo.product_type,
 					COUNT(subscription_line_items.subscription_id) as subscription_count,
@@ -136,14 +142,14 @@ class WC_Report_Subscription_By_Product extends WP_List_Table {
 					INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS wcoimeta2
 						ON wcoimeta2.order_item_id = wcoitems.order_item_id
 					WHERE wcoitems.order_item_type = 'line_item'
-						AND wcoimeta.meta_key = '_product_id'
+						AND ( wcoimeta.meta_key = '_product_id' OR wcoimeta.meta_key = '_variation_id' )
 						AND wcoimeta2.meta_key = '_line_total'
 				) as subscription_line_items
 					ON product.id = subscription_line_items.product_id
 				LEFT JOIN {$wpdb->posts} as subscriptions
 					ON subscriptions.ID = subscription_line_items.subscription_id
 				WHERE  product.post_status = 'publish'
-					 AND product.post_type = 'product'
+					 AND ( product.post_type = 'product' OR product.post_type = 'product_variation' )
 					 AND subscriptions.post_type = 'shop_subscription'
 					 AND subscriptions.post_status NOT IN( 'wc-pending', 'trash' )
 				GROUP BY product.id
@@ -160,6 +166,33 @@ class WC_Report_Subscription_By_Product extends WP_List_Table {
 
 		$report_data = $cached_results[ $query_hash ];
 
+		// Organize subscription variations under the parent product in a tree structure
+		$tree = array();
+		foreach ( $report_data as $product_id => $product ) {
+			if ( ! $product->parent_product_id ) {
+				if ( isset( $tree[ $product_id ] ) ) {
+					array_unshift( $tree[ $product_id ], $product_id );
+				} else {
+					$tree[ $product_id ][] = $product_id;
+				}
+			} else {
+				$tree[ $product->parent_product_id ][] = $product_id;
+			}
+		}
+
+		// Create an array with all the report data in the correct order
+		$ordered_report_data = array();
+		foreach ( $tree as $parent_id => $children ) {
+		    foreach ( $children as $child_id ) {
+				$ordered_report_data[ $child_id ] = $report_data[ $child_id ];
+
+				// When there are variations, store the variation ids.
+				if ( 'variable-subscription' === $report_data[ $child_id ]->product_type ) {
+				    $ordered_report_data[ $child_id ]->variations = array_diff( $children, array( $parent_id ) );
+				}
+		    }
+		}
+
 		// Now let's get the total revenue for each product so we can provide an average lifetime value for that product
 		$query = apply_filters( 'wcs_reports_product_lifetime_value_query',
 			"SELECT wcoimeta.meta_value as product_id, SUM(wcoimeta2.meta_value) as product_total
@@ -172,7 +205,7 @@ class WC_Report_Subscription_By_Product extends WP_List_Table {
 					ON wcoimeta.order_item_id = wcoitems.order_item_id
 				INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS wcoimeta2
 					ON wcoimeta2.order_item_id = wcoitems.order_item_id
-				WHERE wcoimeta.meta_key = '_product_id'
+				WHERE ( wcoimeta.meta_key = '_product_id' OR wcoimeta.meta_key = '_variation_id' )
 					AND wcoimeta2.meta_key = '_line_total'
 				GROUP BY product_id" );
 
@@ -185,11 +218,11 @@ class WC_Report_Subscription_By_Product extends WP_List_Table {
 		}
 
 		// Add the product total to each item
-		foreach ( array_keys( $report_data ) as $product_id ) {
-			$report_data[ $product_id ]->product_total = isset( $cached_results[ $query_hash ][ $product_id ] ) ? $cached_results[ $query_hash ][ $product_id ]->product_total : 0;
+		foreach ( array_keys( $ordered_report_data ) as $product_id ) {
+			$ordered_report_data[ $product_id ]->product_total = isset( $cached_results[ $query_hash ][ $product_id ] ) ? $cached_results[ $query_hash ][ $product_id ]->product_total : 0;
 		}
 
-		return $report_data;
+		return $ordered_report_data;
 	}
 
 	/**
@@ -199,20 +232,77 @@ class WC_Report_Subscription_By_Product extends WP_List_Table {
 
 		$chart_colors = array( '#33a02c', '#1f78b4', '#6a3d9a', '#e31a1c', '#ff7f00', '#b15928', '#a6cee3', '#b2df8a', '#fb9a99', '#ffff99', '#fdbf6f', '#cab2d6' );
 
-		//We only will display the first 12 plans in the chart
-		$products = array_slice( $this->items, 0, 12 );
+		// We only will display the first 12 plans of parent products in the chart
+		$products = array_slice( wp_list_filter( $this->items, array( 'parent_product_id' => 0 ) ), 0, 12 );
 
+		// Filter top n variations corresponding to top 12 parent products
+		$variations = array();
+		foreach ( $products as $product ) {
+		    if ( ! empty( $product->variations ) ) { // Variable subscription
+		        foreach ( $product->variations as $variation_id ) {
+		            $variations[] = $this->items[ $variation_id ];
+		        }
+		    } else { // Simple subscription
+				$variations[] = $product;
+		    }
+		}
 		?>
 		<div class="chart-container" style="float: left; padding-top: 50px; min-width: 0px;">
 			<div class="data-container" style="display: inline-block; margin-left: 30px; border: 1px solid #e5e5e5; background-color: #FFF; padding: 20px;">
-				<div class="chart-placeholder product_breakdown_chart pie-chart" style="height:200px; width: 200px; float: left;"></div>
+				<div class="chart-placeholder product_breakdown_chart pie-chart" style="height: 200px; width: 200px; float: left;"></div>
+				<div class="chart-placeholder variation_breakdown_chart pie-chart" style="height: 200px; width: 200px;"></div>
 				<div class="legend-container" style="margin-left: 10px; float: left;"></div>
-				<div style="clear:both;"></div>
+				<div style="clear: both;"></div>
 			</div>
 		</div>
 		<script type="text/javascript">
 			jQuery(function(){
-	 			jQuery.plot(
+				jQuery.plot(
+					jQuery('.chart-placeholder.variation_breakdown_chart'),
+					[
+					<?php
+					$colorindex = -1;
+					$last_parent_id = -1;
+					foreach ( $variations as $product ) {
+						if ( '0' === $product->parent_product_id || $last_parent_id !== $product->parent_product_id ) {
+							$colorindex++;
+							$last_parent_id = $product->parent_product_id;
+						}
+						?>
+						{
+							label: '<?php echo esc_js( $product->product_name ); ?>',
+							data:  '<?php echo esc_js( $product->subscription_count ); ?>',
+							color: '<?php echo esc_js( $chart_colors[ $colorindex ] ); ?>',
+						},
+						<?php
+
+					}
+					?>
+					],
+					{
+						grid: {
+							hoverable: true
+						},
+						series: {
+							pie: {
+								show: true,
+								radius: 1,
+								innerRadius: 0.7,
+								label: {
+									show: false
+								}
+							},
+							prepend_label: true,
+							enable_tooltip: true,
+							append_tooltip: "<?php echo ' ' . esc_js( __( 'subscriptions', 'woocommerce-subscriptions' ) ); ?>",
+						},
+						legend: {
+							show: false,
+						}
+					}
+				);
+				jQuery('.chart-placeholder.variation_breakdown_chart').resize();
+				jQuery.plot(
 					jQuery('.chart-placeholder.product_breakdown_chart'),
 					[
 					<?php
@@ -236,22 +326,23 @@ class WC_Report_Subscription_By_Product extends WP_List_Table {
 						series: {
 							pie: {
 								show: true,
-								radius: 1,
-								innerRadius: 0.6,
+								radius: 0.7,
+								innerRadius: 0.3,
 								label: {
 									show: false
 								}
 							},
+							prepend_label: true,
 							enable_tooltip: true,
 							append_tooltip: "<?php echo ' ' . esc_js( __( 'subscriptions', 'woocommerce-subscriptions' ) ); ?>",
 						},
 						legend: {
 							show: true,
+							position: "ne",
 							container: jQuery('.legend-container'),
 						}
 					}
 				);
-
 				jQuery('.chart-placeholder.product_breakdown_chart').resize();
 			});
 		</script>

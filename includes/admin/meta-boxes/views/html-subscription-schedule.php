@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			echo woocommerce_wp_select( array(
 				'id'          => '_billing_interval',
 				'class'       => 'billing_interval',
-				'label'       => __( 'Recurring:', 'woocommerce-subscriptions' ),
+				'label'       => __( 'Payment:', 'woocommerce-subscriptions' ),
 				'value'       => $the_subscription->get_billing_interval(),
 				'options'     => wcs_get_subscription_period_interval_strings(),
 				)
@@ -42,7 +42,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php printf( '%s %s', esc_html( wcs_get_subscription_period_interval_strings( $the_subscription->get_billing_interval() ) ), esc_html( wcs_get_subscription_period_strings( 1, $the_subscription->get_billing_period() ) ) ); ?>
 	<?php endif; ?>
 	</div>
-
+	<?php do_action( 'wcs_subscription_schedule_after_billing_schedule', $the_subscription ); ?>
 	<?php foreach ( wcs_get_subscription_date_types() as $date_key => $date_label ) : ?>
 		<?php $internal_date_key = wcs_normalise_date_type_key( $date_key ) ?>
 		<?php if ( false === wcs_display_date_type( $date_key, $the_subscription ) ) : ?>

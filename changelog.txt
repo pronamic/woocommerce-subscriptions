@@ -1,5 +1,65 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2018.07.10 - version 2.3.2
+* Fix: Extend the next payment date after early renewal if there's no end date. PR#2804
+* Fix: Prevent throwing type hinting errors when getting related orders from cache. RR#2805
+* Tweak: Don't copying `_created_via` meta from subscriptions to related orders as this overrides the value set when the order was created. PR#2794
+* Tweak: Make `wcs_get_subscriptions_for_order()` the canonical function for retrieving subscriptions for a given order (regardless of type). PR#2805
+
+2018.07.06 - version 2.3.1
+* Fix: Catchable fatal error from function parameter hinting. PR#2797
+
+2018.07.04 - version 2.3.0
+* New: Allow store managers to link an order with a subscription using the parent order relationship via a UI on the admin edit subscription screen. PR#2272
+* New: Add an option to charge the full recurring amount at the time of sign up for synchronised subscription products. PR#2343
+* New: Add new coupon setting which store managers to use to create recurring coupons which apply for a certain number of payments. PR * New: Add new sections to the system status. PR#2493
+* New: Allow customers to renew subscriptions before their next payment date from their My Account Subscription page. PR#2544
+* New: Add persistent cache of related order IDs in subscription meta. Improves performance when obtaining subscription related orders. PR#2572
+* New: Add new sections to the system status. PR#2493
+* New: Add persistent cache of customer subscriptions. PR#2635
+* New: Add extra args ($order and $cart) to woocommerce_checkout_create_subscription filter. PR#2645
+* New: Update Action Scheduler to v2.0.0.
+* New: Add a new admin upgrade notice helper class `WCS_Upgrade_Notice_Manager`. PR#2622
+* New: Add WCS_INIT_TIMESTAMP constant and use it to time background updates. PR#2739
+* New: Display an admin notice when a site is downgraded. PR#2743
+* Fix: Repair subscriptions which have been suspended in PayPal but not in WooCommerce. PR#2407
+* Fix: Make sure wcs_get_product_limitation() uses the parent product when determining variation product subscription limitations. PR#2513
+* Fix: Remove non-recurring fees from renewal carts. PR#2642
+* Fix: Don't autocomplete orders which have a subtotal greater than 0. PR#2665
+* Fix: [Reports] Exclude trashed subscriptions from all calculations. Fixes inconsistencies between some subscription counts. PR#2674
+* Fix: Check if the recurring_carts variable has been set before calling count() on it. PR#2688
+* Fix: Issues caused by a loophole where trashed or non grouped products remain a valid subscription product parent for switching. PR#2682
+* Fix: Check if there is no shipping method for a shipping zone before trying to access it when displaying cart HTML. PR#2701
+* Fix: Correctly calculate switching sign-up fee proration when switching between synced products. PR#2722
+* Fix: Indirect modification of WC_Checkout::$shipping_methods PHP errors. PR#2729
+* Fix: Only allow switching between products which are visible to the customer. PR#2727
+* Fix: [WC3.4] Only trigger the woocommerce_after_add_to_cart_button action hook once on variable subscription single product pages. PR#2750
+* Fix: [WC3.4] Fix missing endpoint settings. PR#2767
+* Fix: Remove unused chosen shipping methods for recurring packages. Fixes an issue where if the number of available shipping methods changes, the recurring carts hold onto their previously chosen method. PR#2782
+* Fix: Protect against possible errors when getting the subscriptions my account endpoint url. PR#2781
+* Tweak: Prevent bulk deletion of variations in use by at least one subscription. PR#2678
+* Tweak: Add better support for custom order types via `WC_Subscription::get_last_order()`. PR#2644
+* Tweak: Add `WCS_Admin_Post_Types::get_date_column_content()` helper function for displaying date content in post tables. PR#2643
+* Tweak: Change the Edit Subscription Schedule meta box titles. PR#2649
+* Tweak: Hide Recurring Coupons in the initial cart if they don't apply. PR#2616
+* Tweak: Add a filter to allow third-parties to filter orders by custom order types. PR#2667
+* Tweak: Don't schedule events for subscription start & last payment dates. PR#2669
+* Tweak: Add new `wcs_create_subscription` action. PR#2732
+* Tweak: Include variations in the "Subscriptions by product" reports. PR#2704
+* Tweak: Improve performance of getting a variable product's min and max variation data. PR#2723
+* Tweak: Add Subscription endpoints to the WC_Query endpoints. This allows our endpoints to be considered by functions like is_wc_endpoint_url() and also wc_body_class(). PR#2749
+* Tweak: Add an order note to renewal orders processed under staging site conditions. PR#2773
+* Tweak: Add a new badge to the subscriptions admin menu item when a site is operating as a staging site. PR#2773
+* Tweak: Add note to guest checkout setting, noting that an account is required when purchasing subscription products. PR#2751
+* Tweak: Deprecate the 'wcs_pre_get_users_subscriptions' filter. PR#2785
+* Tweak: Increase minimum required WC version to 2.6. PR#2786
+* Tweak: Remove TLC transient library and the cache manager which implemented it. PR#2614
+* Tweak: On site's already running WC 3.0 ensure all subscriptions have address indexes via a background repair script. PR#2605
+* Tweak: Require PHP 5.6 or newer. PR#2325
+* Tweak: Change 'created_via' order property for subscription orders. PR#2389
+* Tweak: Boost performance of admin subscription search by using billing and shipping indexes. PR#2409
+* Tweak: Add filter to control the automatic redirect behaviour of the Subscriptions menu item on My Account. PR#2633
+
 2018.05.29 - version 2.2.21
 * Tweak: Update WooCommerce tested up to compatibility flag.
 * Fix: [GDPR] While processing erasure requests anonymise all user subscriptions with any status. PR#2720

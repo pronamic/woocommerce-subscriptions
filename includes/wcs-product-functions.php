@@ -94,7 +94,7 @@ function wcs_get_variation_prices( $variation, $variable_product ) {
  * Get an array of the minimum and maximum priced variations based on subscription billing terms.
  *
  * @param array $child_variation_ids the IDs of product variation children ids
- * @return array() Array containing the min and max variation prices and billing data
+ * @return array Array containing the min and max variation prices and billing data
  * @since 2.2.0
  */
 function wcs_get_min_max_variation_data( $variable_product, $child_variation_ids = array() ) {

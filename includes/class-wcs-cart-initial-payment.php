@@ -22,6 +22,9 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 	public function __construct() {
 
 		$this->setup_hooks();
+
+		// When an order is paid for via checkout, ensure a new order isn't created due to mismatched cart hashes
+		add_filter( 'woocommerce_create_order', array( &$this, 'update_cart_hash' ), 10, 1 );
 	}
 
 	/**

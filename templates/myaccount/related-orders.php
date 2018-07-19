@@ -62,8 +62,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 					}
 
 					if ( in_array( $order->get_status(), apply_filters( 'woocommerce_valid_order_statuses_for_cancel', array( 'pending', 'failed' ), $order ) ) ) {
+						$redirect = wc_get_page_permalink( 'myaccount' );
+
+						if ( wcs_is_view_subscription_page() ) {
+							$redirect = $subscription->get_view_order_url();
+						}
+
 						$actions['cancel'] = array(
-							'url'  => $order->get_cancel_order_url( wc_get_page_permalink( 'myaccount' ) ),
+							'url'  => $order->get_cancel_order_url( $redirect ),
 							'name' => esc_html_x( 'Cancel', 'an action on a subscription', 'woocommerce-subscriptions' ),
 						);
 					}

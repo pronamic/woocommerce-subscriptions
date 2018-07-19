@@ -71,18 +71,13 @@ class WCS_Meta_Box_Related_Orders {
 
 			$initial_subscriptions = wcs_get_subscriptions_for_resubscribe_order( $this_subscription );
 
-			$resubscribed_subscriptions = get_posts( array(
-				'meta_key'       => '_subscription_resubscribe',
-				'meta_value'     => $post->ID,
-				'post_type'      => 'shop_subscription',
-				'post_status'    => 'any',
-				'posts_per_page' => -1,
-			) );
+			$resubscribe_order_ids = WCS_Related_Order_Store::instance()->get_related_order_ids( $this_subscription, 'resubscribe' );
 
-			foreach ( $resubscribed_subscriptions as $subscription ) {
-				$subscription = wcs_get_subscription( $subscription );
-				wcs_set_objects_property( $subscription, 'relationship', _x( 'Resubscribed Subscription', 'relation to order', 'woocommerce-subscriptions' ), 'set_prop_only' );
-				$orders[] = $subscription;
+			foreach ( $resubscribe_order_ids as $order_id ) {
+				$order    = wc_get_order( $order_id );
+				$relation = wcs_is_subscription( $order ) ? _x( 'Resubscribed Subscription', 'relation to order', 'woocommerce-subscriptions' ) : _x( 'Resubscribe Order', 'relation to order', 'woocommerce-subscriptions' );
+				wcs_set_objects_property( $order, 'relationship', $relation, 'set_prop_only' );
+				$orders[] = $order;
 			}
 		} else if ( wcs_order_contains_subscription( $post->ID, array( 'resubscribe' ) ) ) {
 			$initial_subscriptions = wcs_get_subscriptions_for_order( $post->ID, array( 'order_type' => array( 'resubscribe' ) ) );

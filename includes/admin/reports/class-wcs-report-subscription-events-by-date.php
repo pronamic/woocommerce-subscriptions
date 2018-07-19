@@ -66,6 +66,13 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 						'name'     => 'post_date',
 					),
 				),
+				'where' => array(
+					'post_status' => array(
+						'key'      => 'post_status',
+						'operator' => 'NOT IN',
+						'value'    => array( 'trash', 'auto-draft' ),
+					),
+				),
 				'group_by'            => $this->group_by_query,
 				'order_status'        => '',
 				'order_by'            => 'post_date ASC',
@@ -101,6 +108,13 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 						'name'      => 'renewal_totals',
 						'join_type' => 'LEFT',   // To avoid issues if there is no renewal_total meta
 						),
+				),
+				'where' => array(
+					'post_status' => array(
+						'key'      => 'post_status',
+						'operator' => 'NOT IN',
+						'value'    => array( 'trash', 'auto-draft' ),
+					),
 				),
 				'group_by'            => $this->group_by_query,
 				'order_status'        => $args['order_status'],
@@ -138,6 +152,13 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 						'join_type' => 'LEFT',   // To avoid issues if there is no resubscribe_total meta
 						),
 				),
+				'where' => array(
+					'post_status' => array(
+						'key'      => 'post_status',
+						'operator' => 'NOT IN',
+						'value'    => array( 'trash', 'auto-draft' ),
+					),
+				),
 				'group_by'            => $this->group_by_query,
 				'order_status'        => $args['order_status'],
 				'order_by'            => 'post_date ASC',
@@ -168,6 +189,13 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 						'name'     => 'switch_orders',
 					),
 				),
+				'where' => array(
+					'post_status' => array(
+						'key'      => 'post_status',
+						'operator' => 'NOT IN',
+						'value'    => array( 'trash', 'auto-draft' ),
+					),
+				),
 				'group_by'            => $this->group_by_query,
 				'order_status'        => $args['order_status'],
 				'order_by'            => 'post_date ASC',
@@ -195,6 +223,7 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 				WHERE subscription_posts.post_type = 'shop_subscription'
 					AND subscription_posts.post_date >= %s
 					AND subscription_posts.post_date < %s
+					AND subscription_posts.post_status NOT IN ( 'trash', 'auto-draft' )
 				GROUP BY order_id
 			) AS subscriptions ON subscriptions.order_id = order_posts.ID
 			LEFT JOIN {$wpdb->postmeta} AS order_total_post_meta
@@ -295,6 +324,7 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 				JOIN {$wpdb->postmeta} AS wcsmeta_cancel
 					ON wcsubs.ID = wcsmeta_cancel.post_id
 					AND wcsmeta_cancel.meta_key = %s
+					AND wcsubs.post_status NOT IN ( 'trash', 'auto-draft' )
 				GROUP BY YEAR( cancel_date ), MONTH( cancel_date ), DAY( cancel_date )
 				HAVING cancel_date BETWEEN %s AND %s
 				ORDER BY wcsmeta_cancel.meta_value ASC",
@@ -322,6 +352,7 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 				JOIN {$wpdb->postmeta} AS wcsmeta_end
 					ON wcsubs.ID = wcsmeta_end.post_id
 						AND wcsmeta_end.meta_key = %s
+						AND wcsubs.post_status NOT IN ( 'trash', 'auto-draft' )
 				GROUP BY YEAR( end_date ), MONTH( end_date ), DAY( end_date )
 				HAVING end_date BETWEEN %s AND %s
 				ORDER BY wcsmeta_end.meta_value ASC",

@@ -94,7 +94,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Initialize the subscription object.
 	 *
-	 * @param int|WC_Subscription $order
+	 * @param int|WC_Subscription $subscription
 	 */
 	public function __construct( $subscription ) {
 
@@ -257,30 +257,10 @@ class WC_Subscription extends WC_Order {
 		// And finally, check that the latest order (switch or renewal) doesn't need payment
 		} else {
 
-			$last_order_id = get_posts( array(
-				'posts_per_page' => 1,
-				'post_type'      => 'shop_order',
-				'post_status'    => 'any',
-				'fields'         => 'ids',
-				'orderby'        => 'ID',
-				'order'          => 'DESC',
-				'meta_query'     => array(
-					array(
-						'key'     => '_subscription_renewal',
-						'compare' => '=',
-						'value'   => $this->get_id(),
-						'type'    => 'numeric',
-					),
-				),
-			) );
+			$order = $this->get_last_order( 'all', array( 'renewal', 'switch' ) );
 
-			if ( ! empty( $last_order_id ) ) {
-
-				$order = wc_get_order( $last_order_id[0] );
-
-				if ( $order->needs_payment() || $order->has_status( array( 'on-hold', 'failed', 'cancelled' ) ) ) {
-					$needs_payment = true;
-				}
+			if ( $order && ( $order->needs_payment() || $order->has_status( array( 'on-hold', 'failed', 'cancelled' ) ) ) ) {
+				$needs_payment = true;
 			}
 		}
 
@@ -654,49 +634,21 @@ class WC_Subscription extends WC_Order {
 
 			$completed_payment_count = ( ( $parent_order = $this->get_parent() ) && ( null !== wcs_get_objects_property( $parent_order, 'date_paid' ) || $parent_order->has_status( $this->get_paid_order_statuses() ) ) ) ? 1 : 0;
 
-			// Get all renewal orders - for large sites its more efficient to find the two different sets of renewal orders below using post__in than complicated meta queries
-			$renewal_orders = get_posts( array(
-				'posts_per_page'         => -1,
-				'post_status'            => 'any',
-				'post_type'              => 'shop_order',
-				'fields'                 => 'ids',
-				'orderby'                => 'date',
-				'order'                  => 'desc',
-				'meta_key'               => '_subscription_renewal',
-				'meta_compare'           => '=',
-				'meta_type'              => 'numeric',
-				'meta_value'             => $this->get_id(),
-				'update_post_term_cache' => false,
-			) );
+			$paid_renewal_orders = array();
+			$renewal_order_ids   = $this->get_related_order_ids( 'renewal' );
 
-			if ( ! empty( $renewal_orders ) ) {
+			if ( ! empty( $renewal_order_ids ) ) {
 
-				// Not all gateways will call $order->payment_complete() so we need to find renewal orders with a paid status rather than just a _paid_date
-				$paid_status_renewal_orders = get_posts( array(
-					'posts_per_page' => -1,
-					'post_status'    => $this->get_paid_order_statuses(),
-					'post_type'      => 'shop_order',
-					'fields'         => 'ids',
-					'orderby'        => 'date',
-					'order'          => 'desc',
-					'post__in'       => $renewal_orders,
-				) );
+				// Looping over the known orders is faster than database queries on large sites
+				foreach ( $renewal_order_ids as $renewal_order_id ) {
 
-				// Some stores may be using custom order status plugins, we also can't rely on order status to find paid orders, so also check for a _paid_date
-				$paid_date_renewal_orders = get_posts( array(
-					'posts_per_page'         => -1,
-					'post_status'            => 'any',
-					'post_type'              => 'shop_order',
-					'fields'                 => 'ids',
-					'orderby'                => 'date',
-					'order'                  => 'desc',
-					'post__in'               => $renewal_orders,
-					'meta_key'               => '_paid_date',
-					'meta_compare'           => 'EXISTS',
-					'update_post_term_cache' => false,
-				) );
+					$renewal_order = wc_get_order( $renewal_order_id );
 
-				$paid_renewal_orders = array_unique( array_merge( $paid_date_renewal_orders, $paid_status_renewal_orders ) );
+					// Not all gateways call $order->payment_complete(), so with WC < 3.0 we need to find renewal orders with a paid date or a paid status. WC 3.0+ takes care of setting the paid date when payment_complete() wasn't called, so isn't needed with WC 3.0 or newer.
+					if ( $renewal_order && ( null !== wcs_get_objects_property( $renewal_order, 'date_paid' ) || $renewal_order->has_status( $this->get_paid_order_statuses() ) ) ) {
+						$paid_renewal_orders[] = $renewal_order_id;
+					}
+				}
 
 				if ( ! empty( $paid_renewal_orders ) ) {
 					$completed_payment_count += count( $paid_renewal_orders );
@@ -723,25 +675,10 @@ class WC_Subscription extends WC_Order {
 
 		$failed_payment_count = ( ( $parent_order = $this->get_parent() ) && $parent_order->has_status( 'failed' ) ) ? 1 : 0;
 
-		$failed_renewal_orders = get_posts( array(
-			'posts_per_page' => -1,
-			'post_status'    => 'wc-failed',
-			'post_type'      => 'shop_order',
-			'fields'         => 'ids',
-			'orderby'        => 'date',
-			'order'          => 'desc',
-			'meta_query'     => array(
-				array(
-					'key'     => '_subscription_renewal',
-					'compare' => '=',
-					'value'   => $this->get_id(),
-					'type'    => 'numeric',
-				),
-			),
-		) );
-
-		if ( ! empty( $failed_renewal_orders ) ) {
-			$failed_payment_count += count( $failed_renewal_orders );
+		foreach ( $this->get_related_orders( 'all', 'renewal' ) as $renewal_order ) {
+			if ( $renewal_order->has_status( 'failed' ) ) {
+				$failed_payment_count++;
+			}
 		}
 
 		return apply_filters( 'woocommerce_subscription_payment_failed_count', $failed_payment_count, $this );
@@ -1079,10 +1016,10 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * @since 2.2.0
 	 * @param string $date_type Any valid WC 3.0 date property, including 'date_paid', 'date_completed', 'date_created', or 'date_modified'
-	 * @param string $order_type The type of orders to return, can be 'last', 'parent', 'switch', 'renewal' or 'all'. Default 'all'. Use 'last' to only check the last order.
+	 * @param string $order_type The type of orders to return, can be 'last', 'parent', 'switch', 'renewal' or 'any'. Default 'any'. Use 'last' to only check the last order.
 	 * @return WC_DateTime|NULL object if the date is set or null if there is no date.
 	 */
-	protected function get_related_orders_date( $date_type, $order_type = 'all' ) {
+	protected function get_related_orders_date( $date_type, $order_type = 'any' ) {
 
 		$date = null;
 
@@ -1091,7 +1028,7 @@ class WC_Subscription extends WC_Order {
 			$date       = ( ! $last_order ) ? null : wcs_get_objects_property( $last_order, $date_type );
 		} else {
 			// Loop over orders until we find a valid date of this type or run out of related orders
-			foreach ( $this->get_related_orders( 'ids', $order_type ) as $related_order_id ) {
+			foreach ( $this->get_related_orders( 'all', $order_type ) as $related_order_id ) {
 				$related_order = wc_get_order( $related_order_id );
 				$date          = ( ! $related_order ) ? null : wcs_get_objects_property( $related_order, $date_type );
 				if ( is_a( $date, 'WC_Datetime' ) ) {
@@ -1813,68 +1750,76 @@ class WC_Subscription extends WC_Order {
 	 * Extracting the query from get_related_orders and get_last_order so it can be moved in a cached
 	 * value.
 	 *
+	 * @deprecated 2.3.0 Moved to WCS_Subscription_Data_Store_CPT::get_related_order_ids() to separate cache logic from subscription instances and to avoid confusion from the misnomer on this method's name - it gets renewal orders, not related orders - and its ambiguity - it runs a query and returns order IDs, it does not return a SQL query string or order objects.
 	 * @return array
 	 */
-	public function get_related_orders_query( $id ) {
-		$related_post_ids = get_posts( array(
-			'posts_per_page' => -1,
-			'post_type'      => 'shop_order',
-			'post_status'    => 'any',
-			'fields'         => 'ids',
-			'orderby'        => 'date',
-			'order'          => 'DESC',
-			'meta_query'     => array(
-				array(
-					'key'     => '_subscription_renewal',
-					'compare' => '=',
-					'value'   => $id,
-					'type'    => 'numeric',
-				),
-			),
-		) );
-
-		return $related_post_ids;
+	public function get_related_orders_query( $subscription_id ) {
+		wcs_deprecated_function( __METHOD__, '2.3.0', 'WCS_Subscription_Data_Store_CPT::get_related_order_ids( $subscription_id ) via WCS_Subscription_Data_Store::instance()' );
+		return WCS_Related_Order_Store::instance()->get_related_order_ids( $subscription_id, 'renewal' );
 	}
 
 	/**
 	 * Get the related orders for a subscription, including renewal orders and the initial order (if any)
 	 *
 	 * @param string $return_fields The columns to return, either 'all' or 'ids'
-	 * @param string $order_type The type of orders to return, either 'renewal' or 'all'. Default 'all'.
+	 * @param array|string $order_types Can include 'any', 'parent', 'renewal', 'resubscribe' and/or 'switch'. Custom types possible via the 'woocommerce_subscription_related_orders' filter. Defaults to array( 'parent', 'renewal' ).
 	 * @since 2.0
+	 * @return array
 	 */
-	public function get_related_orders( $return_fields = 'ids', $order_type = 'all' ) {
+	public function get_related_orders( $return_fields = 'ids', $order_types = array( 'parent', 'renewal' ) ) {
 
 		$return_fields = ( 'ids' == $return_fields ) ? $return_fields : 'all';
 
+		if ( 'all' === $order_types ) {
+			wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'The "all" value for $order_type parameter is deprecated. It was a misnomer, as it did not return resubscribe orders. It was also inconsistent with order type values accepted by wcs_get_subscription_orders(). Use array( "parent", "renewal", "switch" ) to maintain previous behaviour, or "any" to receive all order types, including switch and resubscribe.', 'woocommerce-subscriptions' ), __CLASS__ ) );
+			$order_types = array( 'parent', 'renewal', 'switch' );
+		} elseif ( ! is_array( $order_types ) ) {
+			// Accept either an array or string (to make it more convenient for singular types, like 'parent' or 'any')
+			$order_types = array( $order_types );
+		}
+
 		$related_orders = array();
+		foreach ( $order_types as $order_type ) {
 
-		$related_post_ids = WC_Subscriptions::$cache->cache_and_get( 'wcs-related-orders-to-' . $this->get_id(), array( $this, 'get_related_orders_query' ), array( $this->get_id() ) );
-
-		if ( 'all' == $return_fields ) {
-
-			foreach ( $related_post_ids as $post_id ) {
-				$related_orders[ $post_id ] = wc_get_order( $post_id );
+			$related_orders_for_order_type = array();
+			foreach ( $this->get_related_order_ids( $order_type ) as $order_id ) {
+				$related_orders_for_order_type[ $order_id ] = ( 'all' == $return_fields ) ? wc_get_order( $order_id ) : $order_id;
 			}
 
-			if ( false != $this->get_parent_id() && 'renewal' !== $order_type ) {
-				$related_orders[ $this->get_parent_id() ] = $this->get_parent();
-			}
-		} else {
+			$related_orders += apply_filters( 'woocommerce_subscription_related_orders', $related_orders_for_order_type, $this, $return_fields, $order_type );
+		}
 
-			// Return IDs only
-			if ( false != $this->get_parent_id() && 'renewal' !== $order_type ) {
-				$related_orders[ $this->get_parent_id() ] = $this->get_parent_id();
-			}
+		arsort( $related_orders );
 
-			foreach ( $related_post_ids as $post_id ) {
-				$related_orders[ $post_id ] = $post_id;
+		return $related_orders;
+	}
+
+	/**
+	 * Get the related order IDs for a subscription based on an order type.
+	 *
+	 * @param string $order_type Can include 'any', 'parent', 'renewal', 'resubscribe' and/or 'switch'. Defaults to 'any'.
+	 * @return array List of related order IDs.
+	 * @since 2.3.0
+	 */
+	protected function get_related_order_ids( $order_type = 'any' ) {
+
+		$related_order_ids = array();
+
+		if ( in_array( $order_type, array( 'any', 'parent' ) ) && $this->get_parent_id() ) {
+			$related_order_ids[ $this->get_parent_id() ] = $this->get_parent_id();
+		}
+
+		if ( 'parent' !== $order_type ) {
+
+			$relation_types = ( 'any' === $order_type ) ? array( 'renewal', 'resubscribe', 'switch' ) : array( $order_type );
+
+			foreach ( $relation_types as $relation_type ) {
+				$related_order_ids = array_merge( $related_order_ids, WCS_Related_Order_Store::instance()->get_related_order_ids( $this, $relation_type ) );
 			}
 		}
 
-		return apply_filters( 'woocommerce_subscription_related_orders', $related_orders, $this, $return_fields, $order_type );
+		return $related_order_ids;
 	}
-
 
 	/**
 	 * Gets the most recent order that relates to a subscription, including renewal orders and the initial order (if any).
@@ -1896,13 +1841,8 @@ class WC_Subscription extends WC_Order {
 						$related_orders[] = $this->get_parent_id();
 					}
 					break;
-				case 'renewal':
-					$related_orders = array_merge( $related_orders, WC_Subscriptions::$cache->cache_and_get( 'wcs-related-orders-to-' . $this->get_id(), array( $this, 'get_related_orders_query' ), array( $this->get_id() ) ) );
-					break;
-				case 'switch':
-					$related_orders = array_merge( $related_orders, array_keys( wcs_get_switch_orders_for_subscription( $this->get_id() ) ) );
-					break;
 				default:
+					$related_orders = array_merge( $related_orders, $this->get_related_order_ids( $order_type ) );
 					break;
 			}
 		}
@@ -2094,8 +2034,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * The total sign-up fee for the subscription if any.
 	 *
-	 * @param array|int Either an order item (in the array format returned by self::get_items()) or the ID of an order item.
-	 * @return bool
+	 * @return int
 	 * @since 2.0
 	 */
 	public function get_sign_up_fee() {
@@ -2157,6 +2096,8 @@ class WC_Subscription extends WC_Order {
 			} elseif ( 'true' === $line_item->get_meta( '_has_trial' ) ) {
 				// Sign up is amount paid for this item on original order, we can safely use 3.0 getters here because we know from the above condition 3.0 is active
 				$sign_up_fee = ( (float) $original_order_item->get_total( 'edit' ) ) / $original_order_item->get_quantity( 'edit' );
+			} elseif ( $original_order_item->meta_exists( '_synced_sign_up_fee' ) ) {
+				$sign_up_fee = ( (float) $original_order_item->get_meta( '_synced_sign_up_fee' ) ) / $original_order_item->get_quantity( 'edit' );
 			} else {
 				// Sign-up fee is any amount on top of recurring amount
 				$order_line_total        = ( (float) $original_order_item->get_total( 'edit' ) ) / $original_order_item->get_quantity( 'edit' );
@@ -2165,10 +2106,17 @@ class WC_Subscription extends WC_Order {
 				$sign_up_fee = max( $order_line_total - $subscription_line_total, 0 );
 			}
 
-			// If prices inc tax, ensure that the sign up fee amount includes the tax
-			if ( 'inclusive_of_tax' === $tax_inclusive_or_exclusive && ! empty( $original_order_item ) && $this->get_prices_include_tax() ) {
-				$proportion   = $sign_up_fee / ( $original_order_item->get_total( 'edit' ) / $original_order_item->get_quantity( 'edit' ) );
-				$sign_up_fee += round( $original_order_item->get_total_tax( 'edit' ) * $proportion, 2 );
+			if ( ! empty( $original_order_item ) && ! empty( $sign_up_fee ) ) {
+				$sign_up_fee_proportion = $sign_up_fee / ( $original_order_item->get_total( 'edit' ) / $original_order_item->get_quantity( 'edit' ) );
+				$sign_up_fee_tax        = wc_round_tax_total( $original_order_item->get_total_tax( 'edit' ) * $sign_up_fee_proportion );
+
+				// If prices don't inc tax, ensure that the sign up fee amount includes the tax.
+				if ( 'inclusive_of_tax' === $tax_inclusive_or_exclusive && ! $this->get_prices_include_tax() ) {
+					$sign_up_fee += $sign_up_fee_tax;
+				// If prices inc tax and the request is for prices exclusive of tax, remove the taxes.
+				} elseif ( 'inclusive_of_tax' !== $tax_inclusive_or_exclusive && $this->get_prices_include_tax() ) {
+					$sign_up_fee -= $sign_up_fee_tax;
+				}
 			}
 		}
 

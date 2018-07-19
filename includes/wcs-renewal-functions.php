@@ -33,7 +33,7 @@ function wcs_create_renewal_order( $subscription ) {
 		return new WP_Error( 'renewal-order-error', $renewal_order->get_error_message() );
 	}
 
-	wcs_set_objects_property( $renewal_order, 'subscription_renewal', $subscription->get_id(), 'save' );
+	WCS_Related_Order_Store::instance()->add_relation( $renewal_order, $subscription, 'renewal' );
 
 	return apply_filters( 'wcs_renewal_order_created', $renewal_order, $subscription );
 }
@@ -50,7 +50,9 @@ function wcs_order_contains_renewal( $order ) {
 		$order = wc_get_order( $order );
 	}
 
-	if ( wcs_is_order( $order ) && wcs_get_objects_property( $order, 'subscription_renewal' ) ) {
+	$related_subscriptions = wcs_get_subscriptions_for_renewal_order( $order );
+
+	if ( wcs_is_order( $order ) && ! empty( $related_subscriptions ) ) {
 		$is_renewal = true;
 	} else {
 		$is_renewal = false;
@@ -107,29 +109,11 @@ function wcs_cart_contains_failed_renewal_order_payment() {
 }
 
 /**
- * Get the subscription to which a renewal order relates.
+ * Get the subscription/s to which a resubscribe order relates.
  *
  * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
  * @since 2.0
  */
 function wcs_get_subscriptions_for_renewal_order( $order ) {
-
-	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
-		$order = wc_get_order( $order );
-	}
-
-	$subscriptions = array();
-
-	// Only use the order if we actually found a valid order object
-	if ( is_a( $order, 'WC_Abstract_Order' ) ) {
-		$subscription_ids = wcs_get_objects_property( $order, 'subscription_renewal', 'multiple' );
-
-		foreach ( $subscription_ids as $subscription_id ) {
-			if ( wcs_is_subscription( $subscription_id ) ) {
-				$subscriptions[ $subscription_id ] = wcs_get_subscription( $subscription_id );
-			}
-		}
-	}
-
-	return apply_filters( 'wcs_subscriptions_for_renewal_order', $subscriptions, $order );
+	return wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'renewal' ) );
 }

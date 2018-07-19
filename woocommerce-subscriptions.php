@@ -5,9 +5,9 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: http://prospress.com/
- * Version: 2.2.21
+ * Version: 2.3.2
  *
- * WC requires at least: 2.5
+ * WC requires at least: 2.6
  * WC tested up to: 3.4
  * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
  *
@@ -48,10 +48,12 @@ woothemes_queue_update( plugin_basename( __FILE__ ), '6115e6d7e297b623a169fdcf57
  *
  * @since 1.0
  */
-if ( ! is_woocommerce_active() || version_compare( get_option( 'woocommerce_db_version' ), '2.5', '<' ) ) {
+if ( ! is_woocommerce_active() || version_compare( get_option( 'woocommerce_db_version' ), '2.6', '<' ) ) {
 	add_action( 'admin_notices', 'WC_Subscriptions::woocommerce_inactive_notice' );
 	return;
 }
+
+define( 'WCS_INIT_TIMESTAMP', gmdate( 'U' ) );
 
 require_once( 'wcs-functions.php' );
 
@@ -89,8 +91,6 @@ require_once( 'includes/upgrades/class-wc-subscriptions-upgrader.php' );
 
 require_once( 'includes/upgrades/class-wcs-upgrade-logger.php' );
 
-require_once( 'includes/libraries/tlc-transients/tlc-transients.php' );
-
 require_once( 'includes/libraries/action-scheduler/action-scheduler.php' );
 
 require_once( 'includes/abstracts/abstract-wcs-scheduler.php' );
@@ -100,6 +100,10 @@ require_once( 'includes/class-wcs-action-scheduler.php' );
 require_once( 'includes/abstracts/abstract-wcs-cache-manager.php' );
 
 require_once( 'includes/class-wcs-cached-data-manager.php' );
+
+require_once( 'includes/class-wcs-post-meta-cache-manager.php' );
+
+require_once( 'includes/class-wcs-post-meta-cache-manager-many-to-one.php' );
 
 require_once( 'includes/class-wcs-cart-renewal.php' );
 
@@ -115,9 +119,43 @@ require_once( 'includes/class-wcs-cart-switch.php' );
 
 require_once( 'includes/class-wcs-limiter.php' );
 
+require_once( 'includes/interfaces/interface-wcs-cache-updater.php' );
+
+require_once( 'includes/abstracts/abstract-wcs-related-order-store.php' );
+
+require_once( 'includes/data-stores/class-wcs-related-order-store-cpt.php' );
+
+require_once( 'includes/data-stores/class-wcs-related-order-store-cached-cpt.php' );
+
+require_once( 'includes/abstracts/abstract-wcs-customer-store.php' );
+
+require_once( 'includes/data-stores/class-wcs-customer-store-cpt.php' );
+
+require_once( 'includes/data-stores/class-wcs-customer-store-cached-cpt.php' );
+
 require_once( 'includes/legacy/class-wcs-array-property-post-meta-black-magic.php' );
 
 require_once( 'includes/class-wcs-failed-scheduled-action-manager.php' );
+
+require_once( dirname( __FILE__ ) . '/includes/admin/class-wcs-admin-system-status.php' );
+
+require_once( 'includes/abstracts/abstract-wcs-debug-tool.php' );
+
+require_once( 'includes/abstracts/abstract-wcs-background-updater.php' );
+
+require_once( 'includes/admin/debug-tools/class-wcs-debug-tool-factory.php' );
+
+require_once( 'includes/admin/class-wcs-admin-notice.php' );
+
+require_once( 'includes/upgrades/class-wcs-upgrade-notice-manager.php' );
+
+require_once( 'includes/abstracts/abstract-wcs-background-upgrader.php' );
+
+require_once( 'includes/class-wcs-staging.php' );
+
+WCS_Admin_System_Status::init();
+WCS_Upgrade_Notice_Manager::init();
+WCS_Staging::init();
 
 /**
  * The main subscriptions class.
@@ -132,7 +170,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.2.21';
+	public static $version = '2.3.2';
 
 	private static $total_subscription_count = null;
 
@@ -175,11 +213,20 @@ class WC_Subscriptions {
 		// Load translation files
 		add_action( 'init', __CLASS__ . '::load_plugin_textdomain', 3 );
 
+		// Load frontend scripts
+		add_action( 'wp_enqueue_scripts', __CLASS__ . '::enqueue_frontend_scripts', 3 );
+
 		// Load dependent files
 		add_action( 'plugins_loaded', __CLASS__ . '::load_dependant_classes' );
 
 		// Attach hooks which depend on WooCommerce constants
 		add_action( 'plugins_loaded', __CLASS__ . '::attach_dependant_hooks' );
+
+		// Make sure the related order data store instance is loaded and initialised so that cache management will function
+		add_action( 'plugins_loaded', 'WCS_Related_Order_Store::instance' );
+
+		// Make sure the related order data store instance is loaded and initialised so that cache management will function
+		add_action( 'plugins_loaded', 'WCS_Customer_Store::instance' );
 
 		// Staging site or site migration notice
 		add_action( 'admin_notices', __CLASS__ . '::woocommerce_site_change_notice' );
@@ -191,11 +238,36 @@ class WC_Subscriptions {
 
 		add_action( 'in_plugin_update_message-' . plugin_basename( __FILE__ ), __CLASS__ . '::update_notice', 10, 2 );
 
+		// get details of orders of a customer
+		add_action( 'wp_ajax_wcs_get_customer_orders', __CLASS__ . '::get_customer_orders' );
+
 		self::$cache = WCS_Cache_Manager::get_instance();
 
 		$scheduler_class = apply_filters( 'woocommerce_subscriptions_scheduler', 'WCS_Action_Scheduler' );
 
 		self::$scheduler = new $scheduler_class();
+	}
+
+	 /**
+	 * Get customer's order details via ajax.
+	 */
+	public static function get_customer_orders() {
+		check_ajax_referer( 'get-customer-orders', 'security' );
+
+		if ( ! current_user_can( 'edit_shop_orders' ) ) {
+			wp_die( -1 );
+		}
+
+		$user_id = absint( $_POST['user_id'] );
+
+		$orders = wc_get_orders( array( 'customer' => $user_id, 'post_type' => 'shop_order', 'posts_per_page' => '-1' ) );
+
+		$customer_orders = array();
+		foreach ( $orders as $order ) {
+			$customer_orders[ wcs_get_objects_property( $order, 'id' ) ] = $order->get_order_number();
+		}
+
+		wp_send_json( $customer_orders );
 	}
 
 	/**
@@ -204,12 +276,12 @@ class WC_Subscriptions {
 	 * @since 2.2.0
 	 */
 	public static function add_data_stores( $data_stores ) {
-
+		// Our custom data stores.
 		$data_stores['subscription']                   = 'WCS_Subscription_Data_Store_CPT';
+		$data_stores['product-variable-subscription']  = 'WCS_Product_Variable_Data_Store_CPT';
 
-		// Use WC core data stores for our products
-		$data_stores['product-variable-subscription']  = 'WC_Product_Variable_Data_Store_CPT';
-		$data_stores['product-subscription_variation'] = 'WC_Product_Variation_Data_Store_CPT';
+		// Use WC core data stores for our products.
+		$data_stores['product-subscription_variation']      = 'WC_Product_Variation_Data_Store_CPT';
 		$data_stores['order-item-line_item_pending_switch'] = 'WC_Order_Item_Product_Data_Store';
 
 		return $data_stores;
@@ -331,6 +403,19 @@ class WC_Subscriptions {
 	}
 
 	/**
+	 * Enqueues scripts for frontend
+	 *
+	 * @since 2.3
+	 */
+	public static function enqueue_frontend_scripts() {
+		$dependencies = array( 'jquery' );
+
+		if ( is_cart() || is_checkout() ) {
+			wp_enqueue_script( 'wcs-cart', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/frontend/wcs-cart.js', $dependencies, WC_Subscriptions::$version, true );
+		}
+	}
+
+	/**
 	 * Enqueues stylesheet for the My Subscriptions table on the My Account page.
 	 *
 	 * @since 1.5
@@ -383,12 +468,25 @@ class WC_Subscriptions {
 	 */
 	public static function redirect_ajax_add_to_cart( $fragments ) {
 
-		$data = array(
-			'error'       => true,
-			'product_url' => wc_get_cart_url(),
-		);
+		$fragments['error'] = true;
+		$fragments['product_url'] = wc_get_cart_url();
 
-		return $data;
+		# Force error on add_to_cart() to redirect
+		add_filter( 'woocommerce_add_to_cart_validation', '__return_false', 10 );
+		add_filter( 'woocommerce_cart_redirect_after_error', __CLASS__ . '::redirect_to_cart', 10, 2 );
+		do_action( 'wc_ajax_add_to_cart' );
+
+		return $fragments;
+	}
+
+	/**
+	* Return a url for cart redirect.
+	*
+	* @since 2.3.0
+	*/
+	public static function redirect_to_cart( $permalink, $product_id ) {
+
+		return wc_get_cart_url();
 	}
 
 	/**
@@ -436,8 +534,8 @@ class WC_Subscriptions {
 
 			wc_add_notice( __( 'A subscription has been removed from your cart. Products and subscriptions can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
 
-			if ( WC_Subscriptions::is_woocommerce_pre( '3.0.8' ) ) {
-				// Redirect to cart page to remove subscription & notify shopper
+			// Redirect to cart page to remove subscription & notify shopper
+			if ( self::is_woocommerce_pre( '3.0.8' ) ) {
 				add_filter( 'add_to_cart_fragments', __CLASS__ . '::redirect_ajax_add_to_cart' );
 			} else {
 				add_filter( 'woocommerce_add_to_cart_fragments', __CLASS__ . '::redirect_ajax_add_to_cart' );
@@ -777,10 +875,9 @@ class WC_Subscriptions {
 			}
 		} else {
 			require_once( 'includes/class-wc-order-item-pending-switch.php' );
-
 			require_once( 'includes/data-stores/class-wcs-subscription-data-store-cpt.php' );
-
 			require_once( 'includes/deprecated/class-wcs-deprecated-filter-hooks.php' );
+			require_once( 'includes/data-stores/class-wcs-product-variable-data-store-cpt.php' );
 		}
 
 		// Provide a hook to enable running deprecation handling for stores that might want to check for deprecated code
@@ -797,6 +894,30 @@ class WC_Subscriptions {
 			require_once( 'includes/deprecated/class-wcs-dynamic-action-deprecator.php' );
 
 			require_once( 'includes/deprecated/class-wcs-dynamic-filter-deprecator.php' );
+		}
+
+		if ( class_exists( 'WCS_Early_Renewal' ) ) {
+			$notice = new WCS_Admin_Notice( 'error' );
+
+			$notice->set_simple_content( sprintf( __( '%1$sWarning!%2$s We can see the %1$sWooCommerce Subscriptions Early Renewal%2$s plugin is active. Version %3$s of %1$sWooCommerce Subscriptions%2$s comes with that plugin\'s functionality packaged into the core plugin. Please deactivate WooCommerce Subscriptions Early Renewal to avoid any conflicts.', 'woocommerce-subscriptions' ), '<b>', '</b>', self::$version ) );
+			$notice->set_actions( array(
+				array(
+					'name' => __( 'Installed Plugins', 'woocommerce-subscriptions' ),
+					'url'  => admin_url( 'plugins.php' ),
+				),
+			) );
+
+			$notice->display();
+		} else {
+			require_once( dirname( __FILE__ ) . '/includes/early-renewal/class-wcs-early-renewal-manager.php' );
+			WCS_Early_Renewal_Manager::init();
+
+			if ( WCS_Early_Renewal_Manager::is_early_renewal_enabled() ) {
+				require_once( dirname( __FILE__ ) . '/includes/early-renewal/class-wcs-cart-early-renewal.php' );
+				require_once( dirname( __FILE__ ) . '/includes/early-renewal/wcs-early-renewal-functions.php' );
+
+				new WCS_Cart_Early_Renewal();
+			}
 		}
 
 		$failed_scheduled_action_manager = new WCS_Failed_Scheduled_Action_Manager( new WC_Logger() );

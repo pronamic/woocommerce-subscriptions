@@ -116,10 +116,10 @@ class WCS_Upgrade_2_0 {
 					self::migrate_order_items( $new_subscription->get_id(), wcs_get_objects_property( $original_order, 'id' ) );
 
 					// Update renewal orders to link via post meta key instead of post_parent column
-					self::migrate_renewal_orders( $new_subscription->get_id(), wcs_get_objects_property( $original_order, 'id' ) );
+					self::migrate_renewal_orders( $new_subscription, wcs_get_objects_property( $original_order, 'id' ) );
 
 					// Make sure the resubscribe meta data is migrated to use the new subscription ID + meta key
-					self::migrate_resubscribe_orders( $new_subscription->get_id(), wcs_get_objects_property( $original_order, 'id' ) );
+					self::migrate_resubscribe_orders( $new_subscription, $original_order );
 
 					// If the order for this subscription contains a switch, make sure the switch meta data is migrated to use the new subscription ID + meta key
 					self::migrate_switch_meta( $new_subscription, $original_order, $subscription_item_id );
@@ -223,7 +223,7 @@ class WCS_Upgrade_2_0 {
 			}
 
 			$meta_key = str_replace( '_subscription', '', $raw_subscription->meta_key );
-			$meta_key = substr( $meta_key, 0, 1 ) == '_' ? substr( $meta_key, 1 ) : $meta_key;
+			$meta_key = wcs_maybe_unprefix_key( $meta_key );
 
 			if ( 'product_id' === $meta_key ) {
 				$subscriptions[ $raw_subscription->order_item_id ]['subscription_key'] = $subscriptions[ $raw_subscription->order_item_id ]['order_id'] . '_' . $raw_subscription->meta_value;
@@ -758,12 +758,12 @@ class WCS_Upgrade_2_0 {
 	 * order's ID, to 0, and then the new subscription's ID should be set as the '_subscription_renewal' post meta value on
 	 * the renewal order.
 	 *
-	 * @param int $subscription_id The ID of a 'shop_subscription' post type
+	 * @param WC_Subscription $subscription An instance of a 'shop_subscription' post type
 	 * @param int $order_id The ID of a 'shop_order' which created this susbcription
 	 * @return null
 	 * @since 2.0
 	 */
-	private static function migrate_renewal_orders( $subscription_id, $order_id ) {
+	private static function migrate_renewal_orders( $subscription, $order_id ) {
 		global $wpdb;
 
 		// Get the renewal order IDs
@@ -777,10 +777,10 @@ class WCS_Upgrade_2_0 {
 
 		// Set the post meta
 		foreach ( $renewal_order_ids as $renewal_order_id ) {
-			wcs_set_objects_property( wc_get_order( $renewal_order_id ), 'subscription_renewal', $subscription_id );
+			WCS_Related_Order_Store::instance()->add_relation( wc_get_order( $renewal_order_id ), $subscription, 'renewal' );
 		}
 
-		WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: migrated data for renewal orders %s', $subscription_id, implode( ', ', $renewal_order_ids ) ) );
+		WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: migrated data for renewal orders %s', $subscription->get_id(), implode( ', ', $renewal_order_ids ) ) );
 
 		$rows_affected = $wpdb->update(
 			$wpdb->posts,
@@ -795,7 +795,7 @@ class WCS_Upgrade_2_0 {
 			array( '%d', '%s' )
 		);
 
-		WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: %d rows of renewal order post_parent values changed', $subscription_id, count( $renewal_order_ids ) ) );
+		WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: %d rows of renewal order post_parent values changed', $subscription->get_id(), count( $renewal_order_ids ) ) );
 	}
 
 	/**
@@ -804,21 +804,24 @@ class WCS_Upgrade_2_0 {
 	 * original order's ID, to 0, and then the new subscription's ID should be set as the '_subscription_resubscribe' post meta value
 	 * on the resubscribe order.
 	 *
-	 * @param int $subscription_id The ID of a 'shop_subscription' post type
-	 * @param int $resubscribe_order_id The ID of a 'shop_order' which created this susbcription
+	 * @param WC_Subscription $new_subscription An instance of a 'shop_subscription' post type
+	 * @param WC_Order $resubscribe_order An instance of a 'shop_order' post type which created this subscription
 	 * @return null
 	 * @since 2.0
 	 */
-	private static function migrate_resubscribe_orders( $new_subscription_id, $resubscribe_order_id ) {
+	private static function migrate_resubscribe_orders( $new_subscription, $resubscribe_order ) {
 		global $wpdb;
+
+		$resubscribe_order_id = wcs_get_objects_property( $resubscribe_order, 'id' );
+		$new_subscription_id  = wcs_get_objects_property( $new_subscription, 'id' );
 
 		// Set the post meta on the new subscription and old order
 		foreach ( get_post_meta( $resubscribe_order_id, '_original_order', false ) as $original_order_id ) {
 
 			// Because self::get_subscriptions() orders by order ID, it's safe to use wcs_get_subscriptions_for_order() here because the subscription in the new format will have been created for the original order (because its ID will be < the resubscribe order's ID)
 			foreach ( wcs_get_subscriptions_for_order( $original_order_id ) as $old_subscription ) {
-				update_post_meta( $resubscribe_order_id, '_subscription_resubscribe', $old_subscription->get_id(), true );
-				update_post_meta( $new_subscription_id, '_subscription_resubscribe', $old_subscription->get_id(), true );
+				WCS_Related_Order_Store::instance()->add_relation( $resubscribe_order, $old_subscription, 'resubscribe' );
+				WCS_Related_Order_Store::instance()->add_relation( $new_subscription, $old_subscription, 'resubscribe' );
 			}
 
 			$wpdb->query( $wpdb->prepare(
@@ -891,7 +894,8 @@ class WCS_Upgrade_2_0 {
 
 			if ( wcs_is_subscription( $old_subscription ) ) {
 				// Link the old subscription's ID to the switch order using the new switch meta key
-				wcs_set_objects_property( $switch_order, 'subscription_switch', $old_subscription->get_id() );
+
+				WCS_Related_Order_Store::instance()->add_relation( $switch_order, $old_subscription, 'switch' );
 
 				// Now store the new/old item IDs for record keeping
 				foreach ( $old_subscription->get_items() as $item_id => $item ) {
