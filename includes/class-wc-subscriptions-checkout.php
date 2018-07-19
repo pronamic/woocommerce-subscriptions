@@ -225,7 +225,7 @@ class WC_Subscriptions_Checkout {
 			$subscription->set_total( $cart->total );
 
 			// Hook to adjust subscriptions before saving with WC 3.0+ (matches WC 3.0's new 'woocommerce_checkout_create_order' hook)
-			do_action( 'woocommerce_checkout_create_subscription', $subscription, $posted_data );
+			do_action( 'woocommerce_checkout_create_subscription', $subscription, $posted_data, $order, $cart );
 
 			// Save the subscription if using WC 3.0 & CRUD
 			$subscription->save();

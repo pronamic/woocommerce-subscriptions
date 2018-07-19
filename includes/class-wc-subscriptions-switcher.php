@@ -82,9 +82,6 @@ class WC_Subscriptions_Switcher {
 		// Make sure sign-up fees paid on switch orders are accounted for in an items sign-up fee
 		add_filter( 'woocommerce_subscription_items_sign_up_fee', __CLASS__ . '::subscription_items_sign_up_fee', 10, 4 );
 
-		// Make sure switch orders are included in related orders returned for a subscription
-		add_filter( 'woocommerce_subscription_related_orders', __CLASS__ . '::add_related_orders', 10, 4 );
-
 		// Display/indicate whether a cart switch item is a upgrade/downgrade/crossgrade
 		add_filter( 'woocommerce_cart_item_subtotal', __CLASS__ . '::add_cart_item_switch_direction', 10, 3 );
 
@@ -467,7 +464,7 @@ class WC_Subscriptions_Switcher {
 		}
 
 		$product = wc_get_product( $item['product_id'] );
-		$parent_products       = WC_Subscriptions_Product::get_parent_ids( $product );
+		$parent_products       = WC_Subscriptions_Product::get_visible_grouped_parent_product_ids( $product );
 		$additional_query_args = array();
 
 		// Grouped product
@@ -584,14 +581,14 @@ class WC_Subscriptions_Switcher {
 		$order = wc_get_order( $order_id );
 
 		// delete all the existing subscription switch links before adding new ones
-		wcs_delete_objects_property( $order, 'subscription_switch' );
+		WCS_Related_Order_Store::instance()->delete_relations( $order, 'switch' );
 
 		$switches = self::cart_contains_switches();
 
 		if ( false !== $switches ) {
 
 			foreach ( $switches as $switch_details ) {
-				wcs_set_objects_property( $order, 'subscription_switch', $switch_details['subscription_id'] );
+				WCS_Related_Order_Store::instance()->add_relation( $order, wcs_get_subscription( $switch_details['subscription_id'] ), 'switch' );
 			}
 		}
 	}
@@ -1323,7 +1320,7 @@ class WC_Subscriptions_Switcher {
 
 				// Because product add-ons etc. don't apply to sign-up fees, it's safe to use the product's sign-up fee value rather than the cart item's
 				$sign_up_fee_due  = WC_Subscriptions_Product::get_sign_up_fee( $product );
-				$sign_up_fee_paid = $subscription->get_items_sign_up_fee( $existing_item, 'inclusive_of_tax' );
+				$sign_up_fee_paid = $subscription->get_items_sign_up_fee( $existing_item, get_option( 'woocommerce_prices_include_tax' ) === 'yes' ? 'inclusive_of_tax' : 'exclusive_of_tax' );
 
 				// Make sure total prorated sign-up fee is prorated across total amount of sign-up fee so that customer doesn't get extra discounts
 				if ( $cart_item['quantity'] > $existing_item['qty'] ) {
@@ -1762,32 +1759,6 @@ class WC_Subscriptions_Switcher {
 	public static function add_print_switch_link( $table_content ) {
 		add_filter( 'woocommerce_order_item_meta_end', __CLASS__ . '::print_switch_link', 10, 3 );
 		return $table_content;
-	}
-
-	/**
-	 * Filter the WC_Subscription::get_related_orders() method to include switch orders.
-	 *
-	 * @since 2.0
-	 */
-	public static function add_related_orders( $related_orders, $subscription, $return_fields, $order_type ) {
-
-		if ( in_array( $order_type, array( 'all', 'switch' ) ) ) {
-
-			$switch_orders = wcs_get_switch_orders_for_subscription( $subscription->get_id() );
-
-			if ( 'all' == $return_fields ) {
-				$related_orders += $switch_orders;
-			} else {
-				foreach ( $switch_orders as $order_id => $order ) {
-					$related_orders[ $order_id ] = $order_id;
-				}
-			}
-
-			// This will change the ordering to be by ID instead of the default of date
-			krsort( $related_orders );
-		}
-
-		return $related_orders;
 	}
 
 	/**
@@ -2428,8 +2399,6 @@ class WC_Subscriptions_Switcher {
 		return $cart_contains_subscription_creating_switch;
 	}
 
-	/** Deprecated Methods **/
-
 	/**
 	 * Don't allow switched subscriptions to be cancelled.
 	 *
@@ -2687,6 +2656,40 @@ class WC_Subscriptions_Switcher {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Filter the WC_Subscription::get_related_orders() method to include switch orders.
+	 *
+	 * @since 2.0
+	 * @deprecated
+	 *
+	 * @param array           $related_orders
+	 * @param WC_Subscription $subscription
+	 * @param string          $return_fields
+	 * @param string          $order_type
+	 *
+	 * @return array
+	 */
+	public static function add_related_orders( $related_orders, $subscription, $return_fields, $order_type ) {
+		wcs_deprecated_function( __METHOD__, '2.3.0', 'wcs_get_switch_orders_for_subscription()' );
+		if ( in_array( $order_type, array( 'all', 'switch' ) ) ) {
+
+			$switch_orders = wcs_get_switch_orders_for_subscription( $subscription->get_id() );
+
+			if ( 'all' == $return_fields ) {
+				$related_orders += $switch_orders;
+			} else {
+				foreach ( $switch_orders as $order_id => $order ) {
+					$related_orders[ $order_id ] = $order_id;
+				}
+			}
+
+			// This will change the ordering to be by ID instead of the default of date
+			krsort( $related_orders );
+		}
+
+		return $related_orders;
 	}
 }
 WC_Subscriptions_Switcher::init();

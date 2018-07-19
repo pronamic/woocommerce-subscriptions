@@ -100,9 +100,17 @@ class WCS_Select2 {
 		$html = "\n<!--select2 -->\n";
 
 		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
-			$html .= '<input ';
-			$html .= $this->attributes_to_html( $this->attributes );
-			$html .= '/>';
+			if ( isset( $this->attributes['class'] ) && $this->attributes['class'] === 'wc-enhanced-select'  ) {
+				$html .= '<select ';
+				$html .= $this->attributes_to_html( $this->attributes );
+				$html .= '>';
+				$html .= '<option value=""></option>';
+				$html .= '</select>';
+			} else {
+				$html .= '<input ';
+				$html .= $this->attributes_to_html( $this->attributes );
+				$html .= '/>';
+			}
 		} else {
 			$attributes             = $this->attributes;
 			$selected_value         = isset( $attributes['selected'] ) ? $attributes['selected'] : '';

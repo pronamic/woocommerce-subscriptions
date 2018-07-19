@@ -79,7 +79,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</ul>
 				<?php } else { ?>
 		<div class="woocommerce-error">
-			<p> <?php esc_html_e( 'Sorry, it seems no payment gateways support changing the recurring payment method. Please contact us if you require assistance or to make alternate arrangements.', 'woocommerce-subscriptions' ); ?></p>
+			<p> <?php echo esc_html( apply_filters( 'woocommerce_no_available_payment_methods_message', __( 'Sorry, it seems no payment gateways support changing the recurring payment method. Please contact us if you require assistance or to make alternate arrangements.', 'woocommerce-subscriptions' ) ) ); ?></p>
 		</div>
 				<?php } ?>
 

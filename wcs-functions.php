@@ -193,7 +193,23 @@ function wcs_create_subscription( $args = array() ) {
 	update_post_meta( $subscription_id, '_customer_user', $args['customer_id'] );
 	update_post_meta( $subscription_id, '_order_version', $args['order_version'] );
 
-	return wcs_get_subscription( $subscription_id );
+	/**
+	 * Filter the newly created subscription object.
+	 *
+	 * @since 2.2.22
+	 * @param WC_Subscription $subscription
+	 */
+	$subscription = apply_filters( 'wcs_created_subscription', wcs_get_subscription( $subscription_id ) );
+
+	/**
+	 * Triggered after a new subscription is created.
+	 *
+	 * @since 2.2.22
+	 * @param WC_Subscription $subscription
+	 */
+	do_action( 'wcs_create_subscription', $subscription );
+
+	return $subscription;
 }
 
 /**
@@ -673,4 +689,92 @@ function wcs_is_view_subscription_page() {
  */
 function wcs_get_image_asset_url( $file_name ) {
 	return plugins_url( "/assets/images/{$file_name}", WC_Subscriptions::$plugin_file );
+}
+
+/**
+ * Search subscriptions
+ *
+ * @param string $term Term to search
+ * @return array of subscription ids
+ * @since 2.3.0
+ */
+function wcs_subscription_search( $term ) {
+	global $wpdb;
+
+	$subscription_ids = array();
+
+	if ( ! WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+
+		$data_store = WC_Data_Store::load( 'subscription' );
+		$subscription_ids = $data_store->search_subscriptions( str_replace( 'Order #', '', wc_clean( $term ) ) );
+
+	} else {
+
+		$search_order_id = str_replace( 'Order #', '', $term );
+		if ( ! is_numeric( $search_order_id ) ) {
+			$search_order_id = 0;
+		}
+
+		$search_fields = array_map( 'wc_clean', apply_filters( 'woocommerce_shop_subscription_search_fields', array(
+			'_order_key',
+			'_billing_company',
+			'_billing_address_1',
+			'_billing_address_2',
+			'_billing_city',
+			'_billing_postcode',
+			'_billing_country',
+			'_billing_state',
+			'_billing_email',
+			'_billing_phone',
+			'_shipping_address_1',
+			'_shipping_address_2',
+			'_shipping_city',
+			'_shipping_postcode',
+			'_shipping_country',
+			'_shipping_state',
+		) ) );
+
+		$subscription_ids = array_unique( array_merge(
+			$wpdb->get_col(
+				$wpdb->prepare( "
+					SELECT p1.post_id
+					FROM {$wpdb->postmeta} p1
+					INNER JOIN {$wpdb->postmeta} p2 ON p1.post_id = p2.post_id
+					WHERE
+						( p1.meta_key = '_billing_first_name' AND p2.meta_key = '_billing_last_name' AND CONCAT(p1.meta_value, ' ', p2.meta_value) LIKE '%%%s%%' )
+					OR
+						( p1.meta_key = '_shipping_first_name' AND p2.meta_key = '_shipping_last_name' AND CONCAT(p1.meta_value, ' ', p2.meta_value) LIKE '%%%s%%' )
+					OR
+						( p1.meta_key IN ('" . implode( "','", esc_sql( $search_fields ) ) . "') AND p1.meta_value LIKE '%%%s%%' )
+					",
+					esc_attr( $term ), esc_attr( $term ), esc_attr( $term )
+				)
+			),
+			$wpdb->get_col(
+				$wpdb->prepare( "
+					SELECT order_id
+					FROM {$wpdb->prefix}woocommerce_order_items as order_items
+					WHERE order_item_name LIKE '%%%s%%'
+					",
+					esc_attr( $term )
+				)
+			),
+			$wpdb->get_col(
+				$wpdb->prepare( "
+					SELECT p1.ID
+					FROM {$wpdb->posts} p1
+					INNER JOIN {$wpdb->postmeta} p2 ON p1.ID = p2.post_id
+					INNER JOIN {$wpdb->users} u ON p2.meta_value = u.ID
+					WHERE u.user_email LIKE '%%%s%%'
+					AND p2.meta_key = '_customer_user'
+					AND p1.post_type = 'shop_subscription'
+					",
+					esc_attr( $term )
+				)
+			),
+			array( $search_order_id )
+		) );
+	}
+
+	return $subscription_ids;
 }

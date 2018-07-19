@@ -3,7 +3,8 @@
  * Subscription Cached Data Manager Class
  *
  * @class    WCS_Cached_Data_Manager
- * @version  2.1.2
+ * @version  2.3.0
+ * @since    2.1.2
  * @package  WooCommerce Subscriptions/Classes
  * @category Class
  * @author   Prospress
@@ -15,20 +16,8 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	public function __construct() {
 		add_action( 'woocommerce_loaded', array( $this, 'load_logger' ) );
 
-		// Add filters for update / delete / trash post to purge cache
-		add_action( 'trashed_post', array( $this, 'purge_delete' ), 9999 ); // trashed posts aren't included in 'any' queries
-		add_action( 'untrashed_post', array( $this, 'purge_delete' ), 9999 ); // however untrashed posts are
-		add_action( 'before_delete_post', array( $this, 'purge_delete' ), 9999 ); // if forced delete is enabled
-		add_action( 'update_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 );
-		add_action( 'updated_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
-		add_action( 'deleted_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
-		add_action( 'added_post_meta', array( $this, 'purge_from_metadata' ), 9999, 4 ); // tied to '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
-
 		add_action( 'admin_init', array( $this, 'initialize_cron_check_size' ) ); // setup cron task to truncate big logs.
 		add_filter( 'cron_schedules', array( $this, 'add_weekly_cron_schedule' ) ); // create a weekly cron schedule
-
-		// Add actions to handle cache purge for users.
-		add_action( 'save_post', array( $this, 'purge_delete' ), 9999, 2 );
 	}
 
 	/**
@@ -79,15 +68,20 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * @param WP_Post $post    The post object (on certain hooks).
 	 */
 	public function purge_delete( $post_id, $post = null ) {
+		wcs_deprecated_function( __METHOD__, '2.3.0' );
+
 		$post_type = get_post_type( $post_id );
+
 		if ( 'shop_order' === $post_type ) {
-			foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'renewal' ) ) as $subscription ) {
-				$this->log( 'Calling purge delete on ' . current_filter() . ' for ' . $subscription->get_id() );
-				$this->clear_related_order_cache( $subscription );
+			wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Related order caching is now handled by %1$s.', 'woocommerce-subscriptions' ), 'WCS_Related_Order_Store' ) );
+			if ( is_callable( array( WCS_Related_Order_Store::instance(), 'delete_related_order_id_from_caches' ) ) ) {
+				WCS_Related_Order_Store::instance()->delete_related_order_id_from_caches( $post_id );
 			}
 		}
 
 		if ( 'shop_subscription' === $post_type ) {
+			wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT' ) );
+
 			// Purge wcs_do_subscriptions_exist cache, but only on the before_delete_post hook.
 			if ( doing_action( 'before_delete_post' ) ) {
 				$this->log( "Subscription {$post_id} deleted. Purging subscription cache." );
@@ -106,49 +100,28 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 *
 	 * @param $meta_id integer the ID of the meta in the meta table
 	 * @param $object_id integer the ID of the post we're updating on, only concerned with order IDs
-	 * @param $meta_key string the meta_key in the table, only concerned with '_subscription_renewal', '_subscription_resubscribe' & '_subscription_switch' keys
+	 * @param $meta_key string the meta_key in the table, only concerned with the '_customer_user' key
 	 * @param $meta_value mixed the ID of the subscription that relates to the order
 	 */
 	public function purge_from_metadata( $meta_id, $object_id, $meta_key, $meta_value ) {
-		static $combined_keys = null;
-		static $order_keys = array(
-			'_subscription_renewal'     => 1,
-			'_subscription_resubscribe' => 1,
-			'_subscription_switch'      => 1,
-		);
-		static $subscription_keys = array(
-			'_customer_user' => 1,
-		);
-
-		if ( null === $combined_keys ) {
-			$combined_keys = array_merge( $order_keys, $subscription_keys );
-		}
+		wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s and %2$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT', 'WCS_Post_Meta_Cache_Manager' ) );
 
 		// Ensure we're handling a meta key we actually care about.
-		if ( ! isset( $combined_keys[ $meta_key ] ) ) {
+		if ( '_customer_user' !== $meta_key || 'shop_subscription' !== get_post_type( $object_id ) ) {
 			return;
 		}
 
-		if ( 'shop_order' === get_post_type( $object_id ) && isset( $order_keys[ $meta_key ] ) ) {
-			$this->log( sprintf(
-				'Calling purge from %1$s on object %2$s and meta value %3$s due to %4$s meta key.',
-				current_filter(),
-				$object_id,
-				$meta_value,
-				$meta_key
-			) );
-			$this->clear_related_order_cache( $meta_value );
-		} elseif ( 'shop_subscription' === get_post_type( $object_id ) && isset( $subscription_keys[ $meta_key ] ) ) {
-			$this->purge_subscription_user_cache( $object_id );
-		}
+		$this->purge_subscription_user_cache( $object_id );
 	}
 
 	/**
 	 * Wrapper function to clear the cache that relates to related orders
 	 *
 	 * @param null $subscription_id
+	 * @deprecated 2.3.0
 	 */
 	protected function clear_related_order_cache( $subscription_id ) {
+		wcs_deprecated_function( __METHOD__, '2.3.0', __( 'new related order methods in WCS_Related_Order_Store', 'woocommerce-subscriptions' ) );
 
 		// if it's not a Subscription, we don't deal with it
 		if ( is_object( $subscription_id ) && $subscription_id instanceof WC_Subscription ) {
@@ -159,6 +132,12 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 			return;
 		}
 
+		// Clear the new cache, to honour the method call
+		if ( is_callable( array( WCS_Related_Order_Store::instance(), 'delete_caches_for_subscription' ) ) ) {
+			WCS_Related_Order_Store::instance()->delete_caches_for_subscription( $subscription_id );
+		}
+
+		// Clear the old cache, just in case it's still got data
 		$key = 'wcs-related-orders-to-' . $subscription_id;
 
 		$this->log( 'In the clearing, key being purged is this: ' . print_r( $key, true ) );
@@ -174,6 +153,8 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * @return bool
 	 */
 	public function delete_cached( $key ) {
+		wcs_deprecated_argument( __METHOD__, '2.3.0' );
+
 		if ( ! is_string( $key ) || empty( $key ) ) {
 			return false;
 		}
@@ -253,6 +234,8 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * @param int $subscription_id The subscription to purge.
 	 */
 	protected function purge_subscription_user_cache( $subscription_id ) {
+		wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s and %2$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT', 'WCS_Post_Meta_Cache_Manager' ) );
+
 		$subscription         = wcs_get_subscription( $subscription_id );
 		$subscription_user_id = $subscription->get_user_id();
 		$this->log( sprintf(
@@ -261,46 +244,5 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 			current_action()
 		) );
 		$this->delete_cached( "wcs_user_subscriptions_{$subscription_user_id}" );
-	}
-
-	/* Deprecated Functions */
-
-	/**
-	 * Wrapper function to clear cache that relates to related orders
-	 *
-	 * @param null $subscription_id
-	 */
-	public function wcs_clear_related_order_cache( $subscription_id = null ) {
-		_deprecated_function( __METHOD__, '2.1.2', __CLASS__ . '::clear_related_order_cache( $subscription_id )' );
-		$this->clear_related_order_cache( $subscription_id );
-	}
-
-	/**
-	 * Clearing for orders / subscriptions with sanitizing bits
-	 *
-	 * @param $post_id integer the ID of an order / subscription
-	 */
-	public function purge_subscription_cache_on_update( $post_id ) {
-		_deprecated_function( __METHOD__, '2.1.2', __CLASS__ . '::clear_related_order_cache( $subscription_id )' );
-
-		$post_type = get_post_type( $post_id );
-
-		if ( 'shop_subscription' === $post_type ) {
-
-			$this->clear_related_order_cache( $post_id );
-
-		} elseif ( 'shop_order' === $post_type ) {
-
-			$subscriptions = wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'any' ) );
-
-			if ( empty( $subscriptions ) ) {
-				$this->log( 'No subscriptions for this ID: ' . $post_id );
-			} else {
-				foreach ( $subscriptions as $subscription ) {
-					$this->log( 'Got subscription, calling clear_related_order_cache for ' . $subscription->get_id() );
-					$this->clear_related_order_cache( $subscription );
-				}
-			}
-		}
 	}
 }

@@ -206,27 +206,16 @@ function wcs_get_subscription_in_deprecated_structure( WC_Subscription $subscrip
 			}
 		}
 
-		$paid_renewal_order_ids = get_posts( array(
-			'posts_per_page' => -1,
-			'post_status'    => $subscription->get_paid_order_statuses(),
-			'post_type'      => 'shop_order',
-			'orderby'        => 'date',
-			'order'          => 'desc',
-			'fields'         => 'ids',
-			'meta_query'     => array(
-				array(
-					'key'     => '_subscription_renewal',
-					'compare' => '=',
-					'value'   => $subscription->get_id(),
-					'type'    => 'numeric',
-				),
-			),
-		) );
+		foreach ( $subscription->get_related_orders( 'all', 'renewal' ) as $renewal_order ) {
 
-		foreach ( $paid_renewal_order_ids as $paid_renewal_order_id ) {
-			$date_created = wcs_get_objects_property( wc_get_order( $paid_renewal_order_id ), 'date_created' );
-			if ( ! is_null( $date_created ) ) {
-				$completed_payments[] = wcs_get_datetime_utc_string( $date_created );
+			// Not all gateways would call $order->payment_complete() with WC < 3.0, so we need to find renewal orders with a paid status or a paid date (WC 3.0+ takes care of setting the paid date when payment_complete() wasn't called)
+			if ( null !== wcs_get_objects_property( $renewal_order, 'date_paid' ) || $renewal_order->has_status( $subscription->get_paid_order_statuses() ) ) {
+
+				$date_created = wcs_get_objects_property( $renewal_order, 'date_created' );
+
+				if ( ! is_null( $date_created ) ) {
+					$completed_payments[] = wcs_get_datetime_utc_string( $date_created );
+				}
 			}
 		}
 	}

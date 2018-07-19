@@ -24,7 +24,13 @@ function wcs_get_product_limitation( $product ) {
 		$product = wc_get_product( $product );
 	}
 
-	return apply_filters( 'woocommerce_subscriptions_product_limitation', WC_Subscriptions_Product::get_meta_data( $product, 'subscription_limit', 'no', 'use_default_value' ), $product );
+	if ( $product->is_type( 'variation' ) ) {
+		$parent_product = wc_get_product( $product->get_parent_id() );
+	} else {
+		$parent_product = $product;
+	}
+
+	return apply_filters( 'woocommerce_subscriptions_product_limitation', WC_Subscriptions_Product::get_meta_data( $parent_product, 'subscription_limit', 'no', 'use_default_value' ), $product );
 }
 
 /**

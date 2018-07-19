@@ -73,7 +73,7 @@ class WC_Subscriptions_Payment_Gateways {
 		if ( WC_Subscriptions_Cart::cart_contains_subscription() || ( isset( $_GET['order_id'] ) && wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
 
 			$accept_manual_renewals = ( 'no' !== get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals', 'no' ) ) ? true : false;
-			$subscriptions_in_cart  = count( WC()->cart->recurring_carts );
+			$subscriptions_in_cart  = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
 
 			foreach ( $available_gateways as $gateway_id => $gateway ) {
 

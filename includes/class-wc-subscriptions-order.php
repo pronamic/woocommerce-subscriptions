@@ -742,12 +742,19 @@ class WC_Subscriptions_Order {
 					case 'switch' :
 						$meta_key = '_subscription_switch';
 						break;
+					default:
+						$meta_key = '';
+						break;
 				}
 
-				$vars['meta_query'][] = array(
-					'key'     => $meta_key,
-					'compare' => 'EXISTS',
-				);
+				$meta_key = apply_filters( 'woocommerce_subscriptions_admin_order_type_filter_meta_key', $meta_key, $_GET['shop_order_subtype'] );
+
+				if ( ! empty( $meta_key ) ) {
+					$vars['meta_query'][] = array(
+						'key'     => $meta_key,
+						'compare' => 'EXISTS',
+					);
+				}
 			}
 
 			// Also exclude parent orders from non-subscription query
@@ -1047,7 +1054,7 @@ class WC_Subscriptions_Order {
 		$order = wc_get_order( $order_id );
 		add_filter( 'woocommerce_payment_complete_order_status', __METHOD__, 10, 2 );
 
-		if ( 'processing' == $new_order_status && $order->get_total() == 0 && wcs_order_contains_subscription( $order ) ) {
+		if ( 'processing' == $new_order_status && $order->get_subtotal() == 0 && wcs_order_contains_subscription( $order ) ) {
 
 			if ( wcs_order_contains_resubscribe( $order ) ) {
 				$new_order_status = 'completed';
