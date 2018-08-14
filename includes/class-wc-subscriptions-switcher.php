@@ -1372,16 +1372,12 @@ class WC_Subscriptions_Switcher {
 			// Find the $price per day for the old subscription's recurring total
 			$old_price_per_day = $days_in_old_cycle > 0 ? $old_recurring_total / $days_in_old_cycle : $old_recurring_total;
 
-			// Find the price per day for the new subscription's recurring total
-			// If the subscription uses the same billing interval & cycle as the old subscription,
-			if ( WC_Subscriptions_Product::get_period( $item_data ) == $subscription->get_billing_period() && WC_Subscriptions_Product::get_interval( $item_data ) == $subscription->get_billing_interval() ) {
+			// Find the price per day for the new subscription's recurring total based on billing schedule
+			$days_in_new_cycle = wcs_get_days_in_cycle( WC_Subscriptions_Product::get_period( $item_data ), WC_Subscriptions_Product::get_interval( $item_data ) );
 
-				$days_in_new_cycle = $days_in_old_cycle; // Use $days_in_old_cycle to make sure they're consistent
-
-			} else {
-
-				// We need to figure out the price per day for the new subscription based on its billing schedule
-				$days_in_new_cycle = wcs_get_days_in_cycle( WC_Subscriptions_Product::get_period( $item_data ), WC_Subscriptions_Product::get_interval( $item_data ) );
+			// Set days in new cycle to days in old if it only differs because of rounding
+			if ( ceil( $days_in_new_cycle ) == $days_in_old_cycle || floor( $days_in_new_cycle ) == $days_in_old_cycle ) {
+				$days_in_new_cycle = $days_in_old_cycle;
 			}
 
 			// We need to use the cart items price to ensure we include extras added by extensions like Product Add-ons, but we don't want the sign-up fee accounted for in the price, so make sure WC_Subscriptions_Cart::set_subscription_prices_for_calculation() isn't adding that.
@@ -1410,12 +1406,7 @@ class WC_Subscriptions_Switcher {
 
 						// Find out how many days at the new price per day the customer would receive for the total amount already paid
 						// (e.g. if the customer paid $10 / month previously, and was switching to a $5 / week subscription, she has pre-paid 14 days at the new price)
-						$pre_paid_days = $new_total_paid = 0;
-
-						while ( $new_total_paid < $old_recurring_total ) {
-							$pre_paid_days++;
-							$new_total_paid = $pre_paid_days * $new_price_per_day;
-						}
+						$pre_paid_days = self::calculate_pre_paid_days( $old_recurring_total, $new_price_per_day );
 
 						// If the total amount the customer has paid entitles her to more days at the new price than she has received, there is no gap payment, just shorten the pre-paid term the appropriate number of days
 						if ( $days_since_last_payment < $pre_paid_days ) {
@@ -1461,15 +1452,12 @@ class WC_Subscriptions_Switcher {
 				} elseif ( $old_price_per_day > $new_price_per_day && $new_price_per_day > 0 ) {
 
 					$old_total_paid = $old_price_per_day * $days_until_next_payment;
-					$new_total_paid = $new_price_per_day;
 
 					// if downgrades are apportioned, extend the next payment date for n more days
 					if ( in_array( $apportion_recurring_price, array( 'virtual', 'yes' ) ) ) {
 
 						// Find how many more days at the new lower price it takes to exceed the amount already paid
-						for ( $days_to_add = 0; $new_total_paid <= $old_total_paid; $days_to_add++ ) {
-							$new_total_paid = $days_to_add * $new_price_per_day;
-						}
+						$days_to_add = self::calculate_pre_paid_days( $old_total_paid, $new_price_per_day );
 
 						$days_to_add -= $days_until_next_payment;
 					} else {
@@ -1499,6 +1487,21 @@ class WC_Subscriptions_Switcher {
 				wcs_set_objects_property( WC()->cart->cart_contents[ $cart_item_key ]['data'], 'subscription_length', $length_remaining, 'set_prop_only' );
 			}
 		}
+	}
+
+	/**
+	* Calculate the number of days that have already been paid
+	*
+	* @param int $old_total_paid The amount paid previously, such as the old recurring total
+	* @param int $new_price_per_day The amount per day price for the new subscription
+	* @return int $pre_paid_days The number of days paid for already
+	*/
+	private static function calculate_pre_paid_days( $old_total_paid, $new_price_per_day ) {
+		$pre_paid_days = 0;
+		if ( 0 != $new_price_per_day ) {
+			$pre_paid_days = ceil( $old_total_paid / $new_price_per_day );
+		}
+		return $pre_paid_days;
 	}
 
 	/**

@@ -25,6 +25,7 @@ class WCS_Repair_Suspended_PayPal_Subscriptions extends WCS_Background_Upgrader 
 	 * Constructor.
 	 *
 	 * @param WC_Logger $logger The WC Logger instance.
+	 *
 	 * @since 2.3.0
 	 */
 	public function __construct( WC_Logger $logger ) {
@@ -46,10 +47,17 @@ class WCS_Repair_Suspended_PayPal_Subscriptions extends WCS_Background_Upgrader 
 				throw new Exception( 'Failed to instantiate subscription object' );
 			}
 
+			remove_filter( 'woocommerce_subscription_payment_gateway_supports', 'WCS_PayPal_Supports::add_feature_support_for_subscription', 10 );
 			$subscription->update_status( 'on-hold', __( 'Subscription suspended by Database repair script. This subscription was suspended via PayPal.', 'woocommerce-subscriptions' ) );
 
 			$this->log( sprintf( 'Subscription ID %d suspended from 2.3.0 PayPal database repair script.', $subscription_id ) );
 		} catch ( Exception $e ) {
+			if ( $subscription ) {
+				// Adds meta to subscription in order to avoid this being updated again.
+				$subscription->update_meta_data( 'wcs_repair_suspended_paypal_subscription_failed', true );
+				$subscription->save();
+			}
+
 			$this->log( sprintf( '--- Exception caught repairing subscription %d - exception message: %s ---', $subscription_id, $e->getMessage() ) );
 		}
 	}
@@ -81,6 +89,10 @@ class WCS_Repair_Suspended_PayPal_Subscriptions extends WCS_Background_Upgrader 
 					'key'     => '_paypal_subscription_id',
 					'value'   => 'B-%',
 					'compare' => 'NOT LIKE',
+				),
+				array(
+					'key'     => 'wcs_repair_suspended_paypal_subscription_failed',
+					'compare' => 'NOT EXISTS',
 				),
 			),
 		) );

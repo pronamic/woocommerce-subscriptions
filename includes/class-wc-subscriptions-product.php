@@ -887,11 +887,6 @@ class WC_Subscriptions_Product {
 
 		if ( ! isset( $data['value'] ) ) {
 			return;
-		} elseif ( WC_Subscriptions::is_woocommerce_pre( '2.5' ) ) {
-			// Pre 2.5 we don't have the product type information available so we have to check if it is a subscription - downside here is this only works if the product has already been saved
-			if ( ! self::is_subscription( $variable_product_id ) ) {
-				return;
-			}
 		} else {
 			// Since 2.5 we have the product type information available so we don't have to wait for the product to be saved to check if it is a subscription
 			if ( empty( $_POST['security'] ) || ! wp_verify_nonce( $_POST['security'], 'bulk-edit-variations' ) || 'variable-subscription' !== $_POST['product_type'] ) {
