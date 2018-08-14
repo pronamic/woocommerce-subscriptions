@@ -208,6 +208,7 @@ function wcs_get_calling_function_name() {
  * @return mixed If data exists in a transient, the value of the transient, else boolean false.
  */
 function wcs_get_transient_even_if_expired( $transient_key ) {
+	wcs_deprecated_function( __FUNCTION__, '2.3.3' );
 
 	// First, check if the transient exists via the Options API to access the value in the database without WordPress checking the transient's expiration time (and returning false if it's < now)
 	$transient_value = get_option( sprintf( '_transient_%s', $transient_key ) );

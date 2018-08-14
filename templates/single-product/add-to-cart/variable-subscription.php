@@ -31,6 +31,9 @@ do_action( 'woocommerce_before_add_to_cart_form' ); ?>
 				<p class="limited-subscription-notice notice"><?php esc_html_e( 'You have an active subscription to this product already.', 'woocommerce-subscriptions' ); ?></p>
 			<?php endif; ?>
 		<?php else : ?>
+			<?php if ( ! empty( wp_list_filter( $available_variations, array( 'is_purchasable' => false ) ) ) ) : ?>
+				<p class="limited-subscription-notice notice"><?php esc_html_e( 'You have added a variation of this product to the cart already.', 'woocommerce-subscriptions' ); ?></p>
+			<?php endif; ?>
 			<table class="variations" cellspacing="0">
 				<tbody>
 				<?php foreach ( $attributes as $attribute_name => $options ) : ?>
@@ -44,7 +47,7 @@ do_action( 'woocommerce_before_add_to_cart_form' ); ?>
 							?>
 						</td>
 					</tr>
-				<?php endforeach;?>
+				<?php endforeach; ?>
 				</tbody>
 			</table>
 

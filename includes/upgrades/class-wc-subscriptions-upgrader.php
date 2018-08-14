@@ -102,6 +102,7 @@ class WC_Subscriptions_Upgrader {
 		add_action( 'init', array( __CLASS__, 'maybe_add_subscription_address_indexes' ), 2 );
 
 		add_action( 'admin_notices', array( __CLASS__, 'maybe_add_downgrade_notice' ) );
+		add_action( 'admin_notices', array( __CLASS__, 'maybe_display_external_object_cache_warning' ) );
 
 		add_action( 'init', array( __CLASS__, 'initialise_background_updaters' ), 0 );
 	}
@@ -220,6 +221,14 @@ class WC_Subscriptions_Upgrader {
 		// If the store is running WC 3.0, repair subscriptions with missing address indexes.
 		if ( '0' !== self::$active_version && version_compare( self::$active_version, '2.3.0', '<' ) && version_compare( WC()->version, '3.0', '>=' ) ) {
 			self::$background_updaters['2.3']['address_indexes_repair']->schedule_repair();
+		}
+
+		if ( version_compare( self::$active_version, '2.3.0', '>=' ) && version_compare( self::$active_version, '2.3.3', '<' ) && wp_using_ext_object_cache() ) {
+			$has_transient_cache = $wpdb->get_var( "SELECT option_id FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_wcs-related-orders-to%' OR option_name LIKE '_transient_wcs_user_subscriptions_%' LIMIT 1;" );
+
+			if ( ! empty( $has_transient_cache ) ) {
+				update_option( 'wcs_display_2_3_3_warning', 'yes' );
+			}
 		}
 
 		self::upgrade_complete();
@@ -845,6 +854,45 @@ class WC_Subscriptions_Upgrader {
 				$updater->init();
 			}
 		}
+	}
+
+	/**
+	 * Display an admin notice if the site had customer subscription and/or subscription renewal order cached data stored in the options table
+	 * and was using an external object cache at the time of updating to 2.3.3.
+	 *
+	 * Under these circumstances, there is a chance that the persistent caches introduced in 2.3 could contain invalid data.
+	 *
+	 * @see https://github.com/Prospress/woocommerce-subscriptions/issues/2822 for more details.
+	 * @since 2.3.3
+	 */
+	public static function maybe_display_external_object_cache_warning() {
+		$option_name = 'wcs_display_2_3_3_warning';
+		$nonce       = '_wcsnonce';
+		$action      = 'wcs_external_cache_warning';
+
+		// First, check if the notice is being dismissed.
+		if ( isset( $_GET[ $action ], $_GET[ $nonce ] ) && wp_verify_nonce( $_GET[ $nonce ], $action ) ) {
+			delete_option( $option_name );
+			return;
+		}
+
+		if ( 'yes' !== get_option( $option_name ) ) {
+			return;
+		}
+
+		$admin_notice = new WCS_Admin_Notice( 'error' );
+		$admin_notice->set_simple_content( sprintf( esc_html__( '%1$sWarning!%2$s We discovered an issue in %1$sWooCommerce Subscriptions 2.3.0 - 2.3.2%2$s that may cause your subscription renewal order and customer subscription caches to contain invalid data. For information about how to update the cached data, please %3$sopen a new support ticket%4$s.', 'woocommerce-subscriptions' ),
+			'<strong>', '</strong>',
+			'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">', '</a>'
+		) );
+		$admin_notice->set_actions( array(
+			array(
+				'name' => 'Dismiss',
+				'url'  => wp_nonce_url( add_query_arg( $action, 'dismiss' ), $action, $nonce ),
+			),
+		) );
+
+		$admin_notice->display();
 	}
 
 	/**

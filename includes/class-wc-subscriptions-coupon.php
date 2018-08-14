@@ -196,8 +196,8 @@ class WC_Subscriptions_Coupon {
 		if ( ! wcs_cart_contains_renewal() && ! WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
 			return $discount;
 		}
-		// But if cart contains a renewal, we need to handle both subscription products and manually added non-susbscription products that could be part of a subscription
-		if ( wcs_cart_contains_renewal() && ! self::is_subsbcription_renewal_line_item( $cart_item['data'], $cart_item ) ) {
+		// But if cart contains a renewal, we need to handle both subscription products and manually added non-subscription products that could be part of a subscription
+		if ( wcs_cart_contains_renewal() && ! self::is_subscription_renewal_line_item( $cart_item['data'], $cart_item ) ) {
 			return $discount;
 		}
 
@@ -552,6 +552,19 @@ class WC_Subscriptions_Coupon {
 		foreach ( $applied_coupons as $coupon_code ) {
 			$coupon      = new WC_Coupon( $coupon_code );
 			$coupon_type = wcs_get_coupon_property( $coupon, 'discount_type' );
+
+			/**
+			 * Filters whether the coupon should be allowed to be removed.
+			 *
+			 * @param bool      $bypass_removal   Whether to bypass removing the coupon.
+			 * @param WC_Coupon $coupon           The coupon object.
+			 * @param string    $coupon_type      The coupon's discount_type property.
+			 * @param string    $calculation_type The current calculation type.
+			 */
+			if ( apply_filters( 'wcs_bypass_coupon_removal', false, $coupon, $coupon_type, $calculation_type ) ) {
+				continue;
+			}
+
 			if ( ! isset( self::$recurring_coupons[ $coupon_type ] ) ) {
 				$cart->remove_coupon( $coupon_code );
 				continue;
@@ -625,15 +638,14 @@ class WC_Subscriptions_Coupon {
 	}
 
 	/**
-	 * Check if a product is a renewal order line item (rather than a "susbscription") - to pick up non-subsbcription products added a subscription manually
+	 * Check if a product is a renewal order line item (rather than a "subscription") - to pick up non-subscription products added to a subscription manually
 	 *
 	 * @param int|WC_Product $product_id
 	 * @param array $cart_item
-	 * @param WC_Cart $cart The WooCommerce cart object.
 	 * @return boolean whether a product is a renewal order line item
 	 * @since 2.0.10
 	 */
-	private static function is_subsbcription_renewal_line_item( $product_id, $cart_item ) {
+	private static function is_subscription_renewal_line_item( $product_id, $cart_item ) {
 
 		$is_subscription_line_item = false;
 
@@ -730,6 +742,43 @@ class WC_Subscriptions_Coupon {
 		}
 
 		return $has_coupon;
+	}
+
+	/**
+	 * Determine if a given recurring cart contains a limited use coupon which when applied to a subscription will reach its usage limit within the subscription's length.
+	 *
+	 * @param WC_Cart $recurring_cart The recurring cart object.
+	 * @return bool
+	 */
+	public static function recurring_cart_contains_expiring_coupon( $recurring_cart ) {
+		$limited_recurring_coupons = array();
+
+		if ( isset( $recurring_cart->applied_coupons ) ) {
+			$limited_recurring_coupons = array_filter( $recurring_cart->applied_coupons, array( __CLASS__, 'coupon_is_limited' ) );
+		}
+
+		// Bail early if there are no limited coupons applied to the recurring cart or if there is no discount provided.
+		if ( empty( $limited_recurring_coupons ) || ! $recurring_cart->discount_cart ) {
+			return false;
+		}
+
+		$has_expiring_coupon   = false;
+		$subscription_length   = wcs_cart_pluck( $recurring_cart, 'subscription_length' );
+		$subscription_payments = $subscription_length / wcs_cart_pluck( $recurring_cart, 'subscription_period_interval' );
+
+		// Limited recurring coupons will always expire at some point on subscriptions with no length.
+		if ( empty( $subscription_length ) ) {
+			$has_expiring_coupon = true;
+		} else {
+			foreach ( $limited_recurring_coupons as $code ) {
+				if ( WC_Subscriptions_Coupon::get_coupon_limit( $code ) < $subscription_payments ) {
+					$has_expiring_coupon = true;
+					break;
+				}
+			}
+		}
+
+		return $has_expiring_coupon;
 	}
 
 	/**
@@ -951,7 +1000,7 @@ class WC_Subscriptions_Coupon {
 			 */
 			$refunded = $order->get_total_refunded();
 			$total    = $order->get_total();
-			if ( null !== $refunded && $total == $refunded ) {
+			if ( $refunded && $total == $refunded ) {
 				continue;
 			}
 
@@ -1046,12 +1095,7 @@ class WC_Subscriptions_Coupon {
 				$coupon_type   = wcs_get_coupon_property( $coupon, 'discount_type' );
 				$coupon_amount = wcs_get_coupon_property( $coupon, 'coupon_amount' );
 
-				// Pre 2.5 is_valid_for_product() does not use wc_get_product_coupon_types()
-				if ( WC_Subscriptions::is_woocommerce_pre( '2.5' ) ) {
-					$is_valid_for_product = true;
-				} else {
-					$is_valid_for_product = $coupon->is_valid_for_product( $cart_item['data'], $cart_item );
-				}
+				$is_valid_for_product = $coupon->is_valid_for_product( $cart_item['data'], $cart_item );
 
 				if ( $coupon->apply_before_tax() && $coupon->is_valid() && $is_valid_for_product ) {
 

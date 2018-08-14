@@ -12,6 +12,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WCS_Product_Variable_Data_Store_CPT extends WC_Product_Variable_Data_Store_CPT {
 
 	/**
+	 * A cache of products having their min and max variation data read.
+	 * Used as a circuit breaker to prevent multiple object reads causing infinite loops.
+	 *
+	 * @var array
+	 */
+	protected static $reading_min_max_variation_data = array();
+
+	/**
 	 * Method to read a product from the database.
 	 *
 	 * @param WC_Product_Variable_Subscription $product Product object.
@@ -28,11 +36,14 @@ class WCS_Product_Variable_Data_Store_CPT extends WC_Product_Variable_Data_Store
 	 * @param WC_Product_Variable_Subscription $product Product object.
 	 */
 	protected function read_min_max_variation_data( &$product ) {
-		if ( ! $product->meta_exists( '_min_max_variation_ids_hash' ) ) {
+		if ( ! isset( self::$reading_min_max_variation_data[ $product->get_id() ] ) && ! $product->meta_exists( '_min_max_variation_ids_hash' ) ) {
+			self::$reading_min_max_variation_data[ $product->get_id() ] = '';
+
 			$product->set_min_and_max_variation_data();
 
 			update_post_meta( $product->get_id(), '_min_max_variation_data', $product->get_meta( '_min_max_variation_data', true ), true );
 			update_post_meta( $product->get_id(), '_min_max_variation_ids_hash', $product->get_meta( '_min_max_variation_ids_hash', true ), true );
+			unset( self::$reading_min_max_variation_data[ $product->get_id() ] );
 		}
 	}
 }

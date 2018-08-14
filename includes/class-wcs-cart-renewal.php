@@ -51,6 +51,9 @@ class WCS_Cart_Renewal {
 
 		// Remove non-recurring fees from renewal carts. Hooked in late (priority 1000), to ensure we handle all fees added by third-parties.
 		add_action( 'woocommerce_cart_calculate_fees', array( $this, 'remove_non_recurring_fees' ), 1000 );
+
+		// Remove subscription products with "one time shipping" from shipping packages.
+		add_filter( 'woocommerce_cart_shipping_packages', array( $this, 'maybe_update_shipping_packages' ), 0, 1 );
 	}
 
 	/**
@@ -190,11 +193,16 @@ class WCS_Cart_Renewal {
 
 					do_action( 'wcs_before_renewal_setup_cart_subscription', $subscription, $order );
 
-					// Add the existing subscription items to the cart
-					$this->setup_cart( $order, array(
-						'subscription_id'  => $subscription->get_id(),
-						'renewal_order_id' => $order_id,
-					) );
+					// Check if order/subscription can be paid for
+					if ( empty( $subscription ) || ! $subscription->has_status( array( 'on-hold', 'pending' ) ) ) {
+						wc_add_notice( __( 'This order can no longer be paid because the corresponding subscription does not require payment at this time.', 'woocommerce-subscriptions' ), 'error' );
+					} else {
+						// Add the existing subscription items to the cart
+						$this->setup_cart( $order, array(
+							'subscription_id'  => $subscription->get_id(),
+							'renewal_order_id' => $order_id,
+						) );
+					}
 
 					do_action( 'wcs_after_renewal_setup_cart_subscription', $subscription, $order );
 				}
@@ -386,9 +394,7 @@ class WCS_Cart_Renewal {
 					if ( ! empty( $coupon_code ) ) {
 
 						// Set renewal order products as the product ids on the coupon
-						if ( ! WC_Subscriptions::is_woocommerce_pre( '2.5' ) ) {
-							wcs_set_coupon_property( $coupon, 'product_ids', $this->get_products( $order ) );
-						}
+						wcs_set_coupon_property( $coupon, 'product_ids', $this->get_products( $order ) );
 
 						// Store the coupon info for later
 						$this->store_coupon( wcs_get_objects_property( $order, 'id' ), $coupon );
@@ -409,9 +415,7 @@ class WCS_Cart_Renewal {
 				wcs_set_coupon_property( $coupon, 'coupon_amount', $order_discount );
 
 				// Set renewal order products as the product ids on the coupon
-				if ( ! WC_Subscriptions::is_woocommerce_pre( '2.5' ) ) {
-					wcs_set_coupon_property( $coupon, 'product_ids', $this->get_products( $order ) );
-				}
+				wcs_set_coupon_property( $coupon, 'product_ids', $this->get_products( $order ) );
 
 				// Store the coupon info for later
 				$this->store_coupon( wcs_get_objects_property( $order, 'id' ), $coupon );
@@ -1302,6 +1306,33 @@ class WCS_Cart_Renewal {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Filters the shipping packages to remove subscriptions that have "one time shipping" enabled and, as such,
+	 * shouldn't have a shipping amount associated during a renewal.
+	 *
+	 * @since 2.3.3
+	 */
+	public function maybe_update_shipping_packages( $packages ) {
+		if ( ! $this->cart_contains() ) {
+			return $packages;
+		}
+
+		foreach ( $packages as $index => $package ) {
+			foreach ( $package['contents'] as $cart_item_key => $cart_item ) {
+				if ( WC_Subscriptions_Product::needs_one_time_shipping( $cart_item['data'] ) ) {
+					$packages[ $index ]['contents_cost'] -= $cart_item['line_total'];
+					unset( $packages[ $index ]['contents'][ $cart_item_key ] );
+				}
+			}
+
+			if ( empty( $packages[ $index ]['contents'] ) ) {
+				unset( $packages[ $index ] );
+			}
+		}
+
+		return $packages;
 	}
 
 	/* Deprecated */
