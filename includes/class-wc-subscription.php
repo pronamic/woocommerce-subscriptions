@@ -731,7 +731,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Get suspension count.
 	 *
-	 * @return string
+	 * @return int
 	 * @since 2.2.0
 	 */
 	public function get_suspension_count( $context = 'view' ) {

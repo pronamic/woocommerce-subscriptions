@@ -1,5 +1,23 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2018.08.10 - version 2.3.4
+* New: Add filter to bypass coupon removal for recurring carts. PR#2832
+* Fix: Check if subscription is payable before populating the cart with a renewal order. PR#2838
+* Fix: Add a margin to the bottom of subscription information email table to better align with other sections of the email. PR#2853
+* Fix: Prevent infinite loops which can occur while trying to repair PayPal Standard subscriptions with `S-****` Profile IDs. PR#2848
+* Fix: [WC3.4.4] Check refunded order totals in a WC version compatible way. Fixes an issue where limited coupons weren't removed after reaching their limit. PR#2850
+* Tweak: Require payment for recurring carts which contain limited coupons which will expire and then require payment. PR#2850
+
+2018.07.24 - version 2.3.3
+* Fix: Prevent infinite loops while generating variable product min and max data. PR#2810
+* Fix: Filter renewal order cart shipping packages, removing one time shipping products from shipping calculations. PR#2811
+* Fix: Only generate persistent related order and customer subscription caches via the Transients API to avoid the possibility of retrieving out of date data stored in the option. PR#2823
+* Fix: Update WC_Subscriptions_Order::maybe_autocomplete_order() to allow for it to handle orders before they have an ID (before they are inserted). PR#2784
+* Fix: Adjust for possible differences in billing cycles because of rounding when calculating prorated totals for switch requests. PR#2617
+* Tweak: Improve UX for variation selection when limited variable product is in cart. PR#2683
+* Tweak: Remove code which supported for WC 2.5. PR#2806
+* Tweak: Enforce array return value for `pre_get_users_subscriptions` filter. PR#2814
+
 2018.07.10 - version 2.3.2
 * Fix: Extend the next payment date after early renewal if there's no end date. PR#2804
 * Fix: Prevent throwing type hinting errors when getting related orders from cache. RR#2805

@@ -76,7 +76,7 @@ class WCS_Customer_Store_Cached_CPT extends WCS_Customer_Store_CPT implements WC
 			$transient_key = "wcs_user_subscriptions_{$user_id}";
 
 			// We do this here rather than in get_users_subscription_ids_from_cache(), because we want to make sure the new persistent cache is updated too
-			$subscription_ids = wcs_get_transient_even_if_expired( $transient_key );
+			$subscription_ids = get_transient( $transient_key );
 
 			if ( false === $subscription_ids ) {
 				$subscription_ids = parent::get_users_subscription_ids( $user_id ); // no data in transient, query directly

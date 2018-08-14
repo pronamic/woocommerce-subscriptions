@@ -95,7 +95,7 @@ class WCS_Related_Order_Store_Cached_CPT extends WCS_Related_Order_Store_CPT imp
 				$transient_key = "wcs-related-orders-to-{$subscription_id}"; // despite the name, this transient only stores renewal orders, not all related orders, so we can only use it for finding renewal orders
 
 				// We do this here rather than in get_related_order_ids_from_cache(), because we want to make sure the new persistent cache is updated too
-				$related_order_ids = wcs_get_transient_even_if_expired( $transient_key );
+				$related_order_ids = get_transient( $transient_key );
 			} else {
 				$related_order_ids = false;
 			}

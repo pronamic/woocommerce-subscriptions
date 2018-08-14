@@ -41,11 +41,8 @@ class WCS_Retry_Email {
 
 		$email_classes['WCS_Email_Customer_Payment_Retry'] = new WCS_Email_Customer_Payment_Retry();
 
-		// the WCS_Email_Payment_Retry extends WC_Email_Failed_Order which is only available in WC 2.5+
-		if ( ! WC_Subscriptions::is_woocommerce_pre( '2.5' ) ) {
-			require_once( plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'includes/emails/class-wcs-email-payment-retry.php' );
-			$email_classes['WCS_Email_Payment_Retry'] = new WCS_Email_Payment_Retry();
-		}
+		require_once( plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'includes/emails/class-wcs-email-payment-retry.php' );
+		$email_classes['WCS_Email_Payment_Retry'] = new WCS_Email_Payment_Retry();
 
 		return $email_classes;
 	}
