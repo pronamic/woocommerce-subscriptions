@@ -1,5 +1,15 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2018.08.27 - version 2.3.5
+* Fix: Exclude customers with at least 1 subscription from the WC inactivity user cleanup query. PR#2830
+* Fix: Calculate PayPal trial args from the next payment date while resubscribing before the subscription's end date. PR#2828
+* Fix: Only display the 2.3 upgrade notice after plugin upgrade, not after install. PR#2869
+* Tweak: Add 'woocommerce_subscriptions_can_user_renew_early' filter to allow third-parties to filter renew early eligibility. PR#2859
+* Tweak: Include resubscribe data in the subscription REST API response. PR#2863
+* Tweak: Improve the performance of some queries by using cached customer subscriptions instead of meta queries. PR#2856
+* Tweak: Improve the performance of the query which generates the data for the Subscriptions by Date report. PR#2788
+* Tweak: Give customers the option to update their subscription tokens after changing their default method. PR#2819
+
 2018.08.10 - version 2.3.4
 * New: Add filter to bypass coupon removal for recurring carts. PR#2832
 * Fix: Check if subscription is payable before populating the cart with a renewal order. PR#2838

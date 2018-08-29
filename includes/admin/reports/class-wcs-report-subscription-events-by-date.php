@@ -257,47 +257,45 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		$query = $wpdb->prepare(
 			"SELECT searchdate.Date as date, COUNT( DISTINCT wcsubs.ID) as count
 				FROM (
-					SELECT DATE_FORMAT(a.Date,'%%Y-%%m-%%d') as Date, 0 as cnt
+					SELECT DATE_FORMAT(last_thousand_days.Date,'%%Y-%%m-%%d') as Date
 					FROM (
-						SELECT DATE(%s) - INTERVAL(a.a + (10 * b.a) + (100 * c.a)) DAY as Date
+						SELECT DATE(%s) - INTERVAL(units.digit + (10 * tens.digit) + (100 * hundreds.digit)) DAY as Date
 						FROM (
-							SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2
+							SELECT 0 AS digit UNION ALL SELECT 1 UNION ALL SELECT 2
 							UNION ALL SELECT 3 UNION ALL SELECT 4
 							UNION ALL SELECT 5 UNION ALL SELECT 6
 							UNION ALL SELECT 7 UNION ALL SELECT 8
 							UNION ALL SELECT 9
-						) as a
+						) as units
 						CROSS JOIN (
-							SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2
+							SELECT 0 AS digit UNION ALL SELECT 1 UNION ALL SELECT 2
 							UNION ALL SELECT 3 UNION ALL SELECT 4
 							UNION ALL SELECT 5 UNION ALL SELECT 6
 							UNION ALL SELECT 7 UNION ALL SELECT 8
 							UNION ALL SELECT 9
-						) as b
+						) as tens
 						CROSS JOIN (
-							SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2
+							SELECT 0 AS digit UNION ALL SELECT 1 UNION ALL SELECT 2
 							UNION ALL SELECT 3 UNION ALL SELECT 4
 							UNION ALL SELECT 5 UNION ALL SELECT 6
 							UNION ALL SELECT 7 UNION ALL SELECT 8
 							UNION ALL SELECT 9
-						) AS c
-					) a
-					WHERE a.Date >= %s AND a.Date <= %s
-				) searchdate
-				LEFT JOIN (
-					{$wpdb->posts} AS wcsubs
-					LEFT JOIN {$wpdb->postmeta} AS wcsmeta
-						ON wcsubs.ID = wcsmeta.post_id AND wcsmeta.meta_key = %s
-				) ON DATE( wcsubs.post_date ) < searchdate.Date
-					AND wcsubs.post_type IN ( 'shop_subscription' )
-					AND wcsubs.post_status NOT IN( 'trash', 'auto-draft' )
-					AND (
-						DATE( CONVERT_TZ( wcsmeta.meta_value , '+00:00', %s ) ) >= searchdate.Date
-						OR wcsmeta.meta_value = 0
-						OR wcsmeta.meta_value IS NULL
-					)
-				GROUP BY searchdate.Date
-				ORDER BY searchdate.Date ASC",
+						) AS hundreds
+					) last_thousand_days
+					WHERE last_thousand_days.Date >= %s AND last_thousand_days.Date <= %s
+				) searchdate,
+					{$wpdb->posts} AS wcsubs,
+					{$wpdb->postmeta} AS wcsmeta
+					WHERE wcsubs.ID = wcsmeta.post_id AND wcsmeta.meta_key = '%s'
+						AND DATE( wcsubs.post_date ) <= searchdate.Date
+						AND wcsubs.post_type IN ( 'shop_subscription' )
+						AND wcsubs.post_status NOT IN( 'auto-draft' )
+						AND (
+							DATE( CONVERT_TZ( wcsmeta.meta_value , '+00:00', %s ) ) >= searchdate.Date
+							OR wcsmeta.meta_value = 0
+							OR wcsmeta.meta_value IS NULL
+						)
+					ORDER BY searchdate.Date ASC",
 			$query_end_date,
 			date( 'Y-m-d', $this->start_date ),
 			$query_end_date,

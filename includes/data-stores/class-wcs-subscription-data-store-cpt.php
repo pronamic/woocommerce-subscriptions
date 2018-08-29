@@ -441,4 +441,20 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 
 		return apply_filters( 'woocommerce_shop_subscription_search_results', $subscription_ids, $term, $search_fields );
 	}
+
+	/**
+	 * Get the user IDs for customers who have a subscription.
+	 *
+	 * @since 3.4.3
+	 * @return array The user IDs.
+	 */
+	public function get_subscription_customer_ids() {
+		global $wpdb;
+
+		return $wpdb->get_col(
+			"SELECT DISTINCT meta_value
+			FROM {$wpdb->postmeta} AS subscription_meta INNER JOIN {$wpdb->posts} AS posts ON subscription_meta.post_id = posts.ID
+			WHERE subscription_meta.meta_key = '_customer_user' AND posts.post_type = 'shop_subscription'"
+		);
+	}
 }
