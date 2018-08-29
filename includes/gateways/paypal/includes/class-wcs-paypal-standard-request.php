@@ -111,6 +111,12 @@ class WCS_PayPal_Standard_Request {
 			$next_payment_timestamp = $subscription->get_time( 'next_payment' );
 
 			$is_synced_subscription = WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $subscription->get_id() );
+			$is_early_resubscribe   = false;
+
+			if ( $resubscribe_cart_item = wcs_cart_contains_resubscribe() ) {
+				$resubscribed_subscription = wcs_get_subscription( $resubscribe_cart_item['subscription_resubscribe']['subscription_id'] );
+				$is_early_resubscribe      = wcs_is_subscription( $resubscribed_subscription ) && $resubscribed_subscription->has_status( 'pending-cancel' );
+			}
 
 			if ( $is_synced_subscription ) {
 				$length_from_timestamp = $next_payment_timestamp;
@@ -164,7 +170,7 @@ class WCS_PayPal_Standard_Request {
 				$subscription_installments = max( $subscription_installments - $subscription->get_completed_payment_count(), 0 );
 
 			// If we're changing the payment date or switching subs, we need to set the trial period to the next payment date & installments to be the number of installments left
-			} elseif ( $is_payment_change || $is_synced_subscription ) {
+			} elseif ( $is_payment_change || $is_synced_subscription || $is_early_resubscribe ) {
 
 				$next_payment_timestamp = $subscription->get_time( 'next_payment' );
 

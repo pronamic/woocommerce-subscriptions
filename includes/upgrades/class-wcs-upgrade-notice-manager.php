@@ -53,7 +53,7 @@ class WCS_Upgrade_Notice_Manager {
 	 * @since 2.3.0
 	 */
 	public static function maybe_record_upgrade( $current_version, $previously_active_version ) {
-		if ( version_compare( $previously_active_version, self::$version, '<' ) && version_compare( $current_version, self::$version, '>=' ) ) {
+		if ( '0' !== $previously_active_version && version_compare( $previously_active_version, self::$version, '<' ) && version_compare( $current_version, self::$version, '>=' ) ) {
 			update_option( self::$option_name, array(
 				'version'       => self::$version,
 				'display_count' => 0,

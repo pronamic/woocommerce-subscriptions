@@ -2,10 +2,10 @@
 # This file is distributed under the same license as the WooCommerce Subscriptions package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 2.3.4\n"
+"Project-Id-Version: WooCommerce Subscriptions 2.3.5\n"
 "Report-Msgid-Bugs-To: "
 "https://github.com/Prospress/woocommerce-subscriptions/issues\n"
-"POT-Creation-Date: 2018-08-10 04:58:51+00:00\n"
+"POT-Creation-Date: 2018-08-27 07:15:08+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -196,7 +196,7 @@ msgstr ""
 #: includes/admin/class-wc-subscriptions-admin.php:992
 #: includes/admin/class-wcs-admin-reports.php:51
 #: includes/admin/class-wcs-admin-system-status.php:55
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:689
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:687
 #: includes/class-wcs-query.php:108 includes/class-wcs-query.php:129
 #: includes/class-wcs-query.php:248
 #: includes/privacy/class-wcs-privacy-exporters.php:51
@@ -529,18 +529,18 @@ msgstr ""
 msgid "Create pending parent order requested by admin action."
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:201
+#: includes/admin/class-wcs-admin-post-types.php:214
 msgid "Search for a product&hellip;"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:378
+#: includes/admin/class-wcs-admin-post-types.php:391
 #. translators: placeholder is the number of subscriptions updated
 msgid "%s subscription status changed."
 msgid_plural "%s subscription statuses changed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/admin/class-wcs-admin-post-types.php:385
+#: includes/admin/class-wcs-admin-post-types.php:398
 #. translators: 1$: is the number of subscriptions not updated, 2$: is the
 #. error message
 msgid "%1$s subscription could not be updated: %2$s"
@@ -548,7 +548,7 @@ msgid_plural "%1$s subscriptions could not be updated: %2$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/admin/class-wcs-admin-post-types.php:409
+#: includes/admin/class-wcs-admin-post-types.php:422
 #: includes/admin/meta-boxes/views/html-related-orders-table.php:20
 #: templates/myaccount/my-subscriptions.php:26
 #: templates/myaccount/my-subscriptions.php:41
@@ -560,7 +560,7 @@ msgstr[1] ""
 msgid "Status"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:410
+#: includes/admin/class-wcs-admin-post-types.php:423
 #: includes/admin/meta-boxes/class-wcs-meta-box-related-orders.php:63
 #: templates/emails/cancelled-subscription.php:26
 #: templates/emails/expired-subscription.php:26
@@ -572,158 +572,158 @@ msgstr ""
 msgid "Subscription"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:411
+#: includes/admin/class-wcs-admin-post-types.php:424
 msgid "Items"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:412
+#: includes/admin/class-wcs-admin-post-types.php:425
 msgid "Total"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:413
+#: includes/admin/class-wcs-admin-post-types.php:426
 msgid "Start Date"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:414
+#: includes/admin/class-wcs-admin-post-types.php:427
 msgid "Trial End"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:415
+#: includes/admin/class-wcs-admin-post-types.php:428
 msgid "Next Payment"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:416
+#: includes/admin/class-wcs-admin-post-types.php:429
 msgid "Last Order Date"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:417
+#: includes/admin/class-wcs-admin-post-types.php:430
 msgid "End Date"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:458
+#: includes/admin/class-wcs-admin-post-types.php:471
 #: includes/wcs-user-functions.php:333
 msgid "Reactivate"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:459
+#: includes/admin/class-wcs-admin-post-types.php:472
 #: includes/wcs-user-functions.php:328
 msgid "Suspend"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:461
-#: includes/admin/class-wcs-admin-post-types.php:476
+#: includes/admin/class-wcs-admin-post-types.php:474
+#: includes/admin/class-wcs-admin-post-types.php:489
 msgid "Trash"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:462
-#: includes/admin/class-wcs-admin-post-types.php:480
+#: includes/admin/class-wcs-admin-post-types.php:475
+#: includes/admin/class-wcs-admin-post-types.php:493
 msgid "Delete Permanently"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:474
+#: includes/admin/class-wcs-admin-post-types.php:487
 #: includes/class-wc-subscriptions-product.php:746
 msgid "Restore this item from the Trash"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:474
+#: includes/admin/class-wcs-admin-post-types.php:487
 #: includes/class-wc-subscriptions-product.php:747
 msgid "Restore"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:476
+#: includes/admin/class-wcs-admin-post-types.php:489
 msgid "Move this item to the Trash"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:480
+#: includes/admin/class-wcs-admin-post-types.php:493
 msgid "Delete this item permanently"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:486
+#: includes/admin/class-wcs-admin-post-types.php:499
 msgid "Cancel Now"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:519
+#: includes/admin/class-wcs-admin-post-types.php:532
 #. translators: placeholder is customer's billing email
 msgid "Email: %s"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:524
+#: includes/admin/class-wcs-admin-post-types.php:537
 #. translators: placeholder is customer's billing phone number
 msgid "Tel: %s"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:556
+#: includes/admin/class-wcs-admin-post-types.php:569
 msgid "Show more details"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:572
+#: includes/admin/class-wcs-admin-post-types.php:585
 msgid "%d item"
 msgid_plural "%d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/admin/class-wcs-admin-post-types.php:588
+#: includes/admin/class-wcs-admin-post-types.php:601
 #: templates/myaccount/my-subscriptions.php:49
 #. translators: placeholder is the display name of a payment gateway a
 #. subscription was paid by
 msgid "Via %s"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:624
+#: includes/admin/class-wcs-admin-post-types.php:637
 msgid "Y/m/d g:i:s A"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:627
+#: includes/admin/class-wcs-admin-post-types.php:640
 msgid ""
 "This date should be treated as an estimate only. The payment gateway for "
 "this subscription controls when payments are processed."
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:830
-#: includes/admin/class-wcs-admin-post-types.php:833
-#: includes/admin/class-wcs-admin-post-types.php:836
+#: includes/admin/class-wcs-admin-post-types.php:873
+#: includes/admin/class-wcs-admin-post-types.php:876
+#: includes/admin/class-wcs-admin-post-types.php:879
 msgid "Subscription updated."
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:831
+#: includes/admin/class-wcs-admin-post-types.php:874
 msgid "Custom field updated."
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:832
+#: includes/admin/class-wcs-admin-post-types.php:875
 msgid "Custom field deleted."
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:837
+#: includes/admin/class-wcs-admin-post-types.php:880
 msgid "Subscription saved."
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:838
+#: includes/admin/class-wcs-admin-post-types.php:881
 msgid "Subscription submitted."
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:840
+#: includes/admin/class-wcs-admin-post-types.php:883
 #. translators: php date string
 msgid "Subscription scheduled for: %1$s."
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:841
+#: includes/admin/class-wcs-admin-post-types.php:884
 msgid "Subscription draft updated."
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:877
+#: includes/admin/class-wcs-admin-post-types.php:920
 msgid "Any Payment Method"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:878
+#: includes/admin/class-wcs-admin-post-types.php:921
 msgid "None"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:1071
+#: includes/admin/class-wcs-admin-post-types.php:1114
 #. translators: 1: user display name 2: user ID 3: user email
 msgid "%1$s (#%2$s &ndash; %3$s)"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:1078
+#: includes/admin/class-wcs-admin-post-types.php:1121
 #: includes/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:79
 msgid "Search for a customer&hellip;"
 msgstr ""
@@ -899,7 +899,7 @@ msgid "Relationship"
 msgstr ""
 
 #: includes/admin/meta-boxes/views/html-related-orders-table.php:19
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:550
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:548
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:173
 #: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:205
 #: templates/myaccount/related-orders.php:23
@@ -1131,185 +1131,185 @@ msgstr ""
 msgid "subscriptions"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:399
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:397
 msgid "%s signup revenue in this period"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:400
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:398
 msgid ""
 "The sum of all subscription parent orders, including other items, fees, tax "
 "and shipping."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:406
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:404
 msgid "%s renewal revenue in this period"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:407
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:405
 msgid "The sum of all renewal orders including tax and shipping."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:413
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:411
 msgid "%s resubscribe revenue in this period"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:414
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:412
 msgid "The sum of all resubscribe orders including tax and shipping."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:420
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:418
 msgid "%s new subscriptions"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:421
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:419
 msgid ""
 "The number of subscriptions created during this period, either by being "
 "manually created, imported or a customer placing an order."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:427
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:425
 msgid "%s subscription signups"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:428
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:426
 msgid ""
 "The number of subscription parent orders created during this period. This "
 "represents the new subscriptions created by customers placing an order via "
 "checkout."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:434
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:432
 msgid "%s subscription resubscribes"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:435
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:433
 msgid "The number of resubscribe orders processed during this period."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:441
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:439
 msgid "%s subscription renewals"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:442
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:440
 msgid "The number of renewal orders processed during this period."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:448
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:446
 msgid "%s subscription switches"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:449
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:447
 msgid ""
 "The number of subscriptions upgraded, downgraded or cross-graded during "
 "this period."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:455
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:453
 msgid "%s subscription cancellations"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:456
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:454
 msgid ""
 "The number of subscriptions cancelled by the customer or store manager "
 "during this period.  The pre-paid term may not yet have ended during this "
 "period."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:462
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:460
 msgid "%s subscriptions ended"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:463
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:461
 msgid ""
 "The number of subscriptions which have either expired or reached the end of "
 "the prepaid term if it was previously cancelled."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:469
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:467
 msgid "%s current subscriptions"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:470
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:468
 msgid ""
 "The number of subscriptions during this period with an end date in the "
 "future and a status other than pending."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:486
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:484
 msgid "%s net subscription gain"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:488
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:486
 msgid "%s net subscription loss"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:493
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:491
 msgid "Change in subscriptions between the start and end of the period."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:507
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:505
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:137
 msgid "Year"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:508
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:506
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:138
 msgid "Last Month"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:509
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:507
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:139
 msgid "This Month"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:510
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:508
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:140
 msgid "Last 7 Days"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:554
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:552
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:177
 #: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:209
 msgid "Export CSV"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:611
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:609
 msgid "Switched subscriptions"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:627
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:625
 msgid "New Subscriptions"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:643
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:641
 msgid "Subscriptions signups"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:658
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:656
 msgid "Number of resubscribes"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:673
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:671
 msgid "Number of renewals"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:705
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:703
 msgid "Subscriptions Ended"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:721
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:719
 msgid "Cancellations"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:736
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:734
 msgid "Signup Totals"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:756
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:754
 msgid "Resubscribe Totals"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:776
+#: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:774
 msgid "Renewal Totals"
 msgstr ""
 
@@ -1410,16 +1410,16 @@ msgstr ""
 msgid "Renewals amount"
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:109
+#: includes/api/class-wc-rest-subscriptions-controller.php:114
 msgid "Customer ID is invalid."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:214
+#: includes/api/class-wc-rest-subscriptions-controller.php:219
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:171
 msgid "Invalid subscription id."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:285
+#: includes/api/class-wc-rest-subscriptions-controller.php:290
 #: includes/api/legacy/class-wc-api-subscriptions.php:307
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:303
 msgid ""
@@ -1427,7 +1427,7 @@ msgid ""
 "Subscription."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:316
+#: includes/api/class-wc-rest-subscriptions-controller.php:321
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:333
 #. translators: 1$: gateway id, 2$: error message
 msgid ""
@@ -1435,50 +1435,60 @@ msgid ""
 "%2$s"
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:383
-#: includes/api/class-wc-rest-subscriptions-controller.php:525
+#: includes/api/class-wc-rest-subscriptions-controller.php:388
+#: includes/api/class-wc-rest-subscriptions-controller.php:542
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:284
 msgid "Updating subscription dates errored with message: %s"
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:408
+#: includes/api/class-wc-rest-subscriptions-controller.php:413
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:347
 msgid "The number of billing periods between subscription renewals."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:413
+#: includes/api/class-wc-rest-subscriptions-controller.php:418
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:352
 msgid "Billing period for the subscription."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:419
+#: includes/api/class-wc-rest-subscriptions-controller.php:424
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:358
 msgid "Subscription payment details."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:424
+#: includes/api/class-wc-rest-subscriptions-controller.php:429
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:363
 msgid "Payment gateway ID."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:431
+#: includes/api/class-wc-rest-subscriptions-controller.php:436
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:370
 msgid "The subscription's start date."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:436
+#: includes/api/class-wc-rest-subscriptions-controller.php:441
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:375
 msgid "The subscription's trial date"
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:441
+#: includes/api/class-wc-rest-subscriptions-controller.php:446
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:380
 msgid "The subscription's next payment date."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:446
+#: includes/api/class-wc-rest-subscriptions-controller.php:451
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:385
 msgid "The subscription's end date."
+msgstr ""
+
+#: includes/api/class-wc-rest-subscriptions-controller.php:456
+msgid ""
+"The subscription's original subscription ID if this is a resubscribed "
+"subscription."
+msgstr ""
+
+#: includes/api/class-wc-rest-subscriptions-controller.php:462
+msgid "The subscription's resubscribed subscription ID."
 msgstr ""
 
 #: includes/api/legacy/class-wc-api-subscriptions.php:102 wcs-functions.php:172
@@ -2503,14 +2513,14 @@ msgstr ""
 msgid "Limit to one of any status"
 msgstr ""
 
-#: includes/class-wcs-my-account-payment-methods.php:76
+#: includes/class-wcs-my-account-payment-methods.php:82
 msgid ""
 "The deleted payment method was used for automatic subscription payments, we "
 "couldn't find an alternative token payment method token to change your "
 "subscriptions to."
 msgstr ""
 
-#: includes/class-wcs-my-account-payment-methods.php:87
+#: includes/class-wcs-my-account-payment-methods.php:106
 #. translators: $1: the token/credit card label, 2$-3$: opening and closing
 #. strong and link tags
 msgid ""
@@ -2521,8 +2531,14 @@ msgid ""
 "Subscriptions%3$s page."
 msgstr ""
 
-#: includes/class-wcs-my-account-payment-methods.php:177
+#: includes/class-wcs-my-account-payment-methods.php:194
 msgid "%s ending in %s"
+msgstr ""
+
+#: includes/class-wcs-my-account-payment-methods.php:286
+msgid ""
+"Would you like to update your subscriptions to use this new payment method "
+"- %1$s?%2$sYes%4$s | %3$sNo%4$s"
 msgstr ""
 
 #: includes/class-wcs-post-meta-cache-manager.php:198
@@ -3288,12 +3304,12 @@ msgstr ""
 msgid "WooCommerce Subscriptions"
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:38
-#: includes/privacy/class-wcs-privacy.php:39
+#: includes/privacy/class-wcs-privacy.php:46
+#: includes/privacy/class-wcs-privacy.php:47
 msgid "Subscriptions Data"
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:82
+#: includes/privacy/class-wcs-privacy.php:95
 msgid ""
 "By using WooCommerce Subscriptions, you may be storing personal data and "
 "depending on which third-party payment processors you’re using to take "
@@ -3301,24 +3317,24 @@ msgid ""
 "sources."
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:84
+#: includes/privacy/class-wcs-privacy.php:97
 #. translators: placeholders are opening and closing link tags, linking to
 #. additional privacy policy documentation.
 msgid "What we collect and store"
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:85
+#: includes/privacy/class-wcs-privacy.php:98
 msgid ""
 "For the purposes of processing recurring subscription payments, we store "
 "the customer's name, billing address, shipping address, email address, "
 "phone number and credit card/payment details."
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:86
+#: includes/privacy/class-wcs-privacy.php:99
 msgid "What we share with others"
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:87
+#: includes/privacy/class-wcs-privacy.php:100
 msgid ""
 "What personal information your store shares with external sources depends "
 "on which third-party payment processor plugins you are using to collect "
@@ -3326,7 +3342,7 @@ msgid ""
 "policies to inform this section of your privacy policy."
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:89
+#: includes/privacy/class-wcs-privacy.php:102
 #. translators: placeholders are opening and closing link tags, linking to
 #. additional privacy policy documentation.
 msgid ""
@@ -3334,28 +3350,28 @@ msgid ""
 "see the %sPayPal Privacy Policy%s for more details."
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:99
+#: includes/privacy/class-wcs-privacy.php:112
 msgid "Cancel and remove personal data"
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:165
+#: includes/privacy/class-wcs-privacy.php:178
 msgid "Removed personal data from %d subscription."
 msgid_plural "Removed personal data from %d subscriptions."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/privacy/class-wcs-privacy.php:184
+#: includes/privacy/class-wcs-privacy.php:197
 #. translators: placeholders are opening and closing tags.
 msgid ""
 "%sNote:%s Orders which are related to subscriptions will not be included in "
 "the orders affected by these settings."
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:205
+#: includes/privacy/class-wcs-privacy.php:218
 msgid "Remove personal data from subscriptions"
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:207
+#: includes/privacy/class-wcs-privacy.php:220
 #. Translators: placeholders are opening and closing link tags linking to the
 #. erasure request screen.
 msgid ""
@@ -3363,18 +3379,22 @@ msgid ""
 "subscriptions be retained or removed?"
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:216
+#: includes/privacy/class-wcs-privacy.php:229
 msgid "Retain ended subscriptions"
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:217
+#: includes/privacy/class-wcs-privacy.php:230
 msgid ""
 "Retain ended subscriptions and their related orders for a specified "
 "duration before anonymizing the personal data within them."
 msgstr ""
 
-#: includes/privacy/class-wcs-privacy.php:220
+#: includes/privacy/class-wcs-privacy.php:233
 msgid "N/A"
+msgstr ""
+
+#: includes/privacy/class-wcs-privacy.php:274
+msgid "Customers with a subscription are excluded from this setting."
 msgstr ""
 
 #: includes/upgrades/class-wc-subscriptions-upgrader.php:323
@@ -4888,18 +4908,18 @@ msgctxt "meta box title"
 msgid "Schedule"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:245
+#: includes/admin/class-wcs-admin-post-types.php:258
 msgctxt "an action on a subscription"
 msgid "Activate"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:246
+#: includes/admin/class-wcs-admin-post-types.php:259
 msgctxt "an action on a subscription"
 msgid "Put on-hold"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:247
-#: includes/admin/class-wcs-admin-post-types.php:460
+#: includes/admin/class-wcs-admin-post-types.php:260
+#: includes/admin/class-wcs-admin-post-types.php:473
 #: includes/class-wc-subscriptions-manager.php:1829
 #: includes/wcs-user-functions.php:349
 #: templates/myaccount/related-orders.php:73
@@ -4907,35 +4927,35 @@ msgctxt "an action on a subscription"
 msgid "Cancel"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:322
+#: includes/admin/class-wcs-admin-post-types.php:335
 msgctxt "Used in order note. Reason why status changed."
 msgid "Subscription status changed by bulk edit:"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:418
+#: includes/admin/class-wcs-admin-post-types.php:431
 msgctxt "number of orders linked to a subscription"
 msgid "Orders"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:514
+#: includes/admin/class-wcs-admin-post-types.php:527
 msgctxt "meaning billing address"
 msgid "Billing:"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:552
+#: includes/admin/class-wcs-admin-post-types.php:565
 #. translators: $1: is opening link, $2: is subscription order number, $3: is
 #. closing link tag, $4: is user's name
 msgctxt "Subscription title on admin table. (e.g.: #211 for John Doe)"
 msgid "%1$s#%2$s%3$s for %4$s"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:835
+#: includes/admin/class-wcs-admin-post-types.php:878
 #. translators: placeholder is previous post title
 msgctxt "used in post updated messages"
 msgid "Subscription restored to revision from %s"
 msgstr ""
 
-#: includes/admin/class-wcs-admin-post-types.php:840
+#: includes/admin/class-wcs-admin-post-types.php:883
 msgctxt "used in \"Subscription scheduled for <date>\""
 msgid "M j, Y @ G:i"
 msgstr ""
@@ -5417,11 +5437,18 @@ msgctxt ""
 msgid "All linked subscription items were"
 msgstr ""
 
-#: includes/class-wcs-my-account-payment-methods.php:120
+#: includes/class-wcs-my-account-payment-methods.php:101
 msgctxt "used in subscription note"
 msgid ""
 "Payment method meta updated after customer deleted a token from their My "
 "Account page. Payment meta changed from %1$s to %2$s"
+msgstr ""
+
+#: includes/class-wcs-my-account-payment-methods.php:328
+msgctxt "used in subscription note"
+msgid ""
+"Payment method meta updated after customer changed their default token and "
+"opted to update their subscriptions. Payment meta changed from %1$s to %2$s"
 msgstr ""
 
 #: includes/class-wcs-remove-item.php:68
@@ -5606,8 +5633,8 @@ msgstr ""
 #: includes/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-request.php:326
 #: includes/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-request.php:349
 #: includes/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-request.php:361
-#: includes/gateways/paypal/includes/class-wcs-paypal-standard-request.php:144
-#: includes/gateways/paypal/includes/class-wcs-paypal-standard-request.php:147
+#: includes/gateways/paypal/includes/class-wcs-paypal-standard-request.php:150
+#: includes/gateways/paypal/includes/class-wcs-paypal-standard-request.php:153
 #. translators: placeholder is for blog name
 msgctxt ""
 "hash before the order number. Used as a character to remove from the actual "
