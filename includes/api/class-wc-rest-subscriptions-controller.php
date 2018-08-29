@@ -81,8 +81,13 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 		if ( ! empty( $post->post_type ) && ! empty( $post->ID ) && 'shop_subscription' == $post->post_type ) {
 			$subscription = wcs_get_subscription( $post->ID );
 
-			$response->data['billing_period']    = $subscription->get_billing_period();
-			$response->data['billing_interval']  = $subscription->get_billing_interval();
+			$response->data['billing_period']   = $subscription->get_billing_period();
+			$response->data['billing_interval'] = $subscription->get_billing_interval();
+
+			// Send resubscribe data
+			$resubscribed_subscriptions                  = array_filter( $subscription->get_related_orders( 'ids', 'resubscribe' ), 'wcs_is_subscription' );
+			$response->data['resubscribed_from']         = strval( wcs_get_objects_property( $subscription, 'subscription_resubscribe' ) );
+			$response->data['resubscribed_subscription'] = strval( reset( $resubscribed_subscriptions ) ); // Subscriptions can only be resubscribed to once so return the first and only element.
 
 			foreach ( array( 'start', 'trial_end', 'next_payment', 'end' ) as $date_type ) {
 				$date_type_key = ( 'start' === $date_type ) ? 'date_created' : $date_type;
@@ -446,6 +451,18 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 				'description' => __( "The subscription's end date.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
+			),
+			'resubscribed_from' => array(
+				'description' => __( "The subscription's original subscription ID if this is a resubscribed subscription.", 'woocommerce-subscriptions' ),
+				'type'        => 'string',
+				'context'     => array( 'view' ),
+				'readonly'    => true,
+			),
+			'resubscribed_subscription' => array(
+				'description' => __( "The subscription's resubscribed subscription ID.", 'woocommerce-subscriptions' ),
+				'type'        => 'string',
+				'context'     => array( 'view' ),
+				'readonly'    => true,
 			),
 		);
 

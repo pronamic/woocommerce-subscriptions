@@ -5,7 +5,7 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: http://prospress.com/
- * Version: 2.3.4
+ * Version: 2.3.5
  *
  * WC requires at least: 2.6
  * WC tested up to: 3.4
@@ -170,7 +170,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.3.4';
+	public static $version = '2.3.5';
 
 	private static $total_subscription_count = null;
 

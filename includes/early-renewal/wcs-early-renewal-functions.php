@@ -38,54 +38,61 @@ function wcs_cart_contains_early_renewal() {
  * @return bool Whether the user can renew a subscription early.
  */
 function wcs_can_user_renew_early( $subscription, $user_id = 0 ) {
+	$subscription = wcs_get_subscription( $subscription );
+	$user_id      = ! empty( $user_id ) ? $user_id : get_current_user_id();
+	$reason       = '';
 
-	if ( ! is_object( $subscription ) ) {
-		$subscription = wcs_get_subscription( $subscription );
-	}
-
-	if ( empty( $user_id ) ) {
-		$user_id = get_current_user_id();
-	}
-
+	// Check for all the normal reasons a subscription can't be renewed early.
 	if ( ! $subscription ) {
-		$can_renew_early = false;
+		$reason = 'not_a_subscription';
 	} elseif ( ! $subscription->has_status( array( 'active' ) ) ) {
-		$can_renew_early = false;
-	} elseif ( 0 === $subscription->get_total() ) {
-		$can_renew_early = false;
+		$reason = 'subscription_not_active';
+	} elseif ( 0.0 === $subscription->get_total() ) {
+		$reason = 'subscription_zero_total';
 	} elseif ( $subscription->get_time( 'trial_end' ) > gmdate( 'U' ) ) {
-		$can_renew_early = false;
+		$reason = 'subscription_still_in_free_trial';
 	} elseif ( ! $subscription->get_time( 'next_payment' ) ) {
-		$can_renew_early = false;
-	} elseif ( WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $subscription ) ) {
-		$can_renew_early = false;
+		$reason = 'subscription_no_next_payment';
 	} elseif ( ! $subscription->payment_method_supports( 'subscription_date_changes' ) ) {
-		$can_renew_early = false;
-	} else {
-		// Make sure all line items still exist.
-		$all_line_items_exist = true;
-
-		foreach ( $subscription->get_items() as $line_item ) {
-			$product = wc_get_product( wcs_get_canonical_product_id( $line_item ) );
-
-			if ( false === $product ) {
-				$all_line_items_exist = false;
-				break;
-			}
-		}
-
-		$can_renew_early = $all_line_items_exist;
+		$reason = 'payment_method_not_supported';
+	} elseif (
+		WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $subscription ) &&
+		/**
+		 * Determine whether a subscription with Synchronized products can be renewed early.
+		 *
+		 * @param bool            $can_renew_early Whether the subscription can be renewed early.
+		 * @param WC_Subscription $subscription    The subscription to be renewed early.
+		 */
+		! boolval( apply_filters( 'wcs_allow_synced_product_early_renewal', false, $subscription ) )
+	) {
+		$reason = 'subscription_contains_synced_product';
 	}
+
+	// Make sure all line items still exist.
+	foreach ( $subscription->get_items() as $line_item ) {
+		$product = wc_get_product( wcs_get_canonical_product_id( $line_item ) );
+
+		if ( false === $product ) {
+			$reason = 'line_item_no_longer_exists';
+			break;
+		}
+	}
+
+	// Non-empty $reason means we can't renew early.
+	$can_renew_early = empty( $reason );
 
 	/**
 	 * Allow third-parties to filter whether the customer can renew a subscription early.
 	 *
 	 * @since 2.3.0
+	 *
 	 * @param bool            $can_renew_early Whether early renewal is permitted.
-	 * @param WC_Subscription $subscription The subscription being renewed early.
-	 * @param int             $user_id The user's ID.
+	 * @param WC_Subscription $subscription    The subscription being renewed early.
+	 * @param int             $user_id         The user's ID.
+	 * @param string          $reason          The reason why the subscription cannot be renewed early. Empty
+	 *                                         string if the subscription can be renewed early.
 	 */
-	return apply_filters( 'woocommerce_subscriptions_can_user_renew_early', $can_renew_early, $subscription, $user_id );
+	return apply_filters( 'woocommerce_subscriptions_can_user_renew_early', $can_renew_early, $subscription, $user_id, $reason );
 }
 
 /**
