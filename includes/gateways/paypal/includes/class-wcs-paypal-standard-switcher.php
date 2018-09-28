@@ -219,7 +219,7 @@ class WCS_PayPal_Standard_Switcher {
 	 */
 	public static function get_available_payment_gateways( $available_gateways ) {
 
-		if ( WC_Subscriptions_Switcher::cart_contains_switches() || ( isset( $_GET['order_id'] ) && wcs_order_contains_switch( $_GET['order_id'] ) ) ) {
+		if ( ! is_wc_endpoint_url( 'order-pay' ) && ( WC_Subscriptions_Switcher::cart_contains_switches() || ( isset( $_GET['order_id'] ) && wcs_order_contains_switch( $_GET['order_id'] ) ) ) ) {
 			foreach ( $available_gateways as $gateway_id => $gateway ) {
 				if ( 'paypal' == $gateway_id && false == WCS_PayPal::are_reference_transactions_enabled() ) {
 					unset( $available_gateways[ $gateway_id ] );

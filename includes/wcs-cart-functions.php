@@ -34,7 +34,7 @@ function wcs_cart_totals_shipping_html() {
 
 	$initial_packages = WC()->shipping->get_packages();
 
-	$show_package_details = count( WC()->cart->recurring_carts ) > 1 ? true : false;
+	$show_package_details = count( WC()->cart->recurring_carts ) > 1;
 	$show_package_name    = true;
 
 	// Create new subscriptions for each subscription product in the cart (that is not a renewal)

@@ -1,5 +1,25 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2018.09.25 - version 2.3.7
+* Fix: Don't apply subscription payment gateway filters while on the order-pay page. PR#2927
+* Fix: Prevent admin users from changing product type when the product has active subscriptions. PR#2932
+* Fix: Avoid calculating the initial order carts shipping without an address. PR#2923
+* Fix: Remove unnecessary empty() check for PHP < 5.5 compat. PR#2940
+* Fix: Reinstate switch orders being returned from WC_Subscription::get_related_orders() when called with the default $order_type param. This returns the behavior of this function to what it was pre v2.3. PR#2946
+* Tweak: [WC 3.4] Dont escape the product attribute labels in the add-to-cart/variable-subscription.php template. PR#2914
+* Tweak: Add a link to the subscription customer's profile on the admin edit subscription screen. PR#2911
+* Tweak: [dev] Update calls of remove_action() and remove_filter() removing the unused 4th parameter. PR#2926
+
+2018.09.10 - version 2.3.6
+* New: Include subscription paid and completed UTC dates in REST API subscriptions response. PR#2895
+* Fix: When switching during a free trial the days in the new cycle are equal to the days in the old cycle. This returns next payment date calculations to what it was pre 2.3.3. PR#2887
+* Fix: Make sure to display the inactive plugin notice on sites running unsupported WC versions. PR#2878
+* Fix: Reinstate the _customer_user admin subscriptions table filter by customer $_GET arg. PR#2884
+* Tweak: Automatically add download permissions for manually created subscriptions. PR#2836
+* Tweak: Modify renewal order staging note to include URLs of the live and staging site. PR#2881
+* Tweak: Rename WC_Subscriptions_Change_Payment_Gateway::store_pay_shortcode_mesages(). PR#2899
+* Tweak: Set "add to cart" and "place order" button text settings to default if no value is provided. PR#2676
+
 2018.08.27 - version 2.3.5
 * Fix: Exclude customers with at least 1 subscription from the WC inactivity user cleanup query. PR#2830
 * Fix: Calculate PayPal trial args from the next payment date while resubscribing before the subscription's end date. PR#2828

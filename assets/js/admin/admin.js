@@ -743,4 +743,27 @@ jQuery(document).ready(function($){
 	};
 	wcs_prevent_variation_removal.init();
 
+	/*
+	 * Prevents changing of the product type for subscription products in use by a subscription.
+	 */
+	var wcs_prevent_product_type_change = {
+		init: function() {
+			if ( 'yes' !== WCSubscriptions.productHasSubscriptions ) {
+				return;
+			}
+
+			var $select    = $( 'select#product-type' );
+			var $options   = $select.find( 'option' );
+			var $selection = $options.filter( 'option:selected' );
+
+			if ( 'subscription' !== $selection.val() && 'variable-subscription' !== $selection.val() ) {
+				return;
+			}
+
+			$options.not( $selection ).prop( 'disabled', true );
+			$select.addClass( 'tips' ).attr( 'data-tip', WCSubscriptions.productTypeWarning );
+		},
+	};
+	wcs_prevent_product_type_change.init();
+
 });

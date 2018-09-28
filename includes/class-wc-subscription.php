@@ -1762,11 +1762,11 @@ class WC_Subscription extends WC_Order {
 	 * Get the related orders for a subscription, including renewal orders and the initial order (if any)
 	 *
 	 * @param string $return_fields The columns to return, either 'all' or 'ids'
-	 * @param array|string $order_types Can include 'any', 'parent', 'renewal', 'resubscribe' and/or 'switch'. Custom types possible via the 'woocommerce_subscription_related_orders' filter. Defaults to array( 'parent', 'renewal' ).
+	 * @param array|string $order_types Can include 'any', 'parent', 'renewal', 'resubscribe' and/or 'switch'. Custom types possible via the 'woocommerce_subscription_related_orders' filter. Defaults to array( 'parent', 'renewal', 'switch' ).
 	 * @since 2.0
 	 * @return array
 	 */
-	public function get_related_orders( $return_fields = 'ids', $order_types = array( 'parent', 'renewal' ) ) {
+	public function get_related_orders( $return_fields = 'ids', $order_types = array( 'parent', 'renewal', 'switch' ) ) {
 
 		$return_fields = ( 'ids' == $return_fields ) ? $return_fields : 'all';
 
@@ -2176,7 +2176,7 @@ class WC_Subscription extends WC_Order {
 		$files = array();
 
 		// WC Emails are sent before the subscription status is updated to active etc. so we need a way to ensure download links are added to the emails before being sent
-		$sending_email = ( did_action( 'woocommerce_email_before_order_table' ) > did_action( 'woocommerce_email_after_order_table' ) ) ? true : false;
+		$sending_email = did_action( 'woocommerce_email_before_order_table' ) > did_action( 'woocommerce_email_after_order_table' );
 
 		if ( $this->has_status( apply_filters( 'woocommerce_subscription_item_download_statuses', array( 'active', 'pending-cancel' ) ) ) || $sending_email ) {
 			$files = parent::get_item_downloads( $item );

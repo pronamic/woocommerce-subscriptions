@@ -149,7 +149,7 @@ class WC_Subscriptions_Product {
 				$tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
 				$child_price      = 'incl' == $tax_display_mode ? wcs_get_price_including_tax( $child_product, array( 'price' => $child_product->get_price() ) ) : wcs_get_price_excluding_tax( $child_product, array( 'price' => $child_product->get_price() ) );
 				$sign_up_fee      = 'incl' == $tax_display_mode ? wcs_get_price_including_tax( $child_product, array( 'price' => self::get_sign_up_fee( $child_product ) ) ) : wcs_get_price_excluding_tax( $child_product, array( 'price' => self::get_sign_up_fee( $child_product ) ) );
-				$has_trial        = ( self::get_trial_length( $child_product ) > 0 ) ? true : false;
+				$has_trial        = self::get_trial_length( $child_product ) > 0;
 
 				// Make sure we have the *real* price (i.e. total initial payment)
 				if ( $has_trial && $sign_up_fee > 0 ) {

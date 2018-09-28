@@ -1375,8 +1375,15 @@ class WC_Subscriptions_Switcher {
 			// Find the price per day for the new subscription's recurring total based on billing schedule
 			$days_in_new_cycle = wcs_get_days_in_cycle( WC_Subscriptions_Product::get_period( $item_data ), WC_Subscriptions_Product::get_interval( $item_data ) );
 
-			// Set days in new cycle to days in old if it only differs because of rounding
-			if ( ceil( $days_in_new_cycle ) == $days_in_old_cycle || floor( $days_in_new_cycle ) == $days_in_old_cycle ) {
+			// Whether the days in new cycle match the days in old,ignoring any rounding.
+			$days_in_new_and_old_cycle_match = ceil( $days_in_new_cycle ) == $days_in_old_cycle || floor( $days_in_new_cycle ) == $days_in_old_cycle;
+
+			// Whether the new item uses the same billing interval & cycle as the old subscription,
+			$matching_billing_cycle = WC_Subscriptions_Product::get_period( $item_data ) == $subscription->get_billing_period() && WC_Subscriptions_Product::get_interval( $item_data ) == $subscription->get_billing_interval();
+			$switch_during_trial    = $subscription->get_time( 'trial_end' ) > gmdate( 'U' );
+
+			// Set the days in each cycle to match if they are equal (ignoring any rounding discrepancy) or if the subscription is switched during a trial and has a matching billing cycle.
+			if ( $days_in_new_and_old_cycle_match || ( $matching_billing_cycle && $switch_during_trial ) ) {
 				$days_in_new_cycle = $days_in_old_cycle;
 			}
 
@@ -1570,7 +1577,7 @@ class WC_Subscriptions_Switcher {
 	public static function get_recurring_cart_key( $cart_key, $cart_item ) {
 
 		if ( isset( $cart_item['subscription_switch']['first_payment_timestamp'] ) ) {
-			remove_filter( 'woocommerce_subscriptions_recurring_cart_key', __METHOD__, 10, 2 );
+			remove_filter( 'woocommerce_subscriptions_recurring_cart_key', __METHOD__, 10 );
 			$cart_key = WC_Subscriptions_Cart::get_recurring_cart_key( $cart_item, $cart_item['subscription_switch']['first_payment_timestamp'] );
 			add_filter( 'woocommerce_subscriptions_recurring_cart_key', __METHOD__, 10, 2 );
 		}
@@ -1719,10 +1726,7 @@ class WC_Subscriptions_Switcher {
 	 * @since 2.0
 	 */
 	protected static function is_item_switched( $item ) {
-
-		$is_item_switched = isset( $item['switched'] ) ? true : false;
-
-		return $is_item_switched;
+		return isset( $item['switched'] );
 	}
 
 	/**

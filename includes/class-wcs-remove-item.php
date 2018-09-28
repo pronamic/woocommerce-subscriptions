@@ -59,9 +59,9 @@ class WCS_Remove_Item {
 
 		if ( isset( $_GET['subscription_id'] ) && ( isset( $_GET['remove_item'] ) || isset( $_GET['undo_remove_item'] ) ) && isset( $_GET['_wpnonce'] ) ) {
 
-			$subscription = ( wcs_is_subscription( $_GET['subscription_id'] ) ) ? wcs_get_subscription( $_GET['subscription_id'] ) : false;
-			$undo_request = ( isset( $_GET['undo_remove_item'] ) ) ? true : false;
-			$item_id      = ( $undo_request ) ? $_GET['undo_remove_item'] : $_GET['remove_item'];
+			$subscription = wcs_is_subscription( $_GET['subscription_id'] ) ? wcs_get_subscription( $_GET['subscription_id'] ) : false;
+			$undo_request = isset( $_GET['undo_remove_item'] );
+			$item_id      = $undo_request ? $_GET['undo_remove_item'] : $_GET['remove_item'];
 
 			if ( false === $subscription ) {
 

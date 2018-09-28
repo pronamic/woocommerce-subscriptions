@@ -86,7 +86,7 @@ class WCS_Retry_Manager {
 	 * @since 2.1
 	 */
 	public static function is_retry_enabled() {
-		return apply_filters( 'wcs_is_retry_enabled', ( 'yes' == get_option( self::$setting_id, 'no' ) ) ? true : false );
+		return (bool) apply_filters( 'wcs_is_retry_enabled', 'yes' == get_option( self::$setting_id, 'no' ) );
 	}
 
 	/**
@@ -272,7 +272,7 @@ class WCS_Retry_Manager {
 				$last_retry->update_status( 'processing' );
 
 				$expected_order_status = $last_retry->get_rule()->get_status_to_apply( 'order' );
-				$valid_order_status    = ( '' == $expected_order_status || $last_order->has_status( $expected_order_status ) ) ? true : false;
+				$valid_order_status    = ( '' == $expected_order_status || $last_order->has_status( $expected_order_status ) );
 
 				$expected_subscription_status = $last_retry->get_rule()->get_status_to_apply( 'subscription' );
 

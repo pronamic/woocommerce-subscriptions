@@ -239,7 +239,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 			}
 		}
 
-		$is_first_payment = ( $subscription->get_completed_payment_count() < 1 ) ? true : false;
+		$is_first_payment = $subscription->get_completed_payment_count() < 1;
 
 		if ( $subscription->has_status( 'switched' ) ) {
 			WC_Gateway_Paypal::log( 'IPN ignored, subscription has been switched.' );

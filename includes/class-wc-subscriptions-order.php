@@ -1426,7 +1426,7 @@ class WC_Subscriptions_Order {
 	public static function get_recurring_discount_total( $order, $product_id = '' ) {
 		_deprecated_function( __METHOD__, '2.0', 'the value for the subscription object rather than the value on the original order. The value is stored against the subscription since Subscriptions v2.0 as an order can be used to create multiple different subscriptions with different discounts, so use the subscription object' );
 
-		$ex_tax = ( 'excl' === get_option( 'woocommerce_tax_display_cart' ) && wcs_get_objects_property( $order, 'display_totals_ex_tax' ) ) ? true : false;
+		$ex_tax = ( 'excl' === get_option( 'woocommerce_tax_display_cart' ) && wcs_get_objects_property( $order, 'display_totals_ex_tax' ) );
 
 		$recurring_discount_cart     = (double) self::get_recurring_discount_cart( $order );
 		$recurring_discount_cart_tax = (double) self::get_recurring_discount_cart_tax( $order );

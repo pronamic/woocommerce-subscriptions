@@ -181,12 +181,12 @@ function wcs_calculate_min_max_variations( $variations_data ) {
 		$variations_data_trial_periods_list = array_unique( array_merge( $variations_data_trial_periods_list, array( $variation_data['subscription']['trial_period'] ) ) );
 		$variations_data_lengths_list       = array_unique( array_merge( $variations_data_lengths_list, array( $variation_data['subscription']['length'] ) ) );
 
-		$has_free_trial = ( '' !== $variation_data['subscription']['trial_length'] && $variation_data['subscription']['trial_length'] > 0 ) ? true : false;
+		$has_free_trial = '' !== $variation_data['subscription']['trial_length'] && $variation_data['subscription']['trial_length'] > 0;
 
 		// Determine some recurring price flags
-		$is_lowest_price     = ( $variation_data['price'] < $lowest_price || '' === $lowest_price ) ? true : false;
-		$is_longest_period   = ( WC_Subscriptions::get_longest_period( $variable_subscription_period, $variation_data['subscription']['period'] ) === $variation_data['subscription']['period'] ) ? true : false;
-		$is_longest_interval = ( $variation_data['subscription']['interval'] >= $variable_subscription_period_interval || '' === $variable_subscription_period_interval ) ? true : false;
+		$is_lowest_price     = $variation_data['price'] < $lowest_price || '' === $lowest_price;
+		$is_longest_period   = WC_Subscriptions::get_longest_period( $variable_subscription_period, $variation_data['subscription']['period'] ) === $variation_data['subscription']['period'];
+		$is_longest_interval = $variation_data['subscription']['interval'] >= $variable_subscription_period_interval || '' === $variable_subscription_period_interval;
 
 		// Find the amount the subscriber will have to pay up-front
 		if ( $has_free_trial ) {
@@ -233,7 +233,7 @@ function wcs_calculate_min_max_variations( $variations_data ) {
 			// Otherwise the cheapest variation is the one with the longer trial
 			} elseif ( $variable_subscription_trial_period === $variation_data['subscription']['trial_period'] ) {
 
-				$is_min = ( $variation_data['subscription']['trial_length'] > $variable_subscription_trial_length ) ? true : false;
+				$is_min = $variation_data['subscription']['trial_length'] > $variable_subscription_trial_length;
 
 			// Otherwise just a longer trial period (that isn't equal to the longest period)
 			} elseif ( WC_Subscriptions::get_longest_period( $longest_trial_period, $variation_data['subscription']['trial_period'] ) === $variation_data['subscription']['trial_period'] ) {
@@ -257,7 +257,7 @@ function wcs_calculate_min_max_variations( $variations_data ) {
 				// Need to check trial length
 				} elseif ( $shortest_trial_period === $variation_data['subscription']['trial_period'] ) {
 
-					$is_max = ( $variation_data['subscription']['trial_length'] < $shortest_trial_length ) ? true : false;
+					$is_max = $variation_data['subscription']['trial_length'] < $shortest_trial_length;
 
 				// Need to find shortest period
 				} elseif ( WC_Subscriptions::get_shortest_period( $shortest_trial_period, $variation_data['subscription']['trial_period'] ) === $variation_data['subscription']['trial_period'] ) {
@@ -276,13 +276,13 @@ function wcs_calculate_min_max_variations( $variations_data ) {
 			$longest_initial_period  = WC_Subscriptions::get_longest_period( $longest_initial_period, $initial_period );
 			$shortest_initial_period = WC_Subscriptions::get_shortest_period( $shortest_initial_period, $initial_period );
 
-			$is_lowest_initial_amount    = ( $initial_amount < $lowest_initial_amount || '' === $lowest_initial_amount ) ? true : false;
-			$is_longest_initial_period   = ( $initial_period === $longest_initial_period ) ? true : false;
-			$is_longest_initial_interval = ( $initial_interval >= $longest_initial_interval || '' === $longest_initial_interval ) ? true : false;
+			$is_lowest_initial_amount    = $initial_amount < $lowest_initial_amount || '' === $lowest_initial_amount;
+			$is_longest_initial_period   = $initial_period === $longest_initial_period;
+			$is_longest_initial_interval = $initial_interval >= $longest_initial_interval || '' === $longest_initial_interval;
 
-			$is_highest_initial   = ( $initial_amount > $highest_initial_amount || '' === $highest_initial_amount ) ? true : false;
-			$is_shortest_period   = ( $initial_period === $shortest_initial_period || '' === $shortest_initial_period ) ? true : false;
-			$is_shortest_interval = ( $initial_interval < $shortest_initial_interval || '' === $shortest_initial_interval ) ? true : false;
+			$is_highest_initial   = $initial_amount > $highest_initial_amount || '' === $highest_initial_amount;
+			$is_shortest_period   = $initial_period === $shortest_initial_period || '' === $shortest_initial_period;
+			$is_shortest_interval = $initial_interval < $shortest_initial_interval || '' === $shortest_initial_interval;
 
 			// If we're not dealing with the lowest initial access amount, then ignore this variation
 			if ( ! $is_lowest_initial_amount && $initial_amount !== $lowest_initial_amount ) {

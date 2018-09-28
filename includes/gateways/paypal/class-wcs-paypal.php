@@ -463,7 +463,7 @@ class WCS_PayPal {
 	 */
 	protected static function get_ipn_handler( $ipn_type = 'standard' ) {
 
-		$use_sandbox = ( 'yes' === self::get_option( 'testmode' ) ) ? true : false;
+		$use_sandbox = ( 'yes' === self::get_option( 'testmode' ) );
 
 		if ( 'reference' === $ipn_type ) {
 
