@@ -66,7 +66,7 @@ function wcs_do_subscriptions_exist() {
 	// query is the fastest, every other built in method uses this. Plus, the return value is the number of rows found
 	$num_rows_found = $wpdb->query( $sql );
 
-	return ( 0 !== $num_rows_found ) ? true: false;
+	return 0 !== $num_rows_found;
 }
 
 /**
@@ -674,7 +674,7 @@ function wcs_get_subscription_ended_statuses() {
 function wcs_is_view_subscription_page() {
 	global $wp;
 
-	return ( is_page( wc_get_page_id( 'myaccount' ) ) && isset( $wp->query_vars['view-subscription'] ) ) ? true : false;
+	return is_page( wc_get_page_id( 'myaccount' ) ) && isset( $wp->query_vars['view-subscription'] );
 }
 
 /**

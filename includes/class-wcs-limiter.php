@@ -62,7 +62,6 @@ class WCS_Limiter {
 	 * @since 2.1
 	 * @param bool $purchasable Whether the product is purchasable as determined by parent class
 	 * @param mixed $product The product in question to be checked if it is purchasable.
-	 * @param string $product_class Determines the subscription type of the product. Controls switch logic.
 	 *
 	 * @return bool
 	 */

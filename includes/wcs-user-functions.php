@@ -319,7 +319,7 @@ function wcs_get_all_user_actions_for_subscription( $subscription, $user_id ) {
 
 	if ( user_can( $user_id, 'edit_shop_subscription_status', $subscription->get_id() ) ) {
 
-		$admin_with_suspension_disallowed = ( current_user_can( 'manage_woocommerce' ) && '0' === get_option( WC_Subscriptions_Admin::$option_prefix . '_max_customer_suspensions', '0' ) ) ? true : false;
+		$admin_with_suspension_disallowed = current_user_can( 'manage_woocommerce' ) && '0' === get_option( WC_Subscriptions_Admin::$option_prefix . '_max_customer_suspensions', '0' );
 		$current_status = $subscription->get_status();
 
 		if ( $subscription->can_be_updated_to( 'on-hold' ) && wcs_can_user_put_subscription_on_hold( $subscription, $user_id ) && ! $admin_with_suspension_disallowed ) {

@@ -217,8 +217,8 @@ class WC_Subscriptions_Coupon {
 
 		// Check if we're applying any recurring discounts to recurring total calculations
 		if ( 'recurring_total' == $calculation_type ) {
-			$apply_recurring_coupon         = ( 'recurring_fee' == $coupon_type ) ? true : false;
-			$apply_recurring_percent_coupon = ( 'recurring_percent' == $coupon_type ) ? true : false;
+			$apply_recurring_coupon         = 'recurring_fee' == $coupon_type;
+			$apply_recurring_percent_coupon = 'recurring_percent' == $coupon_type;
 		}
 
 		// Check if we're applying any initial discounts
@@ -873,8 +873,8 @@ class WC_Subscriptions_Coupon {
 	 * @return array The filtered payment gateways.
 	 */
 	public static function gateways_subscription_amount_changes( $gateways ) {
-		// If there are already no gateways, bail early.
-		if ( empty( $gateways ) ) {
+		// If there are already no gateways or we're on the order-pay screen, bail early.
+		if ( empty( $gateways ) || is_wc_endpoint_url( 'order-pay' ) ) {
 			return $gateways;
 		}
 
@@ -1103,8 +1103,8 @@ class WC_Subscriptions_Coupon {
 
 					// Apply recurring fee discounts to recurring total calculations
 					if ( 'recurring_total' == $calculation_type ) {
-						$apply_recurring_coupon         = ( 'recurring_fee' == $coupon_type ) ? true : false;
-						$apply_recurring_percent_coupon = ( 'recurring_percent' == $coupon_type ) ? true : false;
+						$apply_recurring_coupon         = 'recurring_fee' == $coupon_type;
+						$apply_recurring_percent_coupon = 'recurring_percent' == $coupon_type;
 					}
 
 					if ( 'none' == $calculation_type ) {

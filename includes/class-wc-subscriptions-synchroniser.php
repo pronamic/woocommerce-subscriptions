@@ -472,7 +472,7 @@ class WC_Subscriptions_Synchroniser {
 
 		$payment_date = self::get_products_payment_day( $product );
 
-		return ( ( ! is_array( $payment_date ) && $payment_date > 0 ) || ( isset( $payment_date['day'] ) && $payment_date['day'] > 0 ) ) ? true : false;
+		return ( ! is_array( $payment_date ) && $payment_date > 0 ) || ( isset( $payment_date['day'] ) && $payment_date['day'] > 0 );
 	}
 
 	/**
@@ -959,7 +959,7 @@ class WC_Subscriptions_Synchroniser {
 		// Convert timestamp to site's time
 		$timestamp += get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
 
-		return ( gmdate( 'Y-m-d', current_time( 'timestamp' ) ) == gmdate( 'Y-m-d', $timestamp ) ) ? true : false;
+		return gmdate( 'Y-m-d', current_time( 'timestamp' ) ) == gmdate( 'Y-m-d', $timestamp );
 	}
 
 	/**
@@ -1152,7 +1152,7 @@ class WC_Subscriptions_Synchroniser {
 			$subscription_id = $subscription_id->get_id();
 		}
 
-		return ( 'true' == get_post_meta( $subscription_id, '_contains_synced_subscription', true ) ) ? true : false;
+		return 'true' == get_post_meta( $subscription_id, '_contains_synced_subscription', true );
 	}
 
 	/**
@@ -1404,7 +1404,7 @@ class WC_Subscriptions_Synchroniser {
 			$order_id = wcs_get_objects_property( $order_id, 'id' );
 		}
 
-		return ( 'true' == get_post_meta( $order_id, '_order_contains_synced_subscription', true ) ) ? true : false;
+		return 'true' == get_post_meta( $order_id, '_order_contains_synced_subscription', true );
 	}
 
 	/**

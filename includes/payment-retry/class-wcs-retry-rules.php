@@ -74,7 +74,7 @@ class WCS_Retry_Rules {
 	 * @since 2.1
 	 */
 	public function has_rule( $retry_number, $order_id ) {
-		return ( null !== $this->get_rule( $retry_number, $order_id ) ) ? true : false;
+		return null !== $this->get_rule( $retry_number, $order_id );
 	}
 
 	/**

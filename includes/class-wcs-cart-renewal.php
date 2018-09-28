@@ -533,7 +533,7 @@ class WCS_Cart_Renewal {
 		if ( $this->cart_contains() && did_action( 'woocommerce_checkout_init' ) > 0 ) {
 
 			// Guard against the fake WC_Checkout singleton, see https://github.com/woocommerce/woocommerce-subscriptions/issues/427#issuecomment-260763250
-			remove_filter( 'woocommerce_checkout_get_value', array( &$this, 'checkout_get_value' ), 10, 2 );
+			remove_filter( 'woocommerce_checkout_get_value', array( &$this, 'checkout_get_value' ), 10 );
 
 			if ( is_callable( array( WC()->checkout(), 'get_checkout_fields' ) ) ) { // WC 3.0+
 				$address_fields = array_merge( WC()->checkout()->get_checkout_fields( 'billing' ), WC()->checkout()->get_checkout_fields( 'shipping' ) );

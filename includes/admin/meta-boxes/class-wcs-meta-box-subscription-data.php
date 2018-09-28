@@ -62,6 +62,11 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 									esc_url( add_query_arg( $args, admin_url( 'edit.php' ) ) ),
 									esc_html__( 'View other subscriptions', 'woocommerce-subscriptions' )
 								);
+								printf(
+									'<a href="%s">%s</a>',
+									esc_url( add_query_arg( 'user_id', $subscription->get_user_id(), admin_url( 'user-edit.php' ) ) ),
+									esc_html__( 'Profile', 'woocommerce-subscriptions' )
+								);
 							}
 							?></label>
 							<?php
@@ -302,7 +307,10 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 		}
 
 		// Update meta
-		update_post_meta( $post_id, '_customer_user', absint( $_POST['customer_user'] ) );
+		$customer_id = isset( $_POST['customer_user'] ) ? absint( $_POST['customer_user'] ) : 0;
+		if ( $customer_id !== $subscription->get_customer_id() ) {
+			wcs_set_objects_property( $subscription, '_customer_user', $customer_id );
+		}
 
 		// Handle the billing fields.
 		foreach ( self::$billing_fields as $key => $field ) {
@@ -348,6 +356,11 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 		} catch ( Exception $e ) {
 			// translators: placeholder is error message from the payment gateway or subscriptions when updating the status
 			wcs_add_admin_notice( sprintf( __( 'Error updating some information: %s', 'woocommerce-subscriptions' ), $e->getMessage() ), 'error' );
+		}
+
+		// Grant download permissions on initial save.
+		if ( isset( $_POST['original_post_status'] ) && 'auto-draft' === $_POST['original_post_status'] ) {
+			wc_downloadable_product_permissions( $post_id );
 		}
 
 		do_action( 'woocommerce_process_shop_subscription_meta', $post_id, $post );

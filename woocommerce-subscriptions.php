@@ -5,7 +5,7 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: http://prospress.com/
- * Version: 2.3.5
+ * Version: 2.3.7
  *
  * WC requires at least: 2.6
  * WC tested up to: 3.4
@@ -48,7 +48,7 @@ woothemes_queue_update( plugin_basename( __FILE__ ), '6115e6d7e297b623a169fdcf57
  *
  * @since 1.0
  */
-if ( ! is_woocommerce_active() || version_compare( get_option( 'woocommerce_db_version' ), '2.6', '<' ) ) {
+if ( ! is_woocommerce_active() || version_compare( get_option( 'woocommerce_db_version' ), WC_Subscriptions::$wc_minimum_supported_version, '<' ) ) {
 	add_action( 'admin_notices', 'WC_Subscriptions::woocommerce_inactive_notice' );
 	return;
 }
@@ -170,7 +170,9 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.3.5';
+	public static $version = '2.3.7';
+
+	public static $wc_minimum_supported_version = '2.6';
 
 	private static $total_subscription_count = null;
 
@@ -502,8 +504,8 @@ class WC_Subscriptions {
 		$is_subscription                 = WC_Subscriptions_Product::is_subscription( $product_id );
 		$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription();
 		$multiple_subscriptions_possible = WC_Subscriptions_Payment_Gateways::one_gateway_supports( 'multiple_subscriptions' );
-		$manual_renewals_enabled         = ( 'yes' == get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals', 'no' ) ) ? true : false;
-		$canonical_product_id            = ( ! empty( $variation_id ) ) ? $variation_id : $product_id;
+		$manual_renewals_enabled         = ( 'yes' == get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals', 'no' ) );
+		$canonical_product_id            = ! empty( $variation_id ) ? $variation_id : $product_id;
 
 		if ( $is_subscription && 'yes' != get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase', 'no' ) ) {
 
@@ -710,25 +712,26 @@ class WC_Subscriptions {
 	 * @since 1.2
 	 */
 	public static function woocommerce_inactive_notice() {
-		if ( current_user_can( 'activate_plugins' ) ) :
-			if ( ! is_woocommerce_active() ) : ?>
-<div id="message" class="error">
-	<p><?php
-		$install_url = wp_nonce_url( add_query_arg( array( 'action' => 'install-plugin', 'plugin' => 'woocommerce' ), admin_url( 'update.php' ) ), 'install-plugin_woocommerce' );
+		if ( current_user_can( 'activate_plugins' ) ) {
+			$admin_notice_content = '';
 
-		// translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin
-		printf( esc_html__( '%1$sWooCommerce Subscriptions is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for WooCommerce Subscriptions to work. Please %5$sinstall & activate WooCommerce &raquo;%6$s',  'woocommerce-subscriptions' ), '<strong>', '</strong>', '<a href="http://wordpress.org/extend/plugins/woocommerce/">', '</a>', '<a href="' .  esc_url( $install_url ) . '">', '</a>' ); ?>
-	</p>
-</div>
-		<?php elseif ( version_compare( get_option( 'woocommerce_db_version' ), '2.4', '<' ) ) : ?>
-<div id="message" class="error">
-	<p><?php
-		// translators: 1$-2$: opening and closing <strong> tags, 3$-4$: opening and closing link tags, leads to plugin admin
-		printf( esc_html__( '%1$sWooCommerce Subscriptions is inactive.%2$s This version of Subscriptions requires WooCommerce 2.4 or newer. Please %3$supdate WooCommerce to version 2.4 or newer &raquo;%4$s', 'woocommerce-subscriptions' ), '<strong>', '</strong>', '<a href="' . esc_url( admin_url( 'plugins.php' ) ) . '">', '</a>' ); ?>
-	</p>
-</div>
-		<?php endif; ?>
-	<?php endif;
+			if ( ! is_woocommerce_active() ) {
+				$install_url = wp_nonce_url( add_query_arg( array( 'action' => 'install-plugin', 'plugin' => 'woocommerce' ), admin_url( 'update.php' ) ), 'install-plugin_woocommerce' );
+
+				// translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin
+				$admin_notice_content = sprintf( esc_html__( '%1$sWooCommerce Subscriptions is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for WooCommerce Subscriptions to work. Please %5$sinstall & activate WooCommerce &raquo;%6$s',  'woocommerce-subscriptions' ), '<strong>', '</strong>', '<a href="http://wordpress.org/extend/plugins/woocommerce/">', '</a>', '<a href="' .  esc_url( $install_url ) . '">', '</a>' );
+			} elseif ( version_compare( get_option( 'woocommerce_db_version' ), self::$wc_minimum_supported_version, '<' ) ) {
+				// translators: 1$-2$: opening and closing <strong> tags, 3$: minimum supported WooCommerce version, 4$-5$: opening and closing link tags, leads to plugin admin
+				$admin_notice_content = sprintf( esc_html__( '%1$sWooCommerce Subscriptions is inactive.%2$s This version of Subscriptions requires WooCommerce %3$s or newer. Please %4$supdate WooCommerce to version %3$s or newer &raquo;%5$s', 'woocommerce-subscriptions' ), '<strong>', '</strong>', self::$wc_minimum_supported_version,'<a href="' . esc_url( admin_url( 'plugins.php' ) ) . '">', '</a>' );
+			}
+
+			if ( $admin_notice_content ) {
+				require_once( 'includes/admin/class-wcs-admin-notice.php' );
+				$notice = new WCS_Admin_Notice( 'error' );
+				$notice->set_simple_content( $admin_notice_content );
+				$notice->display();
+			}
+		}
 	}
 
 	/**
@@ -1099,6 +1102,26 @@ class WC_Subscriptions {
 		return $shortest_period;
 	}
 
+
+	/**
+	 * Returns WordPress/Subscriptions record of the site URL for this site
+	 *
+	 * @param string $source Takes values 'current_wp_site' or 'subscriptions_install'
+	 * @since 2.3.6
+	 */
+	public static function get_site_url_from_source( $source = 'current_wp_site' ) {
+		// Let the default source be WP
+		if ( 'subscriptions_install' === $source ) {
+			$site_url = self::get_site_url();
+		} elseif ( defined( 'WP_SITEURL' ) ) {
+			$site_url = WP_SITEURL;
+		} else {
+			$site_url = get_site_url();
+		}
+
+		return $site_url;
+	}
+
 	/**
 	 * Returns Subscriptions record of the site URL for this site
 	 *
@@ -1133,14 +1156,8 @@ class WC_Subscriptions {
 	 */
 	public static function is_duplicate_site() {
 
-		if ( defined( 'WP_SITEURL' ) ) {
-			$site_url = WP_SITEURL;
-		} else {
-			$site_url = get_site_url();
-		}
-
-		$wp_site_url_parts  = wp_parse_url( $site_url );
-		$wcs_site_url_parts = wp_parse_url( self::get_site_url() );
+		$wp_site_url_parts  = wp_parse_url( self::get_site_url_from_source( 'current_wp_site' ) );
+		$wcs_site_url_parts = wp_parse_url( self::get_site_url_from_source( 'subscriptions_install' ) );
 
 		if ( ! isset( $wp_site_url_parts['path'] ) && ! isset( $wcs_site_url_parts['path'] ) ) {
 			$paths_match = true;
@@ -1197,11 +1214,7 @@ class WC_Subscriptions {
 	 */
 	public static function get_current_sites_duplicate_lock() {
 
-		if ( defined( 'WP_SITEURL' ) ) {
-			$site_url = WP_SITEURL;
-		} else {
-			$site_url = get_site_url();
-		}
+		$site_url = self::get_site_url_from_source( 'current_wp_site' );
 
 		return substr_replace( $site_url, '_[wc_subscriptions_siteurl]_', strlen( $site_url ) / 2, 0 );
 	}

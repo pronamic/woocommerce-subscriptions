@@ -253,7 +253,7 @@ function wcs_set_objects_property( &$object, $key, $value, $save = 'save', $meta
 
 		// Prices include tax is stored as a boolean in props but saved in the database as a string yes/no, so we need to normalise it here to make sure if we have a string (which can be passed to it by things like wcs_copy_order_meta()) that it's converted to a boolean before being set
 		if ( '_prices_include_tax' === $prefixed_key && ! is_bool( $value ) ) {
-			$value = 'yes' === $value ? true : false;
+			$value = 'yes' === $value;
 		}
 
 		$object->{ "set$prefixed_key" }( $value );
@@ -458,7 +458,7 @@ function wcs_get_coupon_property( $coupon, $property ) {
 
 		switch ( true ) {
 			case 'exists' == $property:
-				$value = ( $coupon->get_id() > 0 ) ? true : false;
+				$value = $coupon->get_id() > 0;
 				break;
 			case isset( $property_to_getter_map[ $property ] ) && is_callable( array( $coupon, $property_to_getter_map[ $property ] ) ):
 				$function = $property_to_getter_map[ $property ];
@@ -503,7 +503,7 @@ function wcs_set_coupon_property( &$coupon, $property, $value ) {
 			case 'individual_use' == $property:
 				// set_individual_use expects a boolean, the individual_use property use to be either 'yes' or 'no' so we need to accept both types
 				if ( ! is_bool( $value ) ) {
-					$value = ( 'yes' === $value ) ? true : false;
+					$value = 'yes' === $value;
 				}
 
 				$coupon->set_individual_use( $value );
