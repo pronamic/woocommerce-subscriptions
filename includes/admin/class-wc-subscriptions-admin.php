@@ -713,8 +713,8 @@ class WC_Subscriptions_Admin {
 		// Get admin screen id
 		$screen = get_current_screen();
 
-		$is_woocommerce_screen = ( in_array( $screen->id, array( 'product', 'edit-shop_order', 'shop_order', 'edit-shop_subscription', 'shop_subscription', 'users', 'woocommerce_page_wc-settings' ) ) ) ? true : false;
-		$is_activation_screen  = ( get_transient( WC_Subscriptions::$activation_transient ) == true ) ? true : false;
+		$is_woocommerce_screen = in_array( $screen->id, array( 'product', 'edit-shop_order', 'shop_order', 'edit-shop_subscription', 'shop_subscription', 'users', 'woocommerce_page_wc-settings' ) );
+		$is_activation_screen  = (bool) get_transient( WC_Subscriptions::$activation_transient );
 
 		if ( $is_woocommerce_screen ) {
 
@@ -739,6 +739,8 @@ class WC_Subscriptions_Admin {
 					'bulkEditIntervalhMessage'  => __( 'Enter a new interval as a single number (e.g. to charge every 2nd month, enter 2):', 'woocommerce-subscriptions' ),
 					'bulkDeleteOptionLabel'     => __( 'Delete all variations without a subscription', 'woocommerce-subscriptions' ),
 					'oneTimeShippingCheckNonce' => wp_create_nonce( 'one_time_shipping' ),
+					'productHasSubscriptions'   => wcs_get_subscriptions_for_product( $post->ID ) ? 'yes' : 'no',
+					'productTypeWarning'        => __( 'Product type can not be changed because this product is associated with active subscriptions', 'woocommerce-subscriptions' ),
 				);
 			} else if ( 'edit-shop_order' == $screen->id ) {
 				$script_params = array(
@@ -965,7 +967,31 @@ class WC_Subscriptions_Admin {
 			unset( $_POST[ self::$option_prefix . '_turn_off_automatic_payments' ] );
 		}
 
-		woocommerce_update_options( self::get_settings() );
+		$settings         = self::get_settings();
+		$defaults_to_find = array(
+			self::$option_prefix . '_add_to_cart_button_text' => '',
+			self::$option_prefix . '_order_button_text'       => '',
+		);
+
+		foreach ( $settings as $setting ) {
+			if ( ! isset( $setting['id'], $setting['default'], $defaults_to_find[ $setting['id'] ], $_POST[ $setting['id'] ] ) ) {
+				continue;
+			}
+
+			// Set the setting to its default if no value has been submitted.
+			if ( '' === wc_clean( $_POST[ $setting['id'] ] ) ) {
+				$_POST[ $setting['id'] ] = $setting['default'];
+			}
+
+			unset( $defaults_to_find[ $setting['id'] ] );
+
+			// If all defaults have been found, exit.
+			if ( ! count( $defaults_to_find ) ) {
+				break;
+			}
+		}
+
+		woocommerce_update_options( $settings );
 	}
 
 	/**
@@ -1036,25 +1062,27 @@ class WC_Subscriptions_Admin {
 			),
 
 			array(
-				'name'     => __( 'Add to Cart Button Text', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'A product displays a button with the text "Add to Cart". By default, a subscription changes this to "Sign Up Now". You can customise the button text for subscriptions here.', 'woocommerce-subscriptions' ),
-				'tip'      => '',
-				'id'       => self::$option_prefix . '_add_to_cart_button_text',
-				'css'      => 'min-width:150px;',
-				'default'  => __( 'Sign Up Now', 'woocommerce-subscriptions' ),
-				'type'     => 'text',
-				'desc_tip' => true,
+				'name'        => __( 'Add to Cart Button Text', 'woocommerce-subscriptions' ),
+				'desc'        => __( 'A product displays a button with the text "Add to Cart". By default, a subscription changes this to "Sign Up Now". You can customise the button text for subscriptions here.', 'woocommerce-subscriptions' ),
+				'tip'         => '',
+				'id'          => self::$option_prefix . '_add_to_cart_button_text',
+				'css'         => 'min-width:150px;',
+				'default'     => __( 'Sign Up Now', 'woocommerce-subscriptions' ),
+				'type'        => 'text',
+				'desc_tip'    => true,
+				'placeholder' => __( 'Sign Up Now', 'woocommerce-subscriptions' ),
 			),
 
 			array(
-				'name'     => __( 'Place Order Button Text', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'Use this field to customise the text displayed on the checkout button when an order contains a subscription. Normally the checkout submission button displays "Place Order". When the cart contains a subscription, this is changed to "Sign Up Now".', 'woocommerce-subscriptions' ),
-				'tip'      => '',
-				'id'       => self::$option_prefix . '_order_button_text',
-				'css'      => 'min-width:150px;',
-				'default'  => __( 'Sign Up Now', 'woocommerce-subscriptions' ),
-				'type'     => 'text',
-				'desc_tip' => true,
+				'name'        => __( 'Place Order Button Text', 'woocommerce-subscriptions' ),
+				'desc'        => __( 'Use this field to customise the text displayed on the checkout button when an order contains a subscription. Normally the checkout submission button displays "Place Order". When the cart contains a subscription, this is changed to "Sign Up Now".', 'woocommerce-subscriptions' ),
+				'tip'         => '',
+				'id'          => self::$option_prefix . '_order_button_text',
+				'css'         => 'min-width:150px;',
+				'default'     => __( 'Sign Up Now', 'woocommerce-subscriptions' ),
+				'type'        => 'text',
+				'desc_tip'    => true,
+				'placeholder' => __( 'Sign Up Now', 'woocommerce-subscriptions' ),
 			),
 
 			array( 'type' => 'sectionend', 'id' => self::$option_prefix . '_button_text' ),
@@ -1502,7 +1530,7 @@ class WC_Subscriptions_Admin {
 			$screen = get_current_screen();
 
 			if ( is_object( $screen ) && 'shop_order' == $screen->id ) {
-				remove_filter( 'woocommerce_get_formatted_order_total', 'WC_Subscriptions_Order::get_formatted_order_total', 10, 2 );
+				remove_filter( 'woocommerce_get_formatted_order_total', 'WC_Subscriptions_Order::get_formatted_order_total', 10 );
 			}
 		}
 
@@ -1533,7 +1561,7 @@ class WC_Subscriptions_Admin {
 		$screen = get_current_screen();
 
 		if ( is_object( $screen ) && 'shop_subscription' == $screen->id ) {
-			remove_filter( 'gettext', __CLASS__ . '::change_order_item_editable_text', 10, 3 );
+			remove_filter( 'gettext', __CLASS__ . '::change_order_item_editable_text', 10 );
 		}
 	}
 

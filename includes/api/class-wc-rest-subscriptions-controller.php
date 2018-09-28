@@ -95,6 +95,10 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 
 				$response->data[ $date_type . '_date' ] = ( ! empty( $date ) ) ? wc_rest_prepare_date_response( $date ) : '';
 			}
+
+			// v1 API includes some date types in site time, include those dates in UTC as well.
+			$response->data['date_completed_gmt'] = wc_rest_prepare_date_response( $subscription->get_date_completed() );
+			$response->data['date_paid_gmt']      = wc_rest_prepare_date_response( $subscription->get_date_paid() );
 		}
 
 		return $response;
@@ -461,6 +465,18 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 			'resubscribed_subscription' => array(
 				'description' => __( "The subscription's resubscribed subscription ID.", 'woocommerce-subscriptions' ),
 				'type'        => 'string',
+				'context'     => array( 'view' ),
+				'readonly'    => true,
+			),
+			'date_completed_gmt' => array(
+				'description' => __( "The date the subscription's latest order was completed, in GMT.", 'woocommerce-subscriptions' ),
+				'type'        => 'date-time',
+				'context'     => array( 'view' ),
+				'readonly'    => true,
+			),
+			'date_paid_gmt' => array(
+				'description' => __( "The date the subscription's latest order was paid, in GMT.", 'woocommerce-subscriptions' ),
+				'type'        => 'date-time',
 				'context'     => array( 'view' ),
 				'readonly'    => true,
 			),

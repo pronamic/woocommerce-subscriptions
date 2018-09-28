@@ -236,7 +236,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	public function get_recurring_cart_key( $cart_key, $cart_item ) {
 		$subscription = $this->get_order( $cart_item );
 		if ( false !== $subscription && $subscription->has_status( 'pending-cancel' ) ) {
-			remove_filter( 'woocommerce_subscriptions_recurring_cart_key', array( &$this, 'get_recurring_cart_key' ), 10, 2 );
+			remove_filter( 'woocommerce_subscriptions_recurring_cart_key', array( &$this, 'get_recurring_cart_key' ), 10 );
 			$cart_key = WC_Subscriptions_Cart::get_recurring_cart_key( $cart_item, $subscription->get_time( 'end' ) );
 			add_filter( 'woocommerce_subscriptions_recurring_cart_key', array( &$this, 'get_recurring_cart_key' ), 10, 2 );
 		}

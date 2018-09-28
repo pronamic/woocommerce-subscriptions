@@ -44,7 +44,7 @@ class WCS_Retry_Rule {
 	 * @since 2.1
 	 */
 	public function has_email_template( $recipient = 'customer' ) {
-		return ( isset( $this->rule_data[ 'email_template_' . $recipient ] ) && ! empty( $this->rule_data[ 'email_template_' . $recipient ] ) ) ? true : false;
+		return isset( $this->rule_data[ 'email_template_' . $recipient ] ) && ! empty( $this->rule_data[ 'email_template_' . $recipient ] );
 	}
 
 	/**

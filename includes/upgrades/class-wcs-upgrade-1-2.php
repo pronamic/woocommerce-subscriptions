@@ -59,7 +59,7 @@ class WCS_Upgrade_1_2 {
 			$trial_lengths = WC_Subscriptions_Order::get_meta( $order, '_order_subscription_trial_lengths', array() );
 			$trial_length = array_pop( $trial_lengths );
 
-			$has_trial = ( ! empty( $trial_length ) && $trial_length > 0 ) ? true : false ;
+			$has_trial = ! empty( $trial_length ) && $trial_length > 0;
 
 			$sign_up_fee_total = WC_Subscriptions_Order::get_meta( $order, '_sign_up_fee_total', 0 );
 

@@ -38,9 +38,9 @@ class WCS_PayPal_Standard_Request {
 
 			// We need the subscription's total
 			if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
-				remove_filter( 'woocommerce_order_amount_total', 'WC_Subscriptions_Change_Payment_Gateway::maybe_zero_total', 11, 2 );
+				remove_filter( 'woocommerce_order_amount_total', 'WC_Subscriptions_Change_Payment_Gateway::maybe_zero_total', 11 );
 			} else {
-				remove_filter( 'woocommerce_subscription_get_total', 'WC_Subscriptions_Change_Payment_Gateway::maybe_zero_total', 11, 2 );
+				remove_filter( 'woocommerce_subscription_get_total', 'WC_Subscriptions_Change_Payment_Gateway::maybe_zero_total', 11 );
 			}
 		} else {
 

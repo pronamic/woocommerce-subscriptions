@@ -85,18 +85,20 @@ class WCS_Admin_Notice {
 	 * @since 2.3.0
 	 */
 	public function display() {
-
 		if ( 'admin_notices' !== current_filter() ) {
 			add_action( 'admin_notices', array( $this, __FUNCTION__ ) );
 			return;
 		}
 
-		wc_get_template(
-			'html-admin-notice.php',
-			array( 'notice' => $this ),
-			'',
-			plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/admin/'
-		);
+		$template_name = 'html-admin-notice.php';
+		$template_path = plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/admin/';
+
+		if ( function_exists( 'wc_get_template' ) ) {
+			wc_get_template( $template_name, array( 'notice' => $this ), '', $template_path );
+		} else {
+			$notice = $this;
+			include( $template_path . $template_name );
+		}
 	}
 
 	/**

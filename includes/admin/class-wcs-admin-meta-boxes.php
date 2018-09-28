@@ -81,7 +81,7 @@ class WCS_Admin_Meta_Boxes {
 	public function remove_meta_box_save( $post_id, $post ) {
 
 		if ( 'shop_subscription' == $post->post_type ) {
-			remove_action( 'woocommerce_process_shop_order_meta', 'WC_Meta_Box_Order_Data::save', 40, 2 );
+			remove_action( 'woocommerce_process_shop_order_meta', 'WC_Meta_Box_Order_Data::save', 40 );
 		}
 	}
 
