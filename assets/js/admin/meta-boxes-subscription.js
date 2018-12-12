@@ -58,21 +58,8 @@ jQuery(document).ready(function($){
 				seconds: one_hour_from_now.format( 'ss' )
 			});
 
-
-		// Make sure start date is before now
-		if ( 'start' == date_type ) {
-
-			if ( false === chosen_date.isBefore( time_now ) ) {
-				alert( wcs_admin_meta_boxes.i18n_start_date_notice );
-				$date_input.val( time_now.year() + '-' + ( zeroise( time_now.months() + 1 ) ) + '-' + ( time_now.format( 'DD' ) ) );
-				$hour_input.val( time_now.format( 'HH' ) );
-				$minute_input.val( time_now.format( 'mm' ) );
-			}
-
-		}
-
 		// Make sure trial end and next payment are after start date
-		else if ( ( 'trial_end' == date_type || 'next_payment' == date_type ) && '' != $( '#start_timestamp_utc' ).val() ) {
+		if ( ( 'trial_end' == date_type || 'next_payment' == date_type ) && '' != $( '#start_timestamp_utc' ).val() ) {
 			var change_date = false,
 				start       = moment.unix( $('#start_timestamp_utc').val() );
 

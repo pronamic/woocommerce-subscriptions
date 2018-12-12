@@ -5,13 +5,13 @@
  * Find the number of periods between when each subscription is created and ends or ended
  * then plot all subscriptions using this data to provide a curve of retention rates.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Admin_Reports
- * @category	Class
- * @author		Prospress
- * @since		2.1
+ * @package    WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Admin_Reports
+ * @category   Class
+ * @author     Prospress
+ * @since      2.1
  */
-class WC_Report_Retention_Rate extends WC_Admin_Report {
+class WCS_Report_Retention_Rate extends WC_Admin_Report {
 
 	public $chart_colours = array();
 

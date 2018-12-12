@@ -112,4 +112,3 @@ class WCS_User_Change_Status_Handler {
 		return true;
 	}
 }
-WCS_User_Change_Status_Handler::init();

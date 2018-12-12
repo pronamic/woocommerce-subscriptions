@@ -32,6 +32,8 @@ class WCS_Download_Handler {
 
 		add_action( 'woocommerce_process_shop_order_meta', __CLASS__ . '::repair_permission_data', 60, 1 );
 
+		add_action( 'woocommerce_admin_created_subscription', array( __CLASS__, 'grant_download_permissions' ) );
+
 		add_action( 'deleted_post', __CLASS__ . '::delete_subscription_permissions' );
 
 		add_action( 'woocommerce_process_product_file_download_paths', __CLASS__ . '::grant_new_file_product_permissions', 11, 3 );
@@ -185,6 +187,17 @@ class WCS_Download_Handler {
 	}
 
 	/**
+	 * Gives customers access to downloadable products in a subscription.
+	 * Hooked into 'woocommerce_admin_created_subscription' to grant permissions to admin created subscriptions.
+	 *
+	 * @param WC_Subscription $subscription
+	 * @since 2.4.2
+	 */
+	public static function grant_download_permissions( $subscription ) {
+		wc_downloadable_product_permissions( $subscription->get_id() );
+	}
+
+	/**
 	 * Remove download permissions attached to a subscription when it is permenantly deleted.
 	 *
 	 * @since 2.0
@@ -247,4 +260,3 @@ class WCS_Download_Handler {
 		}
 	}
 }
-WCS_Download_Handler::init();

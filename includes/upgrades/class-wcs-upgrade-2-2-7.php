@@ -60,12 +60,12 @@ class WCS_Upgrade_2_2_7 {
 					$subscription->update_status( 'cancelled', __( 'Subscription end date in the past', 'woocommerce-subscriptions' ) );
 				} else {
 					$action_args      = array( 'subscription_id' => $subscription_id );
-					$scheduled_action = wc_next_scheduled_action( $end_of_prepaid_term_hook, $action_args );
+					$scheduled_action = as_next_scheduled_action( $end_of_prepaid_term_hook, $action_args );
 
 					// If there isn't a scheduled end of prepaid term, schedule one now.
 					if ( false == $scheduled_action ) {
 						self::log( sprintf( 'Subscription %d missing scheduled end of prepaid term action - scheduled new action (end timestamp: %d)', $subscription_id, $end_time ) );
-						wc_schedule_single_action( $end_time, $end_of_prepaid_term_hook, $action_args );
+						as_schedule_single_action( $end_time, $end_of_prepaid_term_hook, $action_args );
 					} else {
 						self::log( sprintf( 'Subscription %d has a scheduled end of prepaid term action - there\'s nothing to do here', $subscription_id ) );
 					}

@@ -4,13 +4,13 @@
  *
  * Display important historical data for subscription revenue and events, like switches and cancellations.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Admin_Reports
- * @category	Class
- * @author		Prospress
- * @since		2.1
+ * @package    WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Admin_Reports
+ * @category   Class
+ * @author     Prospress
+ * @since      2.1
  */
-class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
+class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 
 	public $chart_colours = array();
 
@@ -257,7 +257,7 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		$query = $wpdb->prepare(
 			"SELECT searchdate.Date as date, COUNT( DISTINCT wcsubs.ID) as count
 				FROM (
-					SELECT DATE_FORMAT(last_thousand_days.Date,'%%Y-%%m-%%d') as Date
+					SELECT DATE(last_thousand_days.Date) as Date
 					FROM (
 						SELECT DATE(%s) - INTERVAL(units.digit + (10 * tens.digit) + (100 * hundreds.digit)) DAY as Date
 						FROM (
@@ -295,6 +295,7 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 							OR wcsmeta.meta_value = 0
 							OR wcsmeta.meta_value IS NULL
 						)
+					GROUP BY searchdate.Date
 					ORDER BY searchdate.Date ASC",
 			$query_end_date,
 			date( 'Y-m-d', $this->start_date ),
@@ -380,7 +381,7 @@ class WC_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		$this->report_data->switch_orders_total_count           = absint( array_sum( wp_list_pluck( $this->report_data->switch_counts, 'count' ) ) );
 		$this->report_data->total_subscriptions_cancelled       = absint( array_sum( wp_list_pluck( $this->report_data->cancel_counts, 'count' ) ) );
 		$this->report_data->total_subscriptions_ended           = absint( array_sum( wp_list_pluck( $this->report_data->ended_counts, 'count' ) ) );
-		$this->report_data->total_subscriptions_at_period_end   = absint( end( $this->report_data->subscriber_counts )->count );
+		$this->report_data->total_subscriptions_at_period_end   = $this->report_data->subscriber_counts ? absint( end( $this->report_data->subscriber_counts )->count ) : 0;
 		$this->report_data->total_subscriptions_at_period_start = isset( $this->report_data->subscriber_counts[0]->count ) ? absint( $this->report_data->subscriber_counts[0]->count ) : 0;
 
 	}

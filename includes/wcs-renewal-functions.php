@@ -87,8 +87,7 @@ function wcs_cart_contains_renewal() {
 /**
  * Checks the cart to see if it contains a subscription product renewal for a failed renewal payment.
  *
- * @param  bool | Array The cart item containing the renewal, else false.
- * @return string
+ * @return bool|array The cart item containing the renewal, else false.
  * @since  2.0
  */
 function wcs_cart_contains_failed_renewal_order_payment() {

@@ -397,10 +397,8 @@ class WC_API_Subscriptions extends WC_API_Orders {
 		$dates_to_update = array();
 
 		foreach ( array( 'start', 'trial_end', 'end', 'next_payment' ) as $date_type ) {
-
 			if ( isset( $data[ $date_type . '_date' ] ) ) {
-				$date_type_key = ( 'start' === $date_type ) ? 'date_created' : $date_type;
-				$dates_to_update[ $date_type_key ] = $data[ $date_type . '_date' ];
+				$dates_to_update[ $date_type ] = $data[ $date_type . '_date' ];
 			}
 		}
 
@@ -461,7 +459,7 @@ class WC_API_Subscriptions extends WC_API_Orders {
 		$subscription_data['billing_schedule'] = array(
 			'period'          => $subscription->get_billing_period(),
 			'interval'        => $subscription->get_billing_interval(),
-			'start_at'        => $this->get_formatted_datetime( $subscription, 'date_created' ),
+			'start_at'        => $this->get_formatted_datetime( $subscription, 'start' ),
 			'trial_end_at'    => $this->get_formatted_datetime( $subscription, 'trial_end' ),
 			'next_payment_at' => $this->get_formatted_datetime( $subscription, 'next_payment' ),
 			'end_at'          => $this->get_formatted_datetime( $subscription, 'end' ),

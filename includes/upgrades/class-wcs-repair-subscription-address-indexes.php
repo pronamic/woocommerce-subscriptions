@@ -21,10 +21,11 @@ class WCS_Repair_Subscription_Address_Indexes extends WCS_Background_Upgrader {
 	/**
 	 * Constructor
 	 *
-	 * @param WC_Logger $logger The WC_Logger instance.
+	 * @param WC_Logger_Interface $logger The WC_Logger instance.
+	 *
 	 * @since 2.3.0
 	 */
-	public function __construct( WC_Logger $logger ) {
+	public function __construct( WC_Logger_Interface $logger ) {
 		$this->scheduled_hook = 'wcs_add_missing_subscription_address_indexes';
 		$this->log_handle     = 'wcs-add-subscription-address-indexes';
 		$this->logger         = $logger;

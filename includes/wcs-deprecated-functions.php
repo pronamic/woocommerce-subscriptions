@@ -237,7 +237,7 @@ function wcs_get_subscription_in_deprecated_structure( WC_Subscription $subscrip
 			'length'             => wcs_estimate_periods_between( ( 0 == $subscription->get_time( 'trial_end' ) ) ? $subscription->get_time( 'date_created' ) : $subscription->get_time( 'trial_end' ), $subscription->get_time( 'end' ) + 120, $subscription->get_billing_period(), 'floor' ) / $subscription->get_billing_interval(), // Since subscriptions no longer have a length, we need to calculate the length given the start and end dates and the period.
 
 			// Subscription dates
-			'start_date'         => $subscription->get_date( 'date_created' ),
+			'start_date'         => $subscription->get_date( 'start' ),
 			'expiry_date'        => $subscription->get_date( 'end' ),
 			'end_date'           => $subscription->has_status( wcs_get_subscription_ended_statuses() ) ? $subscription->get_date( 'end' ) : 0,
 			'trial_expiry_date'  => $subscription->get_date( 'trial_end' ),

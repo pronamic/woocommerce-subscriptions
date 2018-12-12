@@ -109,52 +109,60 @@ class WCS_Retry_Post_Store extends WCS_Retry_Store {
 	}
 
 	/**
+	 * Deletes a retry.
 	 *
+	 * @param int $retry_id
+	 *
+	 * @return bool
 	 */
-	public function get_retries( $args ) {
+	public function delete_retry( $retry_id ) {
+		return wp_delete_post( $retry_id, true );
+	}
+
+	/**
+	 * Get a set of retries from the database
+	 *
+	 * @param array  $args   A set of filters:
+	 *                       'status': filter to only retries of a certain status, either 'pending', 'processing', 'failed' or 'complete'. Default: 'any', which will return all retries.
+	 *                       'date_query': array of dates to filter retries to those that occur 'after' or 'before' a certain date (or between those two dates). Should be a MySQL formated date/time string.
+	 *                       'orderby': Order by which property?
+	 *                       'order': Order in ASC/DESC.
+	 *                       'order_id': filter retries to those which belong to a certain order ID.
+	 *                       'limit': How many retries we want to get.
+	 * @param string $return Defines in which format return the entries. options:
+	 *                       'objects': Returns an array of WCS_Retry objects
+	 *                       'ids': Returns an array of ids.
+	 *
+	 * @return array An array of WCS_Retry objects or ids.
+	 * @since 2.4
+	 */
+	public function get_retries( $args = array(), $return = 'objects' ) {
+		$retries = array();
 
 		$args = wp_parse_args( $args, array(
 			'status'     => 'any',
 			'date_query' => array(),
+			'orderby'    => 'date',
+			'order'      => 'DESC',
+			'order_id'   => false,
+			'limit'      => -1,
 		) );
 
 		$retry_post_ids = get_posts( array(
-			'posts_per_page' => -1,
+			'posts_per_page' => $args['limit'],
 			'post_type'      => self::$post_type,
 			'post_status'    => $args['status'],
 			'date_query'     => $args['date_query'],
 			'fields'         => 'ids',
-			'orderby'        => 'date',
-			'order'          => 'DESC',
+			'orderby'        => $args['orderby'],
+			'order'          => $args['order'],
+			'post_parent'    => $args['order_id'],
 		) );
 
-		$retries = array();
-
 		foreach ( $retry_post_ids as $retry_post_id ) {
-			$retries[ $retry_post_id ] = $this->get_retry( $retry_post_id );
+			$retries[ $retry_post_id ] = 'ids' === $return ? $retry_post_id : $this->get_retry( $retry_post_id );
 		}
 
 		return $retries;
-	}
-
-	/**
-	 * Get the IDs of all retries from the database for a given order
-	 *
-	 * @param int $order_id
-	 * @return array
-	 */
-	public function get_retry_ids_for_order( $order_id ) {
-
-		$retry_post_ids = get_posts( array(
-			'posts_per_page' => -1,
-			'post_type'      => self::$post_type,
-			'post_status'    => 'any',
-			'post_parent'    => $order_id,
-			'fields'         => 'ids',
-			'orderby'        => 'ID',
-			'order'          => 'ASC',
-		) );
-
-		return $retry_post_ids;
 	}
 }

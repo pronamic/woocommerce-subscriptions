@@ -269,7 +269,6 @@ class WC_PayPal_Standard_Subscriptions {
 		return wcs_calculate_paypal_trial_periods_until( $future_timestamp );
 	}
 }
-add_action( 'init', 'WC_PayPal_Standard_Subscriptions::init', 11 );
 
 /**
  * Needs to be called after init so that $woocommerce global is setup

@@ -92,7 +92,7 @@ class WC_Subscriptions_Admin {
 
 		add_filter( 'woocommerce_settings_tabs_array', __CLASS__ . '::add_subscription_settings_tab', 50 );
 
-		add_action( 'woocommerce_settings_tabs_subscriptions', __CLASS__ . '::subscription_settings_page' );
+		add_action( 'woocommerce_settings_subscriptions', __CLASS__ . '::subscription_settings_page' );
 
 		add_action( 'woocommerce_update_options_' . self::$tab_name, __CLASS__ . '::update_subscription_settings' );
 
@@ -150,6 +150,10 @@ class WC_Subscriptions_Admin {
 				'wc_report_subscription_by_product',
 				'wc_report_subscription_by_customer',
 				'wc_report_subscription_events_by_date',
+				'wcs_report_subscription_by_product',
+				'wcs_report_subscription_by_customer',
+				'wcs_report_subscription_events_by_date',
+				'wcs_report_upcoming_recurring_revenue',
 			);
 
 			// Get all related order and subscription ranges transients
@@ -938,11 +942,6 @@ class WC_Subscriptions_Admin {
 	public static function get_subscriptions_list_table() {
 
 		if ( ! isset( self::$subscriptions_list_table ) ) {
-
-			if ( ! class_exists( 'WC_Subscriptions_List_Table' ) ) {
-				require_once( 'class-wc-subscriptions-list-table.php' );
-			}
-
 			self::$subscriptions_list_table = new WC_Subscriptions_List_Table();
 		}
 
@@ -1744,7 +1743,7 @@ class WC_Subscriptions_Admin {
 	 */
 	public static function related_orders_meta_box( $post ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_Meta_Box_Related_Orders::output()' );
-		WCS_Meta_Box_Related_Orders::output();
+		WCS_Meta_Box_Related_Orders::output( $post );
 	}
 
 	/**
@@ -1800,5 +1799,3 @@ class WC_Subscriptions_Admin {
 		_deprecated_function( __METHOD__, '2.0' );
 	}
 }
-
-WC_Subscriptions_Admin::init();

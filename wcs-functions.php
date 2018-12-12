@@ -12,24 +12,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-require_once( 'includes/class-wcs-select2.php' );
-require_once( 'includes/wcs-deprecated-functions.php' );
-require_once( 'includes/wcs-compatibility-functions.php' );
-require_once( 'includes/wcs-conditional-functions.php' );
-require_once( 'includes/wcs-formatting-functions.php' );
-require_once( 'includes/wcs-product-functions.php' );
-require_once( 'includes/wcs-cart-functions.php' );
-require_once( 'includes/wcs-order-functions.php' );
-require_once( 'includes/wcs-time-functions.php' );
-require_once( 'includes/wcs-user-functions.php' );
-require_once( 'includes/wcs-helper-functions.php' );
-require_once( 'includes/wcs-renewal-functions.php' );
-require_once( 'includes/wcs-resubscribe-functions.php' );
-require_once( 'includes/wcs-switch-functions.php' );
-require_once( 'includes/wcs-limit-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-deprecated-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-compatibility-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-conditional-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-formatting-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-product-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-cart-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-order-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-time-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-user-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-helper-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-renewal-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-resubscribe-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-switch-functions.php' );
+require_once( dirname( __FILE__ ) . '/includes/wcs-limit-functions.php' );
 
 if ( is_admin() ) {
-	require_once( 'includes/admin/wcs-admin-functions.php' );
+	require_once( dirname( __FILE__ ) . '/includes/admin/wcs-admin-functions.php' );
 }
 
 /**
@@ -101,12 +100,13 @@ function wcs_get_subscription( $the_subscription ) {
  */
 function wcs_create_subscription( $args = array() ) {
 
+	$now   = gmdate( 'Y-m-d H:i:s' );
 	$order = ( isset( $args['order_id'] ) ) ? wc_get_order( $args['order_id'] ) : null;
 
 	if ( ! empty( $order ) ) {
-		$default_start_date  = wcs_get_datetime_utc_string( wcs_get_objects_property( $order, 'date_created' ) );
+		$default_start_date = wcs_get_datetime_utc_string( wcs_get_objects_property( $order, 'date_created' ) );
 	} else {
-		$default_start_date = gmdate( 'Y-m-d H:i:s' );
+		$default_start_date = ( isset( $args['date_created'] ) ) ? $args['date_created'] : $now;
 	}
 
 	$default_args = array(
@@ -115,6 +115,7 @@ function wcs_create_subscription( $args = array() ) {
 		'customer_note'      => null,
 		'customer_id'        => ( ! empty( $order ) ) ? $order->get_user_id() : null,
 		'start_date'         => $default_start_date,
+		'date_created'       => $now,
 		'created_via'        => ( ! empty( $order ) ) ? wcs_get_objects_property( $order, 'created_via' ) : '',
 		'order_version'      => ( ! empty( $order ) ) ? wcs_get_objects_property( $order, 'version' ) : WC_VERSION,
 		'currency'           => ( ! empty( $order ) ) ? wcs_get_objects_property( $order, 'currency' ) : get_woocommerce_currency(),
@@ -124,11 +125,16 @@ function wcs_create_subscription( $args = array() ) {
 	$args              = wp_parse_args( $args, $default_args );
 	$subscription_data = array();
 
-	// validate the start_date field
+	// Validate the date_created arg.
+	if ( ! is_string( $args['date_created'] ) || false === wcs_is_datetime_mysql_format( $args['date_created'] ) ) {
+		return new WP_Error( 'woocommerce_subscription_invalid_date_created_format', _x( 'Invalid created date. The date must be a string and of the format: "Y-m-d H:i:s".', 'Error message while creating a subscription', 'woocommerce-subscriptions' ) );
+	} elseif ( wcs_date_to_time( $args['date_created'] ) > current_time( 'timestamp', true ) ) {
+		return new WP_Error( 'woocommerce_subscription_invalid_date_created', _x( 'Subscription created date must be before current day.', 'Error message while creating a subscription', 'woocommerce-subscriptions' ) );
+	}
+
+	// Validate the start_date arg.
 	if ( ! is_string( $args['start_date'] ) || false === wcs_is_datetime_mysql_format( $args['start_date'] ) ) {
 		return new WP_Error( 'woocommerce_subscription_invalid_start_date_format', _x( 'Invalid date. The date must be a string and of the format: "Y-m-d H:i:s".', 'Error message while creating a subscription', 'woocommerce-subscriptions' ) );
-	} else if ( wcs_date_to_time( $args['start_date'] ) > current_time( 'timestamp', true ) ) {
-		return new WP_Error( 'woocommerce_subscription_invalid_start_date', _x( 'Subscription start date must be before current day.', 'Error message while creating a subscription', 'woocommerce-subscriptions' ) );
 	}
 
 	// check customer id is set
@@ -149,14 +155,14 @@ function wcs_create_subscription( $args = array() ) {
 	$subscription_data['post_type']     = 'shop_subscription';
 	$subscription_data['post_status']   = 'wc-' . apply_filters( 'woocommerce_default_subscription_status', 'pending' );
 	$subscription_data['ping_status']   = 'closed';
-	$subscription_data['post_author']   = 1;
+	$subscription_data['post_author']   = WC_Subscriptions::is_woocommerce_pre( '3.5' ) ? 1 : $args['customer_id'];
 	$subscription_data['post_password'] = uniqid( 'order_' );
 	// translators: Order date parsed by strftime
 	$post_title_date = strftime( _x( '%b %d, %Y @ %I:%M %p', 'Used in subscription post title. "Subscription renewal order - <this>"', 'woocommerce-subscriptions' ) );
 	// translators: placeholder is order date parsed by strftime
 	$subscription_data['post_title']    = sprintf( _x( 'Subscription &ndash; %s', 'The post title for the new subscription', 'woocommerce-subscriptions' ), $post_title_date );
-	$subscription_data['post_date_gmt'] = $args['start_date'];
-	$subscription_data['post_date']     = get_date_from_gmt( $args['start_date'] );
+	$subscription_data['post_date_gmt'] = $args['date_created'];
+	$subscription_data['post_date']     = get_date_from_gmt( $args['date_created'] );
 
 	if ( $args['order_id'] > 0 ) {
 		$subscription_data['post_parent'] = absint( $args['order_id'] );
@@ -192,6 +198,8 @@ function wcs_create_subscription( $args = array() ) {
 
 	update_post_meta( $subscription_id, '_customer_user', $args['customer_id'] );
 	update_post_meta( $subscription_id, '_order_version', $args['order_version'] );
+
+	update_post_meta( $subscription_id, '_schedule_start', $args['start_date'] );
 
 	/**
 	 * Filter the newly created subscription object.
@@ -363,10 +371,7 @@ function wcs_normalise_date_type_key( $date_type_key, $display_deprecated_notice
 
 	$deprecated_notice = '';
 
-	if ( 'start' === $date_type_key ) {
-		$deprecated_notice = 'The "start" date type parameter has been deprecated to align date types with improvements to date APIs in WooCommerce 3.0, specifically the introduction of a new "date_created" API. Use "date_created"';
-		$date_type_key     = 'date_created';
-	} elseif ( 'last_payment' === $date_type_key ) {
+	if ( 'last_payment' === $date_type_key ) {
 		$deprecated_notice = 'The "last_payment" date type parameter has been deprecated due to ambiguity (it actually returns the date created for the last order) and to align date types with improvements to date APIs in WooCommerce 3.0, specifically the introduction of a new "date_paid" API. Use "last_order_date_created" or "last_order_date_paid"';
 		// For backward compatibility we have to use the date created here not the 'date_paid', see: https://github.com/Prospress/woocommerce-subscriptions/issues/1943
 		$date_type_key = 'last_order_date_created';
@@ -774,4 +779,44 @@ function wcs_subscription_search( $term ) {
 	}
 
 	return $subscription_ids;
+}
+
+/**
+ * Set payment method meta data for a subscription or order.
+ *
+ * @since 2.4.3
+ * @param WC_Subscription|WC_Order $subscription The subscription or order to set the post payment meta on.
+ * @param array $payment_meta Associated array of the form: $database_table => array( 'meta_key' => array( 'value' => '' ) )
+ * @throws InvalidArgumentException
+ */
+function wcs_set_payment_meta( $subscription, $payment_meta ) {
+	if ( ! is_array( $payment_meta ) ) {
+		throw new InvalidArgumentException( __( 'Payment method meta must be an array.', 'woocommerce-subscriptions' ) );
+	}
+
+	foreach ( $payment_meta as $meta_table => $meta ) {
+		foreach ( $meta as $meta_key => $meta_data ) {
+			if ( isset( $meta_data['value'] ) ) {
+				switch ( $meta_table ) {
+					case 'user_meta':
+					case 'usermeta':
+						update_user_meta( $subscription->get_user_id(), $meta_key, $meta_data['value'] );
+						break;
+					case 'post_meta':
+					case 'postmeta':
+						if ( is_callable( array( $subscription, 'update_meta_data' ) ) ) {
+							$subscription->update_meta_data( $meta_key, $meta_data['value'] );
+						} else {
+							update_post_meta( wcs_get_objects_property( $subscription, 'id' ), $meta_key, $meta_data['value'] );
+						}
+						break;
+					case 'options':
+						update_option( $meta_key, $meta_data['value'] );
+						break;
+					default:
+						do_action( 'wcs_save_other_payment_meta', $subscription, $meta_table, $meta_key, $meta_data['value'] );
+				}
+			}
+		}
+	}
 }

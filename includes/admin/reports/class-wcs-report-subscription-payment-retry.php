@@ -4,13 +4,13 @@
  *
  * Creates the subscription admin reports area.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Admin_Reports
- * @category	Class
- * @author		Prospress
- * @since		2.1
+ * @package    WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Admin_Reports
+ * @category   Class
+ * @author     Prospress
+ * @since      2.1
  */
-class WC_Report_Subscription_Payment_Retry extends WC_Admin_Report {
+class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 
 	private $chart_colours = array();
 

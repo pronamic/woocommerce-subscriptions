@@ -5,13 +5,13 @@
  * Display the renewal order count and revenue that will be processed for all currently active subscriptions
  * for a given period of time in the future.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Admin_Reports
- * @category	Class
- * @author		Prospress
- * @since		2.1
+ * @package    WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Admin_Reports
+ * @category   Class
+ * @author     Prospress
+ * @since      2.1
  */
-class WC_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
+class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 
 	public $chart_colours = array();
 
@@ -119,7 +119,7 @@ class WC_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 		// Query based on whole days, not minutes/hours so that we can cache the query for at least 24 hours
 		$base_query = $wpdb->prepare(
 			"SELECT
-				DATE_FORMAT(ms.meta_value, '%s') as scheduled_date,
+				DATE(ms.meta_value) as scheduled_date,
 				SUM(mo.meta_value) as recurring_total,
 				COUNT(mo.meta_value) as total_renewals,
 				group_concat(p.ID) as subscription_ids,
@@ -148,7 +148,6 @@ class WC_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 				AND me.meta_key = '_schedule_end '
 			GROUP BY {$this->group_by_query}
 			ORDER BY ms.meta_value ASC",
-			'%Y-%m-%d',
 			date( 'Y-m-d', strtotime( '+1 DAY', $this->end_date ) ),
 			date( 'Y-m-d', $this->start_date ),
 			date( 'Y-m-d', strtotime( '+1 DAY', $this->end_date ) )

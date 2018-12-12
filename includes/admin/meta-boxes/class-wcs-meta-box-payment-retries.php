@@ -28,7 +28,7 @@ class WCS_Meta_Box_Payment_Retries {
 
 		$retries = WCS_Retry_Manager::store()->get_retries_for_order( $post->ID );
 
-		include_once( 'views/html-retries-table.php' );
+		include_once( dirname( __FILE__ ) . '/views/html-retries-table.php' );
 
 		do_action( 'woocommerce_subscriptions_retries_meta_box', $post->ID, $retries );
 	}

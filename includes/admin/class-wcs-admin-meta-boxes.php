@@ -296,5 +296,3 @@ class WCS_Admin_Meta_Boxes {
 		return $can_be_retried;
 	}
 }
-
-new WCS_Admin_Meta_Boxes();

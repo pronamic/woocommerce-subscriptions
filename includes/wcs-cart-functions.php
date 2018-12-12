@@ -382,3 +382,21 @@ function wcs_get_cart_item_name( $cart_item, $include = array() ) {
 
 	return $cart_item_name;
 }
+
+/**
+ * Allows protected products to be renewed.
+ *
+ * @since 2.4.0
+ */
+function wcs_allow_protected_products_to_renew() {
+	remove_filter( 'woocommerce_add_to_cart_validation', 'wc_protected_product_add_to_cart' );
+}
+
+/**
+ * Restores protected products from being added to the cart.
+ * @see   wcs_allow_protected_products_to_renew
+ * @since 2.4.0
+ */
+function wcs_disallow_protected_product_add_to_cart_validation() {
+	add_filter( 'woocommerce_add_to_cart_validation', 'wc_protected_product_add_to_cart', 10, 2 );
+}

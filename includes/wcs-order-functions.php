@@ -540,13 +540,16 @@ function wcs_get_subscription_orders( $return_fields = 'ids', $order_type = 'par
 }
 
 /**
- * A wrapper for getting a specific item from a subscription.
+ * A wrapper for getting a specific item from an order or subscription.
  *
  * WooCommerce has a wc_add_order_item() function, wc_update_order_item() function and wc_delete_order_item() function,
  * but no `wc_get_order_item()` function, so we need to add our own (for now).
  *
- * @param int $item_id The ID of an order item
- * @return WC_Subscription Subscription details in post_id => WC_Subscription form.
+ * @param int                      $item_id The ID of an order item
+ * @param WC_Order|WC_Subscription $order   The order or order object the item belongs to.
+ *
+ * @return WC_Order_Item|array The order item object or an empty array if the item doesn't exist.
+ *
  * @since 2.0
  */
 function wcs_get_order_item( $item_id, $order ) {
@@ -816,5 +819,50 @@ function wcs_copy_order_item( $from_item, &$to_item ) {
 				'discount_tax' => $from_item->get_discount_tax(),
 			) );
 			break;
+	}
+}
+
+/**
+ * Checks an order to see if it contains a manual subscription.
+ *
+ * @since 2.4.3
+ * @param WC_Order|int $order The WC_Order object or ID to get related subscriptions from.
+ * @param string|array $order_type The order relationship type(s). Can be single string or an array of order types. Optional. Default is 'any'.
+ * @return bool
+ */
+function wcs_order_contains_manual_subscription( $order, $order_type = 'any' ) {
+	$subscriptions = wcs_get_subscriptions_for_order( $order, array( 'order_type' => $order_type ) );
+	$contains_manual_subscription = false;
+
+	foreach ( $subscriptions as $subscription ) {
+		if ( $subscription->is_manual() ) {
+			$contains_manual_subscription = true;
+			break;
+		}
+	}
+
+	return $contains_manual_subscription;
+}
+
+/**
+ * Copy payment method from a subscription to an order.
+ *
+ * @since 2.4.3
+ * @param WC_Subscription $subscription
+ * @param WC_Order $order
+ */
+function wcs_copy_payment_method_to_order( $subscription, $order ) {
+	// Set the order's payment method to match the subscription.
+	if ( $order->get_payment_method() !== $subscription->get_payment_method() ) {
+		$order->set_payment_method( $subscription->get_payment_method() );
+	}
+
+	// We only need to copy the subscription's post meta to the order. All other payment related meta should already exist.
+	// Both post_meta and postmeta keys are supported by wcs_set_payment_meta().
+	$payment_meta = array_intersect_key( $subscription->get_payment_method_meta(), array_flip( array( 'post_meta', 'postmeta' ) ) );
+	$payment_meta = (array) apply_filters( 'wcs_copy_payment_meta_to_order', $payment_meta, $order, $subscription );
+
+	if ( ! empty( $payment_meta ) ) {
+		wcs_set_payment_meta( $order, $payment_meta );
 	}
 }

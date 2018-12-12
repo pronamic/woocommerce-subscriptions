@@ -106,4 +106,3 @@ class WCS_Dynamic_Action_Deprecator extends WCS_Dynamic_Hook_Deprecator {
 		}
 	}
 }
-new WCS_Dynamic_Action_Deprecator();

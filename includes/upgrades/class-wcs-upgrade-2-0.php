@@ -68,7 +68,7 @@ class WCS_Upgrade_2_0 {
 				$original_order = wc_get_order( $old_subscription['order_id'] );
 
 				// If we're still in a prepaid term, the new subscription has the new pending cancellation status
-				if ( 'cancelled' == $old_subscription['status'] && false != wc_next_scheduled_action( 'scheduled_subscription_end_of_prepaid_term', array( 'user_id' => $old_subscription['user_id'], 'subscription_key' => $old_subscription['subscription_key'] ) ) ) {
+				if ( 'cancelled' == $old_subscription['status'] && false != as_next_scheduled_action( 'scheduled_subscription_end_of_prepaid_term', array( 'user_id' => $old_subscription['user_id'], 'subscription_key' => $old_subscription['subscription_key'] ) ) ) {
 					$subscription_status = 'pending-cancel';
 				} elseif ( 'trash' == $old_subscription['status'] ) {
 					$subscription_status = 'cancelled'; // we'll trash it properly after migrating it
@@ -501,12 +501,12 @@ class WCS_Upgrade_2_0 {
 			} elseif ( ! empty( $old_keys['old_scheduled_hook'] ) ) {
 
 				// Now check if there is a scheduled date, this is for next payment and end of prepaid term dates
-				$next_scheduled = wc_next_scheduled_action( $old_keys['old_scheduled_hook'], $old_hook_args );
+				$next_scheduled = as_next_scheduled_action( $old_keys['old_scheduled_hook'], $old_hook_args );
 
 				if ( $next_scheduled > 0 ) {
 
 					if ( 'end_of_prepaid_term' == $new_key ) {
-						wc_schedule_single_action( $next_scheduled, 'woocommerce_scheduled_subscription_end_of_prepaid_term', array( 'subscription_id' => $new_subscription->get_id() ) );
+						as_schedule_single_action( $next_scheduled, 'woocommerce_scheduled_subscription_end_of_prepaid_term', array( 'subscription_id' => $new_subscription->get_id() ) );
 					} else {
 						$dates_to_update[ $new_key ] = gmdate( 'Y-m-d H:i:s', $next_scheduled );
 					}

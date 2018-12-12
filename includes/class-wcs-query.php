@@ -301,4 +301,3 @@ class WCS_Query extends WC_Query {
 		return array_merge( $query_vars, $this->query_vars );
 	}
 }
-new WCS_Query();

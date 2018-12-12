@@ -595,7 +595,7 @@ class WCS_Repair_2_0 {
 		WCS_Upgrade_Logger::add( sprintf( '-- For order %d: Repairing date type "%s" from action scheduler...', $subscription['order_id'], $type ) );
 		WCS_Upgrade_Logger::add( '-- This is the arguments: ' . PHP_EOL . print_r( array( $action_args, 'hook' => $type ), true ) . PHP_EOL );
 
-		$next_date_timestamp = wc_next_scheduled_action( $type, $action_args );
+		$next_date_timestamp = as_next_scheduled_action( $type, $action_args );
 
 		if ( false === $next_date_timestamp ) {
 			// set it to 0 as default
