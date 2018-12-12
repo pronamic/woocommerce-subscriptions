@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</tr>
 	<tr>
 		<td><?php echo esc_html_x( 'Start Date', 'table heading',  'woocommerce-subscriptions' ); ?></td>
-		<td><?php echo esc_html( $subscription->get_date_to_display( 'date_created' ) ); ?></td>
+		<td><?php echo esc_html( $subscription->get_date_to_display( 'start_date' ) ); ?></td>
 	</tr>
 	<?php foreach ( array(
 		'last_order_date_created' => _x( 'Last Order Date', 'admin subscription table header', 'woocommerce-subscriptions' ),

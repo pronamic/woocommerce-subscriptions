@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 } // Exit if accessed directly
 
 if ( class_exists( 'WCS_Admin_Post_Types' ) ) {
-	return new WCS_Admin_Post_Types();
+	return;
 }
 
 /**
@@ -628,7 +628,7 @@ class WCS_Admin_Post_Types {
 	 */
 	public static function get_date_column_content( $subscription, $column ) {
 
-		$date_type_map = array( 'start_date' => 'date_created', 'last_payment_date' => 'last_order_date_created' );
+		$date_type_map = array( 'last_payment_date' => 'last_order_date_created' );
 		$date_type     = array_key_exists( $column, $date_type_map ) ? $date_type_map[ $column ] : $column;
 
 		if ( 0 == $subscription->get_time( $date_type, 'gmt' ) ) {
@@ -655,7 +655,7 @@ class WCS_Admin_Post_Types {
 		$sortable_columns = array(
 			'order_title'       => 'ID',
 			'recurring_total'   => 'order_total',
-			'start_date'        => 'date',
+			'start_date'        => 'start_date',
 			'trial_end_date'    => 'trial_end_date',
 			'next_payment_date' => 'next_payment_date',
 			'last_payment_date' => 'last_payment_date',
@@ -746,13 +746,23 @@ class WCS_Admin_Post_Types {
 
 			// Filter the orders by the posted customer.
 			if ( isset( $_GET['_customer_user'] ) && $_GET['_customer_user'] > 0 ) {
-				$subscription_ids = WCS_Customer_Store::instance()->get_users_subscription_ids( absint( $_GET['_customer_user'] ) );
+				$customer_id      = absint( $_GET['_customer_user'] );
+				$subscription_ids = apply_filters(
+					'wcs_admin_request_query_subscriptions_for_customer',
+					WCS_Customer_Store::instance()->get_users_subscription_ids( $customer_id ),
+					$customer_id
+				);
 				$vars = self::set_post__in_query_var( $vars, $subscription_ids );
 			}
 
 			if ( isset( $_GET['_wcs_product'] ) && $_GET['_wcs_product'] > 0 ) {
-				$subscription_ids = wcs_get_subscriptions_for_product( $_GET['_wcs_product'] );
-				$subscription_ids = array_keys( $subscription_ids );
+				$product_id       = absint( $_GET['_wcs_product'] );
+				$subscription_ids = wcs_get_subscriptions_for_product( $product_id );
+				$subscription_ids = apply_filters(
+					'wcs_admin_request_query_subscriptions_for_product',
+					array_keys( $subscription_ids ),
+					$product_id
+				);
 				$vars = self::set_post__in_query_var( $vars, $subscription_ids );
 			}
 
@@ -804,6 +814,7 @@ class WCS_Admin_Post_Types {
 					case 'last_payment_date' :
 						add_filter( 'posts_clauses', array( $this, 'posts_clauses' ), 10, 2 );
 						break;
+					case 'start_date':
 					case 'trial_end_date' :
 					case 'next_payment_date' :
 					case 'end_date' :
@@ -1124,5 +1135,3 @@ class WCS_Admin_Post_Types {
 		<?php
 	}
 }
-
-new WCS_Admin_Post_Types();

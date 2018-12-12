@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class WCS_Upgrade_Logger {
 
-	/** @var WC_Logger instance */
+	/** @var WC_Logger_Interface instance */
 	protected static $log = false;
 
 	/** @var string File handle */
@@ -71,4 +71,3 @@ class WCS_Upgrade_Logger {
 		self::add( sprintf( '%s upgrade complete from Subscriptions v%s while WooCommerce WC_VERSION %s and database version %s was active.', $current_version, $old_version, $wc_version, get_option( 'woocommerce_db_version' ) ) );
 	}
 }
-WCS_Upgrade_Logger::init();

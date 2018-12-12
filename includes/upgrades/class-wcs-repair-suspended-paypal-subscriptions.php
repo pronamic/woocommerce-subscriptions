@@ -24,11 +24,11 @@ class WCS_Repair_Suspended_PayPal_Subscriptions extends WCS_Background_Upgrader 
 	/**
 	 * Constructor.
 	 *
-	 * @param WC_Logger $logger The WC Logger instance.
+	 * @param WC_Logger_Interface $logger The WC Logger instance.
 	 *
 	 * @since 2.3.0
 	 */
-	public function __construct( WC_Logger $logger ) {
+	public function __construct( WC_Logger_Interface $logger ) {
 		$this->scheduled_hook = 'wcs_repair_subscriptions_suspended_paypal_not_woocommerce';
 		$this->log_handle     = 'wcs-upgrade-subscriptions-paypal-suspended';
 		$this->logger         = $logger;

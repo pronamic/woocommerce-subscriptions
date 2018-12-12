@@ -4,13 +4,13 @@
  *
  * Creates the subscription admin reports area.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Admin_Reports
- * @category	Class
- * @author		Prospress
- * @since		2.1
+ * @package    WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Admin_Reports
+ * @category   Class
+ * @author     Prospress
+ * @since      2.1
  */
-class WC_Report_Subscription_By_Product extends WP_List_Table {
+class WCS_Report_Subscription_By_Product extends WP_List_Table {
 
 	/**
 	 * Constructor.

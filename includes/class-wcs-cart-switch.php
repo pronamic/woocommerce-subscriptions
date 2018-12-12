@@ -104,7 +104,7 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal {
 					}
 
 					$order_item = wcs_get_order_item( $item_id, $order );
-					$product    = WC_Subscriptions::get_product( wcs_get_canonical_product_id( $order_item ) );
+					$product    = wc_get_product( wcs_get_canonical_product_id( $order_item ) );
 					$product_id = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
 
 					$order_product_data = array(
@@ -160,4 +160,3 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal {
 		}
 	}
 }
-new WCS_Cart_Switch();

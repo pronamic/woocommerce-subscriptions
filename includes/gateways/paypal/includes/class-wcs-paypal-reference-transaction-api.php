@@ -22,8 +22,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-require_once( 'abstracts/abstract-wcs-sv-api-base.php' );
-
 class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 
 	/** the production endpoint */

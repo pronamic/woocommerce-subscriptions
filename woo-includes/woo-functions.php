@@ -2,8 +2,9 @@
 /**
  * Functions used by plugins
  */
-if ( ! class_exists( 'WC_Dependencies' ) )
-	require_once 'class-wc-dependencies.php';
+if ( ! class_exists( 'WC_Dependencies' ) ) {
+	require_once( dirname( __FILE__ ) . '/class-wc-dependencies.php' );
+}
 
 /**
  * WC Detection

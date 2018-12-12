@@ -37,10 +37,11 @@ class WCS_Failed_Scheduled_Action_Manager {
 	/**
 	 * Constructor.
 	 *
-	 * @param WC_Logger $logger The WC Logger instance.
+	 * @param WC_Logger_Interface $logger The WC Logger instance.
+	 *
 	 * @since 2.2.19
 	 */
-	public function __construct( WC_Logger $logger ) {
+	public function __construct( WC_Logger_Interface $logger ) {
 		$this->logger = $logger;
 	}
 
@@ -121,24 +122,26 @@ class WCS_Failed_Scheduled_Action_Manager {
 
 			$affected_subscription_events .= $separator . $action['type'] . ' for ' . $subject;
 			$separator = "\n";
-		}?>
-		<div class="updated error">
-			<p><?php
-			// translators: $1: Opening previously translated sentence $2,$5,$9 opening link tags $3 closing link tag $4 opening paragraph tag $6 closing paragraph tag $7 list of affected actions wrapped in code tags $8 the log file name $10 div containing a group of buttons/links
-			echo sprintf( esc_html__( '%1$s Please %2$sopen a new ticket at WooCommerce Support%3$s immediately to get this resolved.%4$sTo resolve this error a quickly as possible, please include login details for a %5$stemporary administrator account%3$s.%6$sAffected events: %7$s%4$sTo see further details, view the %8$s log file from the %9$sWooCommerce logs screen.%3$s%6$s%10$s', 'woocommerce-subscriptions' ),
-				esc_html( _n( 'An error has occurred while processing a recent subscription related event.', 'An error has occurred while processing recent subscription related events.', count( $failed_scheduled_actions ), 'woocommerce-subscriptions' ) ),
-				'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">',
-				'</a>',
-				'<p>',
-				'<a href="https://docs.woocommerce.com/document/create-new-admin-account-wordpress/" target="_blank">',
-				'</p>',
-				'<code style="display: block; white-space: pre-wrap">' . wp_kses( $affected_subscription_events, array( 'a' => array( 'href' => array() ) ) ) . '</code>',
-				'<code>failed-scheduled-actions</code>',
-				'<a href="' . esc_url( admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&log_file=%s-%s-log', 'failed-scheduled-actions', sanitize_file_name( wp_hash( 'failed-scheduled-actions' ) ) ) ) )  . '">',
-				'<div style="margin: 5px 0;"><a class="button" href="' . esc_url( wp_nonce_url( add_query_arg( 'wcs_scheduled_action_timeout_error_notice', 'ignore' ), 'wcs_scheduled_action_timeout_error_notice', '_wcsnonce' ) ) . '">' . esc_html__( 'Ignore this error (not recommended!)', 'woocommerce-subscriptions' ) . '</a> <a class="button button-primary" href="https://woocommerce.com/my-account/marketplace-ticket-form/">' . esc_html__( 'Open up a ticket now!', 'woocommerce-subscriptions' ) . '</a></div>'
-			);?>
-			</p>
-		</div><?php
+		}
+
+		$notice = new WCS_Admin_Notice( 'error' );
+		$notice->set_content_template( 'html-failed-scheduled-action-notice.php', plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/admin/', array(
+			'failed_scheduled_actions'     => $failed_scheduled_actions,
+			'affected_subscription_events' => $affected_subscription_events,
+		) );
+		$notice->set_actions( array(
+			array(
+				'name'  => __( 'Ignore this error (not recommended)', 'woocommerce-subscriptions' ),
+				'url'   => wp_nonce_url( add_query_arg( 'wcs_scheduled_action_timeout_error_notice', 'ignore' ), 'wcs_scheduled_action_timeout_error_notice', '_wcsnonce' ),
+				'class' => 'button',
+			),
+			array(
+				'name'  => __( 'Open a ticket', 'woocommerce-subscriptions' ),
+				'url'   => 'https://woocommerce.com/my-account/marketplace-ticket-form/',
+				'class' => 'button button-primary',
+			),
+		) );
+		$notice->display();
 	}
 
 	/**

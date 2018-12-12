@@ -54,6 +54,15 @@ class WCS_Cart_Renewal {
 
 		// Remove subscription products with "one time shipping" from shipping packages.
 		add_filter( 'woocommerce_cart_shipping_packages', array( $this, 'maybe_update_shipping_packages' ), 0, 1 );
+
+		add_action( 'wcs_before_renewal_setup_cart_subscriptions', array( &$this, 'clear_coupons' ), 10 );
+
+		// Handles renew of password-protected products.
+		add_action( 'wcs_before_renewal_setup_cart_subscriptions', 'wcs_allow_protected_products_to_renew' );
+		add_action( 'wcs_after_renewal_setup_cart_subscriptions', 'wcs_disallow_protected_product_add_to_cart_validation' );
+
+		// Apply renewal discounts as pseudo coupons
+		add_action( 'woocommerce_setup_cart_for_subscription_renewal', array( $this, 'setup_discounts' ) );
 	}
 
 	/**
@@ -103,10 +112,7 @@ class WCS_Cart_Renewal {
 		// Check if a user is requesting to create a renewal order for a subscription, needs to happen after $wp->query_vars are set
 		add_action( 'template_redirect', array( &$this, 'maybe_setup_cart' ), 100 );
 
-		// Apply renewal discounts as pseudo coupons
-		add_action( 'wcs_after_renewal_setup_cart_subscription', array( &$this, 'maybe_setup_discounts' ), 10, 2 );
 		add_filter( 'woocommerce_get_shop_coupon_data', array( &$this, 'renewal_coupon_data' ), 10, 2 );
-		add_action( 'wcs_before_renewal_setup_cart_subscriptions', array( &$this, 'clear_coupons' ), 10 );
 
 		add_action( 'woocommerce_remove_cart_item', array( &$this, 'maybe_remove_items' ), 10, 1 );
 		add_action( 'woocommerce_before_cart_item_quantity_zero', array( &$this, 'maybe_remove_items' ), 10, 1 );
@@ -332,100 +338,6 @@ class WCS_Cart_Renewal {
 		}
 
 		do_action( 'woocommerce_setup_cart_for_' . $this->cart_item_key, $subscription, $cart_item_data );
-	}
-
-	/**
-	 * Check if a renewal order subscription has any coupons applied and if so add pseudo renewal coupon equivalents to ensure the discount is still applied
-	 *
-	 * @param WC_Subscription $subscription subscription
-	 * @param WC_Order $order
-	 *
-	 * @since 2.0.10
-	 */
-	public function maybe_setup_discounts( $subscription, $order = null ) {
-		if ( null === $order ) {
-			// If no order arg is passed, to honor backward compatibility, apply discounts which apply to the subscription
-			$order = $subscription;
-		}
-
-		if ( wcs_is_subscription( $order ) || wcs_order_contains_renewal( $order ) ) {
-
-			$used_coupons   = $order->get_used_coupons();
-			$order_discount = wcs_get_objects_property( $order, 'cart_discount' );
-
-			// Add any used coupon discounts to the cart (as best we can) using our pseudo renewal coupons
-			if ( ! empty( $used_coupons ) ) {
-				$coupon_items = $order->get_items( 'coupon' );
-
-				foreach ( $coupon_items as $coupon_item ) {
-
-					$coupon      = new WC_Coupon( $coupon_item['name'] );
-					$coupon_type = wcs_get_coupon_property( $coupon, 'discount_type' );
-					$coupon_code = '';
-
-					// If the coupon still exists we can use the existing/available coupon properties
-					if ( true === wcs_get_coupon_property( $coupon, 'exists' ) ) {
-
-						// But we only want to handle recurring coupons that have been applied to the order
-						if ( in_array( $coupon_type, array( 'recurring_percent', 'recurring_fee' ) ) ) {
-
-							// Set the coupon type to be a renewal equivalent for correct validation and calculations
-							if ( 'recurring_percent' == $coupon_type ) {
-								wcs_set_coupon_property( $coupon, 'discount_type', 'renewal_percent' );
-							} elseif ( 'recurring_fee' == $coupon_type ) {
-								wcs_set_coupon_property( $coupon, 'discount_type', 'renewal_fee' );
-							}
-
-							// Adjust coupon code to reflect that it is being applied to a renewal
-							$coupon_code = wcs_get_coupon_property( $coupon, 'code' );
-						}
-					} else {
-						// If the coupon doesn't exist we can only really apply the discount amount we know about - so we'll apply a cart style pseudo coupon and then set the amount
-						wcs_set_coupon_property( $coupon, 'discount_type', 'renewal_cart' );
-
-						// Adjust coupon code to reflect that it is being applied to a renewal
-						$coupon_code   = wcs_get_coupon_property( $coupon, 'code' );
-						$coupon_amount = is_callable( array( $coupon_item, 'get_discount' ) ) ? $coupon_item->get_discount() : $coupon_item['item_meta']['discount_amount']['0'];
-
-						wcs_set_coupon_property( $coupon, 'coupon_amount', $coupon_amount );
-					}
-
-					// Now that we have a coupon we know we want to apply
-					if ( ! empty( $coupon_code ) ) {
-
-						// Set renewal order products as the product ids on the coupon
-						wcs_set_coupon_property( $coupon, 'product_ids', $this->get_products( $order ) );
-
-						// Store the coupon info for later
-						$this->store_coupon( wcs_get_objects_property( $order, 'id' ), $coupon );
-
-						// Add the coupon to the cart - the actually coupon values / data are grabbed when needed later
-						if ( WC()->cart && ! WC()->cart->has_discount( $coupon_code ) ) {
-							WC()->cart->add_discount( $coupon_code );
-						}
-					}
-				}
-			// If there are no coupons but there is still a discount (i.e. it might have been manually added), we need to account for that as well
-			} elseif ( ! empty( $order_discount ) ) {
-				$coupon = new WC_Coupon( 'discount_renewal' );
-
-				// Apply our cart style pseudo coupon and the set the amount
-				wcs_set_coupon_property( $coupon, 'discount_type', 'renewal_cart' );
-
-				wcs_set_coupon_property( $coupon, 'coupon_amount', $order_discount );
-
-				// Set renewal order products as the product ids on the coupon
-				wcs_set_coupon_property( $coupon, 'product_ids', $this->get_products( $order ) );
-
-				// Store the coupon info for later
-				$this->store_coupon( wcs_get_objects_property( $order, 'id' ), $coupon );
-
-				// Add the coupon to the cart
-				if ( WC()->cart && ! WC()->cart->has_discount( 'discount_renewal' ) ) {
-					WC()->cart->add_discount( 'discount_renewal' );
-				}
-			}
-		}
 	}
 
 	/**
@@ -1335,6 +1247,132 @@ class WCS_Cart_Renewal {
 		return $packages;
 	}
 
+	/**
+	 * Check if the order has any discounts applied and if so reapply them to the cart
+	 * or add pseudo coupon equivalents if the coupons no longer exist.
+	 *
+	 * @param WC_Order $order The order to copy coupons and discounts from.
+	 * @since 2.4.3
+	 */
+	public function setup_discounts( $order ) {
+		$order_discount = $order->get_total_discount();
+		$coupon_items   = $order->get_items( 'coupon' );
+
+		if ( empty( $order_discount ) && empty( $coupon_items ) ) {
+			return;
+		}
+
+		$total_coupon_discount = floatval( array_sum( wc_list_pluck( $coupon_items, 'get_discount' ) ) );
+		$coupons               = array();
+
+		// If the order total discount is different from the discount applied from coupons we have a manually applied discount.
+		$order_has_manual_discount = $order_discount !== $total_coupon_discount;
+
+		// Get all coupon line items as coupon objects.
+		if ( ! empty( $coupon_items ) ) {
+			$coupons = $this->get_line_item_coupons( $coupon_items );
+		}
+
+		if ( $order_has_manual_discount ) {
+			// Remove any coupon line items which don't grant free shipping.
+			foreach ( $coupons as $index => $coupon ) {
+				if ( ! $coupon->get_free_shipping() ) {
+					unset( $coupons[ $index ] );
+				}
+
+				// We're going to apply a coupon for the full order discount so make sure free shipping coupons don't apply any discount.
+				$coupon->set_amount( 0 );
+			}
+
+			$coupons[] = $this->get_pseudo_coupon( $order_discount );
+		}
+
+		foreach ( $coupons as $coupon ) {
+			$this->apply_order_coupon( $order, $coupon );
+		}
+	}
+
+	/**
+	 * Create coupon objects from coupon line items.
+	 *
+	 * @param array $coupon_line_items The coupon line items to apply to the cart.
+	 * @return array $coupons
+	 */
+	protected function get_line_item_coupons( $coupon_line_items ) {
+		$coupons = array();
+
+		foreach ( $coupon_line_items as $coupon_item ) {
+			$coupon = new WC_Coupon( $coupon_item['name'] );
+
+			// If the coupon no longer exists, get a pseudo coupon for the discounting amount.
+			if ( ! $coupon->get_id() > 0 ) {
+				// We shouldn't apply coupons which no longer exists it to initial payment carts.
+				if ( 'subscription_initial_payment' === $this->cart_item_key ) {
+					continue;
+				}
+
+				$coupon = $this->get_pseudo_coupon( $coupon_item->get_discount() );
+				$coupon->set_code( $coupon_item['code'] );
+			} elseif ( 'subscription_renewal' === $this->cart_item_key ) {
+				$coupon_type = $coupon->get_discount_type();
+
+				// Change recurring coupons into renewal coupons so we can handle validation while paying for a renewal order manually.
+				if ( in_array( $coupon_type, array( 'recurring_percent', 'recurring_fee' ) ) ) {
+					$coupon->set_discount_type( str_replace( 'recurring', 'renewal', $coupon_type ) );
+				}
+			}
+
+			$coupons[] = $coupon;
+		}
+
+		return $coupons;
+	}
+
+	/**
+	 * Apply a pseudo coupon to the cart for a specific discount amount.
+	 *
+	 * @param float $discount The discount amount.
+	 * @return WC_Coupon
+	 */
+	protected function get_pseudo_coupon( $discount ) {
+		$cart_types = array(
+			'subscription_initial_payment' => 'initial',
+			'subscription_renewal'         => 'renewal',
+		);
+
+		$cart_type = $cart_types[ $this->cart_item_key ];
+
+		// Generate a unique coupon code from the cart type.
+		$coupon = new WC_Coupon( "discount_{$cart_type}" );
+
+		// Apply our cart style pseudo coupon type and the set the amount.
+		$coupon->set_discount_type( "{$cart_type}_cart" );
+		$coupon->set_amount( $discount );
+
+		return $coupon;
+	}
+
+	/**
+	 * Apply an order coupon to the cart.
+	 *
+	 * @param WC_Order $order The order the discount should apply to.
+	 * @param WC_Coupon $coupon The coupon to add to the cart.
+	 */
+	protected function apply_order_coupon( $order, $coupon ) {
+		$coupon_code = $coupon->get_code();
+
+		// Set order products as the product ids on the coupon
+		$coupon->set_product_ids( $this->get_products( $order ) );
+
+		// Store the coupon info for later
+		$this->store_coupon( $order->get_id(), $coupon );
+
+		// Add the coupon to the cart
+		if ( WC()->cart && ! WC()->cart->has_discount( $coupon_code ) ) {
+			WC()->cart->add_discount( $coupon_code );
+		}
+	}
+
 	/* Deprecated */
 
 	/**
@@ -1413,5 +1451,101 @@ class WCS_Cart_Renewal {
 		$this->update_cart_hash( $order );
 		return $order;
 	}
+
+	/**
+	 * Check if a renewal order subscription has any coupons applied and if so add pseudo renewal coupon equivalents to ensure the discount is still applied
+	 *
+	 * @param WC_Subscription $subscription subscription
+	 * @param WC_Order $order
+	 *
+	 * @since 2.0.10
+	 * @deprecated 2.4.3
+	 */
+	public function maybe_setup_discounts( $subscription, $order = null ) {
+		wcs_deprecated_function( __METHOD__, '2.4.3' );
+
+		if ( null === $order ) {
+			// If no order arg is passed, to honor backward compatibility, apply discounts which apply to the subscription
+			$order = $subscription;
+		}
+
+		if ( wcs_is_subscription( $order ) || wcs_order_contains_renewal( $order ) ) {
+
+			$used_coupons   = $order->get_used_coupons();
+			$order_discount = wcs_get_objects_property( $order, 'cart_discount' );
+
+			// Add any used coupon discounts to the cart (as best we can) using our pseudo renewal coupons
+			if ( ! empty( $used_coupons ) ) {
+				$coupon_items = $order->get_items( 'coupon' );
+
+				foreach ( $coupon_items as $coupon_item ) {
+
+					$coupon      = new WC_Coupon( $coupon_item['name'] );
+					$coupon_type = wcs_get_coupon_property( $coupon, 'discount_type' );
+					$coupon_code = '';
+
+					// If the coupon still exists we can use the existing/available coupon properties
+					if ( true === wcs_get_coupon_property( $coupon, 'exists' ) ) {
+
+						// But we only want to handle recurring coupons that have been applied to the order
+						if ( in_array( $coupon_type, array( 'recurring_percent', 'recurring_fee' ) ) ) {
+
+							// Set the coupon type to be a renewal equivalent for correct validation and calculations
+							if ( 'recurring_percent' == $coupon_type ) {
+								wcs_set_coupon_property( $coupon, 'discount_type', 'renewal_percent' );
+							} elseif ( 'recurring_fee' == $coupon_type ) {
+								wcs_set_coupon_property( $coupon, 'discount_type', 'renewal_fee' );
+							}
+
+							// Adjust coupon code to reflect that it is being applied to a renewal
+							$coupon_code = wcs_get_coupon_property( $coupon, 'code' );
+						}
+					} else {
+						// If the coupon doesn't exist we can only really apply the discount amount we know about - so we'll apply a cart style pseudo coupon and then set the amount
+						wcs_set_coupon_property( $coupon, 'discount_type', 'renewal_cart' );
+
+						// Adjust coupon code to reflect that it is being applied to a renewal
+						$coupon_code   = wcs_get_coupon_property( $coupon, 'code' );
+						$coupon_amount = is_callable( array( $coupon_item, 'get_discount' ) ) ? $coupon_item->get_discount() : $coupon_item['item_meta']['discount_amount']['0'];
+
+						wcs_set_coupon_property( $coupon, 'coupon_amount', $coupon_amount );
+					}
+
+					// Now that we have a coupon we know we want to apply
+					if ( ! empty( $coupon_code ) ) {
+
+						// Set renewal order products as the product ids on the coupon
+						wcs_set_coupon_property( $coupon, 'product_ids', $this->get_products( $order ) );
+
+						// Store the coupon info for later
+						$this->store_coupon( wcs_get_objects_property( $order, 'id' ), $coupon );
+
+						// Add the coupon to the cart - the actually coupon values / data are grabbed when needed later
+						if ( WC()->cart && ! WC()->cart->has_discount( $coupon_code ) ) {
+							WC()->cart->add_discount( $coupon_code );
+						}
+					}
+				}
+			// If there are no coupons but there is still a discount (i.e. it might have been manually added), we need to account for that as well
+			} elseif ( ! empty( $order_discount ) ) {
+				$coupon = new WC_Coupon( 'discount_renewal' );
+
+				// Apply our cart style pseudo coupon and the set the amount
+				wcs_set_coupon_property( $coupon, 'discount_type', 'renewal_cart' );
+
+				wcs_set_coupon_property( $coupon, 'coupon_amount', $order_discount );
+
+				// Set renewal order products as the product ids on the coupon
+				wcs_set_coupon_property( $coupon, 'product_ids', $this->get_products( $order ) );
+
+				// Store the coupon info for later
+				$this->store_coupon( wcs_get_objects_property( $order, 'id' ), $coupon );
+
+				// Add the coupon to the cart
+				if ( WC()->cart && ! WC()->cart->has_discount( 'discount_renewal' ) ) {
+					WC()->cart->add_discount( 'discount_renewal' );
+				}
+			}
+		}
+	}
 }
-new WCS_Cart_Renewal();

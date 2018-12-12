@@ -36,17 +36,6 @@ class WC_Subscriptions_Email {
 	 * @since 1.4
 	 */
 	public static function add_emails( $email_classes ) {
-
-		require_once( 'emails/class-wcs-email-new-renewal-order.php' );
-		require_once( 'emails/class-wcs-email-new-switch-order.php' );
-		require_once( 'emails/class-wcs-email-customer-processing-renewal-order.php' );
-		require_once( 'emails/class-wcs-email-customer-completed-renewal-order.php' );
-		require_once( 'emails/class-wcs-email-customer-completed-switch-order.php' );
-		require_once( 'emails/class-wcs-email-customer-renewal-invoice.php' );
-		require_once( 'emails/class-wcs-email-cancelled-subscription.php' );
-		require_once( 'emails/class-wcs-email-expired-subscription.php' );
-		require_once( 'emails/class-wcs-email-on-hold-subscription.php' );
-
 		$email_classes['WCS_Email_New_Renewal_Order']        = new WCS_Email_New_Renewal_Order();
 		$email_classes['WCS_Email_New_Switch_Order']         = new WCS_Email_New_Switch_Order();
 		$email_classes['WCS_Email_Processing_Renewal_Order'] = new WCS_Email_Processing_Renewal_Order();
@@ -363,5 +352,3 @@ class WC_Subscriptions_Email {
 		_deprecated_function( __FUNCTION__, '2.0' );
 	}
 }
-
-WC_Subscriptions_Email::init();

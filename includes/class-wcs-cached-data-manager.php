@@ -11,6 +11,9 @@
  */
 class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 
+	/**
+	 * @var  WC_Logger_Interface|null
+	 */
 	public $logger = null;
 
 	public function __construct() {

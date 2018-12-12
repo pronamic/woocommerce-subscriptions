@@ -63,4 +63,3 @@ class WCS_Template_Loader {
 		wc_get_template( 'myaccount/subscription-totals.php', array( 'subscription' => $subscription ), '', plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/' );
 	}
 }
-WCS_Template_Loader::init();

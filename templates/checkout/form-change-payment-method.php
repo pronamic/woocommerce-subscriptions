@@ -63,7 +63,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 
 			foreach ( $available_gateways as $gateway ) { ?>
-				<li>
+				<li class="wc_payment_method payment_method_<?php echo esc_attr( $gateway->id ); ?>">
 					<input id="payment_method_<?php echo esc_attr( $gateway->id ); ?>" type="radio" class="input-radio" name="payment_method" value="<?php echo esc_attr( $gateway->id ); ?>" <?php checked( $gateway->chosen, true ); ?> data-order_button_text="<?php echo esc_attr( apply_filters( 'wcs_gateway_change_payment_button_text', $pay_order_button_text, $gateway ) ); ?>" />
 					<label for="payment_method_<?php echo esc_attr( $gateway->id ); ?>"><?php echo esc_html( $gateway->get_title() ); ?> <?php echo wp_kses_post( $gateway->get_icon() ); ?></label>
 					<?php

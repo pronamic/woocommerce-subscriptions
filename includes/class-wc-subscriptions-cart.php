@@ -91,7 +91,7 @@ class WC_Subscriptions_Cart {
 		add_action( 'woocommerce_cart_totals_after_order_total', __CLASS__ . '::display_recurring_totals' );
 		add_action( 'woocommerce_review_order_after_order_total', __CLASS__ . '::display_recurring_totals' );
 
-		add_action( 'woocommerce_add_to_cart_validation', __CLASS__ . '::check_valid_add_to_cart', 10, 6 );
+		add_filter( 'woocommerce_add_to_cart_validation', __CLASS__ . '::check_valid_add_to_cart', 10, 6 );
 
 		add_filter( 'woocommerce_cart_needs_shipping', __CLASS__ . '::cart_needs_shipping', 11, 1 );
 
@@ -349,7 +349,17 @@ class WC_Subscriptions_Cart {
 		unset( WC()->session->wcs_shipping_methods );
 
 		// If there is no sign-up fee and a free trial, and no products being purchased with the subscription, we need to zero the fees for the first billing period
-		if ( 0 == self::get_cart_subscription_sign_up_fee() && self::all_cart_items_have_free_trial() ) {
+		$remove_fees_from_cart = ( 0 == self::get_cart_subscription_sign_up_fee() && self::all_cart_items_have_free_trial() );
+
+		/**
+		 * Allow third-parties to override whether the fees will be removed from the initial order cart.
+		 *
+		 * @since 2.4.3
+		 * @param bool $remove_fees_from_cart Whether the fees will be removed. By default fees will be removed if there is no signup fee and all cart items have a trial.
+		 * @param WC_Cart $cart The standard WC cart object.
+		 * @param array $recurring_carts All the recurring cart objects.
+		 */
+		if ( apply_filters( 'wcs_remove_fees_from_initial_cart', $remove_fees_from_cart, $cart, $recurring_carts ) ) {
 			$cart_fees = WC()->cart->get_fees();
 
 			if ( WC_Subscriptions::is_woocommerce_pre( '3.2' ) ) {
@@ -2154,4 +2164,3 @@ class WC_Subscriptions_Cart {
 		return $package_rates;
 	}
 }
-WC_Subscriptions_Cart::init();

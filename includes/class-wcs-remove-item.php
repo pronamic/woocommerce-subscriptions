@@ -185,4 +185,3 @@ class WCS_Remove_Item {
 	}
 
 }
-WCS_Remove_Item::init();

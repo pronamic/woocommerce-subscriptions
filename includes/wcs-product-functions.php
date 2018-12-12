@@ -169,7 +169,7 @@ function wcs_calculate_min_max_variations( $variations_data ) {
 
 		$is_max = $is_min = false;
 
-		if ( '' === $variation_data['price'] && '' === $variation_data['subscription']['sign_up_fee'] ) {
+		if ( '' === $variation_data['price'] && empty( $variation_data['subscription']['sign_up_fee'] ) ) {
 			continue;
 		}
 
@@ -194,7 +194,7 @@ function wcs_calculate_min_max_variations( $variations_data ) {
 			$initial_period   = $variation_data['subscription']['trial_period'];
 			$initial_interval = $variation_data['subscription']['trial_length'];
 		} else {
-			$initial_amount   = $variation_data['price'] + $variation_data['subscription']['sign_up_fee'];
+			$initial_amount   = (float) $variation_data['price'] + (float) $variation_data['subscription']['sign_up_fee'];
 			$initial_period   = $variation_data['subscription']['period'];
 			$initial_interval = $variation_data['subscription']['interval'];
 		}

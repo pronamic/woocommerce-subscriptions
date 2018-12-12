@@ -48,4 +48,3 @@ class WCS_Dynamic_Filter_Deprecator extends WCS_Dynamic_Hook_Deprecator {
 		return $return_value;
 	}
 }
-new WCS_Dynamic_Filter_Deprecator();

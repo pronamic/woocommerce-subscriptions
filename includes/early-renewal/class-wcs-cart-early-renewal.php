@@ -47,6 +47,10 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 		// Allow customers to cancel early renewal orders from their my account page.
 		add_filter( 'woocommerce_my_account_my_orders_actions', array( $this, 'add_cancel_order_action' ), 15, 2 );
 		add_action( 'wp_loaded', array( $this, 'allow_early_renewal_order_cancellation' ), 10, 3 );
+
+		// Handles early renew of password-protected products.
+		add_action( 'wcs_before_early_renewal_setup_cart_subscription', 'wcs_allow_protected_products_to_renew' );
+		add_action( 'wcs_after_early_renewal_setup_cart_subscription', 'wcs_disallow_protected_product_add_to_cart_validation' );
 	}
 
 	/**
@@ -74,20 +78,14 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 	 * Check if a payment is being made on an early renewal order.
 	 */
 	public function maybe_setup_cart() {
-		global $wp;
-
-		if ( ! isset( $_GET['subscription_renewal_early'], $_GET['wcs_nonce'] ) ) {
+		if ( ! isset( $_GET['subscription_renewal_early'] ) ) {
 			return;
 		}
 
 		$subscription = wcs_get_subscription( absint( $_GET['subscription_renewal_early'] ) );
 		$redirect_to  = get_permalink( wc_get_page_id( 'myaccount' ) );
 
-		if ( false === wp_verify_nonce( $_GET['wcs_nonce'], 'wcs-renew-' . $subscription->get_id() ) ) {
-
-			wc_add_notice( __( 'There was an error with your request to renew. Please try again.', 'woocommerce-subscriptions' ), 'error' );
-
-		} elseif ( empty( $subscription ) ) {
+		if ( empty( $subscription ) ) {
 
 			wc_add_notice( __( 'That subscription does not exist. Has it been deleted?', 'woocommerce-subscriptions' ), 'error' );
 
@@ -101,6 +99,8 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 
 		} else {
 
+			do_action( 'wcs_before_early_renewal_setup_cart_subscription', $subscription );
+
 			wc_add_notice( __( 'Complete checkout to renew now.', 'woocommerce-subscriptions' ), 'success' );
 
 			$this->setup_cart( $subscription, array(
@@ -108,6 +108,8 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 				'subscription_renewal_early' => true,
 				'renewal_order_id'           => $subscription->get_id(),
 			) );
+
+			do_action( 'wcs_after_early_renewal_setup_cart_subscription', $subscription );
 
 			$redirect_to = wc_get_checkout_url();
 		}

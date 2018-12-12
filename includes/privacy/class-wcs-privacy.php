@@ -39,10 +39,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 
 		parent::__construct( __( 'WooCommerce Subscriptions', 'woocommerce-subscriptions' ) );
 
-		// include our exporters and erasers.
-		include_once 'class-wcs-privacy-erasers.php';
-		include_once 'class-wcs-privacy-exporters.php';
-
+		// Add our exporters and erasers.
 		$this->add_exporter( 'woocommerce-subscriptions-data', __( 'Subscriptions Data', 'woocommerce-subscriptions' ), array( 'WCS_Privacy_Exporters', 'subscription_data_exporter' ) );
 		$this->add_eraser( 'woocommerce-subscriptions-data', __( 'Subscriptions Data', 'woocommerce-subscriptions' ), array( 'WCS_Privacy_Erasers', 'subscription_data_eraser' ) );
 	}
@@ -214,10 +211,15 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 			return $settings;
 		}
 
+		$erasure_text = esc_html__( 'account erasure request', 'woocommerce-subscriptions' );
+		if ( current_user_can( 'manage_privacy_options' ) ) {
+			$erasure_text = sprintf( '<a href="%s">%s</a>', esc_url( admin_url( 'tools.php?page=remove_personal_data' ) ), $erasure_text );
+		}
+
 		WC_Subscriptions_Admin::insert_setting_after( $settings, 'woocommerce_erasure_request_removes_order_data', array(
 			'desc'          => __( 'Remove personal data from subscriptions', 'woocommerce-subscriptions' ),
-			/* Translators: placeholders are opening and closing link tags linking to the erasure request screen. */
-			'desc_tip'      => sprintf( __( 'When handling an %saccount erasure request%s, should personal data within subscriptions be retained or removed?', 'woocommerce-subscriptions' ), '<a href="' . esc_url( admin_url( 'tools.php?page=remove_personal_data' ) ) . '">' , '</a>' ),
+			/* Translators: %s URL to erasure request screen. */
+			'desc_tip'      => sprintf( __( 'When handling an %s, should personal data within subscriptions be retained or removed?', 'woocommerce-subscriptions' ), $erasure_text ),
 			'id'            => 'woocommerce_erasure_request_removes_subscription_data',
 			'type'          => 'checkbox',
 			'default'       => 'no',

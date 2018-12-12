@@ -312,7 +312,7 @@ jQuery(document).ready(function($){
 				});
 
 				// if we haven't found a variation synced or with a trial at this point check the backend for other product variations
-				if ( ( number_of_pages > 1 ||  0 == variations.size() ) && false == is_synced_or_has_trial ) {
+				if ( ( number_of_pages > 1 ||  0 == variations.length ) && false == is_synced_or_has_trial ) {
 
 					var data = {
 						action:    'wcs_product_has_trial_or_is_synced',

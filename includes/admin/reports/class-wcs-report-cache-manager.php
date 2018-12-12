@@ -27,30 +27,30 @@ class WCS_Report_Cache_Manager {
 	 */
 	private $update_events_and_classes = array(
 		'woocommerce_subscriptions_reports_schedule_cache_updates' => array( // a custom hook that can be called to schedule a full cache update, used by WC_Subscriptions_Upgrader
-			0 => 'WC_Report_Subscription_Events_By_Date',
-			1 => 'WC_Report_Upcoming_Recurring_Revenue',
-			3 => 'WC_Report_Subscription_By_Product',
-			4 => 'WC_Report_Subscription_By_Customer',
+			0 => 'WCS_Report_Subscription_Events_By_Date',
+			1 => 'WCS_Report_Upcoming_Recurring_Revenue',
+			3 => 'WCS_Report_Subscription_By_Product',
+			4 => 'WCS_Report_Subscription_By_Customer',
 		),
 		'woocommerce_subscription_payment_complete' => array( // this hook takes care of renewal, switch and initial payments
-			0 => 'WC_Report_Subscription_Events_By_Date',
-			4 => 'WC_Report_Subscription_By_Customer',
+			0 => 'WCS_Report_Subscription_Events_By_Date',
+			4 => 'WCS_Report_Subscription_By_Customer',
 		),
 		'woocommerce_subscriptions_switch_completed' => array(
-			0 => 'WC_Report_Subscription_Events_By_Date',
+			0 => 'WCS_Report_Subscription_Events_By_Date',
 		),
 		'woocommerce_subscription_status_changed' => array(
-			0 => 'WC_Report_Subscription_Events_By_Date', // we really only need cancelled, expired and active status here, but we'll use a more generic hook for convenience
-			4 => 'WC_Report_Subscription_By_Customer',
+			0 => 'WCS_Report_Subscription_Events_By_Date', // we really only need cancelled, expired and active status here, but we'll use a more generic hook for convenience
+			4 => 'WCS_Report_Subscription_By_Customer',
 		),
 		'woocommerce_subscription_status_active' => array(
-			1 => 'WC_Report_Upcoming_Recurring_Revenue',
+			1 => 'WCS_Report_Upcoming_Recurring_Revenue',
 		),
 		'woocommerce_new_order_item' => array(
-			3 => 'WC_Report_Subscription_By_Product',
+			3 => 'WCS_Report_Subscription_By_Product',
 		),
 		'woocommerce_update_order_item' => array(
-			3 => 'WC_Report_Subscription_By_Product',
+			3 => 'WCS_Report_Subscription_By_Product',
 		),
 	);
 
@@ -141,15 +141,7 @@ class WCS_Report_Cache_Manager {
 			// On large sites, we want to run the cache update once at 4am in the site's timezone
 			if ( $this->use_large_site_cache() ) {
 
-				$four_am_site_time = new WC_DateTime( '4 am', wcs_get_sites_timezone() );
-
-				// Convert to a UTC timestamp for scheduling
-				$cache_update_timestamp = $four_am_site_time->getTimestamp();
-
-				// PHP doesn't support a "next 4am" time format equivalent, so we need to manually handle getting 4am from earlier today (which will always happen when this is run after 4am and before midnight in the site's timezone)
-				if ( $cache_update_timestamp <= gmdate( 'U' ) ) {
-					$cache_update_timestamp += DAY_IN_SECONDS;
-				}
+				$cache_update_timestamp = $this->get_large_site_cache_update_timestamp();
 
 				// Schedule one update event for each class to avoid updating cache more than once for the same class for different events
 				foreach ( $this->reports_to_update as $index => $report_class ) {
@@ -216,11 +208,6 @@ class WCS_Report_Cache_Manager {
 		// Load report class dependencies
 		require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 		require_once( WC()->plugin_path() . '/includes/admin/reports/class-wc-admin-report.php' );
-
-		$report_name = strtolower( str_replace( '_', '-', str_replace( 'WC_Report_', '', $report_class ) ) );
-		$report_path = WCS_Admin_Reports::initialize_reports_path( '', $report_name, $report_class );
-
-		require_once( $report_path );
 
 		$reflector = new ReflectionMethod( $report_class, 'get_data' );
 
@@ -354,6 +341,21 @@ class WCS_Report_Cache_Manager {
 
 		return $data;
 	}
-}
 
-return new WCS_Report_Cache_Manager();
+	/**
+	 * Get the scheduled update cache time for large sites.
+	 *
+	 * @return int The timestamp of the next occurring 4 am in the site's timezone converted to UTC.
+	 */
+	protected function get_large_site_cache_update_timestamp() {
+		// Get the timestamp for 4 am in the site's timezone converted to the UTC equivalent.
+		$cache_update_timestamp = wc_string_to_timestamp( '4 am', current_time( 'timestamp' ) ) - wc_timezone_offset();
+
+		// PHP doesn't support a "next 4am" time format equivalent, so we need to manually handle getting 4am from earlier today (which will always happen when this is run after 4am and before midnight in the site's timezone)
+		if ( $cache_update_timestamp <= gmdate( 'U' ) ) {
+			$cache_update_timestamp += DAY_IN_SECONDS;
+		}
+
+		return $cache_update_timestamp;
+	}
+}

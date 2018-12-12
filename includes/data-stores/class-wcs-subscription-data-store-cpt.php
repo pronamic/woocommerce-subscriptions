@@ -31,6 +31,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 		'_schedule_end',
 		'_schedule_payment_retry',
 		'_subscription_switch_data',
+		'_schedule_start',
 	);
 
 	/**
@@ -54,6 +55,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 		'_schedule_cancelled'       => 'schedule_cancelled',
 		'_schedule_end'             => 'schedule_end',
 		'_schedule_payment_retry'   => 'schedule_payment_retry',
+		'_schedule_start'           => 'schedule_start',
 
 		'_subscription_switch_data' => 'switch_data',
 	);
@@ -62,6 +64,25 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 * Constructor.
 	 */
 	public function __construct() {
+
+		// Register any custom date types as internal meta keys and props.
+		foreach ( wcs_get_subscription_date_types() as $date_type => $date_name ) {
+			// The last payment date is derived from other sources and shouldn't be stored on a subscription.
+			if ( 'last_payment' === $date_type ) {
+				continue;
+			}
+
+			$meta_key = wcs_get_date_meta_key( $date_type );
+
+			// Skip any dates which are already core date types. We don't want custom date types to override them.
+			if ( isset( $this->subscription_meta_keys_to_props[ $meta_key ] ) ) {
+				continue;
+			}
+
+			$this->subscription_meta_keys_to_props[ $meta_key ] = wcs_maybe_prefix_key( $date_type, 'schedule_' );
+			$this->subscription_internal_meta_keys[]            = $meta_key;
+		}
+
 		// Exclude the subscription related meta data we set and manage manually from the objects "meta" data
 		$this->internal_meta_keys = array_merge( $this->internal_meta_keys, $this->subscription_internal_meta_keys );
 	}
@@ -122,11 +143,33 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 				// Dates are set via update_dates() to make sure relationships between dates are validated
 				if ( 0 === strpos( $prop_key, 'schedule' ) ) {
 					$date_type = str_replace( 'schedule_', '', $prop_key );
+
+					if ( 'start' === $date_type && ! $meta_value ) {
+						$meta_value = $subscription->get_date( 'date_created' );
+					}
+
 					$dates_to_set[ $date_type ] = ( false == $meta_value ) ? 0 : $meta_value;
 				} else {
 					$props_to_set[ $prop_key ] = $meta_value;
 				}
 			}
+		}
+
+		// On WC 3.5.0 the ID of the user that placed the order was moved from the post meta _customer_user to the post_author field in the wp_posts table.
+		// If the update routine didn't manage to cover subscriptions, we need to use the value stored as post meta until our own update finishes.
+		if ( version_compare( get_option( 'woocommerce_db_version' ), '3.5.0', '>=' ) && 1 == $post_object->post_author && get_option( 'wcs_subscription_post_author_upgrade_is_scheduled', false ) ) {
+			$props_to_set['customer_id'] = get_post_meta( $subscription->get_id(), '_customer_user', true );
+		} else {
+			/**
+			 * WC 3.5.0 and our 2.4.0 post author upgrade scripts didn't account for subscriptions created manually by admin users with a user ID not equal to 1.
+			 * This resulted in those subscription post author columns not being updated and so linked to the admin user who created them, not the customer.
+			 *
+			 * Until a permanent fix is found, revert to the previous behavior of getting the customer user from post meta.
+			 * This will be eventually removed.
+			 *
+			 * @see https://github.com/Prospress/woocommerce-subscriptions/issues/3036
+			 */
+			$props_to_set['customer_id'] = get_post_meta( $subscription->get_id(), '_customer_user', true );
 		}
 
 		$subscription->update_dates( $dates_to_set );
@@ -305,7 +348,21 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 			'_schedule_cancelled',
 			'_schedule_end',
 			'_schedule_payment_retry',
+			'_schedule_start',
 		);
+
+		// Add any custom date types to the date meta keys we need to save.
+		foreach ( wcs_get_subscription_date_types() as $date_type => $date_name ) {
+			if ( 'last_payment' === $date_type ) {
+				continue;
+			}
+
+			$date_meta_key = wcs_get_date_meta_key( $date_type );
+
+			if ( ! in_array( $date_meta_key, $date_meta_keys ) ) {
+				$date_meta_keys[] = $date_meta_key;
+			}
+		}
 
 		$date_meta_keys_to_props = array_intersect_key( $this->subscription_meta_keys_to_props, array_flip( $date_meta_keys ) );
 

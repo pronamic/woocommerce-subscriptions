@@ -44,8 +44,8 @@ class WCS_Privacy_Background_Updater {
 	 * @since 2.2.20
 	 */
 	public function schedule_ended_subscription_anonymization() {
-		if ( false === wc_next_scheduled_action( $this->ended_subscription_anonymization_hook ) ) {
-			wc_schedule_single_action( time(), $this->ended_subscription_anonymization_hook );
+		if ( false === as_next_scheduled_action( $this->ended_subscription_anonymization_hook ) ) {
+			as_schedule_single_action( time(), $this->ended_subscription_anonymization_hook );
 		}
 	}
 
@@ -55,7 +55,7 @@ class WCS_Privacy_Background_Updater {
 	 * @since 2.2.20
 	 */
 	protected function unschedule_ended_subscription_anonymization() {
-		wc_unschedule_action( $this->ended_subscription_anonymization_hook );
+		as_unschedule_action( $this->ended_subscription_anonymization_hook );
 	}
 
 	/**
@@ -67,8 +67,8 @@ class WCS_Privacy_Background_Updater {
 	protected function schedule_subscription_orders_anonymization( $subscription_id ) {
 		$action_args = array( 'subscription_id' => intval( $subscription_id ) );
 
-		if ( false === wc_next_scheduled_action( $this->subscription_orders_anonymization_hook, $action_args ) ) {
-			wc_schedule_single_action( time(), $this->subscription_orders_anonymization_hook, $action_args );
+		if ( false === as_next_scheduled_action( $this->subscription_orders_anonymization_hook, $action_args ) ) {
+			as_schedule_single_action( time(), $this->subscription_orders_anonymization_hook, $action_args );
 		}
 	}
 
@@ -79,7 +79,7 @@ class WCS_Privacy_Background_Updater {
 	 * @param int The subscription ID.
 	 */
 	protected function unschedule_subscription_orders_anonymization( $subscription_id ) {
-		wc_unschedule_action( $this->subscription_orders_anonymization_hook, array( 'subscription_id' => intval( $subscription_id ) ) );
+		as_unschedule_action( $this->subscription_orders_anonymization_hook, array( 'subscription_id' => intval( $subscription_id ) ) );
 	}
 
 	/**
@@ -89,7 +89,7 @@ class WCS_Privacy_Background_Updater {
 	 * @param int The order ID.
 	 */
 	protected function schedule_order_anonymization( $order_id ) {
-		wc_schedule_single_action( time(), $this->order_anonymization_hook, array( 'order_id' => intval( $order_id ) ) );
+		as_schedule_single_action( time(), $this->order_anonymization_hook, array( 'order_id' => intval( $order_id ) ) );
 	}
 
 	/**
@@ -100,7 +100,7 @@ class WCS_Privacy_Background_Updater {
 	 * @return bool Wether the order has a scheduled anonymization action.
 	 */
 	protected function order_anonymization_is_scheduled( $order_id ) {
-		return false !== wc_next_scheduled_action( $this->order_anonymization_hook, array( 'order_id' => intval( $order_id ) ) );
+		return false !== as_next_scheduled_action( $this->order_anonymization_hook, array( 'order_id' => intval( $order_id ) ) );
 	}
 
 	/**

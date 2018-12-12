@@ -91,6 +91,4 @@ class WCS_PayPal_Standard_Change_Payment_Method {
 
 		return $change_button_text;
 	}
-
 }
-WCS_PayPal_Standard_Change_Payment_Method::init();

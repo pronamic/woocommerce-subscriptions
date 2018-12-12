@@ -27,7 +27,7 @@ class WCS_Meta_Box_Schedule {
 			$the_subscription = wcs_get_subscription( $post->ID );
 		}
 
-		include( 'views/html-subscription-schedule.php' );
+		include( dirname( __FILE__ ) . '/views/html-subscription-schedule.php' );
 	}
 
 	/**

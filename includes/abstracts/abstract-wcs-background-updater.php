@@ -125,8 +125,8 @@ abstract class WCS_Background_Updater {
 	 * Schedule the instance's hook to run in $this->time_limit seconds, if it's not already scheduled.
 	 */
 	protected function schedule_background_update() {
-		if ( false === wc_next_scheduled_action( $this->scheduled_hook ) ) {
-			wc_schedule_single_action( gmdate( 'U' ) + $this->time_limit, $this->scheduled_hook );
+		if ( false === as_next_scheduled_action( $this->scheduled_hook ) ) {
+			as_schedule_single_action( gmdate( 'U' ) + $this->time_limit, $this->scheduled_hook );
 		}
 	}
 
@@ -134,7 +134,7 @@ abstract class WCS_Background_Updater {
 	 * Unschedule the instance's hook in Action Scheduler
 	 */
 	protected function unschedule_background_updates() {
-		wc_unschedule_action( $this->scheduled_hook );
+		as_unschedule_action( $this->scheduled_hook );
 	}
 
 	/**
