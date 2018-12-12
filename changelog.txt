@@ -1,5 +1,70 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2018.11.28 - version 2.4.5
+* Fix: Fix caching on data for the Upcoming Recurring Revenue and Subscriptions By Date reports. PR#3069.
+* Fix: Fix compatibility with Disable Report Cache Updates mini-plugin. PR#3069.
+* Fix: Make Stripe source ID unique while setting through REST API. PR#3090.
+* Fix: Display synced variation product's next payment date after the variation is selected by a customer on the product page. PR#3094.
+* Fix: Activate subscription after processing an IPN on parent orders previously processed by PDT. PR#3097.
+* Tweak: Update incomplete retry migration status label styling and wording to "In-Progress" to avoid confusing in-progress migrations as being a problem. PR#3088
+
+2018.11.20 - version 2.4.4
+* Fix: Prevent fatal errors when the retry migration doesn't receive a valid retry object. PR#3042
+* Fix: Fix PHP notices in subscription events by date report. PR#3078
+* Fix: Don't trigger payment gateways while processing retries on staging sites. PR#2870
+* Fix: Apply coupons and discounts to initial payment and early renewal carts. PR#3048
+* Fix: Use the correct `for` attribute in the variable_subscription_trial_period label element. PR#3081
+* Fix: [PayPal Standard] Prevent creating multiple orders to record a single sign up transaction that was previously handled by a PDT request. PR#3074
+* Tweak: Remove the nonce from early renewal urls. PR#3085
+
+2018.11.13 - version 2.4.3
+* Fix: Pass the quantity argument to woocommerce_add_cart_item_data filter. PR#3051
+* Dev: Update Action Scheduler to 2.1.1. PR#3059
+* Dev: Add a new filter (`wcs_remove_fees_from_initial_cart`) which can be used to override the removal of fees from the initial cart. PR#3046
+
+2018.10.29 - version 2.4.2
+* Fix: Always get the subscription's customer user from post meta. Fixes issues on sites running WC 3.5 where the subscription customer was incorrectly being set to an admin user. PR#3037
+* Fix: Use the current timestamp of site's timezone for comparison during synchronisation first payment date calculations. PR#3003
+* Fix: Sort the user subscriptions cache to ensure subscriptions appear in the correct order on the My Account > Subscriptions page. PR#2965
+* Fix: Correctly account for tax inclusive sign up fees for synced products. PR#2818
+* Fix: Fix PHP 7.1.x warnings related to get_sign_up_fee() and product variations. PR#3014
+* Fix: Use the correct breadcrumbs on "change payment method" and "change address" pages. PR#3008
+* Fix: Fix product purchasability issues when switching between limited variable products. PR#3007
+* Fix: Remove the erasure tools link from the description of the erasure settings for users without the manage_privacy_options capability. PR#3004
+* Dev: Add switch proration filters. PR#3011
+* Dev: Use admin_created_subscription hook to generate download permissions. PR#3024
+* Dev: Deprecated wcs_get_sites_timezone() fixes get_local_timezone() deprecated warnings. PR#3032
+
+2018.10.16 - version 2.4.1
+* Fix: Cache the retry data needs migration logic to avoid a get_posts() call on every request. PR#2994
+* Fix: Load the retry store instance on WordPress init rather than on Subscriptions plugin load. Fixes errors with third-party plugins hooking into get post queries and calling undeclared WP functions. PR#3000
+* Fix: Fix an undefined product ID error which could occur during a switch request when trying to access a product from the old subscription format. PR#2961
+* Fix: Fix a missing closing `a` tag in the downgrade notice. PR#3002
+* Dev: Add a new hook ('woocommerce_admin_created_subscription') which is triggered after a subscription is created manually via the admin screen. PR#2988
+* Dev: Add new hooks to allow third-parties to customize subscription filtering behavior on the admin subscriptions table. PR#2989
+
+2018.10.09 - version 2.4.0
+* New: Update Action Scheduler to v2.1.0.
+* Fix: Remove the URL scheme when generating the site's duplicate lock URL. Fixes an issue where staging sites with a URL length equal the scheme would incorrectly not trigger staging mode. PR#2599
+* Fix: Move callbacks attached specifically for renewal carts to the constructor so that all extended cart classes are not hooked on. PR#2963
+* Fix: Allow products which are password protected to be manually renewed via the cart. PR#2912
+* Fix: Remove unnecessary leading space in translation string. PR#2976
+* Fix: Add group by clause to subscriber count reports query. PR#2970
+* Fix: Fix an error which would occur when calling the deprecated get_related_orders_query(). PR#2954
+* Tweak: Separate a subscription start from the creation date. PR#2594
+* Tweak: Display the expected site URL in staging site notice and system status. PR#2950
+* Dev: Implement an Autoloader for loading plugin class files. PR#2412
+* Dev: Replace WC_Logger type hinting in function signatures to use lower level WC_Logger_Interface. PR#2902
+* Dev: Remove switch_line_items_pre_2_1_2() and switch_shipping_line_items_pre_2_1_2() functions. PR#2900
+* Dev: [WC 3.5] Move subscription customer ID's into the post author column on sites running WC 3.5 and above. PR#2559
+* Dev: Move payment retry data to custom tables. PR#2753
+* Dev: Update file inclusions to use relative paths. PR#2936
+* Dev: Add an API for third-parties to register their custom subscription date types. PR#2840
+* Dev: Update the hook used for adding Subscriptions Settings. PR#2939
+* Dev: Add a 'wcs_payment_gateways_change_payment_method' filter to allow third-parties to filter which payment methods are displayed when changing payment methods. PR#2571
+* Dev: Trigger a new 'wcs_before_replace_pay_shortcode' action before displaying the change payment shortcode.
+* Dev: Add the 'wcs_update_all_subscriptions_addresses_checked' filter to allow third-parties to filter the default checked status of the all_subscriptions_addresses field. PR#2948
+
 2018.09.25 - version 2.3.7
 * Fix: Don't apply subscription payment gateway filters while on the order-pay page. PR#2927
 * Fix: Prevent admin users from changing product type when the product has active subscriptions. PR#2932

@@ -31,10 +31,6 @@ class WCS_API {
 	public static function includes( $wc_api_classes ) {
 
 		if ( ! defined( 'WC_API_REQUEST_VERSION' ) || 3 == WC_API_REQUEST_VERSION ) {
-
-			require_once( 'api/legacy/class-wc-api-subscriptions.php' );
-			require_once( 'api/legacy/class-wc-api-subscriptions-customers.php' );
-
 			array_push( $wc_api_classes, 'WC_API_Subscriptions' );
 			array_push( $wc_api_classes, 'WC_API_Subscriptions_Customers' );
 		}
@@ -54,14 +50,6 @@ class WCS_API {
 			return;
 		}
 
-		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
-			require_once( 'api/legacy/class-wc-rest-subscriptions-controller.php' );
-			require_once( 'api/legacy/class-wc-rest-subscription-notes-controller.php' );
-		} else {
-			require_once( 'api/class-wc-rest-subscriptions-controller.php' );
-			require_once( 'api/class-wc-rest-subscription-notes-controller.php' );
-		}
-
 		foreach ( array( 'WC_REST_Subscriptions_Controller', 'WC_REST_Subscription_Notes_Controller' ) as $api_class ) {
 			$controller = new $api_class();
 			$controller->register_routes();
@@ -69,5 +57,3 @@ class WCS_API {
 	}
 
 }
-
-WCS_API::init();

@@ -505,5 +505,3 @@ class WC_Subscriptions_Checkout {
 		return $actions;
 	}
 }
-
-WC_Subscriptions_Checkout::init();

@@ -425,23 +425,26 @@ class WC_Subscription_Legacy extends WC_Subscription {
 				$sign_up_fee = $original_order_item['line_total'] / $original_order_item['qty'];
 			} elseif ( isset( $original_order_item['item_meta']['_synced_sign_up_fee'] ) ) {
 				$sign_up_fee = $original_order_item['item_meta']['_synced_sign_up_fee'] / $original_order_item['qty'];
+
+				// The synced sign up fee meta contains the raw product sign up fee, if the subscription totals are inclusive of tax, we need to adjust the synced sign up fee to match tax inclusivity.
+				if ( $this->get_prices_include_tax() ) {
+					$line_item_total    = $original_order_item['line_total'] + $original_order_item['line_tax'];
+					$signup_fee_portion = $sign_up_fee / $line_item_total;
+					$sign_up_fee        = $original_order_item['line_total'] * $signup_fee_portion;
+				}
 			} else {
 
 				// Sign-up fee is any amount on top of recurring amount
 				$sign_up_fee = max( $original_order_item['line_total'] / $original_order_item['qty'] - $line_item['line_total'] / $line_item['qty'], 0 );
 			}
 
-			if ( ! empty( $original_order_item ) && ! empty( $sign_up_fee ) ) {
+			// If prices don't inc tax, ensure that the sign up fee amount includes the tax.
+			if ( 'inclusive_of_tax' === $tax_inclusive_or_exclusive && ! empty( $original_order_item ) && ! empty( $sign_up_fee ) ) {
 				$sign_up_fee_proportion = $sign_up_fee / ( $original_order_item['line_total'] / $original_order_item['qty'] );
-				$sign_up_fee_tax        = wc_round_tax_total( $original_order_item['line_tax'] * $sign_up_fee_proportion );
+				$sign_up_fee_tax        = $original_order_item['line_tax'] * $sign_up_fee_proportion;
 
-				// If prices don't inc tax, ensure that the sign up fee amount includes the tax.
-				if ( 'inclusive_of_tax' === $tax_inclusive_or_exclusive && ! $this->get_prices_include_tax() ) {
-					$sign_up_fee += $sign_up_fee_tax;
-				// If prices inc tax and the request is for prices exclusive of tax, remove the taxes.
-				} elseif ( 'inclusive_of_tax' !== $tax_inclusive_or_exclusive && $this->get_prices_include_tax() ) {
-					$sign_up_fee -= $sign_up_fee_tax;
-				}
+				$sign_up_fee += $sign_up_fee_tax;
+				$sign_up_fee  = wc_format_decimal( $sign_up_fee, wc_get_price_decimals() );
 			}
 		}
 

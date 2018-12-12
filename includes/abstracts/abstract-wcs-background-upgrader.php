@@ -20,7 +20,7 @@ abstract class WCS_Background_Upgrader extends WCS_Background_Updater {
 	/**
 	 * WC Logger instance for logging messages.
 	 *
-	 * @var WC_Logger
+	 * @var WC_Logger_Interface
 	 */
 	protected $logger;
 

@@ -334,4 +334,3 @@ class WCS_My_Account_Payment_Methods {
 		exit();
 	}
 }
-WCS_My_Account_Payment_Methods::init();

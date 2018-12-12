@@ -590,7 +590,7 @@ class WC_Subscriptions_Synchroniser {
 	public static function calculate_first_payment_date( $product, $type = 'mysql', $from_date = '' ) {
 
 		if ( ! is_object( $product ) ) {
-			$product = WC_Subscriptions::get_product( $product );
+			$product = wc_get_product( $product );
 		}
 
 		if ( ! self::is_product_synced( $product ) ) {
@@ -690,7 +690,7 @@ class WC_Subscriptions_Synchroniser {
 		if ( 'year' == $period || 'month' == $period ) {
 
 			// First make sure the day is in the past so that we don't end up jumping a month or year because of a few hours difference between now and the billing date
-			if ( gmdate( 'Ymd', $first_payment_timestamp ) < gmdate( 'Ymd', $from_timestamp ) || gmdate( 'Ymd', $first_payment_timestamp ) < gmdate( 'Ymd' ) ) {
+			if ( gmdate( 'Ymd', $first_payment_timestamp ) < gmdate( 'Ymd', $from_timestamp ) || gmdate( 'Ymd', $first_payment_timestamp ) < gmdate( 'Ymd', current_time( 'timestamp' ) ) ) {
 				$i = 1;
 				// Then make sure the date and time of the payment is in the future
 				while ( ( $first_payment_timestamp < gmdate( 'U' ) || $first_payment_timestamp < $from_timestamp ) && $i < 30 ) {
@@ -1515,5 +1515,3 @@ class WC_Subscriptions_Synchroniser {
 	}
 
 }
-add_action( 'init', 'WC_Subscriptions_Synchroniser::init' );
-

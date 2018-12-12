@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</label>
 		<input type="text" class="wc_input_subscription_trial_length" name="variable_subscription_trial_length[<?php echo esc_attr( $loop ); ?>]" value="<?php echo esc_attr( WC_Subscriptions_Product::get_trial_length( $variation_product ) ); ?>">
 
-		<label for="variable_subscription_period[<?php echo esc_attr( $loop ); ?>]" class="wcs_hidden_label"><?php esc_html_e( 'Subscription trial period:', 'woocommerce-subscriptions' ); ?></label>
+		<label for="variable_subscription_trial_period[<?php echo esc_attr( $loop ); ?>]" class="wcs_hidden_label"><?php esc_html_e( 'Subscription trial period:', 'woocommerce-subscriptions' ); ?></label>
 		<select name="variable_subscription_trial_period[<?php echo esc_attr( $loop ); ?>]" class="wc_input_subscription_trial_period">
 		<?php foreach ( wcs_get_available_time_periods() as $key => $value ) : ?>
 			<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $key, WC_Subscriptions_Product::get_trial_period( $variation_product ) ); ?>><?php echo esc_html( $value ); ?></option>

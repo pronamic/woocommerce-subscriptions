@@ -125,4 +125,3 @@ class WCS_Action_Deprecator extends WCS_Hook_Deprecator {
 		}
 	}
 }
-new WCS_Action_Deprecator();

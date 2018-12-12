@@ -19,7 +19,6 @@ class WCS_Email_Expired_Subscription extends WC_Email {
 	 * Create an instance of the class.
 	 *
 	 * @access public
-	 * @return void
 	 */
 	function __construct() {
 

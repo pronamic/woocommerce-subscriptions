@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class WCS_Upgrade_1_3 {
 
-	public function init() {
+	public static function init() {
 		global $wpdb;
 
 		// Change transient timeout entries to be a vanilla option
@@ -36,4 +36,3 @@ class WCS_Upgrade_1_3 {
 						OR option_name LIKE '_transient_block_scheduled_subscription_payments_%'" );
 	}
 }
-WCS_Upgrade_1_3::init();

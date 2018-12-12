@@ -87,110 +87,106 @@ class WCS_PayPal_Admin {
 	 * @since 2.0
 	 */
 	public static function maybe_show_admin_notices() {
-
 		self::maybe_disable_invalid_profile_notice();
 
-		if ( ! in_array( get_woocommerce_currency(), apply_filters( 'woocommerce_paypal_supported_currencies', array( 'AUD', 'BRL', 'CAD', 'MXN', 'NZD', 'HKD', 'SGD', 'USD', 'EUR', 'JPY', 'TRY', 'NOK', 'CZK', 'DKK', 'HUF', 'ILS', 'MYR', 'PHP', 'PLN', 'SEK', 'CHF', 'TWD', 'THB', 'GBP', 'RMB' ) ) ) ) {
-			$valid_for_use = false;
-		} else {
-			$valid_for_use = true;
+		$valid_paypal_currency = in_array( get_woocommerce_currency(), apply_filters( 'woocommerce_paypal_supported_currencies', array( 'AUD', 'BRL', 'CAD', 'MXN', 'NZD', 'HKD', 'SGD', 'USD', 'EUR', 'JPY', 'TRY', 'NOK', 'CZK', 'DKK', 'HUF', 'ILS', 'MYR', 'PHP', 'PLN', 'SEK', 'CHF', 'TWD', 'THB', 'GBP', 'RMB' ) ) );
+
+		if ( ! $valid_paypal_currency || ! current_user_can( 'manage_options' ) || has_action( 'admin_notices', 'WC_Subscriptions_Admin::admin_installed_notice' ) || 'yes' !== WCS_PayPal::get_option( 'enabled' ) ) {
+			return;
 		}
 
 		$payment_gateway_tab_url = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=wc_gateway_paypal' );
+		$notices                 = array();
 
-		$notices = array();
+		if ( ! WCS_PayPal::are_credentials_set() ) {
+			$notices[] = array(
+				'type' => 'warning',
+				// translators: placeholders are opening and closing link tags. 1$-2$: to docs on woocommerce, 3$-4$ to gateway settings on the site
+				'text'  => sprintf( esc_html__( 'PayPal is inactive for subscription transactions. Please %1$sset up the PayPal IPN%2$s and %3$senter your API credentials%4$s to enable PayPal for Subscriptions.', 'woocommerce-subscriptions' ),
+					'<a href="https://docs.woocommerce.com/document/subscriptions/store-manager-guide/#ipn-setup" target="_blank">',
+					'</a>',
+					'<a href="' . esc_url( $payment_gateway_tab_url ) . '">',
+					'</a>'
+				),
+			);
+		} elseif ( 'woocommerce_page_wc-settings' === get_current_screen()->base && isset( $_GET['tab'] ) && in_array( $_GET['tab'], array( 'subscriptions', 'checkout' ) ) && ! WCS_PayPal::are_reference_transactions_enabled() ) {
+			$notices[] = array(
+				'type' => 'warning',
+				// translators: placeholders are opening and closing strong and link tags. 1$-2$: strong tags, 3$-8$ link to docs on woocommerce
+				'text'  => sprintf( esc_html__( '%1$sPayPal Reference Transactions are not enabled on your account%2$s, some subscription management features are not enabled. Please contact PayPal and request they %3$senable PayPal Reference Transactions%4$s on your account. %5$sCheck PayPal Account%6$s  %3$sLearn more %7$s', 'woocommerce-subscriptions' ),
+					'<strong>',
+					'</strong>',
+					'<a href="https://docs.woocommerce.com/document/subscriptions/faq/paypal-reference-transactions/" target="_blank">',
+					'</a>',
+					'</p><p><a class="button" href="' . esc_url( wp_nonce_url( add_query_arg( 'wcs_paypal', 'check_reference_transaction_support' ), __CLASS__ ) ) . '">',
+					'</a>',
+					'&raquo;</a>'
+				),
+			);
+		}
 
-		if ( $valid_for_use && 'yes' == WCS_PayPal::get_option( 'enabled' ) && ! has_action( 'admin_notices', 'WC_Subscriptions_Admin::admin_installed_notice' ) && current_user_can( 'manage_options' ) ) {
+		if ( isset( $_GET['wcs_paypal'] ) && 'rt_enabled' === $_GET['wcs_paypal'] ) {
+			$notices[] = array(
+				'type' => 'confirmation',
+				// translators: placeholders are opening and closing strong tags.
+				'text'  => sprintf( esc_html__( '%1$sPayPal Reference Transactions are enabled on your account%2$s. All subscription management features are now enabled. Happy selling!', 'woocommerce-subscriptions' ),
+					'<strong>',
+					'</strong>'
+				),
+			);
+		}
 
-			if ( ! WCS_PayPal::are_credentials_set() ) {
+		if ( false !== get_option( 'wcs_paypal_credentials_error' ) ) {
+			$notices[] = array(
+				'type' => 'error',
+				// translators: placeholders are link opening and closing tags. 1$-2$: to gateway settings, 3$-4$: support docs on woocommerce.com
+				'text'  => sprintf( esc_html__( 'There is a problem with PayPal. Your API credentials may be incorrect. Please update your %1$sAPI credentials%2$s. %3$sLearn more%4$s.', 'woocommerce-subscriptions' ),
+					'<a href="' . esc_url( $payment_gateway_tab_url ) . '">',
+					'</a>',
+					'<a href="https://docs.woocommerce.com/document/subscriptions-canceled-suspended-paypal/#section-2" target="_blank">',
+					'</a>'
+				),
+			);
+		}
 
-				$notices[] = array(
-					'type' => 'warning',
-					// translators: placeholders are opening and closing link tags. 1$-2$: to docs on woocommerce, 3$-4$ to gateway settings on the site
-					'text'  => sprintf( esc_html__( 'PayPal is inactive for subscription transactions. Please %1$sset up the PayPal IPN%2$s and %3$senter your API credentials%4$s to enable PayPal for Subscriptions.', 'woocommerce-subscriptions' ),
-						'<a href="https://docs.woocommerce.com/document/subscriptions/store-manager-guide/#ipn-setup" target="_blank">',
-						'</a>',
-						'<a href="' . esc_url( $payment_gateway_tab_url ) . '">',
-						'</a>'
-					),
-				);
+		if ( 'yes' == get_option( 'wcs_paypal_invalid_profile_id' ) ) {
+			$notices[] = array(
+				'type' => 'error',
+				// translators: placeholders are opening and closing link tags. 1$-2$: docs on woocommerce, 3$-4$: dismiss link
+				'text'  => sprintf( esc_html__( 'There is a problem with PayPal. Your PayPal account is issuing out-of-date subscription IDs. %1$sLearn more%2$s. %3$sDismiss%4$s.', 'woocommerce-subscriptions' ),
+					'<a href="https://docs.woocommerce.com/document/subscriptions-canceled-suspended-paypal/#section-3" target="_blank">',
+					'</a>',
+					'<a href="' . esc_url( add_query_arg( 'wcs_disable_paypal_invalid_profile_id_notice', 'true' ) ) . '">',
+					'</a>'
+				),
+			);
+		}
 
-			} elseif ( 'woocommerce_page_wc-settings' === get_current_screen()->base && isset( $_GET['tab'] ) && in_array( $_GET['tab'], array( 'subscriptions', 'checkout' ) ) && ! WCS_PayPal::are_reference_transactions_enabled() ) {
+		$last_ipn_error        = get_option( 'wcs_fatal_error_handling_ipn', '' );
+		$failed_ipn_log_handle = 'wcs-ipn-failures';
 
-				$notices[] = array(
-					'type' => 'warning',
-					// translators: placeholders are opening and closing strong and link tags. 1$-2$: strong tags, 3$-8$ link to docs on woocommerce
-					'text'  => sprintf( esc_html__( '%1$sPayPal Reference Transactions are not enabled on your account%2$s, some subscription management features are not enabled. Please contact PayPal and request they %3$senable PayPal Reference Transactions%4$s on your account. %5$sCheck PayPal Account%6$s  %3$sLearn more %7$s', 'woocommerce-subscriptions' ),
-						'<strong>',
-						'</strong>',
-						'<a href="https://docs.woocommerce.com/document/subscriptions/faq/paypal-reference-transactions/" target="_blank">',
-						'</a>',
-						'</p><p><a class="button" href="' . esc_url( wp_nonce_url( add_query_arg( 'wcs_paypal', 'check_reference_transaction_support' ), __CLASS__ ) ) . '">',
-						'</a>',
-						'&raquo;</a>'
-					),
-				);
+		if ( ! empty( $last_ipn_error ) && ( false == get_option( 'wcs_fatal_error_handling_ipn_ignored', false ) || isset( $_GET['wcs_reveal_your_ipn_secrets'] ) ) ) {
+			$notice = new WCS_Admin_Notice( 'error' );
+			$notice->set_content_template( 'html-ipn-failure-notice.php', dirname( __FILE__ ) . '/../templates/', array(
+				'failed_ipn_log_handle' => $failed_ipn_log_handle,
+				'last_ipn_error'        => $last_ipn_error,
+				'log_file_url'          => admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&log_file=%s-%s-log', $failed_ipn_log_handle, sanitize_file_name( wp_hash( $failed_ipn_log_handle ) ) ) ),
+			 ) );
 
-			}
+			$notice->set_actions( array(
+				array(
+					'name'  => __( 'Ignore this error (not recommended)', 'woocommerce-subscriptions' ),
+					'url'   => wp_nonce_url( add_query_arg( 'wcs_ipn_error_notice', 'ignore' ), 'wcs_ipn_error_notice', '_wcsnonce' ),
+					'class' => 'button',
+				),
+				array(
+					'name'  => __( 'Open a ticket', 'woocommerce-subscriptions' ),
+					'url'   => 'https://woocommerce.com/my-account/marketplace-ticket-form/',
+					'class' => 'button button-primary',
+				),
+			) );
 
-			if ( isset( $_GET['wcs_paypal'] ) && 'rt_enabled' === $_GET['wcs_paypal'] ) {
-				$notices[] = array(
-					'type' => 'confirmation',
-					// translators: placeholders are opening and closing strong tags.
-					'text'  => sprintf( esc_html__( '%1$sPayPal Reference Transactions are enabled on your account%2$s. All subscription management features are now enabled. Happy selling!', 'woocommerce-subscriptions' ),
-						'<strong>',
-						'</strong>'
-					),
-				);
-			}
-
-			if ( false !== get_option( 'wcs_paypal_credentials_error' ) ) {
-				$notices[] = array(
-					'type' => 'error',
-					// translators: placeholders are link opening and closing tags. 1$-2$: to gateway settings, 3$-4$: support docs on woocommerce.com
-					'text'  => sprintf( esc_html__( 'There is a problem with PayPal. Your API credentials may be incorrect. Please update your %1$sAPI credentials%2$s. %3$sLearn more%4$s.', 'woocommerce-subscriptions' ),
-						'<a href="' . esc_url( $payment_gateway_tab_url ) . '">',
-						'</a>',
-						'<a href="https://docs.woocommerce.com/document/subscriptions-canceled-suspended-paypal/#section-2" target="_blank">',
-						'</a>'
-					),
-				);
-			}
-
-			if ( 'yes' == get_option( 'wcs_paypal_invalid_profile_id' ) ) {
-				$notices[] = array(
-					'type' => 'error',
-					// translators: placeholders are opening and closing link tags. 1$-2$: docs on woocommerce, 3$-4$: dismiss link
-					'text'  => sprintf( esc_html__( 'There is a problem with PayPal. Your PayPal account is issuing out-of-date subscription IDs. %1$sLearn more%2$s. %3$sDismiss%4$s.', 'woocommerce-subscriptions' ),
-						'<a href="https://docs.woocommerce.com/document/subscriptions-canceled-suspended-paypal/#section-3" target="_blank">',
-						'</a>',
-						'<a href="' . esc_url( add_query_arg( 'wcs_disable_paypal_invalid_profile_id_notice', 'true' ) ) . '">',
-						'</a>'
-					),
-				);
-			}
-
-			$last_ipn_error        = get_option( 'wcs_fatal_error_handling_ipn', '' );
-			$failed_ipn_log_handle = 'wcs-ipn-failures';
-
-			if ( ! empty( $last_ipn_error ) && ( false == get_option( 'wcs_fatal_error_handling_ipn_ignored', false ) || isset( $_GET['wcs_reveal_your_ipn_secrets'] ) ) ) {
-				$notices[] = array(
-					'type' => 'error',
-					'text' => sprintf( esc_html__( '%sA fatal error has occurred when processing a recent subscription payment with PayPal. Please %sopen a new ticket at WooCommerce Support%s immediately to get this resolved.%sIn order to get the quickest possible response please attach a %sTemporary Admin Login%s and a copy of your PHP error logs to your support ticket.%sLast recorded error: %sTo see the full error, view the %s log file from the %sWooCommerce logs screen.%s', 'woocommerce-subscriptions' ),
-						'<p>',
-						'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">',
-						'</a>',
-						'<br>',
-						'<a href="https://docs.woocommerce.com/document/create-new-admin-account-wordpress/" target="_blank">',
-						'</a>',
-						'</p>',
-						'<code>' . esc_html( $last_ipn_error ) . '</code><p>',
-						'<code>' . $failed_ipn_log_handle . '</code>',
-						'<a href="' . admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&log_file=%s-%s-log', $failed_ipn_log_handle, sanitize_file_name( wp_hash( $failed_ipn_log_handle ) ) ) )  . '">',
-						'</a></p><div style="margin: 5px 0;"><a class="button" href="' . esc_url( wp_nonce_url( add_query_arg( 'wcs_ipn_error_notice', 'ignore' ), 'wcs_ipn_error_notice', '_wcsnonce' ) ) . '">' . esc_html__( 'Ignore this error (not recommended!)', 'woocommerce-subscriptions' ) . '</a> <a class="button button-primary" href="https://woocommerce.com/my-account/marketplace-ticket-form/">' . esc_html__( 'Open up a ticket now!', 'woocommerce-subscriptions' ) . '</a></div>'
-					),
-				);
-			}
+			$notice->display();
 		}
 
 		if ( ! empty( $notices ) ) {

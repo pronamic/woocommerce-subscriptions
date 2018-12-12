@@ -2,13 +2,12 @@
 /**
  * Manage the process of retrying a failed renewal payment that previously failed.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WCS_Retry_Manager
- * @category	Class
- * @author		Prospress
- * @since		2.1
+ * @package        WooCommerce Subscriptions
+ * @subpackage     WCS_Retry_Manager
+ * @category       Class
+ * @author         Prospress
+ * @since          2.1
  */
-require_once( 'payment-retry/class-wcs-retry-admin.php' );
 
 class WCS_Retry_Manager {
 
@@ -25,21 +24,33 @@ class WCS_Retry_Manager {
 	protected static $admin;
 
 	/**
+	 * Background updater to process retries from old store.
+	 *
+	 * @var WCS_Retry_Background_Migrator
+	 */
+	protected static $background_migrator;
+
+	/**
+	 * Our table maker instance.
+	 *
+	 * @var WCS_Table_Maker
+	 */
+	protected static $table_maker;
+
+	/**
 	 * Attach callbacks and set the retry rules
 	 *
 	 * @codeCoverageIgnore
 	 * @since 2.1
 	 */
 	public static function init() {
-
 		self::$setting_id = WC_Subscriptions_Admin::$option_prefix . '_enable_retry';
 		self::$admin      = new WCS_Retry_Admin( self::$setting_id );
 
 		if ( self::is_retry_enabled() ) {
+			WCS_Retry_Email::init();
 
-			self::load_classes();
-
-			add_filter( 'init', array( self::store(), 'init' ) );
+			add_action( 'init', array( __CLASS__, 'init_store' ) );
 
 			add_filter( 'woocommerce_valid_order_statuses_for_payment', __CLASS__ . '::check_order_statuses_for_payment', 10, 2 );
 
@@ -57,6 +68,15 @@ class WCS_Retry_Manager {
 			add_action( 'woocommerce_scheduled_subscription_payment_retry', __CLASS__ . '::maybe_retry_payment' );
 
 			add_filter( 'woocommerce_subscriptions_is_failed_renewal_order', __CLASS__ . '::compare_order_and_retry_statuses', 10, 3 );
+
+			add_action( 'plugins_loaded', __CLASS__ . '::load_dependant_classes' );
+
+			add_action( 'woocommerce_subscriptions_before_upgrade', __CLASS__ . '::upgrade', 11, 2 );
+
+			if ( ! self::$table_maker ) {
+				self::$table_maker = new WCS_Retry_Table_Maker();
+				add_action( 'init', array( self::$table_maker, 'register_tables' ), 0 );
+			}
 		}
 	}
 
@@ -71,7 +91,7 @@ class WCS_Retry_Manager {
 	 */
 	public static function check_order_statuses_for_payment( $statuses, $order ) {
 
-		$last_retry  = self::store()->get_last_retry_for_order( $order );
+		$last_retry = self::store()->get_last_retry_for_order( wcs_get_objects_property( $order, 'id' ) );
 		if ( $last_retry ) {
 			$statuses[] = $last_retry->get_rule()->get_status_to_apply( 'order' );
 			$statuses   = array_unique( $statuses );
@@ -87,29 +107,6 @@ class WCS_Retry_Manager {
 	 */
 	public static function is_retry_enabled() {
 		return (bool) apply_filters( 'wcs_is_retry_enabled', 'yes' == get_option( self::$setting_id, 'no' ) );
-	}
-
-	/**
-	 * Load all the retry classes if the retry system is enabled
-	 *
-	 * @codeCoverageIgnore
-	 * @since 2.1
-	 */
-	protected static function load_classes() {
-
-		require_once( 'abstracts/abstract-wcs-retry-store.php' );
-
-		require_once( 'payment-retry/class-wcs-retry.php' );
-
-		require_once( 'payment-retry/class-wcs-retry-rule.php' );
-
-		require_once( 'payment-retry/class-wcs-retry-rules.php' );
-
-		require_once( 'payment-retry/class-wcs-retry-post-store.php' );
-
-		require_once( 'payment-retry/class-wcs-retry-email.php' );
-
-		require_once( 'admin/meta-boxes/class-wcs-meta-box-payment-retries.php' );
 	}
 
 	/**
@@ -170,7 +167,7 @@ class WCS_Retry_Manager {
 			}
 
 			foreach ( self::store()->get_retry_ids_for_order( $post_id ) as $retry_id ) {
-				wp_trash_post( $retry_id );
+				self::store()->delete_retry( $retry_id );
 			}
 		}
 	}
@@ -294,18 +291,39 @@ class WCS_Retry_Manager {
 
 				// if both statuses are still the same or there no special status was applied and the order still needs payment (i.e. there has been no manual intervention), trigger the payment hook
 				if ( $valid_order_status && $valid_subscription_status ) {
+					$unique_payment_methods = array();
 
 					$last_order->update_status( 'pending', _x( 'Subscription renewal payment retry:', 'used in order note as reason for why order status changed', 'woocommerce-subscriptions' ), true );
 
-					// Make sure the subscription is on hold in case something goes wrong while trying to process renewal and in case gateways expect the subscription to be on-hold, which is normally the case with a renewal payment
 					foreach ( $subscriptions as $subscription ) {
+						// Make sure the subscription is on hold in case something goes wrong while trying to process renewal and in case gateways expect the subscription to be on-hold, which is normally the case with a renewal payment
 						$subscription->update_status( 'on-hold', _x( 'Subscription renewal payment retry:', 'used in order note as reason for why subscription status changed', 'woocommerce-subscriptions' ) );
+
+						// Store a hash of the payment method and payment meta to determine if there's a single payment method being used.
+						$payment_meta_hash = md5( $subscription->get_payment_method() . json_encode( $subscription->get_payment_method_meta() ) );
+						$unique_payment_methods[ $payment_meta_hash ] = 1;
 					}
 
-					WC_Subscriptions_Payment_Gateways::trigger_gateway_renewal_payment_hook( $last_order );
+					// Delete the payment method from the renewal order if the subscription has changed to manual renewal.
+					if ( wcs_order_contains_manual_subscription( $last_order, 'renewal' ) ) {
+						$last_order->set_payment_method( '' );
+						$last_order->add_order_note( 'Renewal payment retry skipped - related subscription has changed to manual renewal.' );
 
-					// Now that we've attempted to process the payment, refresh the order
-					$last_order = wc_get_order( wcs_get_objects_property( $last_order, 'id' ) );
+						$last_order->save();
+					} elseif ( 1 < count( $unique_payment_methods ) ) {
+						// Throw an exception if there is more than 1 unique payment method.
+						// This could only occur under circumstances where batch processing renewals has grouped unlike subscriptions.
+						throw new Exception( __( 'Payment retry attempted on renewal order with multiple related subscriptions with no payment method in common.', 'woocommerce-subscriptions' ) );
+					} else {
+						// Before attempting to process payment, update the renewal order's payment method and meta to match the subscription's - in case it has changed.
+						wcs_copy_payment_method_to_order( $subscription, $last_order );
+						$last_order->save();
+
+						WC_Subscriptions_Payment_Gateways::trigger_gateway_renewal_payment_hook( $last_order );
+
+						// Now that we've attempted to process the payment, refresh the order
+						$last_order = wc_get_order( wcs_get_objects_property( $last_order, 'id' ) );
+					}
 
 					// if the order still needs payment, payment failed
 					if ( $last_order->needs_payment() ) {
@@ -344,25 +362,65 @@ class WCS_Retry_Manager {
 	}
 
 	/**
-	 * Access the object used to interface with the database
+	 * Loads/init our depended classes.
 	 *
-	 * @since 2.1
+	 * @since 2.4
+	 */
+	public static function load_dependant_classes() {
+		if ( ! self::$background_migrator ) {
+			self::$background_migrator = new WCS_Retry_Background_Migrator( wc_get_logger() );
+			add_action( 'init', array( self::$background_migrator, 'init' ), 15 );
+		}
+	}
+
+	/**
+	 * Runs our upgrade background scripts.
+	 *
+	 * @param string $new_version Version we're upgrading to.
+	 * @param string $old_version Version we're upgrading from.
+	 *
+	 * @since 2.4
+	 */
+	public static function upgrade( $new_version, $old_version ) {
+		if ( '0' !== $old_version && version_compare( $old_version, '2.4', '<' ) ) {
+			self::$background_migrator->schedule_repair();
+		}
+
+		if ( version_compare( $new_version, '2.4.0', '>' ) ) {
+			WCS_Retry_Migrator::set_needs_migration();
+		}
+	}
+
+	/**
+	 * Access the object used to interface with the store.
+	 *
+	 * @since 2.4
 	 */
 	public static function store() {
 		if ( empty( self::$store ) ) {
-			$class = self::get_store_class();
+			if ( ! did_action( 'plugins_loaded' ) ) {
+				wcs_doing_it_wrong( __METHOD__, 'This method was called before the "plugins_loaded" hook. It applies a filter to the retry data store instantiated. For that to work, it should first be called after all plugins are loaded.', '2.4.1' );
+			}
+
+			$class       = self::get_store_class();
 			self::$store = new $class();
 		}
+
 		return self::$store;
 	}
 
 	/**
 	 * Get the class used for instantiating retry storage via self::store()
 	 *
-	 * @since 2.1
+	 * @since 2.4
 	 */
 	protected static function get_store_class() {
-		return apply_filters( 'wcs_retry_store_class', 'WCS_Retry_Post_Store' );
+		$default_store_class = 'WCS_Retry_Database_Store';
+		if ( WCS_Retry_Migrator::needs_migration() ) {
+			$default_store_class = 'WCS_Retry_Hybrid_Store';
+		}
+
+		return apply_filters( 'wcs_retry_store_class', $default_store_class );
 	}
 
 	/**
@@ -386,5 +444,16 @@ class WCS_Retry_Manager {
 	protected static function get_rules_class() {
 		return apply_filters( 'wcs_retry_rules_class', 'WCS_Retry_Rules' );
 	}
+
+	/**
+	 * Initialise the store object used to interface with retry data.
+	 *
+	 * Hooked onto 'init' to allow third-parties to use their own data store
+	 * and to ensure WordPress is fully loaded.
+	 *
+	 * @since 2.4.1
+	 */
+	public static function init_store() {
+		self::store()->init();
+	}
 }
-WCS_Retry_Manager::init();

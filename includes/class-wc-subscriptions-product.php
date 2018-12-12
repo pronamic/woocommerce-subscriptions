@@ -361,7 +361,7 @@ class WC_Subscriptions_Product {
 				}
 			} else {
 				// translators: 1$: recurring amount, 2$: subscription period (e.g. "month" or "3 months") (e.g. "$15 / month" or "$15 every 2nd month")
-				$subscription_string = sprintf( _n( '%1$s / %2$s', ' %1$s every %2$s', $billing_interval, 'woocommerce-subscriptions' ), $price, wcs_get_subscription_period_strings( $billing_interval, $billing_period ) );
+				$subscription_string = sprintf( _n( '%1$s / %2$s', '%1$s every %2$s', $billing_interval, 'woocommerce-subscriptions' ), $price, wcs_get_subscription_period_strings( $billing_interval, $billing_period ) );
 			}
 		} elseif ( $include['subscription_price'] ) {
 			$subscription_string = $price;
@@ -398,7 +398,7 @@ class WC_Subscriptions_Product {
 	 * Returns the active price per period for a product if it is a subscription.
 	 *
 	 * @param mixed $product A WC_Product object or product ID
-	 * @return float The price charged per period for the subscription, or an empty string if the product is not a subscription.
+	 * @return string The price charged per period for the subscription, or an empty string if the product is not a subscription.
 	 * @since 1.0
 	 */
 	public static function get_price( $product ) {
@@ -420,7 +420,7 @@ class WC_Subscriptions_Product {
 	 * Returns the sale price per period for a product if it is a subscription.
 	 *
 	 * @param mixed $product A WC_Product object or product ID
-	 * @return float
+	 * @return string
 	 * @since 2.2.0
 	 */
 	public static function get_regular_price( $product, $context = 'view' ) {
@@ -438,7 +438,7 @@ class WC_Subscriptions_Product {
 	 * Returns the regular price per period for a product if it is a subscription.
 	 *
 	 * @param mixed $product A WC_Product object or product ID
-	 * @return float
+	 * @return string
 	 * @since 2.2.0
 	 */
 	public static function get_sale_price( $product, $context = 'view' ) {
@@ -511,7 +511,7 @@ class WC_Subscriptions_Product {
 	 * Returns the sign-up fee for a subscription, if it is a subscription.
 	 *
 	 * @param mixed $product A WC_Product object or product ID
-	 * @return float The value of the sign-up fee, or 0 if the product is not a subscription or the subscription has no sign-up fee
+	 * @return int|string The value of the sign-up fee, or 0 if the product is not a subscription or the subscription has no sign-up fee
 	 * @since 1.0
 	 */
 	public static function get_sign_up_fee( $product ) {
@@ -1248,5 +1248,3 @@ class WC_Subscriptions_Product {
 		return wcs_get_price_excluding_tax( $product, array( 'qty' => $qty, 'price' => WC_Subscriptions_Product::get_sign_up_fee( $product ) ) );
 	}
 }
-
-WC_Subscriptions_Product::init();

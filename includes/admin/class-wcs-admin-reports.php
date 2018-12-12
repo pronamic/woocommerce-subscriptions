@@ -23,19 +23,14 @@ class WCS_Admin_Reports {
 	 * Constructor
 	 */
 	public function __construct() {
-
 		// Add the reports layout to the WooCommerce -> Reports admin section
 		add_filter( 'woocommerce_admin_reports',  __CLASS__ . '::initialize_reports', 12, 1 );
-
-		// Add the reports layout to the WooCommerce -> Reports admin section
-		add_filter( 'wc_admin_reports_path',  __CLASS__ . '::initialize_reports_path', 12, 3 );
 
 		// Add any necessary scripts
 		add_action( 'admin_enqueue_scripts', __CLASS__ . '::reports_scripts' );
 
 		// Add any actions we need based on the screen
 		add_action( 'current_screen', __CLASS__ . '::conditional_reporting_includes' );
-
 	}
 
 	/**
@@ -54,31 +49,31 @@ class WCS_Admin_Reports {
 					'title'       => __( 'Subscription Events by Date', 'woocommerce-subscriptions' ),
 					'description' => '',
 					'hide_title'  => true,
-					'callback'    => array( 'WC_Admin_Reports', 'get_report' ),
+					'callback'    => array( 'WCS_Admin_Reports', 'get_report' ),
 				),
 				'upcoming_recurring_revenue' => array(
 					'title'       => __( 'Upcoming Recurring Revenue', 'woocommerce-subscriptions' ),
 					'description' => '',
 					'hide_title'  => true,
-					'callback'    => array( 'WC_Admin_Reports', 'get_report' ),
+					'callback'    => array( 'WCS_Admin_Reports', 'get_report' ),
 				),
 				'retention_rate' => array(
 					'title'       => __( 'Retention Rate', 'woocommerce-subscriptions' ),
 					'description' => '',
 					'hide_title'  => true,
-					'callback'    => array( 'WC_Admin_Reports', 'get_report' ),
+					'callback'    => array( 'WCS_Admin_Reports', 'get_report' ),
 				),
 				'subscription_by_product' => array(
 					'title'       => __( 'Subscriptions by Product', 'woocommerce-subscriptions' ),
 					'description' => '',
 					'hide_title'  => true,
-					'callback'    => array( 'WC_Admin_Reports', 'get_report' ),
+					'callback'    => array( 'WCS_Admin_Reports', 'get_report' ),
 				),
 				'subscription_by_customer' => array(
 					'title'       => __( 'Subscriptions by Customer', 'woocommerce-subscriptions' ),
 					'description' => '',
 					'hide_title'  => true,
-					'callback'    => array( 'WC_Admin_Reports', 'get_report' ),
+					'callback'    => array( 'WCS_Admin_Reports', 'get_report' ),
 				),
 			),
 		);
@@ -88,30 +83,11 @@ class WCS_Admin_Reports {
 				'title'       => __( 'Failed Payment Retries', 'woocommerce-subscriptions' ),
 				'description' => '',
 				'hide_title'  => true,
-				'callback'    => array( 'WC_Admin_Reports', 'get_report' ),
+				'callback'    => array( 'WCS_Admin_Reports', 'get_report' ),
 			);
 		}
 
 		return $reports;
-	}
-
-	/**
-	 * If we hit one of our reports in the WC get_report function, change the path to our dir.
-	 *
-	 * @param report_path the parth to the report.
-	 * @param name the name of the report.
-	 * @param class the class of the report.
-	 * @return string  path to the report template.
-	 * @since 2.1
-	 */
-	public static function initialize_reports_path( $report_path, $name, $class ) {
-
-		if ( in_array( strtolower( $class ), array( 'wc_report_subscription_events_by_date', 'wc_report_upcoming_recurring_revenue', 'wc_report_retention_rate', 'wc_report_subscription_by_product', 'wc_report_subscription_by_customer', 'wc_report_subscription_payment_retry' ) ) ) {
-			$report_path = dirname( __FILE__ ) . '/reports/class-wcs-report-' . $name . '.php';
-		}
-
-		return $report_path;
-
 	}
 
 	/**
@@ -157,11 +133,54 @@ class WCS_Admin_Reports {
 
 		switch ( $screen->id ) {
 			case 'dashboard' :
-				include_once( 'reports/class-wcs-report-dashboard.php' );
-			break;
+				new WCS_Report_Dashboard();
+				break;
 		}
 
 	}
-}
 
-new WCS_Admin_Reports();
+	/**
+	 * Get a report from one of our classes.
+	 *
+	 * @param string $name
+	 */
+	public static function get_report( $name ) {
+		$name  = sanitize_title( str_replace( '_', '-', $name ) );
+		$class = 'WCS_Report_' . str_replace( '-', '_', $name );
+
+		if ( ! class_exists( $class ) ) {
+			return;
+		}
+
+		$report = new $class();
+		$report->output_report();
+	}
+
+	/**
+	 * If we hit one of our reports in the WC get_report function, change the path to our dir.
+	 *
+	 * @param string $report_path the parth to the report.
+	 * @param string $name the name of the report.
+	 * @param string $class the class of the report.
+	 *
+	 * @return string  path to the report template.
+	 * @since 2.1
+	 * @deprecated in favor of autoloading
+	 * @access private
+	 */
+	public static function initialize_reports_path( $report_path, $name, $class ) {
+		_deprecated_function( __METHOD__, '2.4.0' );
+		if ( in_array( strtolower( $class ), array(
+			'wc_report_subscription_events_by_date',
+			'wc_report_upcoming_recurring_revenue',
+			'wc_report_retention_rate',
+			'wc_report_subscription_by_product',
+			'wc_report_subscription_by_customer',
+			'wc_report_subscription_payment_retry',
+		) ) ) {
+			$report_path = dirname( __FILE__ ) . '/reports/classwcsreport' . $name . '.php';
+		}
+
+		return $report_path;
+	}
+}

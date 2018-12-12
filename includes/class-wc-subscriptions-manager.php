@@ -2360,5 +2360,3 @@ class WC_Subscriptions_Manager {
 		_deprecated_function( __METHOD__, '2.0' );
 	}
 }
-
-WC_Subscriptions_Manager::init();

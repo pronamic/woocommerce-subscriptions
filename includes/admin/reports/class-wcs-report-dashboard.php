@@ -96,5 +96,3 @@ class WCS_Report_Dashboard {
 		wp_enqueue_style( 'wcs-dashboard-report', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/css/dashboard.css', array(), WC_Subscriptions::$version );
 	}
 }
-
-return new WCS_Report_Dashboard();

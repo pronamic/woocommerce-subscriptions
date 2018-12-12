@@ -20,11 +20,12 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 	 * @since 2.0
 	 */
 	public function __construct() {
-
 		$this->setup_hooks();
 
 		// When an order is paid for via checkout, ensure a new order isn't created due to mismatched cart hashes
 		add_filter( 'woocommerce_create_order', array( &$this, 'update_cart_hash' ), 10, 1 );
+		// Apply initial discounts when there is a pending initial order
+		add_action( 'woocommerce_setup_cart_for_subscription_initial_payment', array( $this, 'setup_discounts' ) );
 	}
 
 	/**
@@ -35,48 +36,51 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 	public function maybe_setup_cart() {
 		global $wp;
 
-		if ( isset( $_GET['pay_for_order'] ) && isset( $_GET['key'] ) && isset( $wp->query_vars['order-pay'] ) ) {
+		if ( ! isset( $_GET['pay_for_order'] ) || ! isset( $_GET['key'] ) || ! isset( $wp->query_vars['order-pay'] ) ) {
+			return;
+		}
 
-			// Pay for existing order
-			$order_key    = $_GET['key'];
-			$order_id     = ( isset( $wp->query_vars['order-pay'] ) ) ? $wp->query_vars['order-pay'] : absint( $_GET['order_id'] );
-			$order        = wc_get_order( $wp->query_vars['order-pay'] );
+		// Pay for existing order
+		$order_key = $_GET['key'];
+		$order_id  = absint( $wp->query_vars['order-pay'] );
+		$order     = wc_get_order( $order_id );
 
-			if ( wcs_get_objects_property( $order, 'order_key' ) == $order_key && $order->has_status( array( 'pending', 'failed' ) ) && wcs_order_contains_subscription( $order, 'parent' ) && ! wcs_order_contains_subscription( $order, 'resubscribe' ) ) {
+		if ( wcs_get_objects_property( $order, 'order_key' ) !== $order_key || ! $order->has_status( array( 'pending', 'failed' ) ) || ! wcs_order_contains_subscription( $order, 'parent' ) || wcs_order_contains_subscription( $order, 'resubscribe' ) ) {
+			return;
+		}
 
-				if ( ! is_user_logged_in() ) {
+		if ( ! is_user_logged_in() ) {
+			// Allow the customer to login first and then redirect them back.
+			$redirect = add_query_arg( array(
+				'wcs_redirect'    => 'pay_for_order',
+				'wcs_redirect_id' => $order_id,
+			), get_permalink( wc_get_page_id( 'myaccount' ) ) );
+		} elseif ( ! current_user_can( 'pay_for_order', $order_id ) ) {
+			wc_add_notice( __( 'That doesn\'t appear to be your order.', 'woocommerce-subscriptions' ), 'error' );
 
-					$redirect = add_query_arg( array(
-						'wcs_redirect'    => 'pay_for_order',
-						'wcs_redirect_id' => $order_id,
-					), get_permalink( wc_get_page_id( 'myaccount' ) ) );
+			$redirect = get_permalink( wc_get_page_id( 'myaccount' ) );
+		} else {
+			$subscriptions = wcs_get_subscriptions_for_order( $order );
+			do_action( 'wcs_before_parent_order_setup_cart', $subscriptions, $order );
 
-					wp_safe_redirect( $redirect );
-					exit;
+			// Add the existing order items to the cart
+			$this->setup_cart( $order, array(
+				'order_id' => $order_id,
+			) );
 
-				} elseif ( ! current_user_can( 'pay_for_order', $order_id ) ) {
+			do_action( 'wcs_after_parent_order_setup_cart', $subscriptions, $order );
 
-					wc_add_notice( __( 'That doesn\'t appear to be your order.', 'woocommerce-subscriptions' ), 'error' );
+			// Store order's ID in the session so it can be re-used after payment
+			WC()->session->set( 'order_awaiting_payment', $order_id );
 
-					wp_safe_redirect( get_permalink( wc_get_page_id( 'myaccount' ) ) );
-					exit;
+			$this->set_cart_hash( $order_id );
 
-				} else {
+			$redirect = wc_get_checkout_url();
+		}
 
-					// Setup cart with all the original order's line items
-					$this->setup_cart( $order, array(
-						'order_id' => $order_id,
-					) );
-
-					WC()->session->set( 'order_awaiting_payment', $order_id );
-
-					// Set cart hash for orders paid in WC >= 2.6
-					$this->set_cart_hash( $order_id );
-
-					wp_safe_redirect( wc_get_checkout_url() );
-					exit;
-				}
-			}
+		if ( ! empty( $redirect ) ) {
+			wp_safe_redirect( $redirect );
+			exit;
 		}
 	}
 
@@ -124,4 +128,3 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 	}
 
 }
-new WCS_Cart_Initial_Payment();

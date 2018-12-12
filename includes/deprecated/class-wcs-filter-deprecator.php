@@ -24,9 +24,7 @@ class WCS_Filter_Deprecator extends WCS_Hook_Deprecator {
 		'woocommerce_subscription_payment_completed_count'           => 'woocommerce_subscription_completed_payment_count',
 		'woocommerce_subscription_get_end_date'                      => 'woocommerce_subscription_expiration_date',
 		'woocommerce_subscription_get_trial_end_date'                => 'woocommerce_subscription_trial_expiration_date',
-		'woocommerce_subscription_date_updated'                      => 'woocommerce_subscriptions_set_expiration_date',
 		'woocommerce_subscriptions_product_expiration_date'          => 'woocommerce_subscription_calculated_expiration_date',
-		'woocommerce_subscription_date_updated'                      => 'woocommerce_subscription_set_next_payment_date',
 		'woocommerce_subscription_get_last_payment_date'             => 'woocommerce_subscription_last_payment_date',
 		'woocommerce_subscription_calculated_next_payment_date'      => 'woocommerce_subscriptions_calculated_next_payment_date',
 		'woocommerce_subscription_date_updated'                      => 'woocommerce_subscriptions_set_trial_expiration_date',
@@ -335,4 +333,3 @@ class WCS_Filter_Deprecator extends WCS_Hook_Deprecator {
 		return $return_value;
 	}
 }
-new WCS_Filter_Deprecator();

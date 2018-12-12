@@ -19,6 +19,9 @@ class WCS_PayPal_Standard_IPN_Failure_Handler {
 
 	private static $transaction_details = null;
 
+	/**
+	 * @var WC_Logger_Interface|null
+	 */
 	public static $log = null;
 
 	/**

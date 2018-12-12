@@ -134,35 +134,61 @@ class WCS_Limiter {
 	public static function is_purchasable_switch( $is_purchasable, $product ) {
 		$product_key = wcs_get_canonical_product_id( $product );
 
+		// Set an empty cache if one isn't set yet.
 		if ( ! isset( self::$is_purchasable_cache[ $product_key ] ) ) {
 			self::$is_purchasable_cache[ $product_key ] = array();
 		}
 
-		if ( ! isset( self::$is_purchasable_cache[ $product_key ]['switch'] ) ) {
+		// Exit early if we've already determined this product's purchasability via switching.
+		if ( isset( self::$is_purchasable_cache[ $product_key ]['switch'] ) ) {
+			return self::$is_purchasable_cache[ $product_key ]['switch'];
+		}
 
-			if ( false === $is_purchasable && wcs_is_product_switchable_type( $product ) && WC_Subscriptions_Product::is_subscription( $product->get_id() ) && 'no' != wcs_get_product_limitation( $product ) && is_user_logged_in() && wcs_user_has_subscription( 0, $product->get_id(), wcs_get_product_limitation( $product ) ) ) {
+		if ( true === $is_purchasable || ! is_user_logged_in() || ! wcs_is_product_switchable_type( $product ) || ! WC_Subscriptions_Product::is_subscription( $product->get_id() ) ) {
+			self::$is_purchasable_cache[ $product_key ]['switch'] = $is_purchasable;
+			return self::$is_purchasable_cache[ $product_key ]['switch'];
+		}
 
-				//Adding to cart
-				if ( isset( $_GET['switch-subscription'] ) ) {
+		$user_id            = get_current_user_id();
+		$product_limitation = wcs_get_product_limitation( $product );
+
+		if ( 'no' == $product_limitation || ! wcs_user_has_subscription( $user_id, $product->get_id(), wcs_get_product_limitation( $product ) ) ) {
+			self::$is_purchasable_cache[ $product_key ]['switch'] = $is_purchasable;
+			return self::$is_purchasable_cache[ $product_key ]['switch'];
+		}
+
+		// Limited products are only purchasable while switching the subscription which contains that product so we need the customer's subscriptions to this product.
+		$subscriptions = wcs_get_subscriptions( array(
+			'customer_id' => $user_id,
+			'status'      => $product_limitation,
+			'product_id'  => $product->get_id(),
+		) );
+
+		// Adding to cart
+		if ( isset( $_GET['switch-subscription'] ) && array_key_exists( $_GET['switch-subscription'], $subscriptions ) ) {
+			$is_purchasable = true;
+		} else {
+			// If we have a variation product get the variable product's ID. We can't use the variation ID for comparison because this function sometimes receives a variable product.
+			$product_id    = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
+			$cart_contents = array();
+
+			// Use the version of the cart we have access to. We may need to look for switches in the cart being loaded from the session.
+			if ( WC_Subscriptions_Switcher::cart_contains_switches() ) {
+				$cart_contents = WC()->cart->cart_contents;
+			} elseif ( isset( WC()->session->cart ) ) {
+				$cart_contents = WC()->session->cart;
+			}
+
+			// Check if the cart contains a switch for this specific product.
+			foreach ( $cart_contents as $cart_item ) {
+				if ( $product_id === $cart_item['product_id'] && isset( $cart_item['subscription_switch']['subscription_id'] ) && array_key_exists( $cart_item['subscription_switch']['subscription_id'], $subscriptions ) ) {
 					$is_purchasable = true;
-
-					//Validating when restoring cart from session
-				} elseif ( WC_Subscriptions_Switcher::cart_contains_switches() ) {
-					$is_purchasable = true;
-
-				// Restoring cart from session, so need to check the cart in the session (WC_Subscriptions_Switcher::cart_contains_subscription_switch() only checks the cart)
-				} elseif ( isset( WC()->session->cart ) ) {
-
-					foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
-						if ( $product->get_id() == $cart_item['product_id'] && isset( $cart_item['subscription_switch'] ) ) {
-							$is_purchasable = true;
-							break;
-						}
-					}
+					break;
 				}
 			}
-			self::$is_purchasable_cache[ $product_key ]['switch'] = $is_purchasable;
 		}
+
+		self::$is_purchasable_cache[ $product_key ]['switch'] = $is_purchasable;
 		return self::$is_purchasable_cache[ $product_key ]['switch'];
 	}
 
@@ -246,4 +272,3 @@ class WCS_Limiter {
 	}
 
 }
-WCS_Limiter::init();

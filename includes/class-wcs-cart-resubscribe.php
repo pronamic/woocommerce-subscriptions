@@ -323,4 +323,3 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 		}
 	}
 }
-new WCS_Cart_Resubscribe();

@@ -67,8 +67,8 @@ class WCS_Upgrade_1_5 {
 				if ( 'scheduled_subscription_payment' == $hook || 'scheduled_subscription_expiration' == $hook || 'scheduled_subscription_end_of_prepaid_term' == $hook || 'scheduled_subscription_trial_end' == $hook || 'paypal_check_subscription_payment' == $hook ) {
 					foreach ( $details as $hook_key => $values ) {
 
-						if ( ! wc_next_scheduled_action( $hook, $values['args'] ) ) {
-							wc_schedule_single_action( $timestamp, $hook, $values['args'] );
+						if ( ! as_next_scheduled_action( $hook, $values['args'] ) ) {
+							as_schedule_single_action( $timestamp, $hook, $values['args'] );
 							unset( $cron[ $timestamp ][ $hook ][ $hook_key ] );
 							$counter++;
 						}

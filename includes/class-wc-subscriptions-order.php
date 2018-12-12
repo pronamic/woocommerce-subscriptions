@@ -485,12 +485,12 @@ class WC_Subscriptions_Order {
 				// Do we need to activate a subscription?
 				if ( $order_completed && ! $subscription->has_status( wcs_get_subscription_ended_statuses() ) && ! $subscription->has_status( 'active' ) ) {
 
-					$new_start_date_offset = current_time( 'timestamp', true ) - $subscription->get_time( 'date_created' );
+					$new_start_date_offset = current_time( 'timestamp', true ) - $subscription->get_time( 'start' );
 
 					// if the payment has been processed more than an hour after the order was first created, let's update the dates on the subscription to account for that, because it may have even been processed days after it was first placed
-					if ( $new_start_date_offset > HOUR_IN_SECONDS ) {
+					if ( abs( $new_start_date_offset ) > HOUR_IN_SECONDS ) {
 
-						$dates = array( 'date_created' => current_time( 'mysql', true ) );
+						$dates = array( 'start' => current_time( 'mysql', true ) );
 
 						if ( WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $subscription ) ) {
 
@@ -498,15 +498,15 @@ class WC_Subscriptions_Order {
 							$next_payment = $subscription->get_time( 'next_payment' );
 
 							// if either there is a free trial date or a next payment date that falls before now, we need to recalculate all the sync'd dates
-							if ( ( $trial_end > 0 && $trial_end < wcs_date_to_time( $dates['date_created'] ) ) || ( $next_payment > 0 && $next_payment < wcs_date_to_time( $dates['date_created'] ) ) ) {
+							if ( ( $trial_end > 0 && $trial_end < wcs_date_to_time( $dates['start'] ) ) || ( $next_payment > 0 && $next_payment < wcs_date_to_time( $dates['start'] ) ) ) {
 
 								foreach ( $subscription->get_items() as $item ) {
 									$product_id = wcs_get_canonical_product_id( $item );
 
 									if ( WC_Subscriptions_Synchroniser::is_product_synced( $product_id ) ) {
-										$dates['trial_end']    = WC_Subscriptions_Product::get_trial_expiration_date( $product_id, $dates['date_created'] );
-										$dates['next_payment'] = WC_Subscriptions_Synchroniser::calculate_first_payment_date( $product_id, 'mysql', $dates['date_created'] );
-										$dates['end']          = WC_Subscriptions_Product::get_expiration_date( $product_id, $dates['date_created'] );
+										$dates['trial_end']    = WC_Subscriptions_Product::get_trial_expiration_date( $product_id, $dates['start'] );
+										$dates['next_payment'] = WC_Subscriptions_Synchroniser::calculate_first_payment_date( $product_id, 'mysql', $dates['start'] );
+										$dates['end']          = WC_Subscriptions_Product::get_expiration_date( $product_id, $dates['start'] );
 										break;
 									}
 								}
@@ -2120,4 +2120,3 @@ class WC_Subscriptions_Order {
 		return wcs_get_objects_property( $order, 'currency' );
 	}
 }
-WC_Subscriptions_Order::init();

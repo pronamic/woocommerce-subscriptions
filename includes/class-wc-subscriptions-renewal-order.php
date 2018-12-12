@@ -661,4 +661,3 @@ class WC_Subscriptions_Renewal_Order {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::maybe_record_subscription_payment( $order_id, $orders_old_status, $orders_new_status )' );
 	}
 }
-WC_Subscriptions_Renewal_Order::init();

@@ -39,4 +39,3 @@ class WCS_Product_Legacy {
 	}
 
 }
-WCS_Product_Legacy::init();

@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class WCS_Upgrade_1_2 {
 
-	public function init() {
+	public static function init() {
 		global $wpdb;
 
 		// Get IDs only and use a direct DB query for efficiency
@@ -276,4 +276,3 @@ class WCS_Upgrade_1_2 {
 		}
 	}
 }
-WCS_Upgrade_1_2::init();

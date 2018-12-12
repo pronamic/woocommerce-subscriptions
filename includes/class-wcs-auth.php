@@ -49,5 +49,3 @@ class WCS_Auth {
 		return $permissions;
 	}
 }
-
-return new WCS_Auth();

@@ -101,6 +101,9 @@ class WC_Subscriptions_Upgrader {
 		// When WC is updated from a version prior to 3.0 to a version after 3.0, add subscription address indexes. Must be hooked on before WC runs its updates, which occur on priority 5.
 		add_action( 'init', array( __CLASS__, 'maybe_add_subscription_address_indexes' ), 2 );
 
+		// Hooks into WC's wc_update_350_order_customer_id upgrade routine.
+		add_action( 'init', array( __CLASS__, 'maybe_update_subscription_post_author' ), 2 );
+
 		add_action( 'admin_notices', array( __CLASS__, 'maybe_add_downgrade_notice' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'maybe_display_external_object_cache_warning' ) );
 
@@ -153,6 +156,11 @@ class WC_Subscriptions_Upgrader {
 
 		update_option( WC_Subscriptions_Admin::$option_prefix . '_previous_version', self::$active_version );
 
+		/**
+		 * before upgrade hook.
+		 */
+		do_action( 'woocommerce_subscriptions_before_upgrade', WC_Subscriptions::$version, self::$active_version );
+
 		// Update the hold stock notification to be one week (if it's still at the default 60 minutes) to prevent cancelling subscriptions using manual renewals and payment methods that can take more than 1 hour (i.e. PayPal eCheck)
 		if ( '0' == self::$active_version || version_compare( self::$active_version, '1.4', '<' ) ) {
 
@@ -191,10 +199,7 @@ class WC_Subscriptions_Upgrader {
 
 			// Delete cached subscription length ranges to force an update with 2.1
 			WC_Subscriptions::$cache->delete_cached( 'wcs-sub-ranges-' . get_locale() );
-
 			WCS_Upgrade_Logger::add( 'v2.1: Deleted cached subscription ranges.' );
-
-			include_once( 'class-wcs-upgrade-2-1.php' );
 			WCS_Upgrade_2_1::set_cancelled_dates();
 
 			// Schedule report cache updates in the hopes that the data is ready and waiting for the store owner the first time they visit the reports pages
@@ -203,13 +208,11 @@ class WC_Subscriptions_Upgrader {
 
 		// Repair missing end_of_prepaid_term scheduled actions
 		if ( version_compare( self::$active_version, '2.2.0', '>=' ) && version_compare( self::$active_version, '2.2.7', '<' ) ) {
-			include_once( 'class-wcs-upgrade-2-2-7.php' );
 			WCS_Upgrade_2_2_7::schedule_end_of_prepaid_term_repair();
 		}
 
 		// Repair missing _contains_synced_subscription post meta
 		if ( version_compare( get_option( 'woocommerce_db_version' ), '3.0', '>=' ) && version_compare( self::$active_version, '2.2.0', '>=' ) && version_compare( self::$active_version, '2.2.9', '<' ) ) {
-			include_once( 'class-wcs-upgrade-2-2-9.php' );
 			WCS_Upgrade_2_2_9::schedule_repair();
 		}
 
@@ -229,6 +232,10 @@ class WC_Subscriptions_Upgrader {
 			if ( ! empty( $has_transient_cache ) ) {
 				update_option( 'wcs_display_2_3_3_warning', 'yes' );
 			}
+		}
+
+		if ( version_compare( self::$active_version, '2.4.0', '<' ) ) {
+			self::$background_updaters['2.4']['start_date_metadata']->schedule_repair();
 		}
 
 		self::upgrade_complete();
@@ -325,9 +332,6 @@ class WC_Subscriptions_Upgrader {
 				break;
 
 			case 'products':
-
-				require_once( 'class-wcs-upgrade-1-5.php' );
-
 				$upgraded_product_count = WCS_Upgrade_1_5::upgrade_products();
 				$results = array(
 					// translators: placeholder is number of upgraded subscriptions
@@ -336,9 +340,6 @@ class WC_Subscriptions_Upgrader {
 				break;
 
 			case 'hooks':
-
-				require_once( 'class-wcs-upgrade-1-5.php' );
-
 				$upgraded_hook_count = WCS_Upgrade_1_5::upgrade_hooks( self::$upgrade_limit_hooks );
 				$results = array(
 					'upgraded_count' => $upgraded_hook_count,
@@ -348,10 +349,6 @@ class WC_Subscriptions_Upgrader {
 				break;
 
 			case 'subscriptions':
-
-				require_once( 'class-wcs-repair-2-0.php' );
-				require_once( 'class-wcs-upgrade-2-0.php' );
-
 				try {
 
 					$upgraded_subscriptions = WCS_Upgrade_2_0::upgrade_subscriptions( self::$upgrade_limit_subscriptions );
@@ -380,10 +377,6 @@ class WC_Subscriptions_Upgrader {
 				break;
 
 			case 'subscription_dates_repair':
-
-				require_once( 'class-wcs-upgrade-2-0.php' );
-				require_once( 'class-wcs-repair-2-0-2.php' );
-
 				$subscription_ids_to_repair = WCS_Repair_2_0_2::get_subscriptions_to_repair( self::$upgrade_limit_subscriptions );
 
 				try {
@@ -459,7 +452,7 @@ class WC_Subscriptions_Upgrader {
 	private static function upgrade_really_old_versions() {
 
 		if ( '0' != self::$active_version && version_compare( self::$active_version, '1.2', '<' ) ) {
-			include_once( 'class-wcs-upgrade-1-2.php' );
+			WCS_Upgrade_1_2::init();
 			self::generate_renewal_orders();
 			update_option( WC_Subscriptions_Admin::$option_prefix . '_active_version', '1.2' );
 			$upgraded_versions = '1.2, ';
@@ -467,14 +460,14 @@ class WC_Subscriptions_Upgrader {
 
 		// Add Variable Subscription product type term
 		if ( '0' != self::$active_version && version_compare( self::$active_version, '1.3', '<' ) ) {
-			include_once( 'class-wcs-upgrade-1-3.php' );
+			WCS_Upgrade_1_3::init();
 			update_option( WC_Subscriptions_Admin::$option_prefix . '_active_version', '1.3' );
 			$upgraded_versions .= '1.3 & ';
 		}
 
 		// Moving subscription meta out of user meta and into item meta
 		if ( '0' != self::$active_version && version_compare( self::$active_version, '1.4', '<' ) ) {
-			include_once( 'class-wcs-upgrade-1-4.php' );
+			WCS_Upgrade_1_4::init();
 			update_option( WC_Subscriptions_Admin::$option_prefix . '_active_version', '1.4' );
 			$upgraded_versions .= '1.4.';
 		}
@@ -604,7 +597,7 @@ class WC_Subscriptions_Upgrader {
 		$about_page_url = self::$about_page_url;
 
 		@header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
-		include_once( 'templates/wcs-upgrade.php' );
+		include_once( dirname( __FILE__ ) . '/templates/wcs-upgrade.php' );
 		WCS_Upgrade_Logger::add( 'Loaded database upgrade helper' );
 	}
 
@@ -617,7 +610,7 @@ class WC_Subscriptions_Upgrader {
 	 * @since 1.4
 	 */
 	public static function upgrade_in_progress_notice() {
-		include_once( 'templates/wcs-upgrade-in-progress.php' );
+		include_once( dirname( __FILE__ ) . '/templates/wcs-upgrade-in-progress.php' );
 		WCS_Upgrade_Logger::add( 'Loaded database upgrade in progress notice...' );
 	}
 
@@ -660,7 +653,7 @@ class WC_Subscriptions_Upgrader {
 		$active_version = self::$active_version;
 		$settings_page  = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
 
-		include_once( 'templates/wcs-about.php' );
+		include_once( dirname( __FILE__ ) . '/templates/wcs-about.php' );
 	}
 
 	/**
@@ -783,7 +776,6 @@ class WC_Subscriptions_Upgrader {
 	 * @since 2.2.7
 	 */
 	public static function repair_end_of_prepaid_term_actions() {
-		include_once( 'class-wcs-upgrade-2-2-7.php' );
 		WCS_Upgrade_2_2_7::repair_pending_cancelled_subscriptions();
 	}
 
@@ -793,7 +785,6 @@ class WC_Subscriptions_Upgrader {
 	 * @since 2.2.9
 	 */
 	public static function repair_subscription_contains_sync_meta() {
-		include_once( 'class-wcs-upgrade-2-2-9.php' );
 		WCS_Upgrade_2_2_9::repair_subscriptions_containing_synced_variations();
 	}
 
@@ -810,11 +801,12 @@ class WC_Subscriptions_Upgrader {
 		}
 
 		$admin_notice = new WCS_Admin_Notice( 'error' );
-		$admin_notice->set_simple_content( sprintf( esc_html__( '%1$sWarning!%2$s It appears that you have downgraded %1$sWooCommerce Subscriptions%2$s from %3$s to %4$s. Downgrading the plugin in this way may cause issues. Please update to %3$s or higher, or %5$sopen a new support ticket%6$s for further assistance.', 'woocommerce-subscriptions' ),
+		$admin_notice->set_simple_content( sprintf( esc_html__( '%1$sWarning!%2$s It appears that you have downgraded %1$sWooCommerce Subscriptions%2$s from %3$s to %4$s. Downgrading the plugin in this way may cause issues. Please update to %3$s or higher, or %5$sopen a new support ticket%6$s for further assistance. %7$sLearn more &raquo;%8$s', 'woocommerce-subscriptions' ),
 			'<strong>', '</strong>',
 			'<code>' . self::$active_version . '</code>',
 			'<code>' . WC_Subscriptions::$version . '</code>',
-			'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">', '</a>'
+			'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">', '</a>',
+			'<a href="https://docs.woocommerce.com/document/subscriptions/upgrade-instructions/#section-12" target="_blank">', '</a>'
 		) );
 
 		$admin_notice->display();
@@ -835,18 +827,34 @@ class WC_Subscriptions_Upgrader {
 	}
 
 	/**
+	 * Handles the WC 3.5.0 upgrade routine that moves customer IDs from post metadata to the 'post_author' column.
+	 *
+	 * @since 2.4.0
+	 */
+	public static function maybe_update_subscription_post_author() {
+		if ( version_compare( WC()->version, '3.5.0', '<' ) ) {
+			return;
+		}
+
+		// If WC hasn't run the update routine yet we can hook into theirs to update subscriptions, otherwise we'll need to schedule our own update.
+		if ( version_compare( get_option( 'woocommerce_db_version' ), '3.5.0', '<' ) ) {
+			self::$background_updaters['2.4']['subscription_post_author']->hook_into_wc_350_update();
+		} else if ( version_compare( self::$active_version, '2.4.0', '<' ) ) {
+			self::$background_updaters['2.4']['subscription_post_author']->schedule_repair();
+		}
+	}
+
+	/**
 	 * Load and initialise the background updaters.
 	 *
-	 * @since 2.3.0
+	 * @since 2.4.0
 	 */
 	public static function initialise_background_updaters() {
 		$logger = new WC_logger();
-
-		include_once( dirname( __FILE__ ) . '/class-wcs-repair-suspended-paypal-subscriptions.php' );
-		include_once( dirname( __FILE__ ) . '/class-wcs-repair-subscription-address-indexes.php' );
-
 		self::$background_updaters['2.3']['suspended_paypal_repair'] = new WCS_Repair_Suspended_PayPal_Subscriptions( $logger );
 		self::$background_updaters['2.3']['address_indexes_repair']  = new WCS_Repair_Subscription_Address_Indexes( $logger );
+		self::$background_updaters['2.4']['start_date_metadata'] = new WCS_Repair_Start_Date_Metadata( $logger );
+		self::$background_updaters['2.4']['subscription_post_author'] = new WCS_Upgrade_Subscription_Post_Author( $logger );
 
 		// Init the updaters
 		foreach ( self::$background_updaters as $version => $updaters ) {
@@ -908,4 +916,3 @@ class WC_Subscriptions_Upgrader {
 		return WCS_Upgrade_1_4::is_user_upgraded( $user_id );
 	}
 }
-add_action( 'after_setup_theme', 'WC_Subscriptions_Upgrader::init', 11 );

@@ -67,6 +67,7 @@ class WC_Subscription extends WC_Order {
 		'schedule_cancelled'      => null,
 		'schedule_end'            => null,
 		'schedule_payment_retry'  => null,
+		'schedule_start'          => null,
 
 		'switch_data'             => array(),
 	);
@@ -98,8 +99,22 @@ class WC_Subscription extends WC_Order {
 	 */
 	public function __construct( $subscription ) {
 
-		parent::__construct( $subscription );
+		// Add subscription date types as extra subscription data.
+		foreach ( wcs_get_subscription_date_types() as $date_type => $date_name ) {
+			// The last payment date is derived from other sources and shouldn't be stored on a subscription.
+			if ( 'last_payment' === $date_type ) {
+				continue;
+			}
 
+			$date_type_key = wcs_maybe_prefix_key( $date_type, 'schedule_' );
+
+			// Skip any custom dates which are already core date types.
+			if ( ! isset( $this->extra_data[ $date_type_key ] ) ) {
+				$this->extra_data[ $date_type_key ] = null;
+			}
+		}
+
+		parent::__construct( $subscription );
 		$this->order_type = 'shop_subscription';
 	}
 
@@ -1147,7 +1162,7 @@ class WC_Subscription extends WC_Order {
 
 			// Delete dates with a 0 date time
 			if ( 0 == $datetime ) {
-				if ( ! in_array( $date_type, array( 'date_created', 'last_order_date_created', 'last_order_date_modified' ) ) ) {
+				if ( ! in_array( $date_type, array( 'date_created', 'start', 'last_order_date_created', 'last_order_date_modified' ) ) ) {
 					$this->delete_date( $date_type );
 				}
 				continue;
@@ -1210,6 +1225,9 @@ class WC_Subscription extends WC_Order {
 		// Make sure some dates are before next payment date
 		switch ( $date_type ) {
 			case 'date_created' :
+				$message = __( 'The creation date of a subscription can not be deleted, only updated.', 'woocommerce-subscriptions' );
+			break;
+			case 'start' :
 				$message = __( 'The start date of a subscription can not be deleted, only updated.', 'woocommerce-subscriptions' );
 			break;
 			case 'last_order_date_created' :
@@ -1241,6 +1259,7 @@ class WC_Subscription extends WC_Order {
 	public function can_date_be_updated( $date_type ) {
 
 		switch ( $date_type ) {
+			case 'start':
 			case 'date_created' :
 				if ( $this->has_status( array( 'auto-draft', 'pending' ) ) ) {
 					$can_date_be_updated = true;
@@ -1330,7 +1349,7 @@ class WC_Subscription extends WC_Order {
 		$next_payment_date = 0;
 
 		// If the subscription is not active, there is no next payment date
-		$start_time        = $this->get_time( 'date_created' );
+		$start_time        = $this->get_time( 'start' );
 		$next_payment_time = $this->get_time( 'next_payment' );
 		$trial_end_time    = $this->get_time( 'trial_end' );
 		$last_payment_time = max( $this->get_time( 'last_order_date_created' ), $this->get_time( 'last_order_date_paid' ) );
@@ -1754,8 +1773,8 @@ class WC_Subscription extends WC_Order {
 	 * @return array
 	 */
 	public function get_related_orders_query( $subscription_id ) {
-		wcs_deprecated_function( __METHOD__, '2.3.0', 'WCS_Subscription_Data_Store_CPT::get_related_order_ids( $subscription_id ) via WCS_Subscription_Data_Store::instance()' );
-		return WCS_Related_Order_Store::instance()->get_related_order_ids( $subscription_id, 'renewal' );
+		wcs_deprecated_function( __METHOD__, '2.3.0', 'WCS_Subscription_Data_Store_CPT::get_related_order_ids( wcs_get_subscription( $subscription_id ) ) via WCS_Subscription_Data_Store::instance()' );
+		return WCS_Related_Order_Store::instance()->get_related_order_ids( wcs_get_subscription( $subscription_id ), 'renewal' );
 	}
 
 	/**
@@ -1959,28 +1978,7 @@ class WC_Subscription extends WC_Order {
 		do_action( 'woocommerce_subscription_validate_payment_meta', $payment_method_id, $payment_meta, $this );
 		do_action( 'woocommerce_subscription_validate_payment_meta_' . $payment_method_id, $payment_meta, $this );
 
-		foreach ( $payment_meta as $meta_table => $meta ) {
-			foreach ( $meta as $meta_key => $meta_data ) {
-				if ( isset( $meta_data['value'] ) ) {
-					switch ( $meta_table ) {
-						case 'user_meta':
-						case 'usermeta':
-							update_user_meta( $this->get_user_id(), $meta_key, $meta_data['value'] );
-							break;
-						case 'post_meta':
-						case 'postmeta':
-							$this->update_meta_data( $meta_key, $meta_data['value'] );
-							break;
-						case 'options':
-							update_option( $meta_key, $meta_data['value'] );
-							break;
-						default:
-							do_action( 'wcs_save_other_payment_meta', $this, $meta_table, $meta_key, $meta_data['value'] );
-					}
-				}
-			}
-		}
-
+		wcs_set_payment_meta( $this, $payment_meta );
 	}
 
 	/**
@@ -2098,6 +2096,13 @@ class WC_Subscription extends WC_Order {
 				$sign_up_fee = ( (float) $original_order_item->get_total( 'edit' ) ) / $original_order_item->get_quantity( 'edit' );
 			} elseif ( $original_order_item->meta_exists( '_synced_sign_up_fee' ) ) {
 				$sign_up_fee = ( (float) $original_order_item->get_meta( '_synced_sign_up_fee' ) ) / $original_order_item->get_quantity( 'edit' );
+
+				// The synced sign up fee meta contains the raw product sign up fee, if the subscription totals are inclusive of tax, we need to adjust the synced sign up fee to match tax inclusivity.
+				if ( $this->get_prices_include_tax() ) {
+					$line_item_total    = (float) $original_order_item->get_total( 'edit' ) + $original_order_item->get_total_tax( 'edit' );
+					$signup_fee_portion = $sign_up_fee / $line_item_total;
+					$sign_up_fee        = (float) $original_order_item->get_total( 'edit' ) * $signup_fee_portion;
+				}
 			} else {
 				// Sign-up fee is any amount on top of recurring amount
 				$order_line_total        = ( (float) $original_order_item->get_total( 'edit' ) ) / $original_order_item->get_quantity( 'edit' );
@@ -2106,17 +2111,13 @@ class WC_Subscription extends WC_Order {
 				$sign_up_fee = max( $order_line_total - $subscription_line_total, 0 );
 			}
 
-			if ( ! empty( $original_order_item ) && ! empty( $sign_up_fee ) ) {
+			// If prices don't inc tax, ensure that the sign up fee amount includes the tax.
+			if ( 'inclusive_of_tax' === $tax_inclusive_or_exclusive && ! empty( $original_order_item ) && ! empty( $sign_up_fee ) ) {
 				$sign_up_fee_proportion = $sign_up_fee / ( $original_order_item->get_total( 'edit' ) / $original_order_item->get_quantity( 'edit' ) );
-				$sign_up_fee_tax        = wc_round_tax_total( $original_order_item->get_total_tax( 'edit' ) * $sign_up_fee_proportion );
+				$sign_up_fee_tax        = $original_order_item->get_total_tax( 'edit' ) * $sign_up_fee_proportion;
 
-				// If prices don't inc tax, ensure that the sign up fee amount includes the tax.
-				if ( 'inclusive_of_tax' === $tax_inclusive_or_exclusive && ! $this->get_prices_include_tax() ) {
-					$sign_up_fee += $sign_up_fee_tax;
-				// If prices inc tax and the request is for prices exclusive of tax, remove the taxes.
-				} elseif ( 'inclusive_of_tax' !== $tax_inclusive_or_exclusive && $this->get_prices_include_tax() ) {
-					$sign_up_fee -= $sign_up_fee_tax;
-				}
+				$sign_up_fee += $sign_up_fee_tax;
+				$sign_up_fee  = wc_format_decimal( $sign_up_fee, wc_get_price_decimals() );
 			}
 		}
 
@@ -2135,7 +2136,7 @@ class WC_Subscription extends WC_Order {
 
 		if ( 0 != ( $end_time = $this->get_time( 'end' ) ) ) {
 
-			$from_timestamp = $this->get_time( 'date_created' );
+			$from_timestamp = $this->get_time( 'start' );
 
 			if ( 0 != $this->get_time( 'trial_end' ) || WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $this ) ) {
 
@@ -2218,8 +2219,8 @@ class WC_Subscription extends WC_Order {
 		// Get a full set of subscription dates made up of passed and current dates
 		foreach ( $this->get_valid_date_types() as $date_type ) {
 
-			// While 'start' & 'last_payment' are valid date types, they are deprecated and we use 'date_created' & 'last_order_date_created' to refer to them now instead
-			if ( in_array( $date_type, array( 'last_payment', 'start' ) ) ) {
+			// While 'last_payment' is a valid date type, it is deprecated and we use 'last_order_date_created' now instead
+			if ( 'last_payment' === $date_type ) {
 				continue;
 			}
 
@@ -2288,7 +2289,7 @@ class WC_Subscription extends WC_Order {
 						$messages[] = sprintf( __( 'The %s date must occur after the trial end date.', 'woocommerce-subscriptions' ), $date_type );
 					}
 				case 'trial_end' :
-					if ( $timestamp <= $timestamps['date_created'] ) {
+					if ( ! in_array( $date_type, array( 'end', 'cancelled' ) ) && $timestamp <= $timestamps['start'] ) {
 						$messages[] = sprintf( __( 'The %s date must occur after the start date.', 'woocommerce-subscriptions' ), $date_type );
 					}
 			}
@@ -2351,6 +2352,24 @@ class WC_Subscription extends WC_Order {
 		}
 
 		return $this->valid_date_types;
+	}
+
+	/**
+	 * Get the subscription's payment method meta.
+	 *
+	 * @since 2.4.3
+	 * @return array The subscription's payment meta in the format returned by the woocommerce_subscription_payment_meta filter.
+	 */
+	public function get_payment_method_meta() {
+		WC()->payment_gateways();
+
+		if ( $this->is_manual() ) {
+			return array();
+		}
+
+		$payment_meta = apply_filters( 'woocommerce_subscription_payment_meta', array(), $this );
+
+		return isset( $payment_meta[ $this->get_payment_method() ] ) ? $payment_meta[ $this->get_payment_method() ]: array();
 	}
 
 	/************************

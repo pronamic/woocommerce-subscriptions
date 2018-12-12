@@ -52,4 +52,3 @@ class WCS_Deprecated_Filter_Hooks extends WC_Deprecated_Filter_Hooks {
 		wcs_deprecated_function( sprintf( 'The "%s" hook uses out of date data structures and', esc_html( $old_hook ) ), '2.2.0', esc_html( $new_hook ) . ' to filter subscription properties' );
 	}
 }
-new WCS_Deprecated_Filter_Hooks();

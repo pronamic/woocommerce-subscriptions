@@ -13,21 +13,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-foreach ( $notices as $notice ) : ?>
-	<?php $notice['type'] = ! isset( $notice['type'] ) ? 'error' : $notice['type']; ?>
-	<?php
-	switch ( $notice['type'] ) {
+foreach ( $notices as $notice_args ) {
+	$notice_args = wp_parse_args( $notice_args, array(
+		'type' => 'error',
+		'text' => '',
+	) );
+
+	switch ( $notice_args['type'] ) {
 		case 'warning' :
-			echo '<div class="updated" style="border-left: 4px solid #ffba00">';
+			$notice = new WCS_Admin_Notice( 'updated', array( 'style' => array( 'border-left: 4px solid #ffba00' ) ) );
 			break;
 		case 'error' :
-			echo '<div class="updated error">';
+			$notice = new WCS_Admin_Notice( 'updated error' );
 			break;
 		case 'confirmation' :
 		default :
-			echo '<div class="updated">';
+			$notice = new WCS_Admin_Notice( 'updated' );
 			break;
-	} ?>
-	<p><?php echo wp_kses_post( $notice['text'] ); ?></p>
-</div>
-<?php endforeach;
+	}
+
+	$notice->set_simple_content( $notice_args['text'] );
+	$notice->display();
+}
