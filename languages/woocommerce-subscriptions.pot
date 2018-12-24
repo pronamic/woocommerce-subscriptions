@@ -2,10 +2,10 @@
 # This file is distributed under the same license as the WooCommerce Subscriptions package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 2.4.5\n"
+"Project-Id-Version: WooCommerce Subscriptions 2.4.7\n"
 "Report-Msgid-Bugs-To: "
 "https://github.com/Prospress/woocommerce-subscriptions/issues\n"
-"POT-Creation-Date: 2018-11-28 06:13:23+00:00\n"
+"POT-Creation-Date: 2018-12-21 11:20:12+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1997,40 +1997,40 @@ msgstr ""
 msgid "Date Changed"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:372
+#: includes/class-wc-subscriptions-order.php:379
 msgid "Your subscription will be activated when payment clears."
 msgid_plural "Your subscriptions will be activated when payment clears."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-wc-subscriptions-order.php:381
+#: includes/class-wc-subscriptions-order.php:386
 #. translators: placeholders are opening and closing link tags
 msgid "View the status of your subscription in %syour account%s."
 msgid_plural "View the status of your subscriptions in %syour account%s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-wc-subscriptions-order.php:429
+#: includes/class-wc-subscriptions-order.php:434
 msgid "Subscription Relationship"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:449
+#: includes/class-wc-subscriptions-order.php:454
 msgid "Renewal Order"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:451
+#: includes/class-wc-subscriptions-order.php:456
 msgid "Resubscribe Order"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:453
+#: includes/class-wc-subscriptions-order.php:458
 msgid "Parent Order"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:676
+#: includes/class-wc-subscriptions-order.php:681
 msgid "All orders types"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:971
+#: includes/class-wc-subscriptions-order.php:976
 #. translators: $1: opening link tag, $2: order number, $3: closing link tag
 msgid "Subscription cancelled for refunded order %1$s#%2$s%3$s."
 msgstr ""
@@ -5360,32 +5360,32 @@ msgctxt "used in a select box"
 msgid "%1$s-%2$s"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:679
+#: includes/class-wc-subscriptions-order.php:684
 msgctxt "An order type"
 msgid "Original"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:680
+#: includes/class-wc-subscriptions-order.php:685
 msgctxt "An order type"
 msgid "Subscription Parent"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:681
+#: includes/class-wc-subscriptions-order.php:686
 msgctxt "An order type"
 msgid "Subscription Renewal"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:682
+#: includes/class-wc-subscriptions-order.php:687
 msgctxt "An order type"
 msgid "Subscription Resubscribe"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:683
+#: includes/class-wc-subscriptions-order.php:688
 msgctxt "An order type"
 msgid "Subscription Switch"
 msgstr ""
 
-#: includes/class-wc-subscriptions-order.php:684
+#: includes/class-wc-subscriptions-order.php:689
 msgctxt "An order type"
 msgid "Non-subscription"
 msgstr ""
