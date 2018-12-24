@@ -828,7 +828,7 @@ class WCS_Admin_Post_Types {
 			}
 
 			// Status
-			if ( ! isset( $vars['post_status'] ) ) {
+			if ( empty( $vars['post_status'] ) ) {
 				$vars['post_status'] = array_keys( wcs_get_subscription_statuses() );
 			}
 		}

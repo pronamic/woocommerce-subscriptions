@@ -45,7 +45,7 @@ if ( ! $product->is_in_stock() ) : ?>
 			<p class="limited-subscription-notice notice"><?php esc_html_e( 'You have an active subscription to this product already.', 'woocommerce-subscriptions' ); ?></p>
 		<?php endif; ?>
 	<?php else : ?>
-	<form class="cart" method="post" enctype='multipart/form-data'>
+	<form class="cart" action="<?php echo esc_url( apply_filters( 'woocommerce_add_to_cart_form_action', $product->get_permalink() ) ); ?>" method="post" enctype='multipart/form-data'>
 
 		<?php do_action( 'woocommerce_before_add_to_cart_button' ); ?>
 

@@ -1,5 +1,14 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2018.12.21 - version 2.4.7
+* Fix: Fix an issue with the release date of 2.4.6.
+
+2018.12.21 - version 2.4.6
+* Dev: Add 'woocommerce_subscription_is_manual' filter. PR#3102
+* Tweak: Add action attributes to the add to cart form on subscription product pages. PR#3105
+* Fix: Remove "Your subscription will be activated when payment clears" on the order received page when the subscription is already active. PR#3099
+* Fix: [WP 5.0.2] Fix an issue where the Admin Subscriptions table was empty. PR#3139
+
 2018.11.28 - version 2.4.5
 * Fix: Fix caching on data for the Upcoming Recurring Revenue and Subscriptions By Date reports. PR#3069.
 * Fix: Fix compatibility with Disable Report Cache Updates mini-plugin. PR#3069.
