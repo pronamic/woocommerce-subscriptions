@@ -575,7 +575,7 @@ class WC_Subscription extends WC_Order {
 			$is_manual = false;
 		}
 
-		return $is_manual;
+		return apply_filters( 'woocommerce_subscription_is_manual', $is_manual, $this );
 	}
 
 	/**
