@@ -1354,7 +1354,7 @@ class WC_Subscriptions_Switcher {
 
 			$days_in_old_cycle = apply_filters( 'wcs_switch_proration_days_in_old_cycle', $days_in_old_cycle, $subscription, $cart_item );
 
-			// Find the actual recurring amount charged for the old subscription (we need to use the '_recurring_line_total' meta here rather than '_subscription_recurring_amount' because we want the recurring amount to include extra from extensions, like Product Add-ons etc.)
+/*			// Find the actual recurring amount charged for the old subscription (we need to use the '_recurring_line_total' meta here rather than '_subscription_recurring_amount' because we want the recurring amount to include extra from extensions, like Product Add-ons etc.)
 			$old_recurring_total = $existing_item['line_total'];
 
 			// Use previous parent or renewal order's actual line item total instead of what is due, to guard against not yet paid amounts in multi-switching
@@ -1366,7 +1366,10 @@ class WC_Subscriptions_Switcher {
 					break;
 				}
 			}
-
+*/
+			// Actual subscription price
+			$old_recurring_total = (float)$subscription->get_total();
+			
 			if ( $subscription->get_prices_include_tax() ) {
 				$old_recurring_total += $existing_item['line_tax'];
 			}
