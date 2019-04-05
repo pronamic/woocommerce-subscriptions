@@ -35,6 +35,7 @@ class WCS_PayPal_Supports {
 		'subscription_amount_changes',
 		'subscription_date_changes',
 		'multiple_subscriptions',
+		'subscription_payment_method_delayed_change',
 	);
 
 	/**

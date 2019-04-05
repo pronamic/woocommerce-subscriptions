@@ -63,7 +63,8 @@ class WCS_Retry_Manager {
 
 			add_action( 'woocommerce_subscriptions_retry_status_updated', __CLASS__ . '::maybe_delete_payment_retry_date', 0, 2 );
 
-			add_action( 'woocommerce_subscription_renewal_payment_failed', __CLASS__ . '::maybe_apply_retry_rule', 10, 2 );
+			add_action( 'woocommerce_subscription_renewal_payment_failed', array( __CLASS__, 'maybe_apply_retry_rule' ), 10, 2 );
+			add_action( 'woocommerce_subscription_renewal_payment_failed', array( __CLASS__, 'maybe_reapply_last_retry_rule' ), 15, 2 );
 
 			add_action( 'woocommerce_scheduled_subscription_payment_retry', __CLASS__ . '::maybe_retry_payment' );
 
@@ -196,13 +197,13 @@ class WCS_Retry_Manager {
 	/**
 	 * When a payment fails, apply a retry rule, if one exists that applies to this failure.
 	 *
-	 * @param WC_Subscription The subscription on which the payment failed
-	 * @param WC_Order The order on which the payment failed (will be the most recent order on the subscription specified with the subscription param)
+	 * @param WC_Subscription $subscription The subscription on which the payment failed.
+	 * @param WC_Order        $last_order   The order on which the payment failed (will be the most recent order on the subscription specified with the subscription param).
+	 *
 	 * @since 2.1
 	 */
 	public static function maybe_apply_retry_rule( $subscription, $last_order ) {
-
-		if ( $subscription->is_manual() || ! $subscription->payment_method_supports( 'subscription_date_changes' ) ) {
+		if ( $subscription->is_manual() || ! $subscription->payment_method_supports( 'subscription_date_changes' ) || ! self::is_scheduled_payment_attempt() ) {
 			return;
 		}
 
@@ -231,11 +232,41 @@ class WCS_Retry_Manager {
 			}
 
 			if ( $retry_rule->get_retry_interval() > 0 ) {
-				// by calling this after changing the status, this will also schedule the 'woocommerce_scheduled_subscription_payment_retry' action
+				// by calling this after changing the status, this will also schedule the 'woocommerce_scheduled_subscription_payment_retry' action.
 				$subscription->update_dates( array( 'payment_retry' => gmdate( 'Y-m-d H:i:s', gmdate( 'U' ) + $retry_rule->get_retry_interval( $retry_count ) ) ) );
 			}
 
 			do_action( 'woocommerce_subscriptions_after_apply_retry_rule', $retry_rule, $last_order, $subscription );
+		}
+	}
+
+	/**
+	 * (Maybe) reapply last retry rule if:
+	 * - Payment is no-scheduled
+	 * - $last_order contains a Retry
+	 * - Retry contains a rule
+	 *
+	 * @param WC_Subscription $subscription The subscription on which the payment failed.
+	 * @param WC_Order        $last_order   The order on which the payment failed (will be the most recent order on the subscription specified with the subscription param).
+	 *
+	 * @since 2.5.0
+	 */
+	public static function maybe_reapply_last_retry_rule( $subscription, $last_order ) {
+		// We're only interested in non-automatic payment attempts.
+		if ( self::is_scheduled_payment_attempt() ) {
+			return;
+		}
+
+		$last_retry = self::store()->get_last_retry_for_order( $last_order->get_id() );
+		if ( ! $last_retry || 'pending' !== $last_retry->get_status() || null === ( $last_retry_rule = $last_retry->get_rule() ) ) {
+			return;
+		}
+
+		foreach ( array( 'order' => $last_order, 'subscription' => $subscription ) as $object_type => $object ) {
+			$new_status = $last_retry_rule->get_status_to_apply( $object_type );
+			if ( '' !== $new_status && ! $object->has_status( $new_status ) ) {
+				$object->update_status( $new_status, _x( 'Retry rule reapplied:', 'used in order note as reason for why status changed', 'woocommerce-subscriptions' ) );
+			}
 		}
 	}
 
@@ -392,8 +423,26 @@ class WCS_Retry_Manager {
 	}
 
 	/**
+	 * Is `woocommerce_scheduled_subscription_payment` or `woocommerce_scheduled_subscription_payment_retry` current action?
+	 *
+	 * @return boolean
+	 *
+	 * @since 2.5.0
+	 */
+	protected static function is_scheduled_payment_attempt() {
+		/**
+		 * Filter 'Is scheduled payment attempt?'
+		 *
+		 * @param boolean doing_action( 'woocommerce_scheduled_subscription_payment' ) || doing_action( 'woocommerce_scheduled_subscription_payment_retry' )
+		 * @since 2.5.0
+		 */
+		return (bool) apply_filters( 'wcs_is_scheduled_payment_attempt', doing_action( 'woocommerce_scheduled_subscription_payment' ) || doing_action( 'woocommerce_scheduled_subscription_payment_retry' ) );
+	}
+
+	/**
 	 * Access the object used to interface with the store.
 	 *
+	 * @return WCS_Retry_Store
 	 * @since 2.4
 	 */
 	public static function store() {

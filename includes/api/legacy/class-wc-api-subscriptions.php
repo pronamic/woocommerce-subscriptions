@@ -121,7 +121,7 @@ class WC_API_Subscriptions extends WC_API_Orders {
 	public function get_subscriptions( $fields = null, $filter = array(), $status = null, $page = 1 ) {
 		// check user permissions
 		if ( ! current_user_can( 'read_private_shop_orders' ) ) {
-			return new WP_Error( 'wcs_api_user_cannot_read_susbcription_count', __( 'You do not have permission to read the subscriptions count', 'woocommerce-subscriptions' ), array( 'status' => 401 ) );
+			return new WP_Error( 'wcs_api_user_cannot_read_subscription_count', __( 'You do not have permission to read the subscriptions count', 'woocommerce-subscriptions' ), array( 'status' => 401 ) );
 		}
 
 		$status = $this->format_statuses( $status );

@@ -409,7 +409,9 @@ class WC_Subscriptions_Product {
 		$sale_price         = self::get_sale_price( $product );
 		$active_price       = ( $subscription_price ) ? $subscription_price : self::get_regular_price( $product );
 
-		if ( $product->is_on_sale() && $subscription_price > $sale_price ) {
+		// Ensure that $sale_price is non-empty because other plugins can use woocommerce_product_is_on_sale filter to
+		// forcefully set a product's is_on_sale flag (like Dynamic Pricing )
+		if ( $product->is_on_sale() && '' !== $sale_price &&  $subscription_price > $sale_price ) {
 			$active_price = $sale_price;
 		}
 
@@ -777,11 +779,13 @@ class WC_Subscriptions_Product {
 	 * @since 2.2.0
 	 */
 	public static function needs_one_time_shipping( $product ) {
-		$product = self::maybe_get_product_instance( $product );
+		$product   = self::maybe_get_product_instance( $product );
+		$variation = null;
 		if ( $product && $product->is_type( 'variation' ) && is_callable( array( $product, 'get_parent_id' ) ) ) {
-			$product = self::maybe_get_product_instance( $product->get_parent_id() );
+			$variation = $product;
+			$product   = self::maybe_get_product_instance( $product->get_parent_id() );
 		}
-		return apply_filters( 'woocommerce_subscriptions_product_needs_one_time_shipping', 'yes' === self::get_meta_data( $product, 'subscription_one_time_shipping', 'no' ), $product );
+		return apply_filters( 'woocommerce_subscriptions_product_needs_one_time_shipping', 'yes' === self::get_meta_data( $product, 'subscription_one_time_shipping', 'no' ), $product, $variation );
 	}
 
 	/**

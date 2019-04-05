@@ -5,7 +5,7 @@
  * @author  Prospress
  * @package WooCommerce_Subscription/Templates
  * @since 2.2.19
- * @version 2.2.19
+ * @version 2.5.2
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -45,7 +45,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<td class="product-name">
 							<?php
 							if ( $_product && ! $_product->is_visible() ) {
-								echo esc_html( apply_filters( 'woocommerce_order_item_name', $item['name'], $item, false ) );
+								echo wp_kses_post( apply_filters( 'woocommerce_order_item_name', $item['name'], $item, false ) );
 							} else {
 								echo wp_kses_post( apply_filters( 'woocommerce_order_item_name', sprintf( '<a href="%s">%s</a>', get_permalink( $item['product_id'] ), $item['name'] ), $item, false ) );
 							}
@@ -63,8 +63,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 							do_action( 'woocommerce_order_item_meta_start', $item_id, $item, $subscription, false );
 
 							wcs_display_item_meta( $item, $subscription );
-
-							wcs_display_item_downloads( $item, $subscription );
 
 							/**
 							 * Allow other plugins to add additional product information here.
@@ -99,6 +97,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php
 
 		if ( $totals = $subscription->get_order_item_totals() ) {
+			// Don't display the payment method as it is included in the main subscription details table.
+			unset( $totals['payment_method'] );
 			foreach ( $totals as $key => $total ) {
 				?>
 			<tr>

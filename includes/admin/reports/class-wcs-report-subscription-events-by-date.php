@@ -46,7 +46,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		$query_end_date = date( 'Y-m-d', strtotime( '+1 DAY', $this->end_date ) );
 		$offset  = get_option( 'gmt_offset' );
 
-		//Convert from Decimal format(eg. 11.5) to a suitable format(eg. +11:30) for  CONVERT_TZ() of SQL query.
+		// Convert from Decimal format(eg. 11.5) to a suitable format(eg. +11:30) for CONVERT_TZ() of SQL query.
 		$site_timezone = sprintf( '%+02d:%02d', (int) $offset, ( $offset - floor( $offset ) ) * 60 );
 
 		$this->report_data = new stdClass;
@@ -371,9 +371,9 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		$this->report_data->ended_counts = $cached_results[ $query_hash ];
 
 		// Total up the query data
-		$this->report_data->signup_orders_total_amount          = absint( array_sum( wp_list_pluck( $this->report_data->signup_data, 'signup_totals' ) ) );
-		$this->report_data->renewal_orders_total_amount         = absint( array_sum( wp_list_pluck( $this->report_data->renewal_data, 'renewal_totals' ) ) );
-		$this->report_data->resubscribe_orders_total_amount     = absint( array_sum( wp_list_pluck( $this->report_data->resubscribe_data, 'resubscribe_totals' ) ) );
+		$this->report_data->signup_orders_total_amount          = array_sum( wp_list_pluck( $this->report_data->signup_data, 'signup_totals' ) );
+		$this->report_data->renewal_orders_total_amount         = array_sum( wp_list_pluck( $this->report_data->renewal_data, 'renewal_totals' ) );
+		$this->report_data->resubscribe_orders_total_amount     = array_sum( wp_list_pluck( $this->report_data->resubscribe_data, 'resubscribe_totals' ) );
 		$this->report_data->new_subscription_total_count        = absint( array_sum( wp_list_pluck( $this->report_data->new_subscriptions, 'count' ) ) );
 		$this->report_data->signup_orders_total_count           = absint( array_sum( wp_list_pluck( $this->report_data->signup_data, 'count' ) ) );
 		$this->report_data->renewal_orders_total_count          = absint( array_sum( wp_list_pluck( $this->report_data->renewal_data, 'count' ) ) );
@@ -417,7 +417,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 
 		$legend[] = array(
 			'title'            => sprintf( __( '%s new subscriptions', 'woocommerce-subscriptions' ), '<strong>' . $this->report_data->new_subscription_total_count . '</strong>' ),
-			'placeholder'      => __( 'The number of subscriptions created during this period, either by being manually created, imported or a customer placing an order.', 'woocommerce-subscriptions' ),
+			'placeholder'      => __( 'The number of subscriptions created during this period, either by being manually created, imported or a customer placing an order. This includes orders pending payment.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['new_count'],
 			'highlight_series' => 1,
 		);

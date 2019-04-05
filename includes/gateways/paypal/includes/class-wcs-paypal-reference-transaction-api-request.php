@@ -252,7 +252,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 				'ITEMURL' => $product->get_permalink(),
 			);
 
-			$order_subtotal += $item['line_total'];
+			$order_subtotal += $order->get_line_total( $item );
 		}
 
 		// add fees
@@ -264,7 +264,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 				'QTY'  => 1,
 			);
 
-			$order_subtotal += $fee['line_total'];
+			$order_subtotal += $order->get_line_total( $fee );
 		}
 
 		// add discounts
@@ -550,18 +550,17 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	/**
 	 * Returns the request parameters after validation & filtering
 	 *
-	 * @throws \SV_WC_Payment_Gateway_Exception invalid amount
+	 * @throws \Exception invalid amount
 	 * @return array request parameters
 	 * @since 2.0
 	 */
 	public function get_parameters() {
-
 		/**
 		 * Filter PPE request parameters.
 		 *
 		 * Use this to modify the PayPal request parameters prior to validation
 		 *
-			 * @param array $parameters
+		 * @param array                          $parameters
 		 * @param \WC_PayPal_Express_API_Request $this instance
 		 */
 		$this->parameters = apply_filters( 'wcs_paypal_request_params', $this->parameters, $this );
@@ -579,8 +578,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 
 				// amounts must be 10,000.00 or less for USD
 				if ( isset( $this->parameters['PAYMENTREQUEST_0_CURRENCYCODE'] ) && 'USD' == $this->parameters['PAYMENTREQUEST_0_CURRENCYCODE'] && $value > 10000 ) {
-
-					throw new SV_WC_Payment_Gateway_Exception( sprintf( '%s amount of %s must be less than $10,000.00', $key, $value ) );
+					throw new Exception( sprintf( '%s amount of %s must be less than $10,000.00', $key, wc_price( $value ) ) );
 				}
 
 				// PayPal requires locale-specific number formats (e.g. USD is 123.45)

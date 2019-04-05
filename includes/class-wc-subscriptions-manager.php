@@ -1195,7 +1195,7 @@ class WC_Subscriptions_Manager {
 	}
 
 	/**
-	 * Returns the number of completed payments for a given subscription (including the intial payment).
+	 * Returns the number of completed payments for a given subscription (including the initial payment).
 	 *
 	 * @param string $subscription_key A subscription key of the form created by @see self::get_subscription_key()
 	 * @param int $user_id The ID of the user who owns the subscriptions. Although this parameter is optional, if you have the User ID you should pass it to improve performance.

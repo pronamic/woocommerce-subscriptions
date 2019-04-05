@@ -47,6 +47,26 @@ class WCS_Email_Completed_Renewal_Order extends WC_Email_Customer_Completed_Orde
 	}
 
 	/**
+	 * Get the default e-mail subject.
+	 *
+	 * @since 2.5.3
+	 * @return string
+	 */
+	public function get_default_subject() {
+		return $this->subject;
+	}
+
+	/**
+	 * Get the default e-mail heading.
+	 *
+	 * @since 2.5.3
+	 * @return string
+	 */
+	public function get_default_heading() {
+		return $this->heading;
+	}
+
+	/**
 	 * trigger function.
 	 *
 	 * We need to override WC_Email_Customer_Completed_Order's trigger method because it expects to be run only once

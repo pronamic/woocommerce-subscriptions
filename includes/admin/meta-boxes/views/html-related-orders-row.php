@@ -28,7 +28,7 @@ $order_post = wcs_get_objects_property( $order, 'post' );
 		if ( $timestamp_gmt > 0 ) {
 			// translators: php date format
 			$t_time          = get_the_time( _x( 'Y/m/d g:i:s A', 'post date', 'woocommerce-subscriptions' ), $order_post );
-			$date_to_display = wcs_get_human_time_diff( $timestamp_gmt );
+			$date_to_display = ucfirst( wcs_get_human_time_diff( $timestamp_gmt ) );
 		} else {
 			$t_time = $date_to_display = __( 'Unpublished', 'woocommerce-subscriptions' );
 		} ?>
@@ -37,7 +37,13 @@ $order_post = wcs_get_objects_property( $order, 'post' );
 		</abbr>
 	</td>
 	<td>
-		<?php echo esc_html( ucwords( $order->get_status() ) ); ?>
+		<?php
+		if ( wcs_is_subscription( $order ) ) {
+		    echo esc_html( wcs_get_subscription_status_name( $order->get_status( 'view' ) ) );
+		} else {
+		    echo esc_html( wc_get_order_status_name( $order->get_status( 'view' ) ) );
+		}
+		?>
 	</td>
 	<td>
 		<span class="amount"><?php echo wp_kses( $order->get_formatted_order_total(), array( 'small' => array(), 'span' => array( 'class' => array() ), 'del' => array(), 'ins' => array() ) ); ?></span>

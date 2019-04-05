@@ -157,7 +157,7 @@ function wcs_price_string( $subscription_details ) {
 				if ( 1 == $subscription_details['subscription_interval'] ) {
 					// e.g. $15 on March 15th each year
 					if ( ! empty( $subscription_details['initial_amount'] ) ) {
-						// translators: 1$: initial amount, 2$: intial description (e.g. "up front"), 3$: recurring amount, 4$: month of year (e.g. "March"), 5$: day of the month (e.g. "23rd")
+						// translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount, 4$: month of year (e.g. "March"), 5$: day of the month (e.g. "23rd")
 						$subscription_string = sprintf( __( '%1$s %2$s then %3$s on %4$s %5$s each year', 'woocommerce-subscriptions' ), $initial_amount_string, $subscription_details['initial_description'], $recurring_amount_string, $wp_locale->month[ $payment_day['month'] ], WC_Subscriptions::append_numeral_suffix( $payment_day['day'] ) );
 					} else {
 						// translators: 1$: recurring amount, 2$: month (e.g. "March"), 3$: day of the month (e.g. "23rd") (e.g. "$15 on March 15th every 3rd year")
@@ -213,7 +213,7 @@ function wcs_price_string( $subscription_details ) {
 }
 
 /**
- * Display a human friendly time diff for a given timestamp, e.g. "In 12 hours" or "12 hours ago".
+ * Display a human friendly time diff for a given timestamp, e.g. "in 12 hours" or "12 hours ago".
  *
  * @param int $timestamp_gmt
  * @return string A human friendly string to display for the timestamp's date
@@ -225,13 +225,15 @@ function wcs_get_human_time_diff( $timestamp_gmt ) {
 
 	if ( $time_diff > 0 && $time_diff < WEEK_IN_SECONDS ) {
 		// translators: placeholder is human time diff (e.g. "3 weeks")
-		$date_to_display = sprintf( __( 'In %s', 'woocommerce-subscriptions' ), human_time_diff( current_time( 'timestamp', true ), $timestamp_gmt ) );
+		$date_to_display = sprintf( __( 'in %s', 'woocommerce-subscriptions' ), human_time_diff( current_time( 'timestamp', true ), $timestamp_gmt ) );
 	} elseif ( $time_diff < 0 && absint( $time_diff ) < WEEK_IN_SECONDS ) {
 		// translators: placeholder is human time diff (e.g. "3 weeks")
 		$date_to_display = sprintf( __( '%s ago', 'woocommerce-subscriptions' ), human_time_diff( current_time( 'timestamp', true ), $timestamp_gmt ) );
 	} else {
 		$timestamp_site  = wcs_date_to_time( get_date_from_gmt( gmdate( 'Y-m-d H:i:s', $timestamp_gmt ) ) );
 		$date_to_display = date_i18n( wc_date_format(), $timestamp_site ) . ' ' . date_i18n( wc_time_format(), $timestamp_site );
+		// translators: placeholder is a localized date and time (e.g. "February 1, 2018 10:20 PM")
+		$date_to_display = sprintf( _x( '%s', 'wcs_get_human_time_diff', 'woocommerce-subscriptions' ), $date_to_display );
 	}
 
 	return $date_to_display;

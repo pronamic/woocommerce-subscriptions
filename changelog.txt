@@ -1,5 +1,77 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2019.03.20 - version 2.5.3
+* New: Update Action Scheduler to version 2.2.1. PR#3266
+* Fix: Display the subscription status names (rather than the raw status) in the edit subscription related orders table. PR#3272
+* Fix: Use the correct endpoint for redirecting to the only available subscription on My Account. PR#3273
+* Fix: [WPML] Keep language request args in Subscription My Account endpoint URLs. PR#3068
+* Fix: Save the sale price schedule dates in UTC time (like WooCommerce core). PR#3270
+* Fix: Use site time when checking if payment date and trial end date are same. Fixes issues with synced products with a trial. PR#3264
+* Fix: Update retry report queries to refer to new retry tables. PR#3237
+* Fix: Do not display the PayPal Profile ID on the edit subscription screen when the subscription is Manual Renewal. PR#3259
+* Fix: Exclude `pending-cancel` subscriptions from anonymisation. PR#3256
+* Fix: Pass the user ID and gateway ID parameters in the right order. Fixes issues with bulk updating customer payment tokens. PR#3258
+* Fix: Temporarily lock payment on parent orders paid with PayPal Standard. Prevents customers paying twice while waiting for PayPal to respond. PR#2974
+* Fix: Remove HTML from strings passed through translation functions. PR#3067
+* Fix: Prevent endpoint settings having the same value. PR#3211
+* Fix: Remove `strtolower()` uses on translated text. Prevents lowercasing translated text which may have language specific capitalisation. PR#3251
+* Fix: Prevent possible fatal errors while populating the checkout with customer order data. Refactors the wcs_get_objects_property function. PR#3225
+* Fix: Removes use of absint for amounts/totals in reports. PR#3242
+* Fix: Display correct placeholder values for 'subject' and 'heading' e-mail settings #3246
+* Fix: Do not load the view-subscription scripts when subscription can't be viewed or doesn't exist. PR#3235
+* Fix: [WC3.6] Use new helper function to generate cart hash. PR#3215
+* Tweak: Use 'WC_Order_Item_Product::get_product' wherever possible in 'WC_Subscriptions_Synchroniser'. PR#3230
+* Tweak: Clarify the meaning of certain count values in subscription reports tool tips. PR#3143
+* Tweak: Fixes various typos. PR#3276
+* Dev: Add $cart as a parameter for the woocommerce_cart_subscription_string_details hook. PR#3257
+
+2019.02.21 - version 2.5.2
+* Fix: Check if sale price is empty before returning it as the product price. Fixes compat. issues with Dynamic Pricing. PR#3213
+* Fix: Copy subscription meta data to early renewal orders. PR#3221
+* Fix: Add jquery-blockui as a dependency of the view-subscription JS file. PR#3227
+* Fix: Validate the DOM object exists before applying styles. Fixes JS errors on the My Account View Subscription page. PR#3218
+* Tweak: Escape line item names via wp_kses_post to allow safe html tags. PR#3224
+* Dev: Filter the wcs_cart_totals_shipping_method_price_label function to allow third-parties to alter the free shipping label. PR#3228
+* Dev: Add $variation parameter to 'woocommerce_subscriptions_product_needs_one_time_shipping' filter. PR#3197
+
+2019.02.11 - version 2.5.1
+* Fix: In report queries use WordPress prefixed table names. PR#3205
+* Fix: Fix errors caused by calling WC_Gateway_Paypal::update_option() in early WooCommerce versions. PR#3208
+* Tweak: Rename the 'uncancel' admin subscription action to 'reactivate'. PR#3209
+* Enhancement: Add downloadable and virtual subscription options to the filter on the products admin page. PR#3199
+
+2019.02.06 - version 2.5.0
+* New: Add payment gateway feature support tooltips to the WooCommerce>Setting>Payments screen. PR#3013
+* New: Add Subscriptions-related information to the WooCommerce Status Widget. PR#2980
+* New: Add option to allow a $0 initial sign-up without payment method. PR#3015
+* New: Update Action Scheduler to v2.2.0. PR#3187
+* New: Allow customers to update all subscriptions' payment method. PRs#3064,#3080,#3041
+* New: Display downloads in separate table on the customer's View Subscription page. PR#3128
+* New: Add new option to filter Admin subscriptions table by manual subscriptions. PR#3144
+* New: Add auto-renew toggle to Customer's View Subscription page. PR #3156
+* New: Add option to disable PayPal Standard for subscription-related purchases. PR#3152
+* New: Add change payment method link to the edit subscription screen. PR#3086
+* New: Allow store managers and customers to uncancel a subscription while it's still in a pending-cancel status. PR#2993
+* Fix: Prevent PHP warning in WC_Subscriptions_Cart::cart_needs_payment(). PR#3142
+* Fix: Do not return non-order objects from WC_Subscription::get_related_orders( 'all' ). Prevents errors when the calling function expects an order but got false. PR#3140
+* Fix: Don't display the subscriptions My Account menu item when endpoint is empty. PR#3146
+* Fix: Fix rounding warnings with PayPal Reference Transactions. PR#3134
+* Fix: Remove use of an invalid Exception object type. PR#3148
+* Fix: Fallback to previous renewal when parent order is not define for PayPal Standard IPNs. PR#2855
+* Fix: Update WC_Subscription::status_transition() method to be inline with WC_Order::status_transition(). PR#2777
+* Fix: Skip non-orders objects when generating the related orders table to prevent fatal errors. PR#3161
+* Fix: Redirect non-logged in users to login when handling requests to change a payment method. PR#3160
+* Fix: Don't apply retry rules to manual renewal payment attempts. PR#3153
+* Tweak: Revert subscription customer ID and post_author changes introduced for WC3.5. PR#3159
+* Tweak: Update failed scheduled action notice content. PR#3170
+* Tweak: Ignore all $0.01 PayPal Standard IPN transactions. PR#3178
+* Tweak: Add installed plugin information to the log file during plugin upgrade. PR#3181
+* Dev: Add WC_Subscription::get_change_payment_method_url() function. PR#3041
+* Dev: Add a filter to allow custom relations to be supported by the related order store. PR#3089
+* Dev: Update uses of woocommerce_order_item_meta_end to use add_action, remove_action - not filter APIs. #3163
+* Dev: [WC 3.5.4] Subscription order key updates. PR#3171
+* Dev: Deprecate WC_Subscriptions_Cart::pre_get_refreshed_fragments. PR#3173
+
 2018.12.21 - version 2.4.7
 * Fix: Fix an issue with the release date of 2.4.6.
 

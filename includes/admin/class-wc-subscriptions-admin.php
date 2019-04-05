@@ -59,6 +59,10 @@ class WC_Subscriptions_Admin {
 		// Add subscriptions to the product select box
 		add_filter( 'product_type_selector', __CLASS__ . '::add_subscription_products_to_select' );
 
+		// Special handling of downloadable and virtual products on the WooCommerce > Products screen.
+		add_filter( 'product_type_selector', array( __CLASS__, 'add_downloadable_and_virtual_filters' ) );
+		add_filter( 'request', array( __CLASS__, 'modify_downloadable_and_virtual_product_queries' ), 11 );
+
 		// Add subscription pricing fields on edit product page
 		add_action( 'woocommerce_product_options_general_product_data', __CLASS__ . '::subscription_pricing_fields' );
 
@@ -106,15 +110,17 @@ class WC_Subscriptions_Admin {
 
 		add_filter( 'posts_where', __CLASS__ . '::filter_orders' );
 
+		add_filter( 'posts_where', array( __CLASS__, 'filter_paid_subscription_orders_for_user' ) );
+
 		add_action( 'admin_notices',  __CLASS__ . '::display_renewal_filter_notice' );
 
 		add_shortcode( 'subscriptions', __CLASS__ . '::do_subscriptions_shortcode' );
 
 		add_filter( 'set-screen-option', __CLASS__ . '::set_manage_subscriptions_screen_option', 10, 3 );
 
-		add_filter( 'woocommerce_payment_gateways_setting_columns', __CLASS__ . '::payment_gateways_rewewal_column' );
+		add_filter( 'woocommerce_payment_gateways_setting_columns', array( __CLASS__, 'payment_gateways_renewal_column' ) );
 
-		add_action( 'woocommerce_payment_gateways_setting_column_renewals', __CLASS__ . '::payment_gateways_rewewal_support' );
+		add_action( 'woocommerce_payment_gateways_setting_column_renewals', array( __CLASS__, 'payment_gateways_renewal_support' ) );
 
 		// Do not display formatted order total on the Edit Order administration screen
 		add_filter( 'woocommerce_get_formatted_order_total', __CLASS__ . '::maybe_remove_formatted_order_total_filter', 0, 2 );
@@ -189,6 +195,74 @@ class WC_Subscriptions_Admin {
 	}
 
 	/**
+	 * Add options for downloadable and virtual subscription products to the product type selector on the WooCommerce products screen.
+	 *
+	 * @param  array $product_types
+	 * @return array
+	 * @since 2.5.1
+	 */
+	public static function add_downloadable_and_virtual_filters( $product_types ) {
+		global $typenow;
+
+		if ( ! is_admin() || ! doing_action( 'restrict_manage_posts' ) || 'product' !== $typenow ) {
+			return $product_types;
+		}
+
+		$product_options = array_reverse(
+			array(
+				'downloadable_subscription' => ( is_rtl() ? '&larr;' : '&rarr;' ) . ' ' . __( 'Downloadable', 'woocommerce-subscriptions' ),
+				'virtual_subscription'      => ( is_rtl() ? '&larr;' : '&rarr;' ) . ' ' . __( 'Virtual', 'woocommerce-subscriptions' ),
+			)
+		);
+		foreach ( $product_options as $key => $label ) {
+			$product_types = wcs_array_insert_after( 'subscription', $product_types, $key, $label );
+		}
+
+		return $product_types;
+	}
+
+	/**
+	 * Modifies the main query on the WooCommerce products screen to correctly handle filtering by virtual and downloadable
+	 * product types.
+	 *
+	 * @param  array $query_vars
+	 * @return array $query_vars
+	 * @since  2.5.1
+	 */
+	public static function modify_downloadable_and_virtual_product_queries( $query_vars) {
+		global $pagenow, $typenow;
+
+		if ( ! is_admin() || 'edit.php' !== $pagenow || 'product' !== $typenow ) {
+			return $query_vars;
+		}
+
+		$current_product_type = isset( $_REQUEST['product_type'] ) ? wc_clean( wp_unslash( $_REQUEST['product_type'] ) ) : false;
+
+		if ( ! $current_product_type ) {
+			return $query_vars;
+		}
+
+		if ( in_array( $current_product_type, array( 'downloadable', 'virtual' ) ) && ! isset( $query_vars['tax_query'] ) ) {
+			// Do not include subscriptions when the default "Downloadable" or "Virtual" query for simple products is being executed.
+			$query_vars['tax_query'] = array(
+				array(
+					'taxonomy' => 'product_type',
+					'terms'    => array( 'subscription' ),
+					'field'    => 'slug',
+					'operator' => 'NOT IN',
+				),
+			);
+		} elseif ( in_array( $current_product_type, array( 'downloadable_subscription', 'virtual_subscription' ) ) ) {
+			// Limit query to subscription products when the "Downloadable" or "Virtual" choices under "Simple Subscription" are being used.
+			$query_vars['meta_value'] = 'yes';
+			$query_vars['meta_key'] = '_' . str_replace( '_subscription', '', $current_product_type );
+			$query_vars['product_type'] = 'subscription';
+		}
+
+		return $query_vars;
+	}
+
+	/**
 	 * Output the subscription specific pricing fields on the "Edit Product" admin page.
 	 *
 	 * @since 1.0
@@ -247,7 +321,8 @@ class WC_Subscriptions_Admin {
 		// Sign-up Fee
 		woocommerce_wp_text_input( array(
 			'id'          => '_subscription_sign_up_fee',
-			'class'       => 'wc_input_subscription_intial_price wc_input_price  short',
+			// Keep wc_input_subscription_intial_price for backward compatibility.
+			'class'       => 'wc_input_subscription_intial_price wc_input_subscription_initial_price wc_input_price  short',
 			// translators: %s is a currency symbol / code
 			'label'       => sprintf( __( 'Sign-up fee (%s)', 'woocommerce-subscriptions' ), get_woocommerce_currency_symbol() ),
 			'placeholder' => _x( 'e.g. 9.90', 'example price', 'woocommerce-subscriptions' ),
@@ -389,8 +464,11 @@ class WC_Subscriptions_Admin {
 		update_post_meta( $post_id, '_regular_price', $subscription_price );
 		update_post_meta( $post_id, '_sale_price', $sale_price );
 
-		$date_from = ( isset( $_POST['_sale_price_dates_from'] ) ) ? wcs_date_to_time( $_POST['_sale_price_dates_from'] ) : '';
-		$date_to   = ( isset( $_POST['_sale_price_dates_to'] ) ) ? wcs_date_to_time( $_POST['_sale_price_dates_to'] ) : '';
+		$site_offset = get_option( 'gmt_offset' ) * 3600;
+
+		// Save the timestamps in UTC time, the way WC does it.
+		$date_from = ( isset( $_POST['_sale_price_dates_from'] ) ) ? wcs_date_to_time( $_POST['_sale_price_dates_from'] ) - $site_offset : '';
+		$date_to   = ( isset( $_POST['_sale_price_dates_to'] ) ) ? wcs_date_to_time( $_POST['_sale_price_dates_to'] ) - $site_offset : '';
 
 		$now = gmdate( 'U' );
 
@@ -746,12 +824,12 @@ class WC_Subscriptions_Admin {
 					'productHasSubscriptions'   => wcs_get_subscriptions_for_product( $post->ID ) ? 'yes' : 'no',
 					'productTypeWarning'        => __( 'Product type can not be changed because this product is associated with active subscriptions', 'woocommerce-subscriptions' ),
 				);
-			} else if ( 'edit-shop_order' == $screen->id ) {
+			} elseif ( 'edit-shop_order' == $screen->id ) {
 				$script_params = array(
 					'bulkTrashWarning' => __( "You are about to trash one or more orders which contain a subscription.\n\nTrashing the orders will also trash the subscriptions purchased with these orders.", 'woocommerce-subscriptions' ),
 					'trashWarning'     => $trashing_subscription_order_warning,
 				);
-			} else if ( 'shop_order' == $screen->id ) {
+			} elseif ( 'shop_order' == $screen->id ) {
 				$dependencies[] = $woocommerce_admin_script_handle;
 				$dependencies[] = 'wc-admin-order-meta-boxes';
 
@@ -767,9 +845,13 @@ class WC_Subscriptions_Admin {
 					'EditOrderNonce'    => wp_create_nonce( 'woocommerce-subscriptions' ),
 					'postId'            => $post->ID,
 				);
-			} else if ( 'users' == $screen->id ) {
+			} elseif ( 'users' == $screen->id ) {
 				$script_params = array(
 					'deleteUserWarning' => __( "Warning: Deleting a user will also delete the user's subscriptions. The user's orders will remain but be reassigned to the 'Guest' user.\n\nDo you want to continue to delete this user and any associated subscriptions?", 'woocommerce-subscriptions' ),
+				);
+			} elseif ( 'woocommerce_page_wc-settings' === $screen->id ) {
+				$script_params = array(
+					'enablePayPalWarning' => __( 'PayPal Standard has a number of limitations and does not support all subscription features.', 'woocommerce-subscriptions' ) . "\n\n" . __( 'Because of this, it is not recommended as a payment method for Subscriptions unless it is the only available option for your country.', 'woocommerce-subscriptions' ),
 				);
 			}
 
@@ -1180,6 +1262,15 @@ class WC_Subscriptions_Admin {
 			),
 
 			array(
+				'name'          => __( '$0 Initial Checkout', 'woocommerce-subscriptions' ),
+				'desc'          => __( 'Allow $0 initial checkout without a payment method.', 'woocommerce-subscriptions' ),
+				'id'            => self::$option_prefix . '_zero_initial_payment_requires_payment',
+				'default'       => 'no',
+				'type'          => 'checkbox',
+				'desc_tip'      => __( 'Allow a subscription product with a $0 initial payment to be purchased without providing a payment method. The customer will be required to provide a payment method at the end of the initial period to keep the subscription active.', 'woocommerce-subscriptions' ),
+			),
+
+			array(
 				'name'          => __( 'Drip Downloadable Content', 'woocommerce-subscriptions' ),
 				'desc'          => __( 'Enable dripping for downloadable content on subscription products.', 'woocommerce-subscriptions' ),
 				'id'            => self::$option_prefix . '_drip_downloadable_content_on_renewal',
@@ -1301,9 +1392,7 @@ class WC_Subscriptions_Admin {
 	public static function filter_orders( $where ) {
 		global $typenow, $wpdb;
 
-		if ( is_admin() && 'shop_order' == $typenow ) {
-
-			$related_orders = array();
+		if ( is_admin() && 'shop_order' === $typenow ) {
 
 			if ( isset( $_GET['_subscription_related_orders'] ) && $_GET['_subscription_related_orders'] > 0 ) {
 
@@ -1320,6 +1409,45 @@ class WC_Subscriptions_Admin {
 					$where .= sprintf( " AND {$wpdb->posts}.ID IN (%s)", implode( ',', array_map( 'absint', array_unique( $subscription->get_related_orders( 'ids' ) ) ) ) );
 				}
 			}
+		}
+
+		return $where;
+	}
+
+	/**
+	 * Filter the "Orders" list to show only paid subscription orders for a particular user
+	 *
+	 * @param string $where
+	 * @return string
+	 * @since 2.5.3
+	 */
+	public static function filter_paid_subscription_orders_for_user( $where ) {
+		global $typenow, $wpdb;
+
+		if ( ! is_admin() || 'shop_order' !== $typenow || ! isset( $_GET['_paid_subscription_orders_for_customer_user'] ) || 0 == $_GET['_paid_subscription_orders_for_customer_user'] ) {
+			return $where;
+		}
+
+		$user_id = $_GET['_paid_subscription_orders_for_customer_user'];
+
+		// Unset the GET arg so that it doesn't interfere with the query for user's subscriptions.
+		unset( $_GET['_paid_subscription_orders_for_customer_user'] );
+
+		$users_subscriptions = wcs_get_users_subscriptions( $user_id );
+
+		$users_subscription_orders = array();
+
+		foreach ( $users_subscriptions as $subscription ) {
+			$users_subscription_orders = array_merge( $users_subscription_orders, $subscription->get_related_orders( 'ids' ) );
+		}
+
+		if ( empty( $users_subscription_orders ) ) {
+			wcs_add_admin_notice( sprintf( __( 'We can\'t find a paid subscription order for this user.', 'woocommerce-subscriptions' ) ), 'error' );
+			$where .= " AND {$wpdb->posts}.ID = 0";
+		} else {
+			// Orders with paid status
+			$where .= sprintf( " AND {$wpdb->posts}.post_status IN ( 'wc-processing', 'wc-completed' )" );
+			$where .= sprintf( " AND {$wpdb->posts}.ID IN (%s)", implode( ',', array_unique( $users_subscription_orders ) ) );
 		}
 
 		return $where;
@@ -1473,16 +1601,29 @@ class WC_Subscriptions_Admin {
 	/**
 	 * Add a column to the Payment Gateway table to show whether the gateway supports automated renewals.
 	 *
-	 * @since 1.5
+	 * @param array $header
+	 *
+	 * @since 2.5.3
+	 * @return array
+	 */
+	public static function payment_gateways_renewal_column( $header ) {
+		$header_new = array_slice( $header, 0, count( $header ) - 1, true ) + array( 'renewals' => __( 'Automatic Recurring Payments', 'woocommerce-subscriptions' ) ) + // Ideally, we could add a link to the docs here, but the title is passed through esc_html()
+		              array_slice( $header, count( $header ) - 1, count( $header ) - ( count( $header ) - 1 ), true );
+
+		return $header_new;
+	}
+
+	/**
+	 * Add a column to the Payment Gateway table to show whether the gateway supports automated renewals.
+	 *
+	 * @since      1.5
+	 * @deprecated 2.5.3
 	 * @return string
 	 */
 	public static function payment_gateways_rewewal_column( $header ) {
+		wcs_deprecated_function( __METHOD__, '2.5.3', 'WC_Subscriptions_Admin::payment_gateways_renewal_column( $header )' );
 
-		$header_new = array_slice( $header, 0, count( $header ) - 1, true ) +
-			array( 'renewals' => __( 'Automatic Recurring Payments', 'woocommerce-subscriptions' ) ) + // Ideally, we could add a link to the docs here, but the title is passed through esc_html()
-			array_slice( $header, count( $header ) - 1, count( $header ) - ( count( $header ) - 1 ), true );
-
-		return $header_new;
+		return self::payment_gateways_renewal_column( $header );
 	}
 
 	/**
@@ -1490,10 +1631,11 @@ class WC_Subscriptions_Admin {
 	 * Automatically flag support for Paypal since it is included with subscriptions.
 	 * Display in the Payment Gateway column.
 	 *
-	 * @since 1.5
+	 * @param WC_Payment_Gateway $gateway
+	 *
+	 * @since 2.5.3
 	 */
-	public static function payment_gateways_rewewal_support( $gateway ) {
-
+	public static function payment_gateways_renewal_support( $gateway ) {
 		echo '<td class="renewals">';
 		if ( ( is_array( $gateway->supports ) && in_array( 'subscriptions', $gateway->supports ) ) || $gateway->id == 'paypal' ) {
 			$status_html = '<span class="status-enabled tips" data-tip="' . esc_attr__( 'Supports automatic renewal payments with the WooCommerce Subscriptions extension.', 'woocommerce-subscriptions' ) . '">' . esc_html__( 'Yes', 'woocommerce-subscriptions' ) . '</span>';
@@ -1501,19 +1643,34 @@ class WC_Subscriptions_Admin {
 			$status_html = '-';
 		}
 
-		$allowed_html = wp_kses_allowed_html( 'post' );
+		$allowed_html                     = wp_kses_allowed_html( 'post' );
 		$allowed_html['span']['data-tip'] = true;
 
 		/**
 		 * Automatic Renewal Payments Support Status HTML Filter.
 		 *
 		 * @since 2.0
-		 * @param string $status_html
+		 *
+		 * @param string              $status_html
 		 * @param \WC_Payment_Gateway $gateway
 		 */
 		echo wp_kses( apply_filters( 'woocommerce_payment_gateways_renewal_support_status_html', $status_html, $gateway ), $allowed_html );
 
 		echo '</td>';
+	}
+
+	/**
+	 * Check whether the payment gateway passed in supports automated renewals or not.
+	 * Automatically flag support for Paypal since it is included with subscriptions.
+	 * Display in the Payment Gateway column.
+	 *
+	 * @since      1.5
+	 * @deprecated 2.5.3
+	 */
+	public static function payment_gateways_rewewal_support( $gateway ) {
+		wcs_deprecated_function( __METHOD__, '2.5.3', 'WC_Subscriptions_Admin::payment_gateways_renewal_support( $gateway )' );
+
+		return self::payment_gateways_renewal_support( $gateway );
 	}
 
 	/**

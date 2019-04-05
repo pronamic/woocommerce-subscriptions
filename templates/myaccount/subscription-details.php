@@ -5,14 +5,13 @@
  * @author  Prospress
  * @package WooCommerce_Subscription/Templates
  * @since 2.2.19
- * @version 2.2.19
+ * @version 2.5.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 ?>
-
 <table class="shop_table subscription_details">
 	<tr>
 		<td><?php esc_html_e( 'Status', 'woocommerce-subscriptions' ); ?></td>
@@ -36,6 +35,34 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</tr>
 		<?php endif; ?>
 	<?php endforeach; ?>
+	<?php if ( WCS_My_Account_Auto_Renew_Toggle::can_subscription_auto_renewal_be_changed( $subscription ) ) : ?>
+		<tr>
+			<td><?php esc_html_e( 'Auto Renew', 'woocommerce-subscriptions' ); ?></td>
+			<td>
+				<div class="wcs-auto-renew-toggle">
+					<?php if ( $subscription->is_manual() ) : ?>
+						<a href="#"
+							class="subscription-auto-renew-toggle subscription-auto-renew-toggle--off subscription-auto-renew-toggle--hidden" aria-label="<?php echo esc_attr__( 'Enable auto renew', 'woocommerce-subscriptions' ); ?>">
+							<i class="subscription-auto-renew-toggle__i" aria-hidden="true">&nbsp;</i>
+						</a>
+					<?php else : ?>
+						<a href="#"
+							class="subscription-auto-renew-toggle subscription-auto-renew-toggle--on subscription-auto-renew-toggle--hidden" aria-label="<?php echo esc_attr__( 'Disable auto renew', 'woocommerce-subscriptions' ); ?>">
+							<i class="subscription-auto-renew-toggle__i" aria-hidden="true">&nbsp;</i>
+						</a>
+					<?php endif; ?>
+				</div>
+			</td>
+		</tr>
+	<?php endif; ?>
+	<?php if ( $subscription->get_time( 'next_payment' ) > 0 ) : ?>
+		<tr>
+			<td><?php esc_html_e( 'Payment', 'woocommerce-subscriptions' ); ?></td>
+			<td>
+				<span class="subscription-payment-method"><?php echo esc_attr( $subscription->get_payment_method_to_display( 'customer' ) ); ?></span>
+			</td>
+		</tr>
+	<?php endif; ?>
 	<?php do_action( 'woocommerce_subscription_before_actions', $subscription ); ?>
 	<?php $actions = wcs_get_all_user_actions_for_subscription( $subscription, get_current_user_id() ); ?>
 	<?php if ( ! empty( $actions ) ) : ?>
