@@ -495,7 +495,7 @@ class WCS_Admin_Post_Types {
 							}
 						} else {
 
-							if ( 'pending-cancel' === $the_subscription->get_status() ) {
+							if ( 'cancelled' === $status && 'pending-cancel' === $the_subscription->get_status() ) {
 								$label = __( 'Cancel Now', 'woocommerce-subscriptions' );
 							}
 
@@ -772,20 +772,29 @@ class WCS_Admin_Post_Types {
 			}
 
 			if ( ! empty( $_GET['_payment_method'] ) ) {
-
-				$payment_gateway_filter = ( 'none' == $_GET['_payment_method'] ) ? '' : $_GET['_payment_method'];
-
-				$query_vars = array(
-					'post_type'   => 'shop_subscription',
-					'posts_per_page' => -1,
-					'post_status' => 'any',
-					'fields'      => 'ids',
-					'meta_query'  => array(
+				if ( '_manual_renewal' === trim( $_GET['_payment_method'] ) ) {
+					$meta_query = array(
+						array(
+							'key'   => '_requires_manual_renewal',
+							'value' => 'true',
+						),
+					);
+				} else {
+					$payment_gateway_filter = ( 'none' == $_GET['_payment_method'] ) ? '' : $_GET['_payment_method'];
+					$meta_query             = array(
 						array(
 							'key'   => '_payment_method',
 							'value' => $payment_gateway_filter,
 						),
-					),
+					);
+				}
+
+				$query_vars = array(
+					'post_type'      => 'shop_subscription',
+					'posts_per_page' => -1,
+					'post_status'    => 'any',
+					'fields'         => 'ids',
+					'meta_query'     => $meta_query,
 				);
 
 				// If there are already set post restrictions (post__in) apply them to this query
@@ -934,7 +943,9 @@ class WCS_Admin_Post_Types {
 
 		foreach ( WC()->payment_gateways->get_available_payment_gateways() as $gateway_id => $gateway ) {
 			echo '<option value="' . esc_attr( $gateway_id ) . '"' . ( $selected_gateway_id == $gateway_id  ? 'selected' : '' ) . '>' . esc_html( $gateway->title ) . '</option>';
-		}?>
+		}
+		echo '<option value="_manual_renewal">' . esc_html__( 'Manual Renewal', 'woocommerce-subscriptions' ) . '</option>';
+		?>
 		</select> <?php
 	}
 
@@ -1034,7 +1045,7 @@ class WCS_Admin_Post_Types {
 		}
 
 		$item_name .= apply_filters( 'woocommerce_order_item_name', $item['name'], $item, false );
-		$item_name  = esc_html( $item_name );
+		$item_name  = wp_kses_post( $item_name );
 
 		if ( 'include_quantity' === $include_quantity && $item_quantity > 1 ) {
 			$item_name = sprintf( '%s &times; %s', absint( $item_quantity ), $item_name );

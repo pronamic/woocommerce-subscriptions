@@ -39,6 +39,9 @@ class WCS_PayPal_Admin {
 
 		// Before WC updates the PayPal settings remove credentials error flag
 		add_action( 'load-woocommerce_page_wc-settings', __CLASS__ . '::maybe_update_credentials_error_flag', 9 );
+
+		// Add an enable for subscription purchases setting.
+		add_action( 'woocommerce_settings_api_form_fields_paypal', array( __CLASS__, 'add_enable_for_subscriptions_setting' ) );
 	}
 
 	/**
@@ -56,7 +59,8 @@ class WCS_PayPal_Admin {
 
 			// Warn store managers not to change their PayPal Email address as it can break existing Subscriptions in WC2.0+
 			WC()->payment_gateways->payment_gateways[ $key ]->form_fields['receiver_email']['desc_tip']     = false;
-			WC()->payment_gateways->payment_gateways[ $key ]->form_fields['receiver_email']['description'] .= ' </p><p class="description">' . __( 'It is <strong>strongly recommended you do not change the Receiver Email address</strong> if you have active subscriptions with PayPal. Doing so can break existing subscriptions.', 'woocommerce-subscriptions' );
+			// translators: $1 and $2 are opening and closing strong tags, respectively.
+			WC()->payment_gateways->payment_gateways[ $key ]->form_fields['receiver_email']['description'] .= ' </p><p class="description">' . sprintf( __( 'It is %sstrongly recommended you do not change the Receiver Email address%s if you have active subscriptions with PayPal. Doing so can break existing subscriptions.', 'woocommerce-subscriptions' ), '<strong>', '</strong>' );
 		}
 	}
 
@@ -244,7 +248,7 @@ class WCS_PayPal_Admin {
 	 * @param WC_Subscription $subscription
 	 */
 	public static function profile_link( $subscription ) {
-		if ( wcs_is_subscription( $subscription ) && 'paypal' == $subscription->get_payment_method() ) {
+		if ( wcs_is_subscription( $subscription ) && ! $subscription->is_manual() && 'paypal' == $subscription->get_payment_method() ) {
 
 			$paypal_profile_id = wcs_get_paypal_id( $subscription );
 
@@ -275,4 +279,35 @@ class WCS_PayPal_Admin {
 
 	}
 
+	/**
+	 * Add the enabled or subscriptions setting.
+	 *
+	 * @param array $settings The WooCommerce PayPal Settings array.
+	 * @return array
+	 * @since 2.5.0
+	 */
+	public static function add_enable_for_subscriptions_setting( $settings ) {
+		if ( WCS_PayPal::are_reference_transactions_enabled() ) {
+			return $settings;
+		}
+
+		$setting = array(
+			'type'    => 'checkbox',
+			'label'   => __( 'Enable PayPal Standard for Subscriptions', 'woocommerce-subscriptions' ),
+			'default' => 'no',
+		);
+
+		// Display a description
+		if ( 'no' === WCS_PayPal::get_option( 'enabled_for_subscriptions' ) ) {
+			$setting['description'] = sprintf(
+				/* translators: Placeholders are the opening and closing link tags.*/
+				__( "Before enabling PayPal Standard for Subscriptions, please note, when using PayPal Standard, customers are locked into using PayPal Standard for the life of their subscription, and PayPal Standard has a number of limitations. Please read the guide on %swhy we don't recommend PayPal Standard%s for Subscriptions before choosing to enable this option.", 'woocommerce-subscriptions' ),
+				'<a href="https://docs.woocommerce.com/document/subscriptions/payment-gateways/#paypal-limitations">', '</a>'
+			);
+		}
+
+		$settings = wcs_array_insert_after( 'enabled', $settings, 'enabled_for_subscriptions', $setting );
+
+		return $settings;
+	}
 }

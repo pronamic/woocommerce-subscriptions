@@ -1771,7 +1771,7 @@ class WC_Subscriptions_Switcher {
 	 * @since 2.0
 	 */
 	public static function remove_print_switch_link() {
-		remove_filter( 'woocommerce_order_item_meta_end', __CLASS__ . '::print_switch_link', 10 );
+		remove_action( 'woocommerce_order_item_meta_end', __CLASS__ . '::print_switch_link', 10 );
 	}
 
 	/**
@@ -1780,7 +1780,7 @@ class WC_Subscriptions_Switcher {
 	 * @since 2.0
 	 */
 	public static function add_print_switch_link( $table_content ) {
-		add_filter( 'woocommerce_order_item_meta_end', __CLASS__ . '::print_switch_link', 10, 3 );
+		add_action( 'woocommerce_order_item_meta_end', __CLASS__ . '::print_switch_link', 10, 3 );
 		return $table_content;
 	}
 

@@ -48,10 +48,10 @@ class WC_Subscriptions_Checkout {
 	public static function attach_dependant_hooks() {
 		// Make sure guest checkout is not enabled in option param passed to WC JS
 		if ( WC_Subscriptions::is_woocommerce_pre( '3.3' ) ) {
-			add_filter( 'woocommerce_params', __CLASS__ . '::filter_woocommerce_script_paramaters', 10, 1 );
-			add_filter( 'wc_checkout_params', __CLASS__ . '::filter_woocommerce_script_paramaters', 10, 1 );
+			add_filter( 'woocommerce_params', array( __CLASS__, 'filter_woocommerce_script_parameters' ), 10, 1 );
+			add_filter( 'wc_checkout_params', array( __CLASS__, 'filter_woocommerce_script_parameters' ), 10, 1 );
 		} else {
-			add_filter( 'woocommerce_get_script_data', __CLASS__ . '::filter_woocommerce_script_paramaters', 10, 2 );
+			add_filter( 'woocommerce_get_script_data', array( __CLASS__, 'filter_woocommerce_script_parameters' ), 10, 2 );
 		}
 	}
 
@@ -455,11 +455,18 @@ class WC_Subscriptions_Checkout {
 	 * Also make sure the guest checkout option value passed to the woocommerce.js forces registration.
 	 * Otherwise the registration form is hidden by woocommerce.js.
 	 *
-	 * @since 1.1
+	 * @param string $handle Default empty string ('').
+	 * @param array  $woocommerce_params
+	 *
+	 * @since 2.5.3
+	 * @return array
 	 */
-	public static function filter_woocommerce_script_paramaters( $woocommerce_params, $handle = '' ) {
+	public static function filter_woocommerce_script_parameters( $woocommerce_params, $handle = '' ) {
 		// WC 3.3+ deprecates handle-specific filters in favor of 'woocommerce_get_script_data'.
-		if ( 'woocommerce_get_script_data' === current_filter() && ! in_array( $handle, array( 'woocommerce', 'wc-checkout' ) ) ) {
+		if ( 'woocommerce_get_script_data' === current_filter() && ! in_array( $handle, array(
+				'woocommerce',
+				'wc-checkout',
+			) ) ) {
 			return $woocommerce_params;
 		}
 
@@ -468,6 +475,19 @@ class WC_Subscriptions_Checkout {
 		}
 
 		return $woocommerce_params;
+	}
+
+	/**
+	 * Also make sure the guest checkout option value passed to the woocommerce.js forces registration.
+	 * Otherwise the registration form is hidden by woocommerce.js.
+	 *
+	 * @since      1.1
+	 * @deprecated 2.5.3
+	 */
+	public static function filter_woocommerce_script_paramaters( $woocommerce_params, $handle = '' ) {
+		wcs_deprecated_function( __METHOD__, '2.5.3', 'WC_Subscriptions_Admin::filter_woocommerce_script_parameters( $woocommerce_params, $handle )' );
+
+		return self::filter_woocommerce_script_parameters( $woocommerce_params, $handle );
 	}
 
 	/**

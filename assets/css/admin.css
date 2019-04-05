@@ -565,6 +565,40 @@ table.wp-list-table .subscription_renewal_order:after {
 	}
 }
 
+/* WooCommerce Payment Methods Settings page */
+.payment-method-features-info {
+    font-size: 1.4em;
+    display: inline-block;
+    text-indent: -9999px;
+    position: relative;
+    height: 1em;
+    width: 1em
+}
+
+.payment-method-features-info::before {
+    font-family: WooCommerce;
+    speak: none;
+    font-weight: 400;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    margin: 0;
+    text-indent: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    content: "\e018";
+    color: #a46497;
+}
+
+table.wc_gateways .renewals .tips{
+    margin: 0 0.2em;
+    display: inline-block;
+}
+
 /* Hide irrelevant sections on Edit Subscription screen */
 body.post-type-shop_subscription .order_actions #actions optgroup[label='Resend order emails'],
 body.post-type-shop_subscription .add-items .description.tips,

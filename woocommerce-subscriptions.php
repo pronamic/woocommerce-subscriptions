@@ -5,7 +5,7 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: https://prospress.com/
- * Version: 2.4.7
+ * Version: 2.5.3
  *
  * WC requires at least: 3.0
  * WC tested up to: 3.5
@@ -93,6 +93,7 @@ WCS_Limiter::init();
 WCS_Admin_System_Status::init();
 WCS_Upgrade_Notice_Manager::init();
 WCS_Staging::init();
+WCS_Permalink_Manager::init();
 
 // Some classes run init on a particular hook.
 add_action( 'init', array( 'WC_Subscriptions_Synchroniser', 'init' ) );
@@ -112,7 +113,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.4.7';
+	public static $version = '2.5.3';
 
 	public static $wc_minimum_supported_version = '3.0';
 
@@ -364,6 +365,23 @@ class WC_Subscriptions {
 			wp_enqueue_script( 'wcs-cart', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/frontend/wcs-cart.js', $dependencies, WC_Subscriptions::$version, true );
 		} elseif ( is_product() ) {
 			wp_enqueue_script( 'wcs-single-product', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/frontend/single-product.js', $dependencies, WC_Subscriptions::$version, true );
+		} elseif ( wcs_is_view_subscription_page() ) {
+			global $wp;
+			$subscription   = wcs_get_subscription( $wp->query_vars['view-subscription'] );
+
+			if ( $subscription && current_user_can( 'view_order', $subscription->get_id() ) ) {
+				$dependencies[] = 'jquery-blockui';
+				$script_params  = array(
+					'ajax_url'               => esc_url( WC()->ajax_url() ),
+					'subscription_id'        => $subscription->get_id(),
+					'add_payment_method_msg' => __( 'To enable automatic renewals for this subscription, you will first need to add a payment method.', 'woocommerce-subscriptions' ) . "\n\n" . __( 'Would you like to add a payment method now?', 'woocommerce-subscriptions' ),
+					'auto_renew_nonce'       => wp_create_nonce( "toggle-auto-renew-{$subscription->get_id()}" ),
+					'add_payment_method_url' => esc_url( $subscription->get_change_payment_method_url() ),
+					'has_payment_gateway'    => $subscription->has_payment_gateway() && wc_get_payment_gateway_by_order( $subscription )->supports( 'subscriptions' ),
+				);
+				wp_enqueue_script( 'wcs-view-subscription', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/frontend/view-subscription.js', $dependencies, WC_Subscriptions::$version, true );
+				wp_localize_script( 'wcs-view-subscription', 'WCSViewSubscription', apply_filters( 'woocommerce_subscriptions_frontend_view_subscription_script_parameters', $script_params ) );
+			}
 		}
 	}
 
@@ -386,7 +404,7 @@ class WC_Subscriptions {
 				'src'     => str_replace( array( 'http:', 'https:' ), '', plugin_dir_url( __FILE__ ) ) . 'assets/css/view-subscription.css',
 				'deps'    => 'woocommerce-smallscreen',
 				'version' => self::$version,
-				'media'   => 'only screen and (max-width: ' . apply_filters( 'woocommerce_style_smallscreen_breakpoint', $breakpoint = '768px' ) . ')',
+				'media'   => 'all',
 			);
 		}
 
@@ -775,6 +793,7 @@ class WC_Subscriptions {
 		WCS_Remove_Item::init();
 		WCS_User_Change_Status_Handler::init();
 		WCS_My_Account_Payment_Methods::init();
+		WCS_My_Account_Auto_Renew_Toggle::init();
 
 		if ( self::is_woocommerce_pre( '3.0' ) ) {
 			WCS_Product_Legacy::init();
@@ -1349,3 +1368,4 @@ class WC_Subscriptions {
 }
 
 WC_Subscriptions::init( $wcs_autoloader );
+

@@ -2,10 +2,11 @@
 /**
  * Updates the 'post_author' column for subscriptions on WC 3.5+.
  *
- * @author		Prospress
- * @category	Admin
- * @package		WooCommerce Subscriptions/Admin/Upgrades
- * @version		2.4.0
+ * @author     Prospress
+ * @category   Admin
+ * @package    WooCommerce Subscriptions/Admin/Upgrades
+ * @version    2.4.0
+ * @deprecated 2.5.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,6 +22,8 @@ class WCS_Upgrade_Subscription_Post_Author extends WCS_Background_Upgrader {
 	 * @since 2.4.0
 	 */
 	public function __construct( WC_Logger $logger ) {
+		wcs_deprecated_function( __METHOD__, '2.5.0' );
+
 		$this->scheduled_hook = 'wcs_upgrade_subscription_post_author';
 		$this->log_handle     = 'wcs-upgrade-subscription-post-author';
 		$this->logger         = $logger;

@@ -41,6 +41,26 @@ class WCS_Email_Payment_Retry extends WC_Email_Failed_Order {
 	}
 
 	/**
+	 * Get the default e-mail subject.
+	 *
+	 * @since 2.5.3
+	 * @return string
+	 */
+	public function get_default_subject() {
+		return $this->subject;
+	}
+
+	/**
+	 * Get the default e-mail heading.
+	 *
+	 * @since 2.5.3
+	 * @return string
+	 */
+	public function get_default_heading() {
+		return $this->heading;
+	}
+
+	/**
 	 * Trigger.
 	 *
 	 * @param int $order_id
@@ -53,7 +73,7 @@ class WCS_Email_Payment_Retry extends WC_Email_Failed_Order {
 		$this->find['retry-time']      = '{retry_time}';
 		$this->replace['order-date']   = wcs_format_datetime( wcs_get_objects_property( $this->object, 'date_created' ) );
 		$this->replace['order-number'] = $this->object->get_order_number();
-		$this->replace['retry-time']   = strtolower( wcs_get_human_time_diff( $this->retry->get_time() ) );
+		$this->replace['retry-time']   = wcs_get_human_time_diff( $this->retry->get_time() );
 
 		if ( ! $this->is_enabled() || ! $this->get_recipient() ) {
 			return;

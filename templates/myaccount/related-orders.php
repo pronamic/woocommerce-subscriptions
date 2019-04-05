@@ -4,7 +4,7 @@
  *
  * @author   Prospress
  * @category WooCommerce Subscriptions/Templates
- * @version  2.0.0
+ * @version  2.5.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,7 +29,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	<tbody>
 		<?php foreach ( $subscription_orders as $subscription_order ) {
-			$order      = wc_get_order( $subscription_order );
+			$order = wc_get_order( $subscription_order );
+
+			if ( ! $order ) {
+				continue;
+			}
+
 			$item_count = $order->get_item_count();
 			$order_date = wcs_get_datetime_utc_string( wcs_get_objects_property( $order, 'date_created' ) );
 
@@ -54,7 +59,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<td class="order-actions">
 					<?php $actions = array();
 
-					if ( in_array( $order->get_status(), apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'failed' ), $order ) ) && wcs_get_objects_property( $order, 'id' ) == $subscription->get_last_order( 'ids', 'any' ) ) {
+					if ( $order->needs_payment() && wcs_get_objects_property( $order, 'id' ) == $subscription->get_last_order( 'ids', 'any' ) ) {
 						$actions['pay'] = array(
 							'url'  => $order->get_checkout_payment_url(),
 							'name' => esc_html_x( 'Pay', 'pay for a subscription', 'woocommerce-subscriptions' ),

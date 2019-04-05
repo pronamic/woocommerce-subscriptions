@@ -40,7 +40,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php else : ?>
 			<p><?php esc_html_e( 'The update process may take a little while, so please be patient.', 'woocommerce-subscriptions' ); ?></p>
 			<?php endif; ?>
-			<p><?php esc_html_e( 'Customers and other non-administrative users can browse and purchase from your store without interuption while the update is in progress.', 'woocommerce-subscriptions' ); ?></p>
+			<p><?php esc_html_e( 'Customers and other non-administrative users can browse and purchase from your store without interruption while the update is in progress.', 'woocommerce-subscriptions' ); ?></p>
 			<form id="subscriptions-upgrade" method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>">
 				<input type="submit" class="button" value="<?php echo esc_attr_x( 'Update Database', 'text on submit button', 'woocommerce-subscriptions' ); ?>">
 			</form>
@@ -50,7 +50,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<p><?php esc_html_e( 'This page will display the results of the process as each batch of subscriptions is updated.', 'woocommerce-subscriptions' ); ?></p>
 			<p><?php esc_html_e( 'Please keep this page open until the update process completes. No need to refresh or restart the process.', 'woocommerce-subscriptions' ); ?></p>
 			<?php if ( $estimated_duration > 20 ) : ?>
-			<p><?php esc_html_e( 'Remember, although the update process may take a while, customers and other non-administrative users can browse and purchase from your store without interuption while the update is in progress.', 'woocommerce-subscriptions' ); ?></p>
+			<p><?php esc_html_e( 'Remember, although the update process may take a while, customers and other non-administrative users can browse and purchase from your store without interruption while the update is in progress.', 'woocommerce-subscriptions' ); ?></p>
 			<?php endif; ?>
 			<ol>
 			</ol>

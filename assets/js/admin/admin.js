@@ -766,4 +766,43 @@ jQuery(document).ready(function($){
 	};
 	wcs_prevent_product_type_change.init();
 
+	/*
+	 * Handles enabling and disabling PayPal Standard for Subscriptions.
+	 */
+	var wcs_paypal_standard_settings = {
+
+		init: function() {
+			if ( 0 === $( '#woocommerce_paypal_enabled' ).length ) {
+				return;
+			}
+
+			$( '#woocommerce_paypal_enabled' ).on( 'change', this.paypal_enabled_change );
+			$( '#woocommerce_paypal_enabled_for_subscriptions' ).on( 'change', this.paypal_for_subscriptions_enabled );
+			this.paypal_enabled_change();
+		},
+
+		/**
+		 * Show and hide the enable PayPal for Subscriptions checkbox when PayPal is enabled or disabled.
+		 */
+		paypal_enabled_change: function() {
+			var $enabled_for_subscriptions_element = $( '#woocommerce_paypal_enabled_for_subscriptions' ).closest( 'tr' );
+
+			if ( $( '#woocommerce_paypal_enabled' ).is( ':checked' ) ) {
+				$enabled_for_subscriptions_element.show();
+			} else {
+				$enabled_for_subscriptions_element.hide();
+			}
+		},
+
+		/**
+		 * Display a confirm dialog when PayPal for Subscriptions is enabled (checked).
+		 */
+		paypal_for_subscriptions_enabled: function() {
+			if ( $( this ).is( ':checked' ) && ! confirm( WCSubscriptions.enablePayPalWarning ) ) {
+				$( this ).removeAttr( 'checked' );
+			}
+		}
+	};
+	wcs_paypal_standard_settings.init();
+
 });

@@ -19,7 +19,7 @@ class WCS_Upgrade_Notice_Manager {
 	 *
 	 * @var string
 	 */
-	protected static $version = '2.3.0';
+	protected static $version = '2.5.0';
 
 	/**
 	 * The number of times the notice will be displayed before being dismissed automatically.
@@ -77,26 +77,25 @@ class WCS_Upgrade_Notice_Manager {
 			return;
 		}
 
-		$version     = _x( '2.3', 'plugin version number used in admin notice', 'woocommerce-subscriptions' );
+		$version     = _x( '2.5', 'plugin version number used in admin notice', 'woocommerce-subscriptions' );
 		$dismiss_url = wp_nonce_url( add_query_arg( 'dismiss_upgrade_notice', self::$version ), 'dismiss_upgrade_notice', '_wcsnonce' );
 		$notice      = new WCS_Admin_Notice( 'notice notice-info', array(), $dismiss_url );
 		$features    = array(
 			array(
-				'title'       => __( 'New Subscription Coupon Features', 'woocommerce-subscriptions' ),
-				'description' => __( 'Want to offer customers coupons which apply for 6 months? You can now define the number of cycles discounts would be applied.', 'woocommerce-subscriptions' ),
+				'title'       => __( 'New options to allow customers to sign up without a credit card', 'woocommerce-subscriptions' ),
+				'description' => __( 'Allow customers to access free trial and other $0 subscription products without needing to enter their credit card details on sign up.', 'woocommerce-subscriptions' ),
 			),
 			array(
-				'title'       => __( 'New Signup Pricing Options for Synchronized Subscriptions', 'woocommerce-subscriptions' ),
-				'description' => __( 'Charge the full recurring price at the time of sign up for synchronized subscriptions. Your customers can now receive their products straight away.', 'woocommerce-subscriptions' ),
+				'title'       => __( 'Improved subscription payment method information', 'woocommerce-subscriptions' ),
+				'description' => __( 'Customers can now see more information about what payment method will be used for future payments.', 'woocommerce-subscriptions' ),
 			),
 			array(
-				'title'       => __( 'Link Parent Orders to Subscriptions', 'woocommerce-subscriptions' ),
-				// translators: placeholders are opening and closing <a> tags linking to documentation.
-				'description' => sprintf( __( 'For subscriptions with no parent order, shop managers can now choose a parent order via the Edit Subscription screen. This makes it possible to set a parent order on %smanually created subscriptions%s. The order can also be sent to customers to act as an invoice that needs to be paid to activate the subscription.', 'woocommerce-subscriptions' ), '<a href="https://docs.woocommerce.com/document/subscriptions/add-or-modify-a-subscription/">', '</a>' ),
+				'title'       => __( 'Auto-renewal toggle', 'woocommerce-subscriptions' ),
+				'description' => sprintf( __( 'Enabled via a setting, this new feature will allow your customers to turn on and off automatic payments from the %sMy Account > View Subscription%s pages.', 'woocommerce-subscriptions' ), '<strong>', '</strong>' ),
 			),
 			array(
-				'title'       => __( 'Early Renewal', 'woocommerce-subscriptions' ),
-				'description' => __( 'Customers can now renew their subscriptions before the scheduled next payment date. Why not use this to email your customers a coupon a month before their annual subscription renewals to get access to that revenue sooner?', 'woocommerce-subscriptions' ),
+				'title'       => __( 'Update all subscription payment methods', 'woocommerce-subscriptions' ),
+				'description' => __( "Customers will now have the option to update all their subscriptions when they are changing one of their subscription's payment methods - provided the payment gateway supports it.", 'woocommerce-subscriptions' ),
 			),
 		);
 
@@ -109,7 +108,7 @@ class WCS_Upgrade_Notice_Manager {
 		$notice->set_actions( array(
 			array(
 				'name' => __( 'Learn More', 'woocommerce-subscriptions' ),
-				'url'  => 'https://docs.woocommerce.com/document/subscriptions/version-2-3/',
+				'url'  => 'https://docs.woocommerce.com/document/subscriptions/version-2-5/',
 			),
 		) );
 

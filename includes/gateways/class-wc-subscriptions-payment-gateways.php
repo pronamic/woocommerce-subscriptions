@@ -21,16 +21,18 @@ class WC_Subscriptions_Payment_Gateways {
 	 */
 	public static function init() {
 
-		add_action( 'init', __CLASS__ . '::init_paypal', 5 ); // run before default priority 10 in case the site is using ALTERNATE_WP_CRON to avoid https://core.trac.wordpress.org/ticket/24160
+		add_action( 'init', __CLASS__ . '::init_paypal', 5 ); // run before default priority 10 in case the site is using ALTERNATE_WP_CRON to avoid https://core.trac.wordpress.org/ticket/24160.
 
 		add_filter( 'woocommerce_available_payment_gateways', __CLASS__ . '::get_available_payment_gateways' );
 
 		add_filter( 'woocommerce_no_available_payment_methods_message', __CLASS__ . '::no_available_payment_methods_message' );
 
-		// Trigger a hook for gateways to charge recurring payments
+		add_filter( 'woocommerce_payment_gateways_renewal_support_status_html', __CLASS__ . '::payment_gateways_support_tooltip', 11, 2 );
+
+		// Trigger a hook for gateways to charge recurring payments.
 		add_action( 'woocommerce_scheduled_subscription_payment', __CLASS__ . '::gateway_scheduled_subscription_payment', 10, 1 );
 
-		// Create a gateway specific hooks for subscription events
+		// Create a gateway specific hooks for subscription events.
 		add_action( 'woocommerce_subscription_status_updated', __CLASS__ . '::trigger_gateway_status_updated_hook', 10, 2 );
 	}
 
@@ -212,6 +214,73 @@ class WC_Subscriptions_Payment_Gateways {
 		if ( ! $subscription->is_manual() && ! $subscription->has_status( wcs_get_subscription_ended_statuses() ) ) {
 			self::trigger_gateway_renewal_payment_hook( $subscription->get_last_order( 'all', 'renewal' ) );
 		}
+	}
+
+	/**
+	 * Display a list of each gateway supported features in a tooltip
+	 *
+	 * @since 2.5.0
+	 */
+	public static function payment_gateways_support_tooltip( $status_html, $gateway ) {
+
+		if ( ( ! is_array( $gateway->supports ) || ! in_array( 'subscriptions', $gateway->supports ) ) && 'paypal' !== $gateway->id ) {
+			return $status_html;
+		}
+
+		$core_features         = $gateway->supports;
+		$subscription_features = $change_payment_method_features = array();
+
+		foreach ( $core_features as $key => $feature ) {
+
+			// Skip any non-subscription related features.
+			if ( 0 !== strpos( $feature, 'subscription' ) ) {
+				continue;
+			}
+
+			$feature = str_replace( 'subscription_', '', $feature );
+
+			if ( 0 === strpos( $feature, 'payment_method' ) ) {
+				switch ( $feature ) {
+					case 'payment_method_change':
+						$change_payment_method_features[] = 'payment method change';
+						break;
+
+					case 'payment_method_change_customer':
+						$change_payment_method_features[] = 'customer change payment';
+						break;
+
+					case 'payment_method_change_admin':
+						$change_payment_method_features[] = 'admin change payment';
+						break;
+
+					default:
+						$change_payment_method_features[] = str_replace( 'payment_method', ' ', $feature );
+						break;
+				}
+			} else {
+				$subscription_features[] = $feature;
+			}
+
+			unset( $core_features[ $key ] );
+		}
+
+		$status_html .= '<span class="payment-method-features-info tips" data-tip="';
+		$status_html .= esc_attr( '<strong><u>' . __( 'Supported features:', 'woocommerce-subscriptions' ) . '</u></strong></br>' . implode( '<br />', str_replace( '_', ' ', $core_features ) ) );
+
+		if ( ! empty( $subscription_features ) ) {
+			$status_html .= esc_attr( '</br><strong><u>' . __( 'Subscription features:', 'woocommerce-subscriptions' ) . '</u></strong></br>' . implode( '<br />', str_replace( '_', ' ', $subscription_features ) ) );
+		}
+
+		if ( ! empty( $change_payment_method_features ) ) {
+			$status_html .= esc_attr( '</br><strong><u>' . __( 'Change payment features:', 'woocommerce-subscriptions' ) . '</u></strong></br>' . implode( '<br />', str_replace( '_', ' ', $change_payment_method_features ) ) );
+		}
+
+		$status_html .= '"></span>';
+
+		$allowed_html = wp_kses_allowed_html( 'post' );
+		$allowed_html['span']['data-tip'] = true;
+
+		return wp_kses( $status_html, $allowed_html );
 	}
 
 	/**

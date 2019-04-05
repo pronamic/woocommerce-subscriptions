@@ -35,23 +35,39 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 	private function query_report_data() {
 		global $wpdb;
 
+		// Convert from Decimal format(eg. 11.5) to a suitable format(eg. +11:30) for CONVERT_TZ() of SQL query.
+		$offset  = get_option( 'gmt_offset' );
+		$site_timezone = sprintf( '%+02d:%02d', (int) $offset, ( $offset - floor( $offset ) ) * 60 );
+		$retry_date_in_local_time = $wpdb->prepare( "CONVERT_TZ(retries.date_gmt, '+00:00', %s)", $site_timezone );
+
+		// We need to compute this on our own since 'group_by_query' from the parent class uses posts table column names.
+		switch ( $this->chart_groupby ) {
+			case 'day':
+				$this->group_by_query = "YEAR({$retry_date_in_local_time}), MONTH({$retry_date_in_local_time}), DAY({$retry_date_in_local_time})";
+				break;
+			case 'month':
+				$this->group_by_query = "YEAR({$retry_date_in_local_time}), MONTH({$retry_date_in_local_time})";
+				break;
+		}
+
 		$this->report_data = new stdClass;
 
-		$query_start_date = get_gmt_from_date( date( 'Y-m-d', $this->start_date ) );
-		$query_end_date   = get_gmt_from_date( date( 'Y-m-d', wcs_strtotime_dark_knight( '+1 day', $this->end_date ) ) );
+		$query_start_date = get_gmt_from_date( date( 'Y-m-d H:i:s', $this->start_date ) );
+		$query_end_date   = get_gmt_from_date( date( 'Y-m-d H:i:s', wcs_strtotime_dark_knight( '+1 day', $this->end_date ) ) );
 
-		// Get the sum of order totals for completed retires (i.e. retries which eventually succeeded in processing the failed payment)
+		// Get the sum of order totals for completed retries (i.e. retries which eventually succeeded in processing the failed payment)
 		$renewal_query = $wpdb->prepare(
-			"SELECT COUNT(DISTINCT posts.ID) as count, posts.post_date as post_date, SUM(meta_order_total.meta_value) as renewal_totals
-				FROM {$wpdb->prefix}posts AS orders
-				INNER JOIN {$wpdb->prefix}posts AS posts ON ( orders.ID = posts.post_parent )
-				LEFT JOIN {$wpdb->prefix}postmeta AS meta_order_total ON ( orders.ID = meta_order_total.post_id AND meta_order_total.meta_key = '_order_total' )
-			 WHERE posts.post_type = 'payment_retry'
-				AND posts.post_status = 'complete'
-				AND posts.post_modified_gmt >= %s
-				AND posts.post_modified_gmt < %s
-			 GROUP BY {$this->group_by_query}
-			 ORDER BY post_date ASC",
+			"
+			SELECT COUNT(DISTINCT retries.retry_id) as count, MIN(retries.date_gmt) AS retry_date_gmt, MIN({$retry_date_in_local_time}) AS retry_date, SUM(meta_order_total.meta_value) AS renewal_totals
+				FROM {$wpdb->posts} AS orders
+				INNER JOIN {$wpdb->prefix}wcs_payment_retries AS retries ON ( orders.ID = retries.order_id )
+				LEFT JOIN {$wpdb->postmeta} AS meta_order_total ON ( orders.ID = meta_order_total.post_id AND meta_order_total.meta_key = '_order_total' )
+			WHERE retries.status = 'complete'
+				AND retries.date_gmt >= %s
+				AND retries.date_gmt < %s
+			GROUP BY {$this->group_by_query}
+			ORDER BY retry_date_gmt ASC
+			",
 			$query_start_date,
 			$query_end_date
 		);
@@ -60,14 +76,15 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 
 		// Get the counts for all retries, grouped by day or month and status
 		$retry_query = $wpdb->prepare(
-			"SELECT COUNT(DISTINCT posts.ID) as count, posts.post_status as status, posts.post_date as post_date
-				FROM {$wpdb->prefix}posts AS posts
-			 WHERE posts.post_type = 'payment_retry'
-				AND posts.post_status IN ( 'complete','failed','pending' )
-				AND posts.post_modified_gmt >= %s
-				AND posts.post_modified_gmt < %s
-			 GROUP BY {$this->group_by_query}, posts.post_status
-			 ORDER BY posts.post_date_gmt ASC",
+			"
+			SELECT COUNT(DISTINCT retries.retry_id) AS count, retries.status AS status, MIN(retries.date_gmt) AS retry_date_gmt, MIN({$retry_date_in_local_time}) AS retry_date
+				FROM {$wpdb->prefix}wcs_payment_retries AS retries
+			WHERE retries.status IN ( 'complete', 'failed', 'pending' )
+			  AND retries.date_gmt >= %s
+			  AND retries.date_gmt < %s
+			GROUP BY {$this->group_by_query}, status
+			ORDER BY retry_date_gmt ASC
+			",
 			$query_start_date,
 			$query_end_date
 		);
@@ -80,7 +97,7 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 		$this->report_data->retry_pending_count  = absint( array_sum( wp_list_pluck( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'pending' ) ), 'count' ) ) );
 
 		$this->report_data->renewal_total_count  = absint( array_sum( wp_list_pluck( $this->report_data->renewal_data, 'count' ) ) );
-		$this->report_data->renewal_total_amount = absint( array_sum( wp_list_pluck( $this->report_data->renewal_data, 'renewal_totals' ) ) );
+		$this->report_data->renewal_total_amount = array_sum( wp_list_pluck( $this->report_data->renewal_data, 'renewal_totals' ) );
 	}
 
 	/**
@@ -188,13 +205,13 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 		global $wp_locale;
 
 		// Prepare data for report
-		$retry_count         = $this->prepare_chart_data( $this->report_data->retry_data, 'post_date', 'count', $this->chart_interval, $this->start_date, $this->chart_groupby );
-		$retry_success_count = $this->prepare_chart_data( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'complete' ) ), 'post_date', 'count', $this->chart_interval, $this->start_date, $this->chart_groupby );
-		$retry_failure_count = $this->prepare_chart_data( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'failed' ) ), 'post_date', 'count', $this->chart_interval, $this->start_date, $this->chart_groupby );
-		$retry_pending_count = $this->prepare_chart_data( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'pending' ) ), 'post_date', 'count', $this->chart_interval, $this->start_date, $this->chart_groupby );
+		$retry_count         = $this->prepare_chart_data( $this->report_data->retry_data, 'retry_date', 'count', $this->chart_interval, $this->start_date, $this->chart_groupby );
+		$retry_success_count = $this->prepare_chart_data( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'complete' ) ), 'retry_date', 'count', $this->chart_interval, $this->start_date, $this->chart_groupby );
+		$retry_failure_count = $this->prepare_chart_data( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'failed' ) ), 'retry_date', 'count', $this->chart_interval, $this->start_date, $this->chart_groupby );
+		$retry_pending_count = $this->prepare_chart_data( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'pending' ) ), 'retry_date', 'count', $this->chart_interval, $this->start_date, $this->chart_groupby );
 
-		$renewal_count       = $this->prepare_chart_data( $this->report_data->renewal_data, 'post_date', 'count', $this->chart_interval, $this->start_date, $this->chart_groupby );
-		$renewal_amount      = $this->prepare_chart_data( $this->report_data->renewal_data, 'post_date', 'renewal_totals', $this->chart_interval, $this->start_date, $this->chart_groupby );
+		$renewal_count       = $this->prepare_chart_data( $this->report_data->renewal_data, 'retry_date', 'count', $this->chart_interval, $this->start_date, $this->chart_groupby );
+		$renewal_amount      = $this->prepare_chart_data( $this->report_data->renewal_data, 'retry_date', 'renewal_totals', $this->chart_interval, $this->start_date, $this->chart_groupby );
 
 		// Encode in json format
 		$chart_data = array(

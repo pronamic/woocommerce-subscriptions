@@ -57,6 +57,28 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 	}
 
 	/**
+	 * Get the default e-mail subject.
+	 *
+	 * @param bool $paid Whether the order has been paid or not.
+	 * @since 2.5.3
+	 * @return string
+	 */
+	public function get_default_subject( $paid = false ) {
+		return $this->subject;
+	}
+
+	/**
+	 * Get the default e-mail heading.
+	 *
+	 * @param bool $paid Whether the order has been paid or not.
+	 * @since 2.5.3
+	 * @return string
+	 */
+	public function get_default_heading( $paid = false ) {
+		return $this->heading;
+	}
+
+	/**
 	 * trigger function.
 	 *
 	 * We need to override WC_Email_Customer_Invoice's trigger method because it expects to be run only once

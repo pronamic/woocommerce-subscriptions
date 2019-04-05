@@ -73,6 +73,8 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 		switch ( $new_status ) {
 			case 'active' :
 
+				$this->unschedule_actions( 'woocommerce_scheduled_subscription_end_of_prepaid_term', $this->get_action_args( 'end', $subscription ) );
+
 				foreach ( $this->action_hooks as $action_hook => $date_type ) {
 
 					$event_time = $subscription->get_time( $date_type );
@@ -94,6 +96,7 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 						as_schedule_single_action( $event_time, $action_hook, $action_args );
 					}
 				}
+
 				break;
 			case 'pending-cancel' :
 

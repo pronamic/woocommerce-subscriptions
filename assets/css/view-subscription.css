@@ -1,6 +1,58 @@
-.subscription_details .button {
+@media only screen and (max-width:768px) {
+	.subscription_details .button {
+		margin-bottom: 2px;
+		width: 100%;
+		max-width: 200px;
+		text-align: center;
+	}
+}
+
+.subscription-auto-renew-toggle {
+	margin-left: 5px;
 	margin-bottom: 2px;
-	width: 100%;
-	max-width: 200px;
-	text-align: center;
+	position: relative;
+	top: 4px;
+}
+
+.subscription-auto-renew-toggle__i {
+	height: 20px;
+	width: 32px;
+	border: 2px solid #00BA8A;
+	background-color: #00BA8A;
+	display: inline-block;
+	text-indent: -9999px;
+	border-radius: 10em;
+	position: relative;
+	margin-top: -1px;
+	vertical-align: text-top;
+}
+
+.subscription-auto-renew-toggle__i:before {
+	content: "";
+	display: block;
+	width: 16px;
+	height: 16px;
+	background: #fff;
+	position: absolute;
+	top: 0;
+	right: 0;
+	border-radius: 100%;
+}
+
+.subscription-auto-renew-toggle--off .subscription-auto-renew-toggle__i {
+	border-color: #999;
+	background-color: #999;
+}
+
+.subscription-auto-renew-toggle--off .subscription-auto-renew-toggle__i:before {
+	right: auto;
+	left: 0;
+}
+
+.subscription-auto-renew-toggle--loading .subscription-auto-renew-toggle__i {
+	opacity: 0.5;
+}
+
+.subscription-auto-renew-toggle--hidden {
+	display: none;
 }

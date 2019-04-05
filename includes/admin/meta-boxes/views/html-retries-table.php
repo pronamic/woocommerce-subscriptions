@@ -42,7 +42,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					if ( $retry->get_time() > 0 ) {
 						// translators: php date format
 						$t_time          = date( _x( 'Y/m/d g:i:s A', 'post date', 'woocommerce-subscriptions' ), $retry->get_time() );
-						$date_to_display = wcs_get_human_time_diff( $retry->get_time() );
+						$date_to_display = ucfirst( wcs_get_human_time_diff( $retry->get_time() ) );
 					} else {
 						$t_time = $date_to_display = __( 'Unpublished', 'woocommerce-subscriptions' );
 					} ?>

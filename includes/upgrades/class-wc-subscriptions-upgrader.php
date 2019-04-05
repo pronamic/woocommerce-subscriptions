@@ -101,9 +101,6 @@ class WC_Subscriptions_Upgrader {
 		// When WC is updated from a version prior to 3.0 to a version after 3.0, add subscription address indexes. Must be hooked on before WC runs its updates, which occur on priority 5.
 		add_action( 'init', array( __CLASS__, 'maybe_add_subscription_address_indexes' ), 2 );
 
-		// Hooks into WC's wc_update_350_order_customer_id upgrade routine.
-		add_action( 'init', array( __CLASS__, 'maybe_update_subscription_post_author' ), 2 );
-
 		add_action( 'admin_notices', array( __CLASS__, 'maybe_add_downgrade_notice' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'maybe_display_external_object_cache_warning' ) );
 
@@ -238,6 +235,11 @@ class WC_Subscriptions_Upgrader {
 			self::$background_updaters['2.4']['start_date_metadata']->schedule_repair();
 		}
 
+		// Upon upgrading or installing 2.5.0 for the first time, enable or disable PayPal Standard for Subscriptions.
+		if ( version_compare( self::$active_version, '2.5.0', '<' ) ) {
+			WCS_PayPal::set_enabled_for_subscriptions_default();
+		}
+
 		self::upgrade_complete();
 	}
 
@@ -368,8 +370,8 @@ class WC_Subscriptions_Upgrader {
 
 					$results = array(
 						'upgraded_count' => 0,
-						// translators: 1$: error message, 2$: opening link tag, 3$: closing link tag
-						'message'        => sprintf( __( 'Unable to upgrade subscriptions.<br/>Error: %1$s<br/>Please refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage(). '</code>', '<a href="' . esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' ) . '">', '</a>' ),
+						// translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
+						'message'        => sprintf( __( 'Unable to upgrade subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage(). '</code>', '<a href="' . esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' ) . '">', '</a>', '<br />' ),
 						'status'         => 'error',
 					);
 				}
@@ -415,8 +417,8 @@ class WC_Subscriptions_Upgrader {
 					$results = array(
 						'repaired_count'   => 0,
 						'unrepaired_count' => 0,
-						// translators: 1$: error message, 2$: opening link tag, 3$: closing link tag
-						'message'          => sprintf( _x( 'Unable to repair subscriptions.<br/>Error: %1$s<br/>Please refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'Error message that gets sent to front end when upgrading Subscriptions', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage(). '</code>', '<a href="' . esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' ) . '">', '</a>' ),
+						// translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
+						'message'          => sprintf( _x( 'Unable to repair subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'Error message that gets sent to front end when upgrading Subscriptions', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage(). '</code>', '<a href="' . esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' ) . '">', '</a>', '<br />' ),
 						'status'           => 'error',
 					);
 				}
@@ -827,24 +829,6 @@ class WC_Subscriptions_Upgrader {
 	}
 
 	/**
-	 * Handles the WC 3.5.0 upgrade routine that moves customer IDs from post metadata to the 'post_author' column.
-	 *
-	 * @since 2.4.0
-	 */
-	public static function maybe_update_subscription_post_author() {
-		if ( version_compare( WC()->version, '3.5.0', '<' ) ) {
-			return;
-		}
-
-		// If WC hasn't run the update routine yet we can hook into theirs to update subscriptions, otherwise we'll need to schedule our own update.
-		if ( version_compare( get_option( 'woocommerce_db_version' ), '3.5.0', '<' ) ) {
-			self::$background_updaters['2.4']['subscription_post_author']->hook_into_wc_350_update();
-		} else if ( version_compare( self::$active_version, '2.4.0', '<' ) ) {
-			self::$background_updaters['2.4']['subscription_post_author']->schedule_repair();
-		}
-	}
-
-	/**
 	 * Load and initialise the background updaters.
 	 *
 	 * @since 2.4.0
@@ -854,7 +838,6 @@ class WC_Subscriptions_Upgrader {
 		self::$background_updaters['2.3']['suspended_paypal_repair'] = new WCS_Repair_Suspended_PayPal_Subscriptions( $logger );
 		self::$background_updaters['2.3']['address_indexes_repair']  = new WCS_Repair_Subscription_Address_Indexes( $logger );
 		self::$background_updaters['2.4']['start_date_metadata'] = new WCS_Repair_Start_Date_Metadata( $logger );
-		self::$background_updaters['2.4']['subscription_post_author'] = new WCS_Upgrade_Subscription_Post_Author( $logger );
 
 		// Init the updaters
 		foreach ( self::$background_updaters as $version => $updaters ) {
@@ -901,6 +884,27 @@ class WC_Subscriptions_Upgrader {
 		) );
 
 		$admin_notice->display();
+	}
+
+	/**
+	 * Handles the WC 3.5.0 upgrade routine that moves customer IDs from post metadata to the 'post_author' column.
+	 *
+	 * @since 2.4.0
+	 * @deprecated 2.5.0
+	 */
+	public static function maybe_update_subscription_post_author() {
+		wcs_deprecated_function( __METHOD__, '2.5.0' );
+
+		if ( version_compare( WC()->version, '3.5.0', '<' ) ) {
+			return;
+		}
+
+		// If WC hasn't run the update routine yet we can hook into theirs to update subscriptions, otherwise we'll need to schedule our own update.
+		if ( version_compare( get_option( 'woocommerce_db_version' ), '3.5.0', '<' ) ) {
+			self::$background_updaters['2.4']['subscription_post_author']->hook_into_wc_350_update();
+		} else if ( version_compare( self::$active_version, '2.4.0', '<' ) ) {
+			self::$background_updaters['2.4']['subscription_post_author']->schedule_repair();
+		}
 	}
 
 	/**
