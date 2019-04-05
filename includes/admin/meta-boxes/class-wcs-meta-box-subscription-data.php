@@ -164,7 +164,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 						echo '<p' . ( ( '' != $subscription->get_payment_method() ) ? ' class="' . esc_attr( $subscription->get_payment_method() ) . '"' : '' ) . '><strong>' . esc_html__( 'Payment Method', 'woocommerce-subscriptions' ) . ':</strong>' . wp_kses_post( nl2br( $subscription->get_payment_method_to_display() ) );
 
 						// Display help tip
-						if ( '' != $subscription->get_payment_method()  && ! $subscription->is_manual() ) {
+						if ( '' != $subscription->get_payment_method() && ! $subscription->is_manual() ) {
 							echo wcs_help_tip( sprintf( _x( 'Gateway ID: [%s]', 'The gateway ID displayed on the Edit Subscriptions screen when editing payment method.', 'woocommerce-subscriptions' ), $subscription->get_payment_method() ) );
 						}
 
@@ -197,6 +197,22 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 						echo '</div>';
 
 						do_action( 'woocommerce_admin_order_data_after_billing_address', $subscription );
+
+						// Display a link to the customer's add/change payment method screen.
+						if ( $subscription->can_be_updated_to( 'new-payment-method' ) ) {
+
+							if ( $subscription->has_payment_gateway() ) {
+								$link_text = __( 'Customer change payment method page &rarr;', 'woocommerce-subscriptions' );
+							} else {
+								$link_text = __( 'Customer add payment method page &rarr;', 'woocommerce-subscriptions' );
+							}
+
+							printf(
+								'<a href="%s">%s</a>',
+								esc_url( $subscription->get_change_payment_method_url() ),
+								esc_html( $link_text )
+							);
+						}
 						?>
 					</div>
 					<div class="order_data_column">
@@ -302,8 +318,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 
 		// Ensure there is an order key.
 		if ( ! $subscription->get_order_key() ) {
-			$key = 'wc_' . apply_filters( 'woocommerce_generate_order_key', uniqid( 'order_' ) );
-			wcs_set_objects_property( $subscription, 'order_key', $key );
+			wcs_set_objects_property( $subscription, 'order_key', wcs_generate_order_key() );
 		}
 
 		// Update meta

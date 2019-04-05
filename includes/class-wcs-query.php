@@ -17,12 +17,18 @@ class WCS_Query extends WC_Query {
 			add_filter( 'query_vars', array( $this, 'add_query_vars' ), 0 );
 			add_action( 'parse_request', array( $this, 'parse_request' ), 0 );
 			add_filter( 'woocommerce_get_breadcrumb', array( $this, 'add_breadcrumb' ), 10 );
+			add_action( 'pre_get_posts', array( $this, 'maybe_redirect_payment_methods' ) );
 			add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ), 11 );
 			add_filter( 'woocommerce_get_query_vars', array( $this, 'add_wcs_query_vars' ) );
 
 			// Inserting your new tab/page into the My Account page.
 			add_filter( 'woocommerce_account_menu_items', array( $this, 'add_menu_items' ) );
-			add_filter( 'woocommerce_get_endpoint_url', array( $this, 'get_endpoint_url' ), 10, 4 );
+
+			// Since WC 3.3.0, add_wcs_query_vars() is enough for custom endpoints to work.
+			if ( WC_Subscriptions::is_woocommerce_pre( '3.3.0' ) ) {
+				add_filter( 'woocommerce_get_endpoint_url', array( $this, 'get_endpoint_url' ), 10, 4 );
+			}
+
 			add_filter( 'woocommerce_get_endpoint_url', array( $this, 'maybe_redirect_to_only_subscription' ), 10, 2 );
 			add_action( 'woocommerce_account_subscriptions_endpoint', array( $this, 'endpoint_content' ) );
 		}
@@ -47,6 +53,7 @@ class WCS_Query extends WC_Query {
 		);
 		if ( ! WC_Subscriptions::is_woocommerce_pre( '2.6' ) ) {
 			$this->query_vars['subscriptions'] = get_option( 'woocommerce_myaccount_subscriptions_endpoint', 'subscriptions' );
+			$this->query_vars['subscription-payment-method'] = get_option( 'woocommerce_myaccount_subscription_payment_method_endpoint', 'subscription-payment-method' );
 		}
 	}
 
@@ -123,6 +130,12 @@ class WCS_Query extends WC_Query {
 	 * @return array
 	 */
 	public function add_menu_items( $menu_items ) {
+
+		// If the Subscriptions endpoint setting is empty, don't display it in line with core WC behaviour.
+		if ( empty( $this->query_vars['subscriptions'] ) ) {
+			return $menu_items;
+		}
+
 		if ( 1 == count( wcs_get_users_subscriptions() ) && apply_filters( 'wcs_my_account_redirect_to_single_subscription', true ) ) {
 			$label = __( 'My Subscription', 'woocommerce-subscriptions' );
 		} else {
@@ -148,7 +161,7 @@ class WCS_Query extends WC_Query {
 	 * @return string
 	 */
 	public function maybe_redirect_to_only_subscription( $url, $endpoint ) {
-		if ( 'subscriptions' == $endpoint && is_account_page() ) {
+		if ( $this->query_vars['subscriptions'] === $endpoint && is_account_page() ) {
 			$subscriptions = wcs_get_users_subscriptions();
 
 			if ( is_array( $subscriptions ) && 1 == count( $subscriptions ) && apply_filters( 'wcs_my_account_redirect_to_single_subscription', true ) ) {
@@ -217,6 +230,41 @@ class WCS_Query extends WC_Query {
 	}
 
 	/**
+	 * Redirect to order-pay flow for Subscription Payment Method endpoint.
+	 *
+	 * @param WP_Query $query WordPress query object
+	 * @since 2.5.0
+	 */
+	public function maybe_redirect_payment_methods( $query ) {
+
+		if ( ! $query->is_main_query() || ! absint( $query->get( 'subscription-payment-method' ) ) ) {
+			return;
+		}
+
+		$subscription = wcs_get_subscription( absint( $query->get( 'subscription-payment-method' ) ) );
+		if ( ! $subscription ) {
+			return;
+		}
+
+		if ( ! $subscription->can_be_updated_to( 'new-payment-method' ) ) {
+
+			$url = $subscription->get_view_order_url();
+			wc_add_notice( __( 'The payment method can not be changed for that subscription.', 'woocommerce-subscriptions' ), 'error' );
+
+		} else {
+
+			$args = array(
+				'change_payment_method' => $subscription->get_id(),
+				'_wpnonce'              => wp_create_nonce(),
+			);
+			$url = add_query_arg( $args, $subscription->get_checkout_payment_url() );
+		}
+
+		wp_redirect( $url );
+		exit();
+	}
+
+	/**
 	 * Reset the woocommerce_myaccount_view_subscriptions_endpoint option name to woocommerce_myaccount_view_subscription_endpoint
 	 *
 	 * @return mixed Value set for the option
@@ -262,8 +310,16 @@ class WCS_Query extends WC_Query {
 			'desc_tip' => true,
 		);
 
-		WC_Subscriptions_Admin::insert_setting_after( $settings, 'woocommerce_myaccount_view_order_endpoint', array( $subscriptions_endpoint_setting, $view_subscription_endpoint_setting ), 'multiple_settings' );
+		$subscription_payment_method_endpoint_setting = array(
+			'title'    => __( 'Subscription payment method', 'woocommerce-subscriptions' ),
+			'desc'     => __( 'Endpoint for the My Account &rarr; Change Subscription Payment Method page', 'woocommerce-subscriptions' ),
+			'id'       => 'woocommerce_myaccount_subscription_payment_method_endpoint',
+			'type'     => 'text',
+			'default'  => 'subscription-payment-method',
+			'desc_tip' => true,
+		);
 
+		WC_Subscriptions_Admin::insert_setting_after( $settings, 'woocommerce_myaccount_view_order_endpoint', array( $subscriptions_endpoint_setting, $view_subscription_endpoint_setting, $subscription_payment_method_endpoint_setting ), 'multiple_settings' );
 		return $settings;
 	}
 
@@ -279,7 +335,7 @@ class WCS_Query extends WC_Query {
 	 * @return string $url
 	 */
 
-	public function get_endpoint_url( $url, $endpoint, $value = '', $permalink = '') {
+	public function get_endpoint_url( $url, $endpoint, $value = '', $permalink = '' ) {
 
 		if ( ! empty( $this->query_vars[ $endpoint ] ) ) {
 			remove_filter( 'woocommerce_get_endpoint_url', array( $this, 'get_endpoint_url' ) );

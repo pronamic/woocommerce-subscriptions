@@ -11,6 +11,31 @@
     color: #f29ec4;
 }
 
+#woocommerce_dashboard_status .wc_status_list li.cancel-count {
+    width: 100%;
+}
+
+#woocommerce_dashboard_status .wc_status_list li.cancel-count a:before {
+    content: "\e02c";
+    color: #aa0000;
+}
+
+#woocommerce_dashboard_status .wc_status_list li.signup-revenue a:before {
+    font-family: Dashicons;
+    content: '\f185';
+    color: #5da5da;
+}
+
+#woocommerce_dashboard_status .wc_status_list li.renewal-revenue a:before {
+    font-family: Dashicons;
+    content: '\f185';
+    color: #f29ec4;
+}
+
 #woocommerce_dashboard_status .wc_status_list li.signup-count {
+    border-right: 1px solid #ececec;
+}
+
+#woocommerce_dashboard_status .wc_status_list li.renewal-count {
     border-right: 1px solid #ececec;
 }

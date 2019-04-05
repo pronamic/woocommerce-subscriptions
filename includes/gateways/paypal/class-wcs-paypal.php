@@ -34,7 +34,7 @@ class WCS_PayPal {
 	 * Main PayPal Instance, ensures only one instance is/can be loaded
 	 *
 	 * @see wc_paypal_express()
-	 * @return WC_PayPal_Express
+	 * @return WCS_PayPal
 	 * @since 2.0
 	 */
 	public static function instance() {
@@ -80,9 +80,22 @@ class WCS_PayPal {
 
 		add_filter( 'woocommerce_subscriptions_admin_meta_boxes_script_parameters', __CLASS__ . '::maybe_add_change_payment_method_warning' );
 
+		// Maybe order don't need payment because lock.
+		add_filter( 'woocommerce_order_needs_payment', __CLASS__ . '::maybe_override_needs_payment', 10, 2 );
+
+		// Remove payment lock when order is completely paid or order is cancelled.
+		add_action( 'woocommerce_order_status_cancelled', __CLASS__ . '::maybe_remove_payment_lock' );
+		add_action( 'woocommerce_payment_complete', __CLASS__ . '::maybe_remove_payment_lock' );
+
+		// Adds payment lock on order received.
+		add_action( 'get_header', __CLASS__ . '::maybe_add_payment_lock' );
+
 		// Run the IPN failure handler attach and detach functions before and after processing to catch and log any unexpected shutdowns
 		add_action( 'valid-paypal-standard-ipn-request', 'WCS_PayPal_Standard_IPN_Failure_Handler::attach', -1, 1 );
 		add_action( 'valid-paypal-standard-ipn-request', 'WCS_PayPal_Standard_IPN_Failure_Handler::detach', 1, 1 );
+
+		// Remove PayPal from the available payment methods if it's disabled for subscription purchases.
+		add_filter( 'woocommerce_available_payment_gateways', array( __CLASS__, 'maybe_remove_paypal_standard' ) );
 
 		WCS_PayPal_Supports::init();
 		WCS_PayPal_Status_Manager::init();
@@ -90,8 +103,9 @@ class WCS_PayPal {
 
 		if ( is_admin() ) {
 			WCS_PayPal_Admin::init();
-			WCS_PayPal_Change_Payment_Method_Admin::init();
 		}
+
+		WCS_PayPal_Change_Payment_Method_Admin::init();
 	}
 
 	/**
@@ -226,6 +240,11 @@ class WCS_PayPal {
 
 						// Store the billing agreement ID on the order and subscriptions
 						wcs_set_paypal_id( $order, $billing_agreement_response->get_billing_agreement_id() );
+
+						// Update payment method on all active subscriptions?
+						if ( wcs_is_subscription( $order ) && WC_Subscriptions_Change_Payment_Gateway::will_subscription_update_all_payment_methods( $order ) ) {
+							WC_Subscriptions_Change_Payment_Gateway::update_all_payment_methods_from_subscription( $order, $payment_method->id );
+						}
 
 						foreach ( wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'any' ) ) as $subscription ) {
 							$subscription->set_payment_method( $payment_method );
@@ -438,6 +457,74 @@ class WCS_PayPal {
 		return $script_parameters;
 	}
 
+	/**
+	 * This validates against payment lock for PP and returns false if we meet the criteria:
+	 *  - is a parent order.
+	 *  - payment method is paypal.
+	 *  - PayPal Reference Transactions is disabled.
+	 *  - order has lock.
+	 *  - lock hasn't timeout.
+	 *
+	 * @param bool     $needs_payment Does this order needs to process payment?
+	 * @param WC_Order $order         The actual order.
+	 *
+	 * @return bool
+	 * @since 2.5.3
+	 */
+	public static function maybe_override_needs_payment( $needs_payment, $order ) {
+		if ( $needs_payment && self::instance()->get_id() === $order->get_payment_method() && ! self::are_reference_transactions_enabled() && wcs_order_contains_subscription( $order, array( 'parent' ) ) ) {
+			$has_lock            = $order->get_meta( '_wcs_lock_order_payment' );
+			$seconds_since_order = wcs_seconds_since_order_created( $order );
+
+			// We have lock and order hasn't meet the lock time.
+			if ( $has_lock && $seconds_since_order < apply_filters( 'wcs_lock_order_payment_seconds', 180 ) ) {
+				$needs_payment = false;
+			}
+		}
+
+		return $needs_payment;
+	}
+
+	/**
+	 * Adds payment lock meta when order is received and...
+	 * - order is valid.
+	 * - payment method is paypal.
+	 * - order needs payment.
+	 * - PayPal Reference Transactions is disabled.
+	 * - order is parent order of a subscription.
+	 *
+	 * @since 2.5.3
+	 */
+	public static function maybe_add_payment_lock() {
+		if ( ! wcs_is_order_received_page() ) {
+			return;
+		}
+
+		global $wp;
+		$order = wc_get_order( absint( $wp->query_vars['order-received'] ) );
+
+		if ( $order && self::instance()->get_id() === $order->get_payment_method() && $order->needs_payment() && ! self::are_reference_transactions_enabled() && wcs_order_contains_subscription( $order, array( 'parent' ) ) ) {
+			$order->update_meta_data( '_wcs_lock_order_payment', 'true' );
+			$order->save();
+		}
+	}
+
+	/**
+	 * Removes payment lock when order is parent and has paypal method.
+	 *
+	 * @param int $order_id Order cancelled/paid.
+	 *
+	 * @since 2.5.3
+	 */
+	public static function maybe_remove_payment_lock( $order_id ) {
+		$order = wc_get_order( $order_id );
+
+		if ( self::instance()->get_id() === $order->get_payment_method() && wcs_order_contains_subscription( $order, array( 'parent' ) ) ) {
+			$order->delete_meta_data( 'wcs_lock_order_payment' );
+			$order->save();
+		}
+	}
+
 	/** Getters ******************************************************/
 
 	/**
@@ -540,4 +627,65 @@ class WCS_PayPal {
 		return 'paypal';
 	}
 
+	/**
+	 * Set the default value for whether PayPal Standard is enabled or disabled for subscriptions purchases.
+	 *
+	 * PayPal Standard will be enabled for subscriptions when:
+	 * - PayPal is enabled.
+	 * - The store has existing subscriptions.
+	 *
+	 * In any other case, it will be disabled by default.
+	 * This function is called when 2.5.0 is active for the first time. @see WC_Subscriptions_Upgrader::upgrade()
+	 *
+	 * @since 2.5.0
+	 */
+	public static function set_enabled_for_subscriptions_default() {
+
+		// Exit early if it has already been set.
+		if ( self::get_option( 'enabled_for_subscriptions' ) ) {
+			return;
+		}
+
+		// For existing stores with PayPal enabled, PayPal is automatically enabled for subscriptions.
+		if ( 'yes' === WCS_PayPal::get_option( 'enabled' ) && wcs_do_subscriptions_exist() ) {
+			$default = 'yes';
+		} else {
+			$default = 'no';
+		}
+
+		// Find the PayPal Standard gateway instance to set the setting.
+		foreach ( WC()->payment_gateways->payment_gateways as $gateway ) {
+			if ( $gateway->id === 'paypal' ) {
+				wcs_update_settings_option( $gateway, 'enabled_for_subscriptions', $default );
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Remove PayPal Standard as an available payment method if it is disabled for subscriptions.
+	 *
+	 * @param array $available_gateways A list of available payment methods displayed on the checkout.
+	 * @return array
+	 * @since 2.5.0
+	 */
+	public static function maybe_remove_paypal_standard( $available_gateways ) {
+
+		if ( ! isset( $available_gateways['paypal'] ) || 'yes' === self::get_option( 'enabled_for_subscriptions' ) || WCS_PayPal::are_reference_transactions_enabled() ) {
+			return $available_gateways;
+		}
+
+		$paying_for_order = absint( get_query_var( 'order-pay' ) );
+
+		if (
+			WC_Subscriptions_Change_Payment_Gateway::$is_request_to_change_payment ||
+			WC_Subscriptions_Cart::cart_contains_subscription() ||
+			wcs_cart_contains_renewal() ||
+			( $paying_for_order && wcs_order_contains_subscription( $paying_for_order ) )
+		) {
+			unset( $available_gateways['paypal'] );
+		}
+
+		return $available_gateways;
+	}
 }

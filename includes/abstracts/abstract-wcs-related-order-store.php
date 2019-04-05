@@ -41,11 +41,7 @@ abstract class WCS_Related_Order_Store {
 	 *
 	 * @var array
 	 */
-	private static $relation_type_keys = array(
-		'renewal'     => true,
-		'switch'      => true,
-		'resubscribe' => true,
-	);
+	private static $relation_type_keys = array();
 
 	/**
 	 * Get the active related order data store.
@@ -58,6 +54,19 @@ abstract class WCS_Related_Order_Store {
 			if ( ! did_action( 'plugins_loaded' ) ) {
 				wcs_doing_it_wrong( __METHOD__, 'This method was called before the "plugins_loaded" hook. It applies a filter to the related order data store instantiated. For that to work, it should first be called after all plugins are loaded.', '2.3.0' );
 			}
+
+			/**
+			 * Allow third-parties to register their own custom order relationship types which should be handled by this store.
+			 *
+			 * @param array An array of order relationship types.
+			 * @since 2.5.0
+			 */
+			foreach ( (array) apply_filters( 'wcs_additional_related_order_relation_types', array() ) as $relation_type ) {
+				self::$relation_types[] = $relation_type;
+
+			}
+
+			self::$relation_type_keys = array_fill_keys( self::$relation_types, true );
 
 			$class = apply_filters( 'wcs_related_order_store_class', 'WCS_Related_Order_Store_Cached_CPT' );
 			self::$instance = new $class();

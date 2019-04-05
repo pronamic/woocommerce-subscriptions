@@ -28,7 +28,9 @@ class WCS_PayPal_Change_Payment_Method_Admin {
 		add_filter( 'woocommerce_subscription_payment_meta', __CLASS__ . '::add_payment_meta_details', 10, 2 );
 
 		// Validate the PayPal billing agreement ID meta value when attempting to set PayPal as the payment method
-		add_filter( 'woocommerce_subscription_validate_payment_meta_paypal', __CLASS__ . '::validate_payment_meta', 10, 2 );
+		if ( is_admin() ) {
+			add_filter( 'woocommerce_subscription_validate_payment_meta_paypal', __CLASS__ . '::validate_payment_meta', 10, 2 );
+		}
 	}
 
 	/**

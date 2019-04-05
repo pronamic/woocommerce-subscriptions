@@ -334,7 +334,7 @@ function wcs_get_all_user_actions_for_subscription( $subscription, $user_id ) {
 			);
 		}
 
-		if ( wcs_can_user_resubscribe_to( $subscription, $user_id ) ) {
+		if ( wcs_can_user_resubscribe_to( $subscription, $user_id ) && false == $subscription->can_be_updated_to( 'active' ) ) {
 			$actions['resubscribe'] = array(
 				'url'  => wcs_get_users_resubscribe_link( $subscription ),
 				'name' => __( 'Resubscribe', 'woocommerce-subscriptions' ),

@@ -155,7 +155,7 @@ function wcs_create_subscription( $args = array() ) {
 	$subscription_data['post_type']     = 'shop_subscription';
 	$subscription_data['post_status']   = 'wc-' . apply_filters( 'woocommerce_default_subscription_status', 'pending' );
 	$subscription_data['ping_status']   = 'closed';
-	$subscription_data['post_author']   = WC_Subscriptions::is_woocommerce_pre( '3.5' ) ? 1 : $args['customer_id'];
+	$subscription_data['post_author']   = 1;
 	$subscription_data['post_password'] = uniqid( 'order_' );
 	// translators: Order date parsed by strftime
 	$post_title_date = strftime( _x( '%b %d, %Y @ %I:%M %p', 'Used in subscription post title. "Subscription renewal order - <this>"', 'woocommerce-subscriptions' ) );
@@ -187,7 +187,7 @@ function wcs_create_subscription( $args = array() ) {
 	}
 
 	// Default order meta data.
-	update_post_meta( $subscription_id, '_order_key', 'wc_' . apply_filters( 'woocommerce_generate_order_key', uniqid( 'order_' ) ) );
+	update_post_meta( $subscription_id, '_order_key', wcs_generate_order_key() );
 	update_post_meta( $subscription_id, '_order_currency', $args['currency'] );
 	update_post_meta( $subscription_id, '_prices_include_tax', $args['prices_include_tax'] );
 	update_post_meta( $subscription_id, '_created_via', sanitize_text_field( $args['created_via'] ) );

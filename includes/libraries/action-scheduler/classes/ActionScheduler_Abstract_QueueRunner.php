@@ -57,13 +57,16 @@ abstract class ActionScheduler_Abstract_QueueRunner extends ActionScheduler_Abst
 			$action = $this->store->fetch_action( $action_id );
 			$this->store->log_execution( $action_id );
 			$action->execute();
-			do_action( 'action_scheduler_after_execute', $action_id );
+			do_action( 'action_scheduler_after_execute', $action_id, $action );
 			$this->store->mark_complete( $action_id );
 		} catch ( Exception $e ) {
 			$this->store->mark_failure( $action_id );
 			do_action( 'action_scheduler_failed_execution', $action_id, $e );
 		}
-		$this->schedule_next_instance( $action );
+
+		if ( isset( $action ) && is_a( $action, 'ActionScheduler_Action' ) ) {
+			$this->schedule_next_instance( $action );
+		}
 	}
 
 	/**
@@ -86,7 +89,7 @@ abstract class ActionScheduler_Abstract_QueueRunner extends ActionScheduler_Abst
 	 * @author Jeremy Pry
 	 */
 	protected function run_cleanup() {
-		$this->cleaner->clean();
+		$this->cleaner->clean( 10 * $this->get_time_limit() );
 	}
 
 	/**

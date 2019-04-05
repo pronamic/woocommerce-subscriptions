@@ -155,20 +155,18 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 			}
 		}
 
-		// On WC 3.5.0 the ID of the user that placed the order was moved from the post meta _customer_user to the post_author field in the wp_posts table.
-		// If the update routine didn't manage to cover subscriptions, we need to use the value stored as post meta until our own update finishes.
-		if ( version_compare( get_option( 'woocommerce_db_version' ), '3.5.0', '>=' ) && 1 == $post_object->post_author && get_option( 'wcs_subscription_post_author_upgrade_is_scheduled', false ) ) {
-			$props_to_set['customer_id'] = get_post_meta( $subscription->get_id(), '_customer_user', true );
-		} else {
-			/**
-			 * WC 3.5.0 and our 2.4.0 post author upgrade scripts didn't account for subscriptions created manually by admin users with a user ID not equal to 1.
-			 * This resulted in those subscription post author columns not being updated and so linked to the admin user who created them, not the customer.
-			 *
-			 * Until a permanent fix is found, revert to the previous behavior of getting the customer user from post meta.
-			 * This will be eventually removed.
-			 *
-			 * @see https://github.com/Prospress/woocommerce-subscriptions/issues/3036
-			 */
+		/**
+		 * WC 3.5.0 and our 2.4.0 post author upgrade scripts didn't account for subscriptions created manually by admin users with a user ID not equal to 1.
+		 * This resulted in those subscription post author columns not being updated and so linked to the admin user who created them, not the customer.
+		 *
+		 * To make sure all subscriptions are linked to the correct customer, we revert to the previous behavior of
+		 * getting the customer user from post meta.
+		 * The fix is only applied on WC 3.5.0 because 3.5.1 brought back the old way (pre 3.5.0) of getting the
+		 * customer ID for orders.
+		 *
+		 * @see https://github.com/Prospress/woocommerce-subscriptions/issues/3036
+		 */
+		if ( '3.5.0' === WC()->version ) {
 			$props_to_set['customer_id'] = get_post_meta( $subscription->get_id(), '_customer_user', true );
 		}
 

@@ -248,15 +248,16 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 
 		switch ( $transaction_details['txn_type'] ) {
 			case 'subscr_signup':
+				$order = self::get_parent_order_with_fallback( $subscription );
 
 				// Store PayPal Details on Subscription and Order
 				$this->save_paypal_meta_data( $subscription, $transaction_details );
-				$this->save_paypal_meta_data( $subscription->get_parent(), $transaction_details );
+				$this->save_paypal_meta_data( $order, $transaction_details );
 
 				// When there is a free trial & no initial payment amount, we need to mark the order as paid and activate the subscription
-				if ( ! $is_payment_change && ! $is_renewal_sign_up_after_failure && 0 == $subscription->get_parent()->get_total() ) {
+				if ( ! $is_payment_change && ! $is_renewal_sign_up_after_failure && 0 == $order->get_total() ) {
 					// Safe to assume the subscription has an order here because otherwise we wouldn't get a 'subscr_signup' IPN
-					$subscription->get_parent()->payment_complete(); // No 'txn_id' value for 'subscr_signup' IPN messages
+					$order->payment_complete(); // No 'txn_id' value for 'subscr_signup' IPN messages
 					update_post_meta( $subscription->get_id(), '_paypal_first_ipn_ignored_for_pdt', 'true' );
 				}
 
@@ -288,8 +289,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 				break;
 
 			case 'subscr_payment':
-
-				if ( 0.01 == $transaction_details['mc_gross'] && 1 == $subscription->get_completed_payment_count() ) {
+				if ( 0.01 == $transaction_details['mc_gross'] ) {
 					WC_Gateway_Paypal::log( 'IPN ignored, treating IPN as secondary trial period.' );
 					exit;
 				}
@@ -335,17 +335,18 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 
 					// First payment on order, process payment & activate subscription
 					if ( $is_first_payment ) {
-						$parent_order = $subscription->get_parent();
+						$parent_order = self::get_parent_order_with_fallback( $subscription );
 
 						if ( ! $parent_order->is_paid() ) {
 							$parent_order->payment_complete( $transaction_details['txn_id'] );
-						} elseif ( $subscription->can_be_updated_to( 'active' ) ) {
-							// If the order has already been paid it might have been completed via PDT so reactivate the subscription now because calling payment complete won't.
+						}
+
+						if ( $subscription->can_be_updated_to( 'active' ) ) {
 							$subscription->update_status( 'active' );
 						}
 
 						// Store PayPal Details on Order
-						$this->save_paypal_meta_data( $subscription->get_parent(), $transaction_details );
+						$this->save_paypal_meta_data( $parent_order, $transaction_details );
 
 						// IPN got here first or PDT will never arrive. Normally PDT would have arrived, so the first IPN would not be the first payment. In case the the first payment is an IPN, we need to make sure to not ignore the second one
 						update_post_meta( $subscription->get_id(), '_paypal_first_ipn_ignored_for_pdt', 'true' );
@@ -457,7 +458,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 				// Make sure subscription hasn't been linked to a new payment method
 				if ( wcs_get_paypal_id( $subscription ) != $ipn_profile_id ) {
 
-					WC_Gateway_Paypal::log( sprintf( 'IPN "recurring_payment_suspended" ignored for subscription %d - PayPal profile ID has changed', $subscription->id ) );
+					WC_Gateway_Paypal::log( sprintf( 'IPN "recurring_payment_suspended" ignored for subscription %d - PayPal profile ID has changed', $subscription->get_id() ) );
 
 				} else if ( $subscription->has_status( 'active' ) ) {
 
@@ -646,6 +647,22 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 		}
 
 		return array( 'order_id' => (int) $order_id, 'order_key' => $order_key );
+	}
+
+	/**
+	 * This function will try to get the parent order, and if not available, will get the last order related to the Subscription.
+	 *
+	 * @param WC_Subscription $subscription The Subscription.
+	 *
+	 * @return WC_Order Parent order or the last related order (renewal)
+	 */
+	protected static function get_parent_order_with_fallback( $subscription ) {
+		$order = $subscription->get_parent();
+		if ( ! $order ) {
+			$order = $subscription->get_last_order( 'all' );
+		}
+
+		return $order;
 	}
 
 	/**
