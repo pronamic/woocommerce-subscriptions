@@ -43,7 +43,9 @@ class WCS_Admin_Meta_Boxes {
 		add_action( 'woocommerce_order_action_wcs_create_pending_renewal', __CLASS__ .  '::create_pending_renewal_action_request', 10, 1 );
 		add_action( 'woocommerce_order_action_wcs_create_pending_parent', __CLASS__ .  '::create_pending_parent_action_request', 10, 1 );
 
-		add_filter( 'woocommerce_resend_order_emails_available', __CLASS__ . '::remove_order_email_actions', 0, 1 );
+		if ( WC_Subscriptions::is_woocommerce_pre( '3.2' ) ) {
+			add_filter( 'woocommerce_resend_order_emails_available', __CLASS__ . '::remove_order_email_actions', 0, 1 );
+		}
 
 		add_action( 'woocommerce_order_action_wcs_retry_renewal_payment', __CLASS__ .  '::process_retry_renewal_payment_action_request', 10, 1 );
 	}
@@ -147,16 +149,21 @@ class WCS_Admin_Meta_Boxes {
 	public static function add_subscription_actions( $actions ) {
 		global $theorder;
 
-		if ( wcs_is_subscription( $theorder ) && ! $theorder->has_status( wcs_get_subscription_ended_statuses() ) ) {
-
-			if ( $theorder->payment_method_supports( 'subscription_date_changes' ) && $theorder->has_status( 'active' ) ) {
-				$actions['wcs_process_renewal'] = esc_html__( 'Process renewal', 'woocommerce-subscriptions' );
+		if ( wcs_is_subscription( $theorder ) ) {
+			if ( ! WC_Subscriptions::is_woocommerce_pre( '3.2' ) ) {
+				unset( $actions['send_order_details'], $actions['send_order_details_admin'] );
 			}
 
-			if ( count( $theorder->get_related_orders() ) > 0 ) {
-				$actions['wcs_create_pending_renewal'] = esc_html__( 'Create pending renewal order', 'woocommerce-subscriptions' );
-			} else {
-				$actions['wcs_create_pending_parent'] = esc_html__( 'Create pending parent order', 'woocommerce-subscriptions' );
+			if ( ! $theorder->has_status( wcs_get_subscription_ended_statuses() ) ) {
+				if ( $theorder->payment_method_supports( 'subscription_date_changes' ) && $theorder->has_status( 'active' ) ) {
+					$actions['wcs_process_renewal'] = esc_html__( 'Process renewal', 'woocommerce-subscriptions' );
+				}
+
+				if ( count( $theorder->get_related_orders() ) > 0 ) {
+					$actions['wcs_create_pending_renewal'] = esc_html__( 'Create pending renewal order', 'woocommerce-subscriptions' );
+				} else {
+					$actions['wcs_create_pending_parent'] = esc_html__( 'Create pending parent order', 'woocommerce-subscriptions' );
+				}
 			}
 		} else if ( self::can_renewal_order_be_retried( $theorder ) ) {
 			$actions['wcs_retry_renewal_payment'] = esc_html__( 'Retry Renewal Payment', 'woocommerce-subscriptions' );

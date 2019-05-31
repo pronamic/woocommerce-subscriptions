@@ -31,6 +31,13 @@ class WCS_PayPal {
 	protected static $paypal_settings;
 
 	/**
+	 * An internal cache of subscription IDs with a specific PayPal Standard Profile ID or Reference Transaction Billing Agreement.
+	 *
+	 * @var int[][]
+	 */
+	protected static $subscriptions_by_paypal_id = array();
+
+	/**
 	 * Main PayPal Instance, ensures only one instance is/can be loaded
 	 *
 	 * @see wc_paypal_express()
@@ -687,5 +694,42 @@ class WCS_PayPal {
 		}
 
 		return $available_gateways;
+	}
+
+	/**
+	 * Gets subscriptions with a given paypal subscription id.
+	 *
+	 * @since 2.5.4
+	 * @param string $paypal_id The PayPal Standard Profile ID or PayPal Reference Transactions Billing Agreement.
+	 * @param string $return    Optional. The type to return. Can be 'ids' to return subscription IDs or 'objects' to return WC_Subscription objects. Default 'ids'.
+	 * @return WC_Subscription[]|int[] Subscriptions (objects or IDs) with the PayPal Profile ID or Billing Agreement stored in meta.
+	 */
+	public static function get_subscriptions_by_paypal_id( $paypal_id, $return = 'ids' ) {
+
+		if ( ! isset( self::$subscriptions_by_paypal_id[ $paypal_id ] ) ) {
+			$subscription_ids = get_posts( array(
+				'posts_per_page' => -1,
+				'post_type'      => 'shop_subscription',
+				'post_status'    => 'any',
+				'fields'         => 'ids',
+				'meta_query'     => array(
+					array(
+						'key'     => '_paypal_subscription_id',
+						'compare' => '=',
+						'value'   => $paypal_id,
+					),
+				),
+			) );
+
+			self::$subscriptions_by_paypal_id[ $paypal_id ] = array_combine( $subscription_ids, $subscription_ids );
+		}
+
+		if ( 'objects' === $return ) {
+			$subscriptions = array_filter( array_map( 'wcs_get_subscription', self::$subscriptions_by_paypal_id[ $paypal_id ] ) );
+		} else {
+			$subscriptions = self::$subscriptions_by_paypal_id[ $paypal_id ];
+		}
+
+		return $subscriptions;
 	}
 }
