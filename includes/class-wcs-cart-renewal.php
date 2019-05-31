@@ -63,6 +63,9 @@ class WCS_Cart_Renewal {
 
 		// Apply renewal discounts as pseudo coupons
 		add_action( 'woocommerce_setup_cart_for_subscription_renewal', array( $this, 'setup_discounts' ) );
+
+		// Work around WC changing the "created_via" meta to "checkout" regardless of its previous value during checkout.
+		add_action( 'woocommerce_checkout_create_order', array( $this, 'maybe_preserve_order_created_via' ), 0, 1 );
 	}
 
 	/**
@@ -403,16 +406,8 @@ class WCS_Cart_Renewal {
 
 				$price = $item_to_renew['line_subtotal'];
 
-				if ( $_product->is_taxable() && wc_prices_include_tax() ) {
-
-					if ( apply_filters( 'woocommerce_adjust_non_base_location_prices', true ) ) {
-						$base_tax_rates = WC_Tax::get_base_tax_rates( wcs_get_objects_property( $_product, 'tax_class' ) );
-					} else {
-						$base_tax_rates = WC_Tax::get_rates( wcs_get_objects_property( $_product, 'tax_class' ) );
-					}
-
-					$base_taxes_on_item = WC_Tax::calc_tax( $price, $base_tax_rates, false, false );
-					$price += array_sum( $base_taxes_on_item );
+				if ( $_product->is_taxable() && $subscription->get_prices_include_tax() ) {
+					$price += $item_to_renew['subtotal_tax'];
 				}
 
 				$_product->set_price( $price / $item_to_renew['qty'] );
@@ -1380,6 +1375,21 @@ class WCS_Cart_Renewal {
 		// Add the coupon to the cart
 		if ( WC()->cart && ! WC()->cart->has_discount( $coupon_code ) ) {
 			WC()->cart->add_discount( $coupon_code );
+		}
+	}
+
+	/**
+	 * Makes sure a renewal order's "created via" meta is not changed to "checkout" by WC during checkout.
+	 *
+	 * @param WC_Order $order
+	 * @since 2.5.4
+	 */
+	public function maybe_preserve_order_created_via( $order ) {
+		$changes = $order->get_changes();
+		$current_data = $order->get_data();
+
+		if ( isset( $changes['created_via'], $current_data['created_via'] ) && 'subscription' === $current_data['created_via'] && 'checkout' === $changes['created_via'] && wcs_order_contains_renewal( $order ) ) {
+			$order->set_created_via( 'subscription' );
 		}
 	}
 

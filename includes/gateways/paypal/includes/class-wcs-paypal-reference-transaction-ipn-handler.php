@@ -51,6 +51,7 @@ class WCS_PayPal_Reference_Transaction_IPN_Handler extends WCS_PayPal_Standard_I
 
 			case 'mp_cancel':
 				$this->cancel_subscriptions( $transaction_details['mp_id'] );
+				$this->remove_billing_agreement_from_subscriptions( $transaction_details['mp_id'] );
 				break;
 
 			case 'merch_pmt' :
@@ -84,50 +85,44 @@ class WCS_PayPal_Reference_Transaction_IPN_Handler extends WCS_PayPal_Standard_I
 	}
 
 	/**
-	 * Find all subscription with a given billing agreement ID and cancel them becasue that billing agreement has been
+	 * Find all subscription with a given billing agreement ID and cancel them because that billing agreement has been
 	 * cancelled at PayPal, and therefore, no future payments can be charged.
 	 *
 	 * @since 2.0
 	 */
 	protected function cancel_subscriptions( $billing_agreement_id ) {
-
-		$subscription_ids = get_posts( array(
-			'posts_per_page' => -1,
-			'post_type'      => 'shop_subscription',
-			'post_status'    => 'any',
-			'fields'         => 'ids',
-			'orderby'        => 'date',
-			'order'          => 'DESC',
-			'meta_query'     => array(
-				array(
-					'key'     => '_paypal_subscription_id',
-					'compare' => '=',
-					'value'   => $billing_agreement_id,
-				),
-			),
-		) );
-
-		if ( empty( $subscription_ids ) ) {
-			return;
-		}
-
 		$note = esc_html__( 'Billing agreement cancelled at PayPal.', 'woocommerce-subscriptions' );
 
-		foreach ( $subscription_ids as $subscription_id ) {
+		foreach ( WCS_PayPal::get_subscriptions_by_paypal_id( $billing_agreement_id, 'objects' ) as $subscription ) {
+			$is_paypal_subscription = ! $subscription->is_manual() && 'paypal' === $subscription->get_payment_method();
 
-			$subscription = wcs_get_subscription( $subscription_id );
+			// Cancel PayPal subscriptions which haven't ended yet.
+			if ( $is_paypal_subscription && ! $subscription->has_status( wcs_get_subscription_ended_statuses() ) ) {
+				try {
+					$subscription->cancel_order( $note );
+					WC_Gateway_Paypal::log( sprintf( 'Subscription %s Cancelled: %s', $subscription->get_id(), $note ) );
+				} catch ( Exception $e ) {
+					WC_Gateway_Paypal::log( sprintf( 'Unable to cancel subscription %s: %s', $subscription->get_id(), $e->getMessage() ) );
+				}
+			}
+		}
+	}
 
-			// Only cancel valid subscriptions using PayPal as the payment method that have not yet been ended
-			if ( false == $subscription || $subscription->is_manual() || 'paypal' != $subscription->get_payment_method() || $subscription->has_status( wcs_get_subscription_ended_statuses() ) ) {
-				continue;
+	/**
+	 * Removes a billing agreement from all subscriptions.
+	 *
+	 * @since 2.5.4
+	 * @param string $billing_agreement_id The billing agreement to remove.
+	 */
+	protected function remove_billing_agreement_from_subscriptions( $billing_agreement_id ) {
+		foreach ( WCS_PayPal::get_subscriptions_by_paypal_id( $billing_agreement_id, 'objects' ) as $subscription ) {
+			if ( 'paypal' === $subscription->get_payment_method() ) {
+				$subscription->set_payment_method();
 			}
 
-			try {
-				$subscription->cancel_order( $note );
-				WC_Gateway_Paypal::log( sprintf( 'Subscription %s Cancelled: %s', $subscription_id, $note ) );
-			} catch ( Exception $e ) {
-				WC_Gateway_Paypal::log( sprintf( 'Unable to cancel subscription %s: %s', $subscription_id, $e->getMessage() ) );
-			}
+			$subscription->delete_meta_data( '_paypal_subscription_id' );
+			$subscription->update_meta_data( '_cancelled_paypal_billing_agreement', $billing_agreement_id );
+			$subscription->save();
 		}
 	}
 }

@@ -467,8 +467,8 @@ class WC_Subscriptions_Admin {
 		$site_offset = get_option( 'gmt_offset' ) * 3600;
 
 		// Save the timestamps in UTC time, the way WC does it.
-		$date_from = ( isset( $_POST['_sale_price_dates_from'] ) ) ? wcs_date_to_time( $_POST['_sale_price_dates_from'] ) - $site_offset : '';
-		$date_to   = ( isset( $_POST['_sale_price_dates_to'] ) ) ? wcs_date_to_time( $_POST['_sale_price_dates_to'] ) - $site_offset : '';
+		$date_from = ( ! empty( $_POST['_sale_price_dates_from'] ) ) ? wcs_date_to_time( $_POST['_sale_price_dates_from'] ) - $site_offset : '';
+		$date_to   = ( ! empty( $_POST['_sale_price_dates_to'] ) ) ? wcs_date_to_time( $_POST['_sale_price_dates_to'] ) - $site_offset : '';
 
 		$now = gmdate( 'U' );
 

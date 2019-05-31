@@ -5,10 +5,10 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Prospress Inc.
  * Author URI: https://prospress.com/
- * Version: 2.5.3
+ * Version: 2.5.6
  *
  * WC requires at least: 3.0
- * WC tested up to: 3.5
+ * WC tested up to: 3.6
  * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
  *
  * Copyright 2017 Prospress, Inc.  (email : freedoms@prospress.com)
@@ -113,7 +113,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.5.3';
+	public static $version = '2.5.6';
 
 	public static $wc_minimum_supported_version = '3.0';
 
@@ -484,7 +484,9 @@ class WC_Subscriptions {
 
 			// If the product is sold individually or if the cart doesn't already contain this product, empty the cart.
 			if ( ( $product && $product->is_sold_individually() ) || ! WC()->cart->find_product_in_cart( $cart_item_id ) ) {
+				$coupons = WC()->cart->get_applied_coupons();
 				WC()->cart->empty_cart();
+				WC()->cart->set_applied_coupons( $coupons );
 			}
 		} elseif ( $is_subscription && wcs_cart_contains_renewal() && ! $multiple_subscriptions_possible && ! $manual_renewals_enabled ) {
 
