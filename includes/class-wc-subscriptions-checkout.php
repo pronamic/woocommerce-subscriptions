@@ -301,8 +301,8 @@ class WC_Subscriptions_Checkout {
 					$item->save(); // We need the item ID for old hooks, this can be removed once support for WC < 3.0 is dropped
 					wc_do_deprecated_action( 'woocommerce_subscriptions_add_recurring_shipping_order_item', array( $subscription->get_id(), $item->get_id(), $package_key ), '2.2.0', 'CRUD and woocommerce_checkout_create_subscription_shipping_item action instead' );
 
-					do_action( 'woocommerce_checkout_create_order_shipping_item', $item, $package_key, $package ); // WC 3.0+ will also trigger the deprecated 'woocommerce_add_shipping_order_item' hook
-					do_action( 'woocommerce_checkout_create_subscription_shipping_item', $item, $package_key, $package );
+					do_action( 'woocommerce_checkout_create_order_shipping_item', $item, $package_key, $package, $subscription ); // WC 3.0+ will also trigger the deprecated 'woocommerce_add_shipping_order_item' hook
+					do_action( 'woocommerce_checkout_create_subscription_shipping_item', $item, $package_key, $package, $subscription );
 				}
 			}
 		}

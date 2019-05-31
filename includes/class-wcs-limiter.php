@@ -16,17 +16,16 @@ class WCS_Limiter {
 
 	public static function init() {
 
-		//Add limiting subscriptions options on edit product page
+		// Add limiting subscriptions options on edit product page
 		add_action( 'woocommerce_product_options_advanced', __CLASS__ . '::admin_edit_product_fields' );
 
-		add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
-
-		add_filter( 'woocommerce_subscription_variation_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
-
-		add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable_renewal', 12, 2 );
-
-		add_filter( 'woocommerce_subscription_variation_is_purchasable', __CLASS__ . '::is_purchasable_renewal', 12, 2 );
-
+		// Only attach limited subscription purchasability logic on the front end.
+		if ( ! is_admin() ) {
+			add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
+			add_filter( 'woocommerce_subscription_variation_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
+			add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable_renewal', 12, 2 );
+			add_filter( 'woocommerce_subscription_variation_is_purchasable', __CLASS__ . '::is_purchasable_renewal', 12, 2 );
+		}
 	}
 
 	/**
@@ -215,7 +214,7 @@ class WCS_Limiter {
 				$is_purchasable = true;
 
 			// Restoring cart from session, so need to check the cart in the session (wcs_cart_contains_renewal() only checks the cart)
-			} elseif ( WC()->session->cart ) {
+			} elseif ( ! empty( WC()->session->cart ) ) {
 				foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
 					if ( $product->get_id() == $cart_item['product_id'] && ( isset( $cart_item['subscription_renewal'] ) || isset( $cart_item['subscription_resubscribe'] ) ) ) {
 						$is_purchasable = true;

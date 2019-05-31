@@ -248,35 +248,39 @@ class WCS_PayPal_Admin {
 	 * @param WC_Subscription $subscription
 	 */
 	public static function profile_link( $subscription ) {
-		if ( wcs_is_subscription( $subscription ) && ! $subscription->is_manual() && 'paypal' == $subscription->get_payment_method() ) {
-
-			$paypal_profile_id = wcs_get_paypal_id( $subscription );
-
-			if ( ! empty( $paypal_profile_id ) ) {
-
-				$url = '';
-
-				if ( false === wcs_is_paypal_profile_a( $paypal_profile_id, 'billing_agreement' ) ) {
-					// Standard subscription
-					$url = 'https://www.paypal.com/?cmd=_profile-recurring-payments&encrypted_profile_id=' . $paypal_profile_id;
-				} else if ( wcs_is_paypal_profile_a( $paypal_profile_id, 'billing_agreement' ) ) {
-					// Reference Transaction subscription
-					$url = 'https://www.paypal.com/?cmd=_profile-merchant-pull&encrypted_profile_id=' . $paypal_profile_id . '&mp_id=' . $paypal_profile_id . '&return_to=merchant&flag_flow=merchant';
-				}
-
-				echo '<div class="address">';
-				echo '<p class="paypal_subscription_info"><strong>';
-				echo esc_html( __( 'PayPal Subscription ID:', 'woocommerce-subscriptions' ) );
-				echo '</strong>';
-				if ( ! empty( $url ) ) {
-					echo '<a href="' . esc_url( $url ) . '" target="_blank">' . esc_html( $paypal_profile_id ) . '</a>';
-				} else {
-					echo  esc_html( $paypal_profile_id );
-				}
-				echo '</p></div>';
-			}
+		if ( ! wcs_is_subscription( $subscription ) || $subscription->is_manual() || 'paypal' != $subscription->get_payment_method() ) {
+			return;
 		}
 
+		$paypal_profile_id = wcs_get_paypal_id( $subscription );
+
+		if ( empty( $paypal_profile_id ) ) {
+			return;
+		}
+
+		$url    = '';
+		$domain = WCS_PayPal::get_option( 'testmode' ) === 'yes' ? 'sandbox.paypal' : 'paypal';
+
+		if ( false === wcs_is_paypal_profile_a( $paypal_profile_id, 'billing_agreement' ) ) {
+			// Standard subscription
+			$url = "https://www.{$domain}.com/?cmd=_profile-recurring-payments&encrypted_profile_id={$paypal_profile_id}";
+		} elseif ( wcs_is_paypal_profile_a( $paypal_profile_id, 'billing_agreement' ) ) {
+			// Reference Transaction subscription
+			$url = "https://www.{$domain}.com/?cmd=_profile-merchant-pull&encrypted_profile_id={$paypal_profile_id}&mp_id={$paypal_profile_id}&return_to=merchant&flag_flow=merchant";
+		}
+
+		echo '<div class="address">';
+		echo '<p class="paypal_subscription_info"><strong>';
+		echo esc_html( __( 'PayPal Subscription ID:', 'woocommerce-subscriptions' ) );
+		echo '</strong>';
+
+		if ( ! empty( $url ) ) {
+			echo '<a href="' . esc_url( $url ) . '" target="_blank">' . esc_html( $paypal_profile_id ) . '</a>';
+		} else {
+			echo  esc_html( $paypal_profile_id );
+		}
+
+		echo '</p></div>';
 	}
 
 	/**

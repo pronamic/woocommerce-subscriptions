@@ -63,8 +63,13 @@ function wcs_help_tip( $tip, $allow_html = false ) {
  * @return mixed
  */
 function wcs_get_objects_property( $object, $property, $single = 'single', $default = null ) {
+	$value = ! is_null( $default ) ? $default : ( ( 'single' === $single ) ? null : array() );
+
+	if ( ! is_object( $object ) ) {
+		return $value;
+	}
+
 	$prefixed_key          = wcs_maybe_prefix_key( $property );
-	$value                 = ! is_null( $default ) ? $default : ( ( 'single' === $single ) ? null : array() );
 	$property_function_map = array(
 		'order_version'  => 'version',
 		'order_currency' => 'currency',

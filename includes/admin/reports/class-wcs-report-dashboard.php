@@ -209,7 +209,7 @@ class WCS_Report_Dashboard {
 			<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-reports&tab=subscriptions&report=subscription_events_by_date&range=month' ) ); ?>">
 				<?php
 				// translators: 1$: count, 2$ and 3$ are opening and closing strong tags, respectively.
-				echo wp_kses_post( sprintf( _n( '%2$s%$1s signup%3$s subscription signups this month', '%2$s%1$s signups%3$s subscription signups this month', $report_data->signup_count, 'woocommerce-subscriptions' ), $report_data->signup_count, '<strong>', '</strong>' ) );
+				echo wp_kses_post( sprintf( _n( '%2$s%1$s signup%3$s subscription signups this month', '%2$s%1$s signups%3$s subscription signups this month', $report_data->signup_count, 'woocommerce-subscriptions' ), $report_data->signup_count, '<strong>', '</strong>' ) );
 				?>
 			</a>
 		</li>

@@ -260,7 +260,7 @@ class WC_Subscriptions_Switcher {
 									}
 								}
 
-								if ( self::can_item_be_switched_by_user( $item, $subscription ) ) {
+								if ( apply_filters( 'wcs_initiate_auto_switch', self::can_item_be_switched_by_user( $item, $subscription ), $item, $subscription ) ) {
 									wp_redirect( add_query_arg( 'auto-switch', 'true', self::get_switch_url( $item_id, $item, $subscription ) ) );
 									exit;
 								}

@@ -174,18 +174,16 @@ class WC_Subscriptions_Payment_Gateways {
 	/**
 	 * Fire a gateway specific hook for when a subscription renewal payment is due.
 	 *
+	 * @param WC_Order $renewal_order The renewal order to trigger the payment gateway hook for.
 	 * @since 2.1.0
 	 */
 	public static function trigger_gateway_renewal_payment_hook( $renewal_order ) {
-
-		$renewal_order_payment_method = wcs_get_objects_property( $renewal_order, 'payment_method' );
-
-		if ( ! empty( $renewal_order ) && $renewal_order->get_total() > 0 && ! empty( $renewal_order_payment_method ) ) {
+		if ( ! empty( $renewal_order ) && $renewal_order->get_total() > 0 && $renewal_order->get_payment_method() ) {
 
 			// Make sure gateways are setup
 			WC()->payment_gateways();
 
-			do_action( 'woocommerce_scheduled_subscription_payment_' . $renewal_order_payment_method, $renewal_order->get_total(), $renewal_order );
+			do_action( 'woocommerce_scheduled_subscription_payment_' . $renewal_order->get_payment_method(), $renewal_order->get_total(), $renewal_order );
 		}
 	}
 

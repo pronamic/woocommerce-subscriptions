@@ -41,6 +41,16 @@ class WC_Subscriptions_Coupon {
 	);
 
 	/**
+	 * Subscription sign up fee coupon types.
+	 *
+	 * @var array
+	 */
+	private static $sign_up_fee_coupons = array(
+		'sign_up_fee_percent' => 1,
+		'sign_up_fee'         => 1,
+	);
+
+	/**
 	 * Virtual renewal coupon types.
 	 *
 	 * @var array
@@ -84,6 +94,8 @@ class WC_Subscriptions_Coupon {
 
 		// Hook recurring coupon functionality.
 		add_action( 'plugins_loaded', array( __CLASS__, 'maybe_add_recurring_coupon_hooks' ) );
+
+		add_filter( 'woocommerce_coupon_is_valid_for_product', array( __CLASS__, 'validate_subscription_coupon_for_product' ), 10, 3 );
 	}
 
 	/**
@@ -1194,6 +1206,41 @@ class WC_Subscriptions_Coupon {
 		}
 
 		return $price;
+	}
+
+	/**
+	 * Validates a subscription coupon's use for a given product.
+	 *
+	 * @since 2.5.4
+	 *
+	 * @param bool       $is_valid Whether the coupon is valid for the product.
+	 * @param WC_Product $product  The product object.
+	 * @param WC_Coupon  $coupon   The coupon object.
+	 *
+	 * @return bool Whether the coupon is valid for the product.
+	 */
+	public static function validate_subscription_coupon_for_product( $is_valid, $product, $coupon ) {
+
+		// Exit early if the coupon is already invalid.
+		if ( ! $is_valid ) {
+			return $is_valid;
+		}
+
+		$coupon_type           = $coupon->get_discount_type();
+		$is_recurring_coupon   = isset( self::$recurring_coupons[ $coupon_type ] );
+		$is_sign_up_fee_coupon = isset( self::$sign_up_fee_coupons[ $coupon_type ] );
+
+		// Recurring and sign up fee coupons are not valid for non-subscription products.
+		if ( ( $is_recurring_coupon || $is_sign_up_fee_coupon ) && ! WC_Subscriptions_Product::is_subscription( $product ) ) {
+			$is_valid = false;
+		}
+
+		// Sign up fee coupons are not valid for products without a sign up fee.
+		if ( $is_sign_up_fee_coupon && 0 === WC_Subscriptions_Product::get_sign_up_fee( $product ) ) {
+			$is_valid = false;
+		}
+
+		return $is_valid;
 	}
 
 	/**

@@ -31,6 +31,7 @@ class WCS_Query extends WC_Query {
 
 			add_filter( 'woocommerce_get_endpoint_url', array( $this, 'maybe_redirect_to_only_subscription' ), 10, 2 );
 			add_action( 'woocommerce_account_subscriptions_endpoint', array( $this, 'endpoint_content' ) );
+			add_filter( 'woocommerce_account_menu_item_classes', array( $this, 'maybe_add_active_class' ), 10, 2 );
 		}
 
 		$this->init_query_vars();
@@ -136,7 +137,7 @@ class WCS_Query extends WC_Query {
 			return $menu_items;
 		}
 
-		if ( 1 == count( wcs_get_users_subscriptions() ) && apply_filters( 'wcs_my_account_redirect_to_single_subscription', true ) ) {
+		if ( 1 === count( wcs_get_users_subscriptions() ) && apply_filters( 'wcs_my_account_redirect_to_single_subscription', true ) ) {
 			$label = __( 'My Subscription', 'woocommerce-subscriptions' );
 		} else {
 			$label = __( 'Subscriptions', 'woocommerce-subscriptions' );
@@ -355,5 +356,22 @@ class WCS_Query extends WC_Query {
 	 */
 	public function add_wcs_query_vars( $query_vars ) {
 		return array_merge( $query_vars, $this->query_vars );
+	}
+
+	/**
+	 * Adds `is-active` class to Subscriptions label when we're viewing a single Subscription.
+	 *
+	 * @param array  $classes  The classes present in the current endpoint.
+	 * @param string $endpoint The endpoint/label we're filtering.
+	 *
+	 * @return array
+	 * @since 2.5.6
+	 */
+	public function maybe_add_active_class( $classes, $endpoint ) {
+		if ( ! isset( $classes['is-active'] ) && 'subscriptions' === $endpoint && wcs_is_view_subscription_page() ) {
+			$classes[] = 'is-active';
+		}
+
+		return $classes;
 	}
 }

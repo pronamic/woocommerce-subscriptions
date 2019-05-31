@@ -1,5 +1,30 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2019.05.30 - version 2.5.6
+* Fix: Exclude core order properties from the meta copied from the subscription to early renewal orders. #PR3331
+* Tweak: Add the 'is-active' class to My Account > My Subscription menu item when user is on View Subscription page. PR#3328
+
+2019.05.13 - version 2.5.5
+* New: Add support for admin users to re-display the staging site notice if it was previously hidden. PR#3321
+* Fix: Revert a fix released in 2.5.4 which attempted to implement a workaround for SiteGround's staging sites. PR#3323 reverts: PR#3285
+
+2019.05.08 - version 2.5.4
+* Fix: Don't save empty product sale date ranges. Fixes an issue where the sale price appears in 1970 after a timezone offset change. PR#3283
+* Fix: Validate subscription coupon types for non subscription and non-signup fee products. Fixes an issue where subscription coupons limited to 1 use never apply to some mixed carts. PR#3280
+* Fix: Fix the PHP warnings that occur on the WP Dashboard page caused by incorrect use of args in a sprintf string. PR#3290
+* Fix: Maintain any cart coupons when emptying the cart because of the store's mixed checkout settings. PR#3291
+* Fix: Fix fatal errors when calling wcs_get_objects_property with a non-object parameter. PR#3308
+* Fix: Use the raw SERVER_ADMIN variable to generate site URL on SiteGround sites. This fixes issues where SiteGround hosted staging sites weren't being recognized as staging sites due to SiteGround's special handling of the site url stored in the DB. PR#3285
+* Fix: Don't check subscription limitation purchasability on admin screens. PR#3311
+* Fix: Pass the 4th param to callbacks on woocommerce_checkout_create_order_shipping_item. PR#3317
+* Fix: Remove order-specific e-mail actions from "Subscription actions" drop-down. PR#3299
+* Fix: Add the item subtotal tax when manually renewing where the prices included tax. Fixes an issue where if the store's tax rates change, customers renewing manually may get a strange item price. PR#3286
+* Tweak: Keep renewal orders "created_via" meta as "subscription" when paid via the checkout. PR#3301
+* Tweak: Remove cancelled PayPal Reference Transactions Billing Agreements from manual, non-PayPal, and ended subscriptions. Fixes an issue where a cancelled subscription is reactivated and attempts to use a cancelled billing agreement. PR#3263
+* Tweak: Increase the WC tested version to 3.6.0. PR#3313
+* Tweak: Update Action Scheduler to 2.2.4. PR#3312
+* New: Add a filter to allow 3rd parties to disable auto-switching. PR#3316
+
 2019.03.20 - version 2.5.3
 * New: Update Action Scheduler to version 2.2.1. PR#3266
 * Fix: Display the subscription status names (rather than the raw status) in the edit subscription related orders table. PR#3272

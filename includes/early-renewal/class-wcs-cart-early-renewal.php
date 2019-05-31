@@ -158,16 +158,17 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 	 * @since 2.5.2
 	 */
 	public function copy_subscription_meta_to_order( $order ) {
-		$cart_item = $this->cart_contains();
-		if ( ! $cart_item ) {
-			return;
+		if ( $this->cart_contains() ) {
+			// Get the subscription.
+			$subscription = $this->get_order();
+
+			if ( $subscription ) {
+				// Copy all meta, excluding core properties (totals etc), from the subscription to new renewal order
+				add_filter( 'wcs_renewal_order_meta', array( $this, 'exclude_core_order_meta_properties' ) );
+				wcs_copy_order_meta( $subscription, $order, 'renewal_order' );
+				remove_filter( 'wcs_renewal_order_meta', array( $this, 'exclude_core_order_meta_properties' ) );
+			}
 		}
-
-		// Get the subscription.
-		$subscription = wcs_get_subscription( $cart_item[ $this->cart_item_key ]['subscription_id'] );
-
-		// Copy all meta from subscription to new renewal order
-		wcs_copy_order_meta( $subscription, $order, 'renewal_order' );
 	}
 
 	/**
@@ -414,5 +415,66 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 				remove_action( 'wp_loaded', 'WC_Subscriptions_Renewal_Order::prevent_cancelling_renewal_orders', 19 );
 			}
 		}
+	}
+
+	/**
+	 * Excludes core order meta properties from the meta copied from the subscription.
+	 *
+	 * Attached to the dynamic hook 'wcs_renewal_order_meta' which is triggered by wcs_copy_order_meta
+	 * when copying meta from the subscription to the early renewal order.
+	 *
+	 * @since 2.5.6
+	 *
+	 * @param array $order_meta The meta keys and values to copy from the subscription to the early renewal order.
+	 * @return array The subscription meta to copy to the early renewal order.
+	 */
+	public function exclude_core_order_meta_properties( $order_meta ) {
+
+		// Additional meta keys to exclude. These are in addition to the meta keys already excluded by wcs_copy_order_meta().
+		$excluded_meta_keys = array(
+			'_customer_user'          => 1,
+			'_order_currency'         => 1,
+			'_prices_include_tax'     => 1,
+			'_order_version'          => 1,
+			'_shipping_first_name'    => 1,
+			'_shipping_last_name'     => 1,
+			'_shipping_company'       => 1,
+			'_shipping_address_1'     => 1,
+			'_shipping_address_2'     => 1,
+			'_shipping_city'          => 1,
+			'_shipping_state'         => 1,
+			'_shipping_postcode'      => 1,
+			'_shipping_country'       => 1,
+			'_shipping_address_index' => 1,
+			'_billing_first_name'     => 1,
+			'_billing_last_name'      => 1,
+			'_billing_company'        => 1,
+			'_billing_address_1'      => 1,
+			'_billing_address_2'      => 1,
+			'_billing_city'           => 1,
+			'_billing_state'          => 1,
+			'_billing_postcode'       => 1,
+			'_billing_country'        => 1,
+			'_billing_email'          => 1,
+			'_billing_phone'          => 1,
+			'_billing_address_index'  => 1,
+			'is_vat_exempt'           => 1,
+			'_customer_ip_address'    => 1,
+			'_customer_user_agent'    => 1,
+			'_cart_discount'          => 1,
+			'_cart_discount_tax'      => 1,
+			'_order_shipping'         => 1,
+			'_order_shipping_tax'     => 1,
+			'_order_tax'              => 1,
+			'_order_total'            => 1,
+		);
+
+		foreach ( $order_meta as $index => $meta ) {
+			if ( isset( $excluded_meta_keys[ $meta['meta_key'] ] ) ) {
+				unset( $order_meta[ $index ] );
+			}
+		}
+
+		return $order_meta;
 	}
 }

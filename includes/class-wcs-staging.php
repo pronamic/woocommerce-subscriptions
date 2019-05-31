@@ -14,6 +14,7 @@ class WCS_Staging {
 	public static function init() {
 		add_action( 'woocommerce_generated_manual_renewal_order', array( __CLASS__, 'maybe_record_staging_site_renewal' ) );
 		add_filter( 'woocommerce_register_post_type_subscription', array( __CLASS__, 'maybe_add_menu_badge' ) );
+		add_action( 'wp_loaded', array( __CLASS__, 'maybe_reset_admin_notice' ) );
 	}
 
 	/**
@@ -53,5 +54,17 @@ class WCS_Staging {
 		}
 
 		return $subscription_order_type_data;
+	}
+
+	/**
+	 * Handles admin requests to redisplay the staging site admin notice.
+	 *
+	 * @since 2.5.5
+	 */
+	public static function maybe_reset_admin_notice() {
+		if ( isset( $_REQUEST['wcs_display_staging_notice'] ) && is_admin() && current_user_can( 'manage_options' ) ) {
+			delete_option( 'wcs_ignore_duplicate_siteurl_notice' );
+			wp_safe_redirect( remove_query_arg( array( 'wcs_display_staging_notice' ) ) );
+		}
 	}
 }
