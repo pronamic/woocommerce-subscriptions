@@ -1,11 +1,11 @@
-# Copyright (C) 2019 Prospress Inc.
+# Copyright (C) 2019 Automattic
 # This file is distributed under the same license as the WooCommerce Subscriptions package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 2.5.6\n"
+"Project-Id-Version: WooCommerce Subscriptions 2.5.7\n"
 "Report-Msgid-Bugs-To: "
 "https://github.com/Prospress/woocommerce-subscriptions/issues\n"
-"POT-Creation-Date: 2019-05-30 20:02:46+00:00\n"
+"POT-Creation-Date: 2019-07-04 13:25:48+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1792,21 +1792,21 @@ msgstr ""
 msgid "Update the %1$s used for %2$sall%3$s of my active subscriptions"
 msgstr ""
 
-#: includes/class-wc-subscriptions-cart.php:932
+#: includes/class-wc-subscriptions-cart.php:944
 msgid "Please enter a valid postcode/ZIP."
 msgstr ""
 
-#: includes/class-wc-subscriptions-cart.php:1090
+#: includes/class-wc-subscriptions-cart.php:1102
 msgid ""
 "That subscription product can not be added to your cart as it already "
 "contains a subscription renewal."
 msgstr ""
 
-#: includes/class-wc-subscriptions-cart.php:1178
+#: includes/class-wc-subscriptions-cart.php:1190
 msgid "Invalid recurring shipping method."
 msgstr ""
 
-#: includes/class-wc-subscriptions-cart.php:2016
+#: includes/class-wc-subscriptions-cart.php:2069
 msgid "now"
 msgstr ""
 
@@ -3359,7 +3359,7 @@ msgstr ""
 #. translators: $1 and $2 are opening and closing link tags, respectively.
 msgid ""
 "To resolve this as quickly as possible, please create a %1$stemporary "
-"administrator account%2$s with the user email support@prospress.com."
+"administrator account%2$s with the user email woologin@woocommerce.com."
 msgstr ""
 
 #: includes/gateways/paypal/includes/templates/html-ipn-failure-notice.php:29
@@ -5087,11 +5087,11 @@ msgid ""
 msgstr ""
 
 #. Author of the plugin/theme
-msgid "Prospress Inc."
+msgid "Automattic"
 msgstr ""
 
 #. Author URI of the plugin/theme
-msgid "https://prospress.com/"
+msgid "https://woocommerce.com/"
 msgstr ""
 
 #: includes/admin/class-wc-subscriptions-admin.php:280

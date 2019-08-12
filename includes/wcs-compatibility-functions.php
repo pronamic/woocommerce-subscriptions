@@ -485,3 +485,52 @@ function wcs_update_settings_option( $settings_api, $key, $value ) {
 		return update_option( $settings_api->get_option_key(), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $settings_api->id, $settings_api->settings ), 'yes' );
 	}
 }
+
+/**
+ * Determines if the request is a non-legacy REST API request.
+ *
+ * This function is a compatibility wrapper for WC()->is_rest_api_request() which was introduced in WC 3.6.
+ *
+ * @since 2.5.7
+ *
+ * @return bool True if it's a REST API request, false otherwise.
+ */
+function wcs_is_rest_api_request() {
+
+	if ( function_exists( 'WC' ) && is_callable( array( WC(), 'is_rest_api_request' ) ) ) {
+		return WC()->is_rest_api_request();
+	}
+
+	if ( empty( $_SERVER['REQUEST_URI'] ) ) {
+		return false;
+	}
+
+	$rest_prefix         = trailingslashit( rest_get_url_prefix() );
+	$is_rest_api_request = ( false !== strpos( $_SERVER['REQUEST_URI'], $rest_prefix ) );
+
+	return apply_filters( 'woocommerce_is_rest_api_request', $is_rest_api_request );
+}
+
+/**
+ * Determines whether the current request is a WordPress cron request.
+ *
+ * This function is a compatibility wrapper for wp_doing_cron() which was introduced in WP 4.8.
+ *
+ * @since 2.5.7
+ *
+ * @return bool True if it's a WordPress cron request, false otherwise.
+ */
+function wcs_doing_cron() {
+	return function_exists( 'wp_doing_cron' ) ? wp_doing_cron() : defined( 'DOING_CRON' ) && DOING_CRON;
+}
+
+/**
+ * Determines whether the current request is a WordPress Ajax request.
+ *
+ * @since 2.5.7
+ *
+ * @return bool True if it's a WordPress Ajax request, false otherwise.
+ */
+function wcs_doing_ajax() {
+	return function_exists( 'wp_doing_ajax' ) ? wp_doing_ajax() : defined( 'DOING_AJAX' ) && DOING_AJAX;
+}

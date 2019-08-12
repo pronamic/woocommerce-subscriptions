@@ -1,0 +1,3 @@
+# helPR bot config. https://probot.github.io/apps/helpr/
+helpr:
+    opened: 'hasPR'
