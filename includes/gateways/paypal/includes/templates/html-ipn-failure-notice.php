@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <p><?php
 	// translators: $1 and $2 are opening and closing link tags, respectively.
 	printf(
-		esc_html__( 'To resolve this as quickly as possible, please create a %1$stemporary administrator account%2$s with the user email support@prospress.com.', 'woocommerce-subscriptions' ),
+		esc_html__( 'To resolve this as quickly as possible, please create a %1$stemporary administrator account%2$s with the user email woologin@woocommerce.com.', 'woocommerce-subscriptions' ),
 		'<a href="https://docs.woocommerce.com/document/create-new-admin-account-wordpress/" target="_blank">',
 		'</a>'
 	);?>

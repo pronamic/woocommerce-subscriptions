@@ -1,5 +1,11 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2019.07.04 - version 2.5.7
+* Fix: Check for any free shipping which has its requirements met - not just the first one. PR#3329
+* Fix: Fix un-purchasability issues with limited subscriptions in manual renewal carts. PR#3358
+* Tweak: Update email address to create support admin user with. PR#3363
+* Tweak: Update the plugin headers to include Automattic. PR#3365
+
 2019.05.30 - version 2.5.6
 * Fix: Exclude core order properties from the meta copied from the subscription to early renewal orders. #PR3331
 * Tweak: Add the 'is-active' class to My Account > My Subscription menu item when user is on View Subscription page. PR#3328

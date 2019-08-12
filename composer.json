@@ -1,0 +1,16 @@
+{
+  "name": "prospress/woocommerce-subscriptions",
+  "description": "Sell products and services with recurring payments in your WooCommerce Store.",
+  "homepage": "http://www.woocommerce.com/products/woocommerce-subscriptions/",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0+",
+  "require": {
+    "composer/installers": "~1.2"
+  },
+  "config": {
+    "vendor-dir": "includes/libraries"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^4.5"
+  }
+}

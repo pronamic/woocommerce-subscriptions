@@ -3,15 +3,15 @@
  * Plugin Name: WooCommerce Subscriptions
  * Plugin URI: https://www.woocommerce.com/products/woocommerce-subscriptions/
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
- * Author: Prospress Inc.
- * Author URI: https://prospress.com/
- * Version: 2.5.6
+ * Author: Automattic
+ * Author URI: https://woocommerce.com/
+ * Version: 2.5.7
  *
  * WC requires at least: 3.0
  * WC tested up to: 3.6
  * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
  *
- * Copyright 2017 Prospress, Inc.  (email : freedoms@prospress.com)
+ * Copyright 2019 WooCommerce
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package		WooCommerce Subscriptions
- * @author		Prospress Inc.
+ * @author		Automattic.
  * @since		1.0
  */
 
@@ -113,7 +113,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.5.6';
+	public static $version = '2.5.7';
 
 	public static $wc_minimum_supported_version = '3.0';
 
