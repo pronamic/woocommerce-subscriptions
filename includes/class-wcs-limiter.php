@@ -20,7 +20,7 @@ class WCS_Limiter {
 		add_action( 'woocommerce_product_options_advanced', __CLASS__ . '::admin_edit_product_fields' );
 
 		// Only attach limited subscription purchasability logic on the front end.
-		if ( ! is_admin() ) {
+		if ( wcs_is_frontend_request() ) {
 			add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
 			add_filter( 'woocommerce_subscription_variation_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
 			add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable_renewal', 12, 2 );

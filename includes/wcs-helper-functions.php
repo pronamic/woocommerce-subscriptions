@@ -232,3 +232,16 @@ function wcs_get_minor_version_string( $version ) {
 
 	return $version_parts[0] . '.' . $version_parts[1];
 }
+
+/**
+ * Determines if the current request is for the frontend.
+ *
+ * The logic in this function is based off WooCommerce::is_request( 'frontend' ).
+ *
+ * @since 2.5.7
+ *
+ * @return bool True if it's a frontend request, false otherwise.
+ */
+function wcs_is_frontend_request() {
+	return ( ! is_admin() || wcs_doing_ajax() ) && ! wcs_doing_cron() && ! wcs_is_rest_api_request();
+}
