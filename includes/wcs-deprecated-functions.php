@@ -194,7 +194,7 @@ function wcs_get_subscription_in_deprecated_structure( WC_Subscription $subscrip
 
 	$completed_payments = array();
 
-	if ( $subscription->get_completed_payment_count() ) {
+	if ( $subscription->get_payment_count() ) {
 
 		$order = $subscription->get_parent();
 
@@ -256,4 +256,34 @@ function wcs_get_subscription_in_deprecated_structure( WC_Subscription $subscrip
 	}
 
 	return $deprecated_subscription_object;
+}
+
+/**
+ * Wrapper for wc_deprecated_hook to improve handling of ajax requests, even when
+ * WooCommerce 3.3.0's wc_deprecated_hook method is not available.
+ *
+ * @since 2.6.0
+ * @param string $hook        The hook that was used.
+ * @param string $version     The version that deprecated the hook.
+ * @param string $replacement The hook that should have been used.
+ * @param string $message     A message regarding the change.
+ */
+function wcs_deprecated_hook( $hook, $version, $replacement = null, $message = null ) {
+
+	if ( function_exists( 'wc_deprecated_hook' ) ) {
+		wc_deprecated_hook( $hook, $version, $replacement, $message );
+	} else {
+		// Reimplement wcs_deprecated_function() when WC 3.0 is not active
+		if ( is_ajax() ) {
+			do_action( 'deprecated_hook_run', $hook, $replacement, $version, $message );
+
+			$message    = empty( $message ) ? '' : ' ' . $message;
+			$log_string = "{$hook} is deprecated since version {$version}";
+			$log_string .= $replacement ? "! Use {$replacement} instead." : ' with no alternative available.';
+
+			error_log( $log_string . $message );
+		} else {
+			_deprecated_hook( $hook, $version, $replacement, $message );
+		}
+	}
 }

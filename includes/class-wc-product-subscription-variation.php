@@ -95,7 +95,7 @@ class WC_Product_Subscription_Variation extends WC_Product_Variation {
 	public function add_to_cart_text() {
 
 		if ( $this->is_purchasable() && $this->is_in_stock() ) {
-			$text = get_option( WC_Subscriptions_Admin::$option_prefix . '_add_to_cart_button_text', __( 'Sign Up Now', 'woocommerce-subscriptions' ) );
+			$text = get_option( WC_Subscriptions_Admin::$option_prefix . '_add_to_cart_button_text', __( 'Sign up now', 'woocommerce-subscriptions' ) );
 		} else {
 			$text = parent::add_to_cart_text(); // translated "Read More"
 		}

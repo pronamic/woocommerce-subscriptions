@@ -415,7 +415,7 @@ function wcs_sanitize_subscription_status_key( $status_key ) {
  *		'customer_id' The user ID of a customer on the site.
  *		'product_id' The post ID of a WC_Product_Subscription, WC_Product_Variable_Subscription or WC_Product_Subscription_Variation object
  *		'order_id' The post ID of a shop_order post/WC_Order object which was used to create the subscription
- *		'subscription_status' Any valid subscription status. Can be 'any', 'active', 'cancelled', 'suspended', 'expired', 'pending' or 'trash'. Defaults to 'any'.
+ *		'subscription_status' Any valid subscription status. Can be 'any', 'active', 'cancelled', 'on-hold', 'expired', 'pending' or 'trash'. Defaults to 'any'.
  * @return array Subscription details in post_id => WC_Subscription form.
  * @since  2.0
  */
@@ -536,28 +536,57 @@ function wcs_get_subscriptions( $args ) {
 /**
  * Get subscriptions that contain a certain product, specified by ID.
  *
- * @param  int | array $product_ids Either the post ID of a product or variation or an array of product or variation IDs
+ * @param  int|array $product_ids Either the post ID of a product or variation or an array of product or variation IDs
  * @param  string $fields The fields to return, either "ids" to receive only post ID's for the match subscriptions, or "subscription" to receive WC_Subscription objects
+ * @param  array $args A set of name value pairs to determine the returned subscriptions.
+ *      'subscription_statuses' Any valid subscription status. Can be 'any', 'active', 'cancelled', 'on-hold', 'expired', 'pending' or 'trash' or an array of statuses. Defaults to 'any'.
+ *      'limit' The number of subscriptions to return. Default is all (-1).
+ *      'offset' An optional number of subscriptions to displace or pass over. Default 0. A limit arg is required for the offset to be applied.
  * @return array
  * @since  2.0
  */
-function wcs_get_subscriptions_for_product( $product_ids, $fields = 'ids' ) {
+function wcs_get_subscriptions_for_product( $product_ids, $fields = 'ids', $args = array() ) {
 	global $wpdb;
 
-	// If we have an array of IDs, convert them to a comma separated list and sanatise them to make sure they're all integers
-	if ( is_array( $product_ids ) ) {
-		$ids_for_query = implode( "', '", array_map( 'absint', array_unique( array_filter( $product_ids ) ) ) );
-	} else {
-		$ids_for_query = absint( $product_ids );
+	$args = wp_parse_args( $args, array(
+		'subscription_status' => 'any',
+		'limit'               => -1,
+		'offset'              => 0,
+	) );
+
+	// Allow for inputs of single status strings or an array of statuses.
+	$args['subscription_status'] = (array) $args['subscription_status'];
+	$args['limit']               = (int) $args['limit'];
+	$args['offset']              = (int) $args['offset'];
+
+	// Start to build the query WHERE array.
+	$where = array(
+		"posts.post_type = 'shop_subscription'",
+		"itemmeta.meta_key IN ( '_variation_id', '_product_id' )",
+		"order_items.order_item_type = 'line_item'",
+	);
+
+	$product_ids = implode( "', '", array_map( 'absint', array_unique( array_filter( (array) $product_ids ) ) ) );
+	$where[]     = sprintf( "itemmeta.meta_value IN ( '%s' )", $product_ids );
+
+	if ( ! in_array( 'any', $args['subscription_status'] ) ) {
+		// Sanitize and format statuses into status string keys.
+		$statuses = array_map( 'wcs_sanitize_subscription_status_key', array_map( 'esc_sql', array_unique( array_filter( $args['subscription_status'] ) ) ) );
+		$statuses = implode( "', '", $statuses );
+		$where[]  = sprintf( "posts.post_status IN ( '%s' )", $statuses );
 	}
 
-	$subscription_ids = $wpdb->get_col( "
-		SELECT DISTINCT order_items.order_id FROM {$wpdb->prefix}woocommerce_order_items as order_items
-			LEFT JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS itemmeta ON order_items.order_item_id = itemmeta.order_item_id
-			LEFT JOIN {$wpdb->posts} AS posts ON order_items.order_id = posts.ID
-		WHERE posts.post_type = 'shop_subscription'
-			AND itemmeta.meta_value IN ( '" . $ids_for_query . "' )
-			AND itemmeta.meta_key   IN ( '_variation_id', '_product_id' )"
+	$limit  = ( $args['limit'] > 0 ) ? $wpdb->prepare( 'LIMIT %d', $args['limit'] ) : '';
+	$offset = ( $args['limit'] > 0 && $args['offset'] > 0 ) ? $wpdb->prepare( 'OFFSET %d', $args['offset'] ) : '';
+	$where  = implode( ' AND ', $where );
+
+	$subscription_ids = $wpdb->get_col(
+		"SELECT DISTINCT order_items.order_id
+		FROM {$wpdb->prefix}woocommerce_order_items as order_items
+		LEFT JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS itemmeta ON order_items.order_item_id = itemmeta.order_item_id
+		LEFT JOIN {$wpdb->posts} AS posts ON order_items.order_id = posts.ID
+		WHERE {$where}
+		ORDER BY order_items.order_id {$limit} {$offset}"
 	);
 
 	$subscriptions = array();
@@ -804,11 +833,8 @@ function wcs_set_payment_meta( $subscription, $payment_meta ) {
 						break;
 					case 'post_meta':
 					case 'postmeta':
-						if ( is_callable( array( $subscription, 'update_meta_data' ) ) ) {
-							$subscription->update_meta_data( $meta_key, $meta_data['value'] );
-						} else {
-							update_post_meta( wcs_get_objects_property( $subscription, 'id' ), $meta_key, $meta_data['value'] );
-						}
+						$subscription->update_meta_data( $meta_key, $meta_data['value'] );
+						$subscription->save();
 						break;
 					case 'options':
 						update_option( $meta_key, $meta_data['value'] );
@@ -819,4 +845,45 @@ function wcs_set_payment_meta( $subscription, $payment_meta ) {
 			}
 		}
 	}
+}
+
+/**
+ * Get total quantity of a product on a subscription or order, even across multiple line items.
+ *
+ * @since 2.6.0
+ *
+ * @param WC_Order|WC_Subscription $subscription Order or subscription object.
+ * @param WC_Product $product                    The product to get the total quantity of.
+ * @param string $product_match_method           The way to find matching products. Optional. Default is 'stock_managed' Can be:
+ *     'stock_managed'  - Products with matching stock managed IDs are grouped. Helpful for getting the total quantity of variation parents if they are managed on the product level, not on the variation level - @see WC_Product::get_stock_managed_by_id().
+ *     'parent'         - Products with the same parent ID are grouped. Standard products are matched together by ID. Variations are matched with variations with the same parent product ID.
+ *     'strict_product' - Products with the exact same product ID are grouped. Variations are only grouped with other variations that share the variation ID.
+ *
+ * @return int $quantity The total quantity of a product on an order or subscription.
+ */
+function wcs_get_total_line_item_product_quantity( $order, $product, $product_match_method = 'stock_managed' ) {
+	$quantity = 0;
+
+	foreach ( $order->get_items() as $line_item ) {
+		switch ( $product_match_method ) {
+			case 'parent':
+				$line_item_product_id = $line_item->get_product_id(); // Returns the parent product ID.
+				$product_id           = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id(); // The parent ID if a variation or product ID for standard products.
+				break;
+			case 'strict_product':
+				$line_item_product_id = $line_item->get_variation_id() ? $line_item->get_variation_id() : $line_item->get_product_id(); // The line item variation ID if it exists otherwise the product ID.
+				$product_id           = $product->get_id(); // The variation ID for variations or product ID.
+				break;
+			default:
+				$line_item_product_id = $line_item->get_product()->get_stock_managed_by_id();
+				$product_id           = $product->get_stock_managed_by_id();
+				break;
+		}
+
+		if ( $product_id === $line_item_product_id ) {
+			$quantity += $line_item->get_quantity();
+		}
+	}
+
+	return $quantity;
 }

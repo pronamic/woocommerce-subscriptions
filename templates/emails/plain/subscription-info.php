@@ -4,7 +4,7 @@
  *
  * @author  Brent Shepherd / Chuck Mac
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 1.5.0
+ * @version 2.6.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! empty( $subscriptions ) ) {
 
-	echo "\n\n" .  __( 'Subscription Information:', 'woocommerce-subscriptions' ) . "\n\n";
+	echo "\n\n" .  __( 'Subscription information', 'woocommerce-subscriptions' ) . "\n\n";
 	foreach ( $subscriptions as $subscription ) {
 		// translators: placeholder is subscription's number
 		echo sprintf( _x( 'Subscription: %s', 'in plain emails for subscription information', 'woocommerce-subscriptions' ), $subscription->get_order_number() ) . "\n";

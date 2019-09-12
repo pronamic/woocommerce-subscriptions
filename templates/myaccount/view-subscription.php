@@ -6,7 +6,7 @@
  *
  * @author  Prospress
  * @package WooCommerce_Subscription/Templates
- * @version 2.5.3
+ * @version 2.6.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

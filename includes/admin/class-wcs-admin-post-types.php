@@ -596,9 +596,15 @@ class WCS_Admin_Post_Types {
 
 			case 'recurring_total' :
 				$column_content .= esc_html( strip_tags( $the_subscription->get_formatted_order_total() ) );
-
+				$column_content .= '<small class="meta">';
 				// translators: placeholder is the display name of a payment gateway a subscription was paid by
-				$column_content .= '<small class="meta">' . esc_html( sprintf( __( 'Via %s', 'woocommerce-subscriptions' ), $the_subscription->get_payment_method_to_display() ) ) . '</small>';
+				$column_content .= esc_html( sprintf( __( 'Via %s', 'woocommerce-subscriptions' ), $the_subscription->get_payment_method_to_display() ) );
+
+				if ( WC_Subscriptions::is_duplicate_site() && $the_subscription->has_payment_gateway() && ! $the_subscription->get_requires_manual_renewal() ) {
+					$column_content .= WCS_Staging::get_payment_method_tooltip( $the_subscription );
+				}
+
+				$column_content .= '</small>';
 				break;
 
 			case 'start_date':

@@ -44,7 +44,7 @@ class WC_Subscriptions_Addresses {
 		if ( $subscription->needs_shipping_address() && $subscription->has_status( array( 'active', 'on-hold' ) ) ) {
 			$actions['change_address'] = array(
 				'url'  => add_query_arg( array( 'subscription' => $subscription->get_id() ), wc_get_endpoint_url( 'edit-address', 'shipping' ) ),
-				'name' => __( 'Change Address', 'woocommerce-subscriptions' ),
+				'name' => __( 'Change address', 'woocommerce-subscriptions' ),
 			);
 		}
 

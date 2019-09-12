@@ -94,20 +94,19 @@ class WCS_Email_Cancelled_Subscription extends WC_Email {
 	 * @return string
 	 */
 	function get_content_html() {
-		ob_start();
-		wc_get_template(
+		return wc_get_template_html(
 			$this->template_html,
 			array(
-				'subscription'  => $this->object,
-				'email_heading' => $this->get_heading(),
-				'sent_to_admin' => true,
-				'plain_text'    => false,
-				'email'         => $this,
+				'subscription'       => $this->object,
+				'email_heading'      => $this->get_heading(),
+				'additional_content' => is_callable( array( $this, 'get_additional_content' ) ) ? $this->get_additional_content() : '', // WC 3.7 introduced an additional content field for all emails.
+				'sent_to_admin'      => true,
+				'plain_text'         => false,
+				'email'              => $this,
 			),
 			'',
 			$this->template_base
 		);
-		return ob_get_clean();
 	}
 
 	/**
@@ -117,20 +116,19 @@ class WCS_Email_Cancelled_Subscription extends WC_Email {
 	 * @return string
 	 */
 	function get_content_plain() {
-		ob_start();
-		wc_get_template(
+		return wc_get_template_html(
 			$this->template_plain,
 			array(
-				'subscription'  => $this->object,
-				'email_heading' => $this->get_heading(),
-				'sent_to_admin' => true,
-				'plain_text'    => true,
-				'email'         => $this,
+				'subscription'       => $this->object,
+				'email_heading'      => $this->get_heading(),
+				'additional_content' => is_callable( array( $this, 'get_additional_content' ) ) ? $this->get_additional_content() : '', // WC 3.7 introduced an additional content field for all emails.
+				'sent_to_admin'      => true,
+				'plain_text'         => true,
+				'email'              => $this,
 			),
 			'',
 			$this->template_base
 		);
-		return ob_get_clean();
 	}
 
 	/**

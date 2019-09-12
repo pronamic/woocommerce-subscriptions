@@ -116,7 +116,10 @@ class WCS_My_Account_Auto_Renew_Toggle {
 	 * @param WC_Subscription $subscription
 	 */
 	protected static function send_ajax_response( $subscription ) {
-		wp_send_json( array( 'payment_method' => esc_attr( $subscription->get_payment_method_to_display( 'customer' ) ) ) );
+		wp_send_json( array(
+			'payment_method' => esc_attr( $subscription->get_payment_method_to_display( 'customer' ) ),
+			'is_manual'      => wc_bool_to_string( $subscription->is_manual() ),
+		) );
 	}
 
 	/**

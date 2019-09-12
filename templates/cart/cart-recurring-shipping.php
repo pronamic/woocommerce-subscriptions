@@ -6,8 +6,9 @@
  *
  * @author  Prospress
  * @package WooCommerce Subscriptions/Templates
- * @version 2.0.12
+ * @version 2.6.0
  */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -15,9 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <tr class="shipping recurring-total <?php echo esc_attr( $recurring_cart_key ); ?>">
 	<th><?php echo wp_kses_post( $package_name ); ?></th>
 	<td data-title="<?php echo esc_attr( $package_name ); ?>">
-		<?php if ( WC_Subscriptions::is_woocommerce_pre( '2.6' ) && is_cart() ) : // WC < 2.6 did not allow string indexes for shipping methods on the cart page and there was no way to hook in ?>
-			<?php echo wp_kses_post( wpautop( __( 'Recurring shipping options can be selected on checkout.', 'woocommerce-subscriptions' ) ) ); ?>
-		<?php elseif ( 1 < count( $available_methods ) ) : ?>
+		<?php if ( 1 < count( $available_methods ) ) : ?>
 			<ul id="shipping_method_<?php echo esc_attr( $recurring_cart_key ); ?>">
 				<?php foreach ( $available_methods as $method ) : ?>
 					<li>

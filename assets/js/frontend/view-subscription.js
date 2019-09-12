@@ -1,9 +1,14 @@
 jQuery( document ).ready( function( $ ) {
+	// Auto Renewal Toggle
 	var $toggleContainer = $( '.wcs-auto-renew-toggle' );
 	var $toggle          = $( '.subscription-auto-renew-toggle', $toggleContainer );
 	var $icon            = $toggle.find( 'i' );
 	var txtColor         = null;
 	var $paymentMethod   = $( '.subscription-payment-method' );
+
+	// Early Renewal
+	var $early_renewal_modal_submit  = $( '#early_renewal_modal_submit' );
+	var $early_renewal_modal_content = $( '.wcs-modal > .content-wrapper' );
 
 	function getTxtColor() {
 		if ( !txtColor && ( $icon && $icon.length ) ) {
@@ -33,6 +38,11 @@ jQuery( document ).ready( function( $ ) {
 		// Remove focus from the toggle element.
 		$toggle.blur();
 
+		// Ignore the request if the toggle is disabled.
+		if ( $toggle.hasClass( 'subscription-auto-renew-toggle--disabled' ) ) {
+			return;
+		}
+
 		var ajaxHandler = function( action ) {
 			var data = {
 				subscription_id: WCSViewSubscription.subscription_id,
@@ -52,6 +62,9 @@ jQuery( document ).ready( function( $ ) {
 						$paymentMethod.fadeOut( function() {
 							$paymentMethod.html( result.payment_method ).fadeIn();
 						});
+					}
+					if ( undefined !== result.is_manual  ) {
+						$paymentMethod.data( 'is_manual', result.is_manual );
 					}
 				},
 				error: function( jqxhr, status, exception ) {
@@ -100,8 +113,26 @@ jQuery( document ).ready( function( $ ) {
 		$toggleContainer.unblock();
 	}
 
+	function blockEarlyRenewalModal() {
+		$early_renewal_modal_content.block({
+			message: null,
+			overlayCSS: {
+				background: '#fff',
+				opacity: 0.6
+			}
+		});
+	}
+
+	// Don't display the modal for manual subscriptions, they will need to renew via the checkout.
+	function shouldShowEarlyRenewalModal() {
+		return $paymentMethod.data( 'is_manual' ) === 'no';
+	};
+
 	$toggle.on( 'click', onToggle );
 	maybeApplyColor();
 	displayToggle();
+
+	$early_renewal_modal_submit.on( 'click', blockEarlyRenewalModal );
+	$( document ).on( 'wcs_show_modal', shouldShowEarlyRenewalModal );
 });
 

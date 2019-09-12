@@ -4,21 +4,16 @@
  *
  * @author  Prospress
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 2.1.0
+ * @version 2.6.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
-?>
 
-<?php do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
+do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 
-<p>
-	<?php
-	// translators: $1: customer's billing first name and last name
-	printf( esc_html__( 'A subscription belonging to %1$s has been suspended by the user. Their subscription\'s details are as follows:', 'woocommerce-subscriptions' ), esc_html( $subscription->get_formatted_billing_full_name() ) );
-	?>
-</p>
+<?php /* translators: $1: customer's billing first name and last name */ ?>
+<p><?php printf( esc_html__( 'A subscription belonging to %1$s has been suspended by the user. Their subscription\'s details are as follows:', 'woocommerce-subscriptions' ), esc_html( $subscription->get_formatted_billing_full_name() ) );?></p>
 
 <table class="td" cellspacing="0" cellpadding="6" style="width: 100%; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;" border="1">
 	<thead>
@@ -55,8 +50,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 </table>
 <br/>
 
-<?php do_action( 'woocommerce_subscriptions_email_order_details', $subscription, $sent_to_admin, $plain_text, $email ); ?>
+<?php
+do_action( 'woocommerce_subscriptions_email_order_details', $subscription, $sent_to_admin, $plain_text, $email );
 
-<?php do_action( 'woocommerce_email_customer_details', $subscription, $sent_to_admin, $plain_text, $email ); ?>
+do_action( 'woocommerce_email_customer_details', $subscription, $sent_to_admin, $plain_text, $email );
 
-<?php do_action( 'woocommerce_email_footer', $email ); ?>
+/**
+ * Show user-defined additional content - this is set in each email's settings.
+ */
+if ( $additional_content ) {
+	echo wp_kses_post( wpautop( wptexturize( $additional_content ) ) );
+}
+
+do_action( 'woocommerce_email_footer', $email );

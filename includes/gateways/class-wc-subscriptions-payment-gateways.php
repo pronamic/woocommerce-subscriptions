@@ -130,7 +130,11 @@ class WC_Subscriptions_Payment_Gateways {
 	 */
 	public static function no_available_payment_methods_message( $no_gateways_message ) {
 		if ( WC_Subscriptions_Cart::cart_contains_subscription() && 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals', 'no' ) ) {
-			$no_gateways_message = __( 'Sorry, it seems there are no available payment methods which support subscriptions. Please contact us if you require assistance or wish to make alternate arrangements.', 'woocommerce-subscriptions' );
+			if ( current_user_can( 'manage_woocommerce' ) ) {
+				$no_gateways_message = sprintf( __( 'Sorry, it seems there are no available payment methods which support subscriptions. Please see %sEnabling Payment Gateways for Subscriptions%s if you require assistance.', 'woocommerce-subscriptions' ), '<a href="https://docs.woocommerce.com/document/subscriptions/enabling-payment-gateways-for-subscriptions/">', '</a>' );
+			} else {
+				$no_gateways_message = __( 'Sorry, it seems there are no available payment methods which support subscriptions. Please contact us if you require assistance or wish to make alternate arrangements.', 'woocommerce-subscriptions' );
+			}
 		}
 
 		return $no_gateways_message;
@@ -225,13 +229,13 @@ class WC_Subscriptions_Payment_Gateways {
 			return $status_html;
 		}
 
-		$core_features         = $gateway->supports;
+		$core_features         = (array) apply_filters( 'woocommerce_subscriptions_payment_gateway_features_list', $gateway->supports, $gateway );
 		$subscription_features = $change_payment_method_features = array();
 
 		foreach ( $core_features as $key => $feature ) {
 
 			// Skip any non-subscription related features.
-			if ( 0 !== strpos( $feature, 'subscription' ) ) {
+			if ( 'gateway_scheduled_payments' !== $feature && false === strpos( $feature, 'subscription' ) ) {
 				continue;
 			}
 

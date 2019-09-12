@@ -108,7 +108,11 @@ class WC_Subscriptions_Admin {
 
 		add_action( 'woocommerce_admin_field_informational', __CLASS__ . '::add_informational_admin_field' );
 
-		add_filter( 'posts_where', __CLASS__ . '::filter_orders' );
+		add_filter( 'posts_where', array( __CLASS__, 'filter_orders' ) );
+
+		add_filter( 'posts_where', array( __CLASS__, 'filter_orders_from_list' ) );
+
+		add_filter( 'posts_where', array( __CLASS__, 'filter_subscriptions_from_list' ) );
 
 		add_filter( 'posts_where', array( __CLASS__, 'filter_paid_subscription_orders_for_user' ) );
 
@@ -821,7 +825,7 @@ class WC_Subscriptions_Admin {
 					'bulkEditIntervalhMessage'  => __( 'Enter a new interval as a single number (e.g. to charge every 2nd month, enter 2):', 'woocommerce-subscriptions' ),
 					'bulkDeleteOptionLabel'     => __( 'Delete all variations without a subscription', 'woocommerce-subscriptions' ),
 					'oneTimeShippingCheckNonce' => wp_create_nonce( 'one_time_shipping' ),
-					'productHasSubscriptions'   => wcs_get_subscriptions_for_product( $post->ID ) ? 'yes' : 'no',
+					'productHasSubscriptions'   => wcs_get_subscriptions_for_product( $post->ID, 'ids', array( 'limit' => 1 ) ) ? 'yes' : 'no',
 					'productTypeWarning'        => __( 'Product type can not be changed because this product is associated with active subscriptions', 'woocommerce-subscriptions' ),
 				);
 			} elseif ( 'edit-shop_order' == $screen->id ) {
@@ -898,7 +902,7 @@ class WC_Subscriptions_Admin {
 			delete_transient( WC_Subscriptions::$activation_transient );
 		}
 
-		if ( $is_woocommerce_screen || $is_activation_screen || 'edit-product' == $screen->id ) {
+		if ( $is_woocommerce_screen || $is_activation_screen || 'edit-product' == $screen->id || ( isset( $_GET['page'], $_GET['tab'] ) && 'wc-reports' === $_GET['page'] && 'subscriptions' === $_GET['tab'] ) ) {
 			wp_enqueue_style( 'woocommerce_admin_styles', WC()->plugin_url() . '/assets/css/admin.css', array(), WC_Subscriptions::$version );
 			wp_enqueue_style( 'woocommerce_subscriptions_admin', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/css/admin.css', array( 'woocommerce_admin_styles' ), WC_Subscriptions::$version );
 		}
@@ -1054,6 +1058,27 @@ class WC_Subscriptions_Admin {
 			self::$option_prefix . '_order_button_text'       => '',
 		);
 
+		// Add the $_POST[ 'woocommerce_subscriptions_allow_switching' ] value
+		if ( isset( $_POST[ self::$option_prefix . '_allow_switching_variable' ] ) || isset( $_POST[ self::$option_prefix . '_allow_switching_grouped' ] ) ) {
+
+			$value = array();
+
+			if ( ! empty( $_POST[ self::$option_prefix . '_allow_switching_variable' ] ) ) {
+				$value[] = 'variable';
+				unset( $_POST[ self::$option_prefix . '_allow_switching_variable' ] );
+			}
+
+			if ( ! empty( $_POST[ self::$option_prefix . '_allow_switching_grouped' ] ) ) {
+				$value[] = 'grouped';
+				unset( $_POST[ self::$option_prefix . '_allow_switching_grouped' ] );
+			}
+
+			$_POST[ self::$option_prefix . '_allow_switching' ] = implode( '_', $value );
+
+		} else {
+			$_POST[ self::$option_prefix . '_allow_switching' ] = 'no';
+		}
+
 		foreach ( $settings as $setting ) {
 			if ( ! isset( $setting['id'], $setting['default'], $defaults_to_find[ $setting['id'] ], $_POST[ $setting['id'] ] ) ) {
 				continue;
@@ -1070,6 +1095,22 @@ class WC_Subscriptions_Admin {
 			if ( ! count( $defaults_to_find ) ) {
 				break;
 			}
+		}
+
+		// Add extra switching options, if any.
+		$extra_switching_options = (array) apply_filters( 'woocommerce_subscriptions_allow_switching_options', array() );
+
+		foreach ( $extra_switching_options as $option ) {
+
+			if ( empty( $option['id'] ) || empty( $option['label'] ) ) {
+				continue;
+			}
+
+			// Add to $settings to be natively saved.
+			$settings[] = array(
+				'id'   => WC_Subscriptions_Admin::$option_prefix . '_allow_switching_' . $option['id'],
+				'type' => 'checkbox', // This will sanitize value to yes/no.
+			);
 		}
 
 		woocommerce_update_options( $settings );
@@ -1144,26 +1185,26 @@ class WC_Subscriptions_Admin {
 
 			array(
 				'name'        => __( 'Add to Cart Button Text', 'woocommerce-subscriptions' ),
-				'desc'        => __( 'A product displays a button with the text "Add to Cart". By default, a subscription changes this to "Sign Up Now". You can customise the button text for subscriptions here.', 'woocommerce-subscriptions' ),
+				'desc'        => __( 'A product displays a button with the text "Add to cart". By default, a subscription changes this to "Sign up now". You can customise the button text for subscriptions here.', 'woocommerce-subscriptions' ),
 				'tip'         => '',
 				'id'          => self::$option_prefix . '_add_to_cart_button_text',
 				'css'         => 'min-width:150px;',
-				'default'     => __( 'Sign Up Now', 'woocommerce-subscriptions' ),
+				'default'     => __( 'Sign up now', 'woocommerce-subscriptions' ),
 				'type'        => 'text',
 				'desc_tip'    => true,
-				'placeholder' => __( 'Sign Up Now', 'woocommerce-subscriptions' ),
+				'placeholder' => __( 'Sign up now', 'woocommerce-subscriptions' ),
 			),
 
 			array(
 				'name'        => __( 'Place Order Button Text', 'woocommerce-subscriptions' ),
-				'desc'        => __( 'Use this field to customise the text displayed on the checkout button when an order contains a subscription. Normally the checkout submission button displays "Place Order". When the cart contains a subscription, this is changed to "Sign Up Now".', 'woocommerce-subscriptions' ),
+				'desc'        => __( 'Use this field to customise the text displayed on the checkout button when an order contains a subscription. Normally the checkout submission button displays "Place order". When the cart contains a subscription, this is changed to "Sign up now".', 'woocommerce-subscriptions' ),
 				'tip'         => '',
 				'id'          => self::$option_prefix . '_order_button_text',
 				'css'         => 'min-width:150px;',
-				'default'     => __( 'Sign Up Now', 'woocommerce-subscriptions' ),
+				'default'     => __( 'Sign up now', 'woocommerce-subscriptions' ),
 				'type'        => 'text',
 				'desc_tip'    => true,
-				'placeholder' => __( 'Sign Up Now', 'woocommerce-subscriptions' ),
+				'placeholder' => __( 'Sign up now', 'woocommerce-subscriptions' ),
 			),
 
 			array( 'type' => 'sectionend', 'id' => self::$option_prefix . '_button_text' ),
@@ -1385,7 +1426,6 @@ class WC_Subscriptions_Admin {
 	 * Filter the "Orders" list to show only orders associated with a specific subscription.
 	 *
 	 * @param string $where
-	 * @param string $request
 	 * @return string
 	 * @since 2.0
 	 */
@@ -1409,6 +1449,66 @@ class WC_Subscriptions_Admin {
 					$where .= sprintf( " AND {$wpdb->posts}.ID IN (%s)", implode( ',', array_map( 'absint', array_unique( $subscription->get_related_orders( 'ids' ) ) ) ) );
 				}
 			}
+		}
+
+		return $where;
+	}
+
+	/**
+	 * Filters the Admin orders table results based on a list of IDs returned by a report query.
+	 *
+	 * @param string $where The query WHERE clause.
+	 * @return string $where
+	 * @since 2.6.0
+	 */
+	public static function filter_orders_from_list( $where ) {
+		global $typenow, $wpdb;
+
+		if ( ! is_admin() || 'shop_order' !== $typenow || ! isset( $_GET['_orders_list_key'], $_GET['_report'] ) ) {
+			return $where;
+		}
+
+		if ( ! empty( $_GET['_orders_list_key'] ) && ! empty( $_GET['_report'] ) ) {
+			$cache     = get_transient( $_GET['_report'] );
+			$results   = $cache[ $_GET['_orders_list_key'] ];
+			$order_ids = explode( ',', implode( ',', wp_list_pluck( $results, 'order_ids', true ) ) );
+
+			// $format = '%d, %d, %d, %d, %d, [...]'
+			$format = implode( ', ', array_fill( 0, count( $order_ids ), '%d' ) );
+			$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID IN ($format)", $order_ids );
+		} else {
+			// No orders in list. So, give invalid 'where' clause so as to make the query return 0 items.
+			$where .= " AND {$wpdb->posts}.ID = 0";
+		}
+
+		return $where;
+	}
+
+	/**
+	 * Filters the Admin subscriptions table results based on a list of IDs returned by a report query.
+	 *
+	 * @param string $where The query WHERE clause.
+	 * @return string
+	 * @since 2.6.0
+	 */
+	public static function filter_subscriptions_from_list( $where ) {
+		global $typenow, $wpdb;
+
+		if ( ! is_admin() || 'shop_subscription' !== $typenow || ! isset( $_GET['_subscriptions_list_key'], $_GET['_report'] ) ) {
+			return $where;
+		}
+
+		if ( ! empty( $_GET['_subscriptions_list_key'] ) && ! empty( $_GET['_report'] ) ) {
+			$cache            = get_transient( $_GET['_report'] );
+			$results          = $cache[ $_GET['_subscriptions_list_key'] ];
+			$subscription_ids = explode( ',', implode( ',', wp_list_pluck( $results, 'subscription_ids', true ) ) );
+
+			// $format = '%d, %d, %d, %d, %d, [...]'
+			$format = implode( ', ', array_fill( 0, count( $subscription_ids ), '%d' ) );
+			$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID IN ($format)", $subscription_ids );
+		} else {
+			// No subscriptions in list. So, give invalid 'where' clause so as to make the query return 0 items.
+			$where .= " AND {$wpdb->posts}.ID = 0";
 		}
 
 		return $where;
@@ -1446,7 +1546,7 @@ class WC_Subscriptions_Admin {
 			$where .= " AND {$wpdb->posts}.ID = 0";
 		} else {
 			// Orders with paid status
-			$where .= sprintf( " AND {$wpdb->posts}.post_status IN ( 'wc-processing', 'wc-completed' )" );
+			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_status IN ( 'wc-processing', 'wc-completed' )" );
 			$where .= sprintf( " AND {$wpdb->posts}.ID IN (%s)", implode( ',', array_unique( $users_subscription_orders ) ) );
 		}
 

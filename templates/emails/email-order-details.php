@@ -4,7 +4,7 @@
  *
  * @author  Prospress
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 2.1.0
+ * @version 2.6.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -27,33 +27,35 @@ if ( 'cancelled_subscription' != $email->id ) {
 	echo '</h2>';
 }
 ?>
-<table class="td" cellspacing="0" cellpadding="6" style="width: 100%; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;" border="1">
-	<thead>
-		<tr>
-			<th class="td" scope="col" style="text-align:left;"><?php echo esc_html_x( 'Product', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
-			<th class="td" scope="col" style="text-align:left;"><?php echo esc_html_x( 'Quantity', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
-			<th class="td" scope="col" style="text-align:left;"><?php echo esc_html_x( 'Price', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
-		</tr>
-	</thead>
-	<tbody>
-		<?php echo wp_kses_post( WC_Subscriptions_Email::email_order_items_table( $order, $order_items_table_args ) ); ?>
-	</tbody>
-	<tfoot>
-		<?php
-		if ( $totals = $order->get_order_item_totals() ) {
-			$i = 0;
-			foreach ( $totals as $total ) {
-				$i++;
-				?>
-				<tr>
-					<th class="td" scope="row" colspan="2" style="text-align:left; <?php if ( 1 == $i ) { echo 'border-top-width: 4px;'; } ?>"><?php echo esc_html( $total['label'] ); ?></th>
-					<td class="td" style="text-align:left; <?php if ( 1 == $i ) { echo 'border-top-width: 4px;'; } ?>"><?php echo wp_kses_post( $total['value'] ); ?></td>
-				</tr>
-				<?php
+<div style="margin-bottom: 40px;">
+	<table class="td" cellspacing="0" cellpadding="6" style="width: 100%; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;" border="1">
+		<thead>
+			<tr>
+				<th class="td" scope="col" style="text-align:left;"><?php echo esc_html_x( 'Product', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
+				<th class="td" scope="col" style="text-align:left;"><?php echo esc_html_x( 'Quantity', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
+				<th class="td" scope="col" style="text-align:left;"><?php echo esc_html_x( 'Price', 'table headings in notification email', 'woocommerce-subscriptions' ); ?></th>
+			</tr>
+		</thead>
+		<tbody>
+			<?php echo wp_kses_post( WC_Subscriptions_Email::email_order_items_table( $order, $order_items_table_args ) ); ?>
+		</tbody>
+		<tfoot>
+			<?php
+			if ( $totals = $order->get_order_item_totals() ) {
+				$i = 0;
+				foreach ( $totals as $total ) {
+					$i++;
+					?>
+					<tr>
+						<th class="td" scope="row" colspan="2" style="text-align:left; <?php if ( 1 == $i ) { echo 'border-top-width: 4px;'; } ?>"><?php echo esc_html( $total['label'] ); ?></th>
+						<td class="td" style="text-align:left; <?php if ( 1 == $i ) { echo 'border-top-width: 4px;'; } ?>"><?php echo wp_kses_post( $total['value'] ); ?></td>
+					</tr>
+					<?php
+				}
 			}
-		}
-		?>
-	</tfoot>
-</table>
+			?>
+		</tfoot>
+	</table>
+</div>
 
 <?php do_action( 'woocommerce_email_after_' . $order_type . '_table', $order, $sent_to_admin, $plain_text, $email ); ?>

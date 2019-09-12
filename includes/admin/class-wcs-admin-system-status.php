@@ -318,7 +318,7 @@ class WCS_Admin_System_Status {
 			$debug_data[ 'wcs_' . $gateway_id . '_feature_support' ] = array(
 				'name'  => $gateway->method_title,
 				'label' => $gateway->method_title,
-				'data'  => $gateway->supports,
+				'data'  => (array) apply_filters( 'woocommerce_subscriptions_payment_gateway_features_list', $gateway->supports, $gateway ),
 			);
 
 			if ( 'paypal' === $gateway_id ) {

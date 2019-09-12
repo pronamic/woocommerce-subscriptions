@@ -4,7 +4,7 @@
  *
  * @author  Prospress
  * @package WooCommerce Subscriptions/Templates
- * @version 2.0.0
+ * @version 2.6.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ $display_th = true;
 ?>
 
 			<tr class="recurring-totals">
-				<th colspan="2"><?php esc_html_e( 'Recurring Totals', 'woocommerce-subscriptions' ); ?></th>
+				<th colspan="2"><?php esc_html_e( 'Recurring totals', 'woocommerce-subscriptions' ); ?></th>
 			</tr>
 
 			<?php foreach ( $recurring_carts as $recurring_cart_key => $recurring_cart ) : ?>
@@ -70,7 +70,7 @@ $display_th = true;
 			<?php endforeach; ?>
 		<?php endforeach; ?>
 
-		<?php if ( WC()->cart->tax_display_cart === 'excl' ) : ?>
+		<?php if ( wc_tax_enabled() && WC()->cart->tax_display_cart === 'excl' ) : ?>
 			<?php if ( get_option( 'woocommerce_tax_total_display' ) === 'itemized' ) : ?>
 
 				<?php foreach ( WC()->cart->get_taxes() as $tax_id => $tax_total ) : ?>
@@ -120,8 +120,8 @@ $display_th = true;
 			<?php endif; ?>
 			<tr class="order-total recurring-total">
 				<?php if ( $display_th ) : $display_th = false; ?>
-					<th rowspan="<?php echo esc_attr( $carts_with_multiple_payments ); ?>"><?php esc_html_e( 'Recurring Total', 'woocommerce-subscriptions' ); ?></th>
-					<td data-title="<?php esc_attr_e( 'Recurring Total', 'woocommerce-subscriptions' ); ?>"><?php wcs_cart_totals_order_total_html( $recurring_cart ); ?></td>
+					<th rowspan="<?php echo esc_attr( $carts_with_multiple_payments ); ?>"><?php esc_html_e( 'Recurring total', 'woocommerce-subscriptions' ); ?></th>
+					<td data-title="<?php esc_attr_e( 'Recurring total', 'woocommerce-subscriptions' ); ?>"><?php wcs_cart_totals_order_total_html( $recurring_cart ); ?></td>
 				<?php else : ?>
 					<td><?php wcs_cart_totals_order_total_html( $recurring_cart ); ?></td>
 				<?php endif; ?>
