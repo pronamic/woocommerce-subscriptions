@@ -50,7 +50,7 @@ class WCS_Report_Dashboard {
 
 		$report_data = new stdClass;
 
-		$cached_results = get_transient( strtolower( self::class ) );
+		$cached_results = get_transient( strtolower( __CLASS__ ) );
 
 		// Subscription signups this month
 		$query = $wpdb->prepare(
@@ -103,7 +103,7 @@ class WCS_Report_Dashboard {
 		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_signup_revenue_query', $query ) );
-			set_transient( strtolower( self::class ), $cached_results, HOUR_IN_SECONDS );
+			set_transient( strtolower( __CLASS__ ), $cached_results, HOUR_IN_SECONDS );
 		}
 
 		$report_data->signup_revenue = $cached_results[ $query_hash ];
@@ -131,7 +131,7 @@ class WCS_Report_Dashboard {
 		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_renewal_query', $query ) );
-			set_transient( strtolower( self::class ), $cached_results, HOUR_IN_SECONDS );
+			set_transient( strtolower( __CLASS__ ), $cached_results, HOUR_IN_SECONDS );
 		}
 
 		$report_data->renewal_count = $cached_results[ $query_hash ];
@@ -165,7 +165,7 @@ class WCS_Report_Dashboard {
 		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_renewal_revenue_query', $query ) );
-			set_transient( strtolower( self::class ), $cached_results, HOUR_IN_SECONDS );
+			set_transient( strtolower( __CLASS__ ), $cached_results, HOUR_IN_SECONDS );
 		}
 
 		$report_data->renewal_revenue = $cached_results[ $query_hash ];
@@ -188,7 +188,7 @@ class WCS_Report_Dashboard {
 		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_cancellation_query', $query ) );
-			set_transient( strtolower( self::class ), $cached_results, HOUR_IN_SECONDS );
+			set_transient( strtolower( __CLASS__ ), $cached_results, HOUR_IN_SECONDS );
 		}
 
 		$report_data->cancel_count = $cached_results[ $query_hash ];

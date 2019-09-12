@@ -77,6 +77,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 	 * @param WP_REST_Request $request
 	 */
 	public function filter_get_subscription_response( $response, $post, $request ) {
+		$decimal_places = is_null( $request['dp'] ) ? wc_get_price_decimals() : absint( $request['dp'] );
 
 		if ( ! empty( $post->post_type ) && ! empty( $post->ID ) && 'shop_subscription' == $post->post_type ) {
 			$subscription = wcs_get_subscription( $post->ID );
@@ -97,6 +98,72 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 			// v1 API includes some date types in site time, include those dates in UTC as well.
 			$response->data['date_completed_gmt'] = wc_rest_prepare_date_response( $subscription->get_date_completed() );
 			$response->data['date_paid_gmt']      = wc_rest_prepare_date_response( $subscription->get_date_paid() );
+			$response->data['removed_line_items'] = array();
+
+			// Include removed line items of a subscription
+			foreach ( $subscription->get_items( 'line_item_removed' ) as $item_id => $item ) {
+				$product      = $item->get_product();
+				$product_id   = 0;
+				$variation_id = 0;
+				$product_sku  = null;
+
+				// Check if the product exists.
+				if ( is_object( $product ) ) {
+					$product_id   = $item->get_product_id();
+					$variation_id = $item->get_variation_id();
+					$product_sku  = $product->get_sku();
+				}
+
+				$item_meta = array();
+
+				$hideprefix = 'true' === $request['all_item_meta'] ? null : '_';
+
+				foreach ( $item->get_formatted_meta_data( $hideprefix, true ) as $meta_key => $formatted_meta ) {
+					$item_meta[] = array(
+						'key'   => $formatted_meta->key,
+						'label' => $formatted_meta->display_key,
+						'value' => wc_clean( $formatted_meta->display_value ),
+					);
+				}
+
+				$line_item = array(
+					'id'           => $item_id,
+					'name'         => $item['name'],
+					'sku'          => $product_sku,
+					'product_id'   => (int) $product_id,
+					'variation_id' => (int) $variation_id,
+					'quantity'     => wc_stock_amount( $item['qty'] ),
+					'tax_class'    => ! empty( $item['tax_class'] ) ? $item['tax_class'] : '',
+					'price'        => wc_format_decimal( $subscription->get_item_total( $item, false, false ), $decimal_places ),
+					'subtotal'     => wc_format_decimal( $subscription->get_line_subtotal( $item, false, false ), $decimal_places ),
+					'subtotal_tax' => wc_format_decimal( $item['line_subtotal_tax'], $decimal_places ),
+					'total'        => wc_format_decimal( $subscription->get_line_total( $item, false, false ), $decimal_places ),
+					'total_tax'    => wc_format_decimal( $item['line_tax'], $decimal_places ),
+					'taxes'        => array(),
+					'meta'         => $item_meta,
+				);
+
+				$item_line_taxes = maybe_unserialize( $item['line_tax_data'] );
+				if ( isset( $item_line_taxes['total'] ) ) {
+					$line_tax = array();
+
+					foreach ( $item_line_taxes['total'] as $tax_rate_id => $tax ) {
+						$line_tax[ $tax_rate_id ] = array(
+							'id'       => $tax_rate_id,
+							'total'    => $tax,
+							'subtotal' => '',
+						);
+					}
+
+					foreach ( $item_line_taxes['subtotal'] as $tax_rate_id => $tax ) {
+						$line_tax[ $tax_rate_id ]['subtotal'] = $tax;
+					}
+
+					$line_item['taxes'] = array_values( $line_tax );
+				}
+
+				$response->data['removed_line_items'][] = $line_item;
+			}
 		}
 
 		return $response;
@@ -483,6 +550,139 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 				'type'        => 'date-time',
 				'context'     => array( 'view' ),
 				'readonly'    => true,
+			),
+			'removed_line_items' => array(
+				'description' => __( 'Removed line items data.', 'woocommerce-subscriptions' ),
+				'type'        => 'array',
+				'context'     => array( 'view', 'edit' ),
+				'items'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'id' => array(
+							'description' => __( 'Item ID.', 'woocommerce-subscriptions' ),
+							'type'        => 'integer',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
+						),
+						'name' => array(
+							'description' => __( 'Product name.', 'woocommerce-subscriptions' ),
+							'type'        => 'mixed',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
+						),
+						'sku' => array(
+							'description' => __( 'Product SKU.', 'woocommerce-subscriptions' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
+						),
+						'product_id' => array(
+							'description' => __( 'Product ID.', 'woocommerce-subscriptions' ),
+							'type'        => 'mixed',
+							'context'     => array( 'view', 'edit' ),
+						),
+						'variation_id' => array(
+							'description' => __( 'Variation ID, if applicable.', 'woocommerce-subscriptions' ),
+							'type'        => 'integer',
+							'context'     => array( 'view', 'edit' ),
+						),
+						'quantity' => array(
+							'description' => __( 'Quantity ordered.', 'woocommerce-subscriptions' ),
+							'type'        => 'integer',
+							'context'     => array( 'view', 'edit' ),
+						),
+						'tax_class' => array(
+							'description' => __( 'Tax class of product.', 'woocommerce-subscriptions' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
+						),
+						'price' => array(
+							'description' => __( 'Product price.', 'woocommerce-subscriptions' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
+						),
+						'subtotal' => array(
+							'description' => __( 'Line subtotal (before discounts).', 'woocommerce-subscriptions' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+						),
+						'subtotal_tax' => array(
+							'description' => __( 'Line subtotal tax (before discounts).', 'woocommerce-subscriptions' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+						),
+						'total' => array(
+							'description' => __( 'Line total (after discounts).', 'woocommerce-subscriptions' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+						),
+						'total_tax' => array(
+							'description' => __( 'Line total tax (after discounts).', 'woocommerce-subscriptions' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+						),
+						'taxes' => array(
+							'description' => __( 'Line taxes.', 'woocommerce-subscriptions' ),
+							'type'        => 'array',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
+							'items'       => array(
+								'type'       => 'object',
+								'properties' => array(
+									'id' => array(
+										'description' => __( 'Tax rate ID.', 'woocommerce-subscriptions' ),
+										'type'        => 'integer',
+										'context'     => array( 'view', 'edit' ),
+										'readonly'    => true,
+									),
+									'total' => array(
+										'description' => __( 'Tax total.', 'woocommerce-subscriptions' ),
+										'type'        => 'string',
+										'context'     => array( 'view', 'edit' ),
+										'readonly'    => true,
+									),
+									'subtotal' => array(
+										'description' => __( 'Tax subtotal.', 'woocommerce-subscriptions' ),
+										'type'        => 'string',
+										'context'     => array( 'view', 'edit' ),
+										'readonly'    => true,
+									),
+								),
+							),
+						),
+						'meta' => array(
+							'description' => __( 'Removed line item meta data.', 'woocommerce-subscriptions' ),
+							'type'        => 'array',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
+							'items'       => array(
+								'type'       => 'object',
+								'properties' => array(
+									'key' => array(
+										'description' => __( 'Meta key.', 'woocommerce-subscriptions' ),
+										'type'        => 'string',
+										'context'     => array( 'view', 'edit' ),
+										'readonly'    => true,
+									),
+									'label' => array(
+										'description' => __( 'Meta label.', 'woocommerce-subscriptions' ),
+										'type'        => 'string',
+										'context'     => array( 'view', 'edit' ),
+										'readonly'    => true,
+									),
+									'value' => array(
+										'description' => __( 'Meta value.', 'woocommerce-subscriptions' ),
+										'type'        => 'mixed',
+										'context'     => array( 'view', 'edit' ),
+										'readonly'    => true,
+									),
+								),
+							),
+						),
+					),
+				),
 			),
 		);
 

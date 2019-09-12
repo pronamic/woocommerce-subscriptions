@@ -50,6 +50,8 @@ class WCS_PayPal_Supports {
 
 		// Check for specific subscription support based on whether the subscription is using a billing agreement or subscription for recurring payments with PayPal
 		add_filter( 'woocommerce_subscription_payment_gateway_supports', __CLASS__ . '::add_feature_support_for_subscription', 10, 3 );
+
+		add_filter( 'woocommerce_subscriptions_payment_gateway_features_list', array( __CLASS__, 'add_paypal_billing_type_supported_features' ), 10, 2 );
 	}
 
 	/**
@@ -108,4 +110,34 @@ class WCS_PayPal_Supports {
 		return $is_supported;
 	}
 
+	/**
+	 * Adds the payment gateway features supported by the type of billing the PayPal account supports (Reference Transactions or Standard).
+	 *
+	 * @since 2.6.0
+	 *
+	 * @param array $features The list of features the payment gateway supports.
+	 * @param WC_Payment_Gateway $gateway The payment gateway object.
+	 * @return array $features
+	 */
+	public static function add_paypal_billing_type_supported_features( $features, $gateway ) {
+
+		if ( 'paypal' !== $gateway->id ) {
+			return $features;
+		}
+
+		// The base feature list is the PayPal Standard features + the basic features the payment gateways support ($gateway->supports).
+		$features = array_merge( self::$standard_supported_features, $features );
+
+		// Reference Transactions support all base features + Reference Transactions features - 'gateway_scheduled_payments'.
+		if ( WCS_PayPal::are_reference_transactions_enabled() ) {
+			// Remove gateway scheduled payments.
+			if ( false !== ( $key = array_search( 'gateway_scheduled_payments', $features ) ) ) {
+				unset( $features[ $key ] );
+			}
+
+			$features = array_merge( self::$reference_transaction_supported_features, $features );
+		}
+
+		return array_unique( $features );
+	}
 }

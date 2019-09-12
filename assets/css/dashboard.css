@@ -2,40 +2,56 @@
   Subscriptions 2.1 Dashboard Stats
 ------------------------------------------------------------------------------*/
 #woocommerce_dashboard_status .wc_status_list li.signup-count a:before {
-    content: "\e02c";
-    color: #5da5da;
+	font-family: WooCommerce;
+	content: '\e014';
+	color: #59cf8a;
 }
 
 #woocommerce_dashboard_status .wc_status_list li.renewal-count a:before {
-    content: "\e02c";
-    color: #f29ec4;
+	font-family: Dashicons;
+	content: "\f321";
+	color: #f29ec4;
 }
 
 #woocommerce_dashboard_status .wc_status_list li.cancel-count {
-    width: 100%;
+	width: 100%;
 }
 
 #woocommerce_dashboard_status .wc_status_list li.cancel-count a:before {
-    content: "\e02c";
-    color: #aa0000;
+	font-family: WooCommerce;
+	content: "\e033";
+	color: #aa0000;
 }
 
 #woocommerce_dashboard_status .wc_status_list li.signup-revenue a:before {
-    font-family: Dashicons;
-    content: '\f185';
-    color: #5da5da;
+	font-family: Dashicons;
+	content: '\f185';
+	color: #59cf8a;
 }
 
 #woocommerce_dashboard_status .wc_status_list li.renewal-revenue a:before {
-    font-family: Dashicons;
-    content: '\f185';
-    color: #f29ec4;
+	font-family: Dashicons;
+	content: '\f185';
+	color: #f29ec4;
 }
 
 #woocommerce_dashboard_status .wc_status_list li.signup-count {
-    border-right: 1px solid #ececec;
+	border-right: 1px solid #ececec;
 }
 
 #woocommerce_dashboard_status .wc_status_list li.renewal-count {
-    border-right: 1px solid #ececec;
+	border-right: 1px solid #ececec;
+}
+
+@media (max-width: 1685px) and (min-width: 1485px),
+(max-width: 2193px) and (min-width: 1936px),
+(max-width: 1179px) and (min-width: 1052px),
+(max-width: 960px) {
+	#woocommerce_dashboard_status .wc_status_list li.renewal-count,
+	#woocommerce_dashboard_status .wc_status_list li.renewal-revenue,
+	#woocommerce_dashboard_status .wc_status_list li.signup-count,
+	#woocommerce_dashboard_status .wc_status_list li.signup-revenue,
+	#woocommerce_dashboard_status .wc_status_list li.cancel-count {
+		width: 100%
+	}
 }

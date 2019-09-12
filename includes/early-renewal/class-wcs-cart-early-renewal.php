@@ -68,7 +68,7 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 
 			$actions['subscription_renewal_early'] = array(
 				'url'  => wcs_get_early_renewal_url( $subscription ),
-				'name' => __( 'Renew Now', 'woocommerce-subscriptions' ),
+				'name' => __( 'Renew now', 'woocommerce-subscriptions' ),
 			);
 		}
 
@@ -108,7 +108,7 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 				'subscription_id'            => $subscription->get_id(),
 				'subscription_renewal_early' => true,
 				'renewal_order_id'           => $subscription->get_id(),
-			) );
+			), 'all_items_required' );
 
 			do_action( 'wcs_after_early_renewal_setup_cart_subscription', $subscription );
 
@@ -220,37 +220,7 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 			return;
 		}
 
-		$next_payment_time = $subscription->get_time( 'next_payment' );
-		$dates_to_update   = array();
-
-		if ( $next_payment_time > 0 && $next_payment_time > current_time( 'timestamp', true ) ) {
-			$next_payment_timestamp = wcs_add_time( $subscription->get_billing_interval(), $subscription->get_billing_period(), $next_payment_time );
-
-			if ( $subscription->get_time( 'end' ) === 0 || $next_payment_timestamp < $subscription->get_time( 'end' ) ) {
-				$dates_to_update['next_payment'] = gmdate( 'Y-m-d H:i:s',  $next_payment_timestamp );
-			} else {
-				// Delete the next payment date if the calculated next payment date occurs after the end date.
-				$dates_to_update['next_payment'] = 0;
-			}
-		} elseif ( $subscription->get_time( 'end' ) > 0 ) {
-			$dates_to_update['end'] = gmdate( 'Y-m-d H:i:s', wcs_add_time( $subscription->get_billing_interval(), $subscription->get_billing_period(), $subscription->get_time( 'end' ) ) );
-		}
-
-		if ( ! empty( $dates_to_update ) ) {
-
-			$order_number = sprintf( _x( '#%s', 'hash before order number', 'woocommerce-subscriptions' ), $order->get_order_number() );
-			$order_link   = sprintf( '<a href="%s">%s</a>', esc_url( wcs_get_edit_post_link( $order->get_id() ) ), $order_number );
-
-			try {
-				$subscription->update_dates( $dates_to_update );
-
-				// translators: placeholder contains a link to the order's edit screen.
-				$subscription->add_order_note( sprintf( __( 'Customer successfully renewed early with order %s.', 'woocommerce-subscriptions' ), $order_link ) );
-			} catch ( Exception $e ) {
-				// translators: placeholder contains a link to the order's edit screen.
-				$subscription->add_order_note( sprintf( __( 'Failed to update subscription dates after customer renewed early with order %s.', 'woocommerce-subscriptions' ), $order_link ) );
-			}
-		}
+		wcs_update_dates_after_early_renewal( $subscription, $order );
 	}
 
 	/**

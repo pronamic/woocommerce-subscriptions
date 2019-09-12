@@ -85,7 +85,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 
 				$this->setup_cart( $subscription, array(
 					'subscription_id' => $subscription->get_id(),
-				) );
+				), 'all_items_required' );
 
 				if ( WC()->cart->get_cart_contents_count() != 0 ) {
 					wc_add_notice( __( 'Complete checkout to resubscribe.', 'woocommerce-subscriptions' ), 'success' );
@@ -124,7 +124,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 					if ( current_user_can( 'subscribe_again', $subscription->get_id() ) ) {
 						$this->setup_cart( $subscription, array(
 							'subscription_id' => $subscription->get_id(),
-						) );
+						), 'all_items_required' );
 					} else {
 						wc_add_notice( __( 'That doesn\'t appear to be one of your subscriptions.', 'woocommerce-subscriptions' ), 'error' );
 						wp_safe_redirect( get_permalink( wc_get_page_id( 'myaccount' ) ) );

@@ -315,9 +315,9 @@ class WC_Subscriptions_Change_Payment_Gateway {
 		if ( $subscription->can_be_updated_to( 'new-payment-method' ) ) {
 
 			if ( $subscription->has_payment_gateway() && wc_get_payment_gateway_by_order( $subscription )->supports( 'subscriptions' ) ) {
-				$action_name = _x( 'Change Payment', 'label on button, imperative', 'woocommerce-subscriptions' );
+				$action_name = _x( 'Change payment', 'label on button, imperative', 'woocommerce-subscriptions' );
 			} else {
-				$action_name = _x( 'Add Payment', 'label on button, imperative', 'woocommerce-subscriptions' );
+				$action_name = _x( 'Add payment', 'label on button, imperative', 'woocommerce-subscriptions' );
 			}
 
 			$actions['change_payment_method'] = array(
@@ -742,9 +742,9 @@ class WC_Subscriptions_Change_Payment_Gateway {
 		}
 
 		if ( $subscription->has_payment_gateway() ) {
-			$title = _x( 'Change Payment Method', 'the page title of the change payment method form', 'woocommerce-subscriptions' );
+			$title = _x( 'Change payment method', 'the page title of the change payment method form', 'woocommerce-subscriptions' );
 		} else {
-			$title = _x( 'Add Payment Method', 'the page title of the add payment method form', 'woocommerce-subscriptions' );
+			$title = _x( 'Add payment method', 'the page title of the add payment method form', 'woocommerce-subscriptions' );
 		}
 
 		return $title;
@@ -779,12 +779,12 @@ class WC_Subscriptions_Change_Payment_Gateway {
 
 			if ( $subscription->has_payment_gateway() ) {
 				$crumbs[3] = array(
-					_x( 'Change Payment Method', 'the page title of the change payment method form', 'woocommerce-subscriptions' ),
+					_x( 'Change payment method', 'the page title of the change payment method form', 'woocommerce-subscriptions' ),
 					'',
 				);
 			} else {
 				$crumbs[3] = array(
-					_x( 'Add Payment Method', 'the page title of the add payment method form', 'woocommerce-subscriptions' ),
+					_x( 'Add payment method', 'the page title of the add payment method form', 'woocommerce-subscriptions' ),
 					'',
 				);
 			}

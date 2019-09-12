@@ -5,7 +5,7 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Automattic
  * Author URI: https://woocommerce.com/
- * Version: 2.5.7
+ * Version: 2.6.1
  *
  * WC requires at least: 3.0
  * WC tested up to: 3.6
@@ -73,6 +73,7 @@ WC_Subscriptions_Product::init();
 WC_Subscriptions_Admin::init();
 WC_Subscriptions_Manager::init();
 WC_Subscriptions_Cart::init();
+WC_Subscriptions_Cart_Validator::init();
 WC_Subscriptions_Order::init();
 WC_Subscriptions_Renewal_Order::init();
 WC_Subscriptions_Checkout::init();
@@ -94,6 +95,9 @@ WCS_Admin_System_Status::init();
 WCS_Upgrade_Notice_Manager::init();
 WCS_Staging::init();
 WCS_Permalink_Manager::init();
+WCS_Custom_Order_Item_Manager::init();
+WCS_Early_Renewal_Modal_Handler::init();
+WCS_Dependent_Hook_Manager::init();
 
 // Some classes run init on a particular hook.
 add_action( 'init', array( 'WC_Subscriptions_Synchroniser', 'init' ) );
@@ -113,7 +117,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.5.7';
+	public static $version = '2.6.1';
 
 	public static $wc_minimum_supported_version = '3.0';
 
@@ -149,14 +153,11 @@ class WC_Subscriptions {
 
 		register_deactivation_hook( __FILE__, __CLASS__ . '::deactivate_woocommerce_subscriptions' );
 
-		// Override the WC default "Add to Cart" text to "Sign Up Now" (in various places/templates)
+		// Override the WC default "Add to cart" text to "Sign up now" (in various places/templates)
 		add_filter( 'woocommerce_order_button_text', __CLASS__ . '::order_button_text' );
 		add_action( 'woocommerce_subscription_add_to_cart', __CLASS__ . '::subscription_add_to_cart', 30 );
 		add_action( 'woocommerce_variable-subscription_add_to_cart', __CLASS__ . '::variable_subscription_add_to_cart', 30 );
 		add_action( 'wcopc_subscription_add_to_cart', __CLASS__ . '::wcopc_subscription_add_to_cart' ); // One Page Checkout compatibility
-
-		// Ensure a subscription is never in the cart with products
-		add_filter( 'woocommerce_add_to_cart_validation', __CLASS__ . '::maybe_empty_cart', 10, 5 );
 
 		// Enqueue front-end styles, run after Storefront because it sets the styles to be empty
 		add_filter( 'woocommerce_enqueue_styles', __CLASS__ . '::enqueue_styles', 100, 1 );
@@ -465,9 +466,11 @@ class WC_Subscriptions {
 	 *
 	 * If multiple purchase flag is set, allow them to be added at the same time.
 	 *
+	 * @deprecated 2.6.0
 	 * @since 1.0
 	 */
 	public static function maybe_empty_cart( $valid, $product_id, $quantity, $variation_id = '', $variations = array() ) {
+		wcs_deprecated_function( __METHOD__, '2.6.0', 'WC_Subscriptions_Cart_Validator::maybe_empty_cart()' );
 
 		$is_subscription                 = WC_Subscriptions_Product::is_subscription( $product_id );
 		$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription();
@@ -490,19 +493,19 @@ class WC_Subscriptions {
 			}
 		} elseif ( $is_subscription && wcs_cart_contains_renewal() && ! $multiple_subscriptions_possible && ! $manual_renewals_enabled ) {
 
-			self::remove_subscriptions_from_cart();
+			WC_Subscriptions_Cart::remove_subscriptions_from_cart();
 
 			wc_add_notice( __( 'A subscription renewal has been removed from your cart. Multiple subscriptions can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
 
 		} elseif ( $is_subscription && $cart_contains_subscription && ! $multiple_subscriptions_possible && ! $manual_renewals_enabled && ! WC_Subscriptions_Cart::cart_contains_product( $canonical_product_id ) ) {
 
-			self::remove_subscriptions_from_cart();
+			WC_Subscriptions_Cart::remove_subscriptions_from_cart();
 
 			wc_add_notice( __( 'A subscription has been removed from your cart. Due to payment gateway restrictions, different subscription products can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
 
 		} elseif ( $cart_contains_subscription && 'yes' != get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase', 'no' ) ) {
 
-			self::remove_subscriptions_from_cart();
+			WC_Subscriptions_Cart::remove_subscriptions_from_cart();
 
 			wc_add_notice( __( 'A subscription has been removed from your cart. Products and subscriptions can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
 
@@ -514,26 +517,24 @@ class WC_Subscriptions {
 			}
 		}
 
-		return $valid;
+		return WC_Subscriptions_Cart_Validator::maybe_empty_cart( $valid, $product_id, $quantity, $variation_id, $variations );
 	}
 
 	/**
 	 * Removes all subscription products from the shopping cart.
 	 *
+	 * @deprecated 2.6.0
 	 * @since 1.0
 	 */
 	public static function remove_subscriptions_from_cart() {
+		wcs_deprecated_function( __METHOD__, '2.6.0', 'WC_Subscriptions_Cart::remove_subscriptions_from_cart()' );
 
-		foreach ( WC()->cart->cart_contents as $cart_item_key => $cart_item ) {
-			if ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
-				WC()->cart->set_quantity( $cart_item_key, 0 );
-			}
-		}
+		WC_Subscriptions_Cart::remove_subscriptions_from_cart();
 	}
 
 	/**
 	 * For a smoother sign up process, tell WooCommerce to redirect the shopper immediately to
-	 * the checkout page after she clicks the "Sign Up Now" button
+	 * the checkout page after she clicks the "Sign up now" button
 	 *
 	 * Only enabled if multiple checkout is not enabled.
 	 *
@@ -569,7 +570,7 @@ class WC_Subscriptions {
 	}
 
 	/**
-	 * Override the WooCommerce "Place Order" text with "Sign Up Now"
+	 * Override the WooCommerce "Place order" text with "Sign up now"
 	 *
 	 * @since 1.0
 	 */
@@ -577,7 +578,7 @@ class WC_Subscriptions {
 		global $product;
 
 		if ( WC_Subscriptions_Cart::cart_contains_subscription() ) {
-			$button_text = get_option( WC_Subscriptions_Admin::$option_prefix . '_order_button_text', __( 'Sign Up Now', 'woocommerce-subscriptions' ) );
+			$button_text = get_option( WC_Subscriptions_Admin::$option_prefix . '_order_button_text', __( 'Sign up now', 'woocommerce-subscriptions' ) );
 		}
 
 		return $button_text;
@@ -830,8 +831,8 @@ class WC_Subscriptions {
 			$notice->display();
 		} else {
 			WCS_Early_Renewal_Manager::init();
+			require_once( dirname( __FILE__ ) . '/includes/early-renewal/wcs-early-renewal-functions.php' );
 			if ( WCS_Early_Renewal_Manager::is_early_renewal_enabled() ) {
-				require_once( dirname( __FILE__ ) . '/includes/early-renewal/wcs-early-renewal-functions.php' );
 				new WCS_Cart_Early_Renewal();
 			}
 		}
@@ -1029,7 +1030,7 @@ class WC_Subscriptions {
 		// Let the default source be WP
 		if ( 'subscriptions_install' === $source ) {
 			$site_url = self::get_site_url();
-		} elseif ( defined( 'WP_SITEURL' ) ) {
+		} elseif ( ! is_multisite() && defined( 'WP_SITEURL' ) ) {
 			$site_url = WP_SITEURL;
 		} else {
 			$site_url = get_site_url();

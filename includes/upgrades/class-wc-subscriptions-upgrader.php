@@ -240,6 +240,11 @@ class WC_Subscriptions_Upgrader {
 			WCS_PayPal::set_enabled_for_subscriptions_default();
 		}
 
+		// Upon upgrading to 2.6.0 from a version after 2.2.0, schedule missing _has_trial line item meta repair.
+		if ( version_compare( self::$active_version, '2.6.0', '<' ) && version_compare( self::$active_version, '2.2.0', '>=' ) ) {
+			self::$background_updaters['2.6']['has_trial_item_meta']->schedule_repair();
+		}
+
 		self::upgrade_complete();
 	}
 
@@ -837,7 +842,8 @@ class WC_Subscriptions_Upgrader {
 		$logger = new WC_logger();
 		self::$background_updaters['2.3']['suspended_paypal_repair'] = new WCS_Repair_Suspended_PayPal_Subscriptions( $logger );
 		self::$background_updaters['2.3']['address_indexes_repair']  = new WCS_Repair_Subscription_Address_Indexes( $logger );
-		self::$background_updaters['2.4']['start_date_metadata'] = new WCS_Repair_Start_Date_Metadata( $logger );
+		self::$background_updaters['2.4']['start_date_metadata']     = new WCS_Repair_Start_Date_Metadata( $logger );
+		self::$background_updaters['2.6']['has_trial_item_meta']     = new WCS_Repair_Line_Item_Has_Trial_Meta( $logger );
 
 		// Init the updaters
 		foreach ( self::$background_updaters as $version => $updaters ) {

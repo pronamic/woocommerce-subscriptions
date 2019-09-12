@@ -2,7 +2,7 @@
 /**
  * Outputs the Status section for Subscriptions.
  *
- * @version 2.3.0
+ * @version 2.6.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -14,7 +14,7 @@ if ( ! isset( $debug_data ) || ! is_array( $debug_data ) ) {
 }
 
 ?>
-<table class="wc_status_table widefat" cellspacing="0">
+<table class="wc_status_table wc_status_table--wcs widefat" cellspacing="0">
 	<thead>
 	<tr>
 		<th colspan="3" data-export-label="<?php echo esc_attr( $section_title ); ?>">
@@ -23,7 +23,7 @@ if ( ! isset( $debug_data ) || ! is_array( $debug_data ) ) {
 			</h2></th>
 	</tr>
 	</thead>
-	<tbody>
+	<tbody class="wcs">
 	<?php foreach ( $debug_data as $section => $data ) {
 		// Use mark key if available, otherwise default back to the success key.
 		if ( isset( $data['mark'] ) ) {
@@ -43,7 +43,7 @@ if ( ! isset( $debug_data ) || ! is_array( $debug_data ) ) {
 			$mark_icon = 'no-alt';
 		}
 		?>
-		<tr>
+		<tr class="<?php echo sanitize_html_class( $section ); ?>">
 			<td data-export-label="<?php echo esc_attr( $data['label'] ) ?>"><?php echo esc_html( $data['name'] ) ?>:</td>
 			<td class="help">&nbsp;</td>
 			<td>

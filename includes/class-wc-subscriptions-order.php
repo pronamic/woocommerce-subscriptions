@@ -2106,7 +2106,7 @@ class WC_Subscriptions_Order {
 			foreach ( $subscriptions as $subscription_id => $subscription ) {
 
 				// No payments have been recorded yet
-				if ( 0 == $subscription->get_completed_payment_count() ) {
+				if ( 0 == $subscription->get_payment_count() ) {
 					$subscription->update_dates( array( 'date_created' => current_time( 'mysql', true ) ) );
 					$subscription->payment_complete();
 				}

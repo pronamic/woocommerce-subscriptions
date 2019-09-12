@@ -45,7 +45,9 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 		echo '	<strong>' . esc_html__( 'Active Subscriptions', 'woocommerce-subscriptions' ) . '</strong>: ' . esc_html( $this->totals->active_subscriptions ) . wcs_help_tip( __( 'The total number of subscriptions with a status of active or pending cancellation.', 'woocommerce-subscriptions' ) ) . '<br />';
 		echo '	<strong>' . esc_html__( 'Total Subscriptions', 'woocommerce-subscriptions' ) . '</strong>: ' . esc_html( $this->totals->total_subscriptions ) . wcs_help_tip( __( 'The total number of subscriptions with a status other than pending or trashed.', 'woocommerce-subscriptions' ) ) . '<br />';
 		echo '	<strong>' . esc_html__( 'Total Subscription Orders', 'woocommerce-subscriptions' ) . '</strong>: ' . esc_html( $this->totals->initial_order_count + $this->totals->renewal_switch_count ) . wcs_help_tip( __( 'The total number of sign-up, switch and renewal orders placed with your store with a paid status (i.e. processing or complete).', 'woocommerce-subscriptions' ) ) . '<br />';
-		echo '	<strong>' . esc_html__( 'Average Lifetime Value', 'woocommerce-subscriptions' ) . '</strong>: ' . wp_kses_post( wc_price( ( $this->totals->initial_order_total + $this->totals->renewal_switch_total ) / $this->totals->total_customers ) ) . wcs_help_tip( __( 'The average value of all customers\' sign-up, switch and renewal orders.', 'woocommerce-subscriptions' ) ) . '</p>';
+		echo '	<strong>' . esc_html__( 'Average Lifetime Value', 'woocommerce-subscriptions' ) . '</strong>: ';
+		echo wp_kses_post( wc_price( $this->totals->total_customers > 0 ? ( ( $this->totals->initial_order_total + $this->totals->renewal_switch_total ) / $this->totals->total_customers ) : 0 ) );
+		echo wcs_help_tip( __( 'The average value of all customers\' sign-up, switch and renewal orders.', 'woocommerce-subscriptions' ) ) . '</p>';
 		echo '</div></div>';
 		$this->display();
 		echo '</div>';
@@ -212,11 +214,11 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 					COALESCE( SUM(parent_total.meta_value), 0) as initial_order_total,
 					COALESCE( SUM(parent_total.meta_value), 0) as initial_order_total,
 					COUNT(DISTINCT parent_order.ID) as initial_order_count,
-					SUM(CASE
+					COALESCE(SUM(CASE
 							WHEN subscription_posts.post_status
 								IN  ( 'wc-" . implode( "','wc-", apply_filters( 'wcs_reports_active_statuses', array( 'active', 'pending-cancel' ) ) ) . "' ) THEN 1
 							ELSE 0
-							END) AS active_subscriptions
+							END), 0) AS active_subscriptions
 				FROM {$wpdb->posts} subscription_posts
 				INNER JOIN {$wpdb->postmeta} customer_ids
 					ON customer_ids.post_id = subscription_posts.ID

@@ -84,13 +84,11 @@ class WC_Subscriptions_Cart {
 		add_action( 'woocommerce_cart_totals_after_order_total', __CLASS__ . '::display_recurring_totals' );
 		add_action( 'woocommerce_review_order_after_order_total', __CLASS__ . '::display_recurring_totals' );
 
-		add_filter( 'woocommerce_add_to_cart_validation', __CLASS__ . '::check_valid_add_to_cart', 10, 6 );
-
 		add_filter( 'woocommerce_cart_needs_shipping', __CLASS__ . '::cart_needs_shipping', 11, 1 );
 
 		// Remove recurring shipping methods stored in the session whenever a subscription product is removed from the cart
 		add_action( 'woocommerce_remove_cart_item', array( __CLASS__, 'maybe_reset_chosen_shipping_methods' ) );
-		add_action( 'woocommerce_before_cart_item_quantity_zero', array( __CLASS__, 'maybe_reset_chosen_shipping_methods' ) );
+		wcs_add_woocommerce_dependent_action( 'woocommerce_before_cart_item_quantity_zero', array( __CLASS__, 'maybe_reset_chosen_shipping_methods' ), '3.7.0', '<' );
 
 		// Massage our shipping methods into the format used by WC core (we can't use normal form elements to do this as WC overrides them)
 		add_action( 'woocommerce_checkout_update_order_review', array( __CLASS__, 'add_shipping_method_post_data' ) );
@@ -888,7 +886,7 @@ class WC_Subscriptions_Cart {
 		}
 
 		// Skip checks if cart contains subscription switches or automatic payments are disabled.
-		if ( false !== WC_Subscriptions_Switcher::cart_contains_switches() || 'yes' === get_option( WC_Subscriptions_Admin::$option_prefix . '_turn_off_automatic_payments', 'no' ) ) {
+		if ( false !== WC_Subscriptions_Switcher::cart_contains_switches( 'any' ) || 'yes' === get_option( WC_Subscriptions_Admin::$option_prefix . '_turn_off_automatic_payments', 'no' ) ) {
 			return $needs_payment;
 		}
 
@@ -1043,8 +1041,7 @@ class WC_Subscriptions_Cart {
 		$cart_key = '';
 
 		$product      = $cart_item['data'];
-		$product_id   = wcs_get_canonical_product_id( $product );
-		$renewal_time = ! empty( $renewal_time ) ? $renewal_time : WC_Subscriptions_Product::get_first_renewal_payment_time( $product_id );
+		$renewal_time = ! empty( $renewal_time ) ? $renewal_time : WC_Subscriptions_Product::get_first_renewal_payment_time( $product );
 		$interval     = WC_Subscriptions_Product::get_interval( $product );
 		$period       = WC_Subscriptions_Product::get_period( $product );
 		$length       = WC_Subscriptions_Product::get_length( $product );
@@ -1088,22 +1085,6 @@ class WC_Subscriptions_Cart {
 		}
 
 		return apply_filters( 'woocommerce_subscriptions_recurring_cart_key', $cart_key, $cart_item );
-	}
-
-	/**
-	 * Don't allow new subscription products to be added to the cart if it contains a subscription renewal already.
-	 *
-	 * @since 2.0
-	 */
-	public static function check_valid_add_to_cart( $is_valid, $product_id, $quantity, $variation_id = '', $variations = array(), $item_data = array() ) {
-
-		if ( $is_valid && ! isset( $item_data['subscription_renewal'] ) && wcs_cart_contains_renewal() && WC_Subscriptions_Product::is_subscription( $product_id ) ) {
-
-			wc_add_notice( __( 'That subscription product can not be added to your cart as it already contains a subscription renewal.', 'woocommerce-subscriptions' ), 'error' );
-			$is_valid = false;
-		}
-
-		return $is_valid;
 	}
 
 	/**
@@ -1401,7 +1382,39 @@ class WC_Subscriptions_Cart {
 		WC()->session->set( 'chosen_shipping_methods', $chosen_shipping_methods );
 	}
 
+	/**
+	 * Removes all subscription products from the shopping cart.
+	 *
+	 * @since 2.6.0
+	 */
+	public static function remove_subscriptions_from_cart() {
+
+		foreach ( WC()->cart->cart_contents as $cart_item_key => $cart_item ) {
+			if ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
+				WC()->cart->set_quantity( $cart_item_key, 0 );
+			}
+		}
+	}
+
 	/* Deprecated */
+
+	/**
+	 * Don't allow new subscription products to be added to the cart if it contains a subscription renewal already.
+	 *
+	 * @deprecated 2.6.0
+	 * @since 2.0
+	 */
+	public static function check_valid_add_to_cart( $is_valid, $product_id, $quantity, $variation_id = '', $variations = array(), $item_data = array() ) {
+		_deprecated_function( __METHOD__, '2.6.0', 'WC_Subscriptions_Cart_Validator::check_valid_add_to_cart' );
+
+		if ( $is_valid && ! isset( $item_data['subscription_renewal'] ) && wcs_cart_contains_renewal() && WC_Subscriptions_Product::is_subscription( $product_id ) ) {
+
+			wc_add_notice( __( 'That subscription product can not be added to your cart as it already contains a subscription renewal.', 'woocommerce-subscriptions' ), 'error' );
+			$is_valid = false;
+		}
+
+		return $is_valid;
+	}
 
 	/**
 	 * Make sure cart totals are calculated when the cart widget is populated via the get_refreshed_fragments() method
