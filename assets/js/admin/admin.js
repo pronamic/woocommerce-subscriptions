@@ -42,7 +42,7 @@ jQuery(document).ready(function($){
 				$('.hide_if_variable').hide();
 				$('.show_if_variable-subscription').show();
 				$('.hide_if_variable-subscription').hide();
-				$( 'input#_manage_stock' ).change();
+				$.showOrHideStockFields();
 
 				// Make the sale price row full width
 				$('.sale_price_dates_fields').prev('.form-row').addClass('form-row-full').removeClass('form-row-last');
@@ -53,11 +53,18 @@ jQuery(document).ready(function($){
 					$( '.show_if_variable-subscription' ).hide();
 					$( '.show_if_variable' ).show();
 					$( '.hide_if_variable' ).hide();
-					$( 'input#_manage_stock' ).change();
+					$.showOrHideStockFields();
 				}
 
 				// Restore the sale price row width to half
 				$('.sale_price_dates_fields').prev('.form-row').removeClass('form-row-full').addClass('form-row-last');
+			}
+		},
+		showOrHideStockFields : function(){
+			if ( $( 'input#_manage_stock' ).is( ':checked' ) ) {
+				$( 'div.stock_fields' ).show();
+			} else {
+				$( 'div.stock_fields' ).hide();
 			}
 		},
 		setSubscriptionLengths: function(){
@@ -554,30 +561,33 @@ jQuery(document).ready(function($){
 		return data;
 	});
 
-	var $allowSwitching = $( document.getElementById( 'woocommerce_subscriptions_allow_switching' ) );
-	var $syncRenewals = $( document.getElementById( 'woocommerce_subscriptions_sync_payments' ) );
+	var $allowSwitching = $( document.getElementById( 'woocommerce_subscriptions_allow_switching' ) ),
+		$syncRenewals   = $( document.getElementById( 'woocommerce_subscriptions_sync_payments' ) );
 
 	// We're on the Subscriptions settings page
 	if ( $allowSwitching.length > 0 ) {
-		var allowSwitchingVal = $allowSwitching.val(),
-			$switchSettingsRows = $allowSwitching.parents( 'tr' ).siblings( 'tr' ),
-			$prorateFirstRenewal = $( document.getElementById( 'woocommerce_subscriptions_prorate_synced_payments' ) ),
-			$syncRows = $syncRenewals.parents( 'tr' ).siblings( 'tr' ),
-			$daysNoFeeRow = $( document.getElementById( 'woocommerce_subscriptions_days_no_fee' ) ).parents( 'tr' ),
+		var allowSwitchingEnabled   = $allowSwitching.find( 'input:checked' ).length,
+			$switchSettingsRows     = $allowSwitching.parents( 'tr' ).siblings( 'tr' ),
+			$prorateFirstRenewal    = $( document.getElementById( 'woocommerce_subscriptions_prorate_synced_payments' ) ),
+			$syncRows               = $syncRenewals.parents( 'tr' ).siblings( 'tr' ),
+			$daysNoFeeRow           = $( document.getElementById( 'woocommerce_subscriptions_days_no_fee' ) ).parents( 'tr' ),
 			$suspensionExtensionRow = $( '#woocommerce_subscriptions_recoup_suspension' ).parents( 'tr' );
 
 		// No animation for initial hiding when switching is disabled.
-		if ( 'no' === allowSwitchingVal ) {
+		if ( 0 === allowSwitchingEnabled ) {
 			$switchSettingsRows.hide();
 		}
 
-		$allowSwitching.on( 'change', function() {
-			if ( 'no' === $( this ).val() ) {
+		$allowSwitching.find( 'input' ).on( 'change', function() {
+
+			var isEnabled = $allowSwitching.find( 'input:checked' ).length;
+
+			if ( 0 === isEnabled ) {
 				$switchSettingsRows.fadeOut();
-			} else if ( 'no' === allowSwitchingVal ) { // switching was previously disabled, so settings will be hidden
+			} else if ( 0 === allowSwitchingEnabled ) { // switching was previously disabled, so settings will be hidden
 				$switchSettingsRows.fadeIn();
 			}
-			allowSwitchingVal = $( this ).val();
+			allowSwitchingEnabled = isEnabled;
 		} );
 
 		// Show/hide suspension extension setting

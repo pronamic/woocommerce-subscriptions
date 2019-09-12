@@ -60,16 +60,11 @@ class WCS_Related_Order_Store_CPT extends WCS_Related_Order_Store {
 	 * @return array
 	 */
 	public function get_related_order_ids( WC_Order $subscription, $relation_type ) {
-
 		$related_order_ids = get_posts( array(
 			'posts_per_page' => -1,
 			'post_type'      => 'shop_order',
 			'post_status'    => 'any',
 			'fields'         => 'ids',
-			'orderby'        => array(
-				'date' => 'DESC',
-				'ID'   => 'DESC',
-			),
 			'meta_query'     => array(
 				array(
 					'key'     => $this->get_meta_key( $relation_type ),
@@ -80,6 +75,8 @@ class WCS_Related_Order_Store_CPT extends WCS_Related_Order_Store {
 			),
 			'update_post_term_cache' => false,
 		) );
+
+		rsort( $related_order_ids );
 
 		return $related_order_ids;
 	}

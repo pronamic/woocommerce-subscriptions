@@ -145,3 +145,30 @@ function wcs_get_early_renewal_url( $subscription ) {
 	 */
 	return apply_filters( 'woocommerce_subscriptions_get_early_renewal_url', $url, $subscription_id );
 }
+
+/**
+ * Update the subscription dates after processing an early renewal.
+ *
+ * @since 2.6.0
+ *
+ * @param WC_Subscription $subscription The subscription to update.
+ * @param WC_Order $early_renewal       The early renewal.
+ */
+function wcs_update_dates_after_early_renewal( $subscription, $early_renewal ) {
+	$dates_to_update = WCS_Early_Renewal_Manager::get_dates_to_update( $subscription );
+
+	if ( ! empty( $dates_to_update ) ) {
+		$order_number = sprintf( _x( '#%s', 'hash before order number', 'woocommerce-subscriptions' ), $early_renewal->get_order_number() );
+		$order_link   = sprintf( '<a href="%s">%s</a>', esc_url( wcs_get_edit_post_link( $early_renewal->get_id() ) ), $order_number );
+
+		try {
+			$subscription->update_dates( $dates_to_update );
+
+			// translators: placeholder contains a link to the order's edit screen.
+			$subscription->add_order_note( sprintf( __( 'Customer successfully renewed early with order %s.', 'woocommerce-subscriptions' ), $order_link ) );
+		} catch ( Exception $e ) {
+			// translators: placeholder contains a link to the order's edit screen.
+			$subscription->add_order_note( sprintf( __( 'Failed to update subscription dates after customer renewed early with order %s.', 'woocommerce-subscriptions' ), $order_link ) );
+		}
+	}
+}

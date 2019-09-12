@@ -23,6 +23,9 @@ foreach ( $notices as $notice_args ) {
 		case 'warning' :
 			$notice = new WCS_Admin_Notice( 'updated', array( 'style' => array( 'border-left: 4px solid #ffba00' ) ) );
 			break;
+		case 'info' :
+			$notice = new WCS_Admin_Notice( 'notice notice-info' );
+			break;
 		case 'error' :
 			$notice = new WCS_Admin_Notice( 'updated error' );
 			break;

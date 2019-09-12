@@ -219,7 +219,7 @@ function wcs_can_user_resubscribe_to( $subscription, $user_id = '' ) {
 			}
 		}
 
-		if ( empty( $resubscribe_order_ids ) && $subscription->get_completed_payment_count() > 0 && true === $all_line_items_exist && false === $has_active_limited_subscription ) {
+		if ( empty( $resubscribe_order_ids ) && $subscription->get_payment_count() > 0 && true === $all_line_items_exist && false === $has_active_limited_subscription ) {
 			$can_user_resubscribe = true;
 		} else {
 			$can_user_resubscribe = false;

@@ -5,7 +5,7 @@
 	<?php echo wp_kses_post( sprintf( __( 'Version %1$s brings some great new features requested by store managers just like you (and possibly even by %2$syou%3$s).', 'woocommerce-subscriptions' ), $version, '<em>', '</em>' ) ); ?>
 	<?php esc_html_e( 'We hope you enjoy it!', 'woocommerce-subscriptions' ); ?>
 </p>
-<h3><?php esc_html_e( "What's New?", 'woocommerce-subscriptions' ); ?></h3>
+<h3><?php esc_html_e( "What's new?", 'woocommerce-subscriptions' ); ?></h3>
 <ul style="list-style-type: disc; padding-left: 2em;">
 	<?php foreach ( $features as $feature ) : ?>
 		<li><b><?php echo wp_kses_post( $feature['title'] ); ?></b> &ndash; <?php echo wp_kses_post( $feature['description'] ); ?></li>
@@ -13,4 +13,4 @@
 </ul>
 <hr>
 <?php // translators: placeholder is Subscription version string ('2.3') ?>
-<p><?php echo esc_html( sprintf( __( 'Want to know more about %s and these new features?', 'woocommerce-subscriptions' ), $version ) ); ?></p>
+<p><?php echo esc_html( sprintf( __( 'Want to know more about Subscriptions %s and these new features?', 'woocommerce-subscriptions' ), $version ) ); ?></p>

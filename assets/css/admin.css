@@ -488,6 +488,16 @@ a.close-subscriptions-search {
 .woocommerce_subscriptions_related_orders table tbody tr:last-child td {
 	border-bottom: none;
 }
+.wcs-unknown-order-link {
+	vertical-align: middle;
+	font-size: 1.2em;
+}
+.wcs-unknown-order-info-wrapper {
+	display: inline;
+}
+.wcs-unknown-order-info-wrapper .woocommerce-help-tip {
+	color: inherit;
+}
 
 /* WooCommerce Orders admin table */
 table.wp-list-table .column-subscription_relationship {
@@ -523,8 +533,8 @@ table.wp-list-table .subscription_resubscribe_order:after {
 	color: #999;
 }
 table.wp-list-table .subscription_renewal_order:after {
-	font-family: WooCommerce;
-	content: "\e031";
+	font-family: Dashicons;
+	content: "\f321";
 }
 table.wp-list-table .payment_retry:after {
 	font-family: WooCommerce;
@@ -634,4 +644,26 @@ body.post-type-shop_subscription .add-items .button.refund-items {
 }
 span.product-type.variable-subscription:before {
 	content: "\e003" !important;
+}
+
+/* Settings Page */
+.wcs_setting_switching_options {
+	margin-top: 6px;
+}
+.wcs_setting_switching_options label {
+	display: block;
+	width: 400px;
+	margin-bottom: 1em;
+}
+
+/* Reports Page */
+.woocommerce-reports-wide .postbox .chart-legend li a {
+	text-decoration: none;
+}
+.woocommerce-reports-wide .postbox .chart-legend li a .woocommerce-subscriptions-count:after {
+	margin-left: 1.5%;
+	font-size: 60%;
+	font-weight: normal;
+	font-family: dashicons;
+	content: "\f504";
 }

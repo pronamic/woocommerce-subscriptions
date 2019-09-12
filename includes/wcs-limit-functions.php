@@ -67,7 +67,7 @@ function wcs_is_product_limited_for_user( $product, $user_id = 0 ) {
 			) );
 
 			foreach ( $user_subscriptions as $subscription ) {
-				if ( ! $subscription->has_status( 'cancelled' ) || 0 !== $subscription->get_completed_payment_count() ) {
+				if ( ! $subscription->has_status( 'cancelled' ) || 0 !== $subscription->get_payment_count() ) {
 					$is_limited_for_user = true;
 					break;
 				}

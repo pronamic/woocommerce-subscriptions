@@ -92,12 +92,13 @@ class WCS_Email_Payment_Retry extends WC_Email_Failed_Order {
 		return wc_get_template_html(
 			$this->template_html,
 			array(
-				'order'         => $this->object,
-				'retry'         => $this->retry,
-				'email_heading' => $this->get_heading(),
-				'sent_to_admin' => true,
-				'plain_text'    => false,
-				'email'			=> $this,
+				'order'              => $this->object,
+				'retry'              => $this->retry,
+				'email_heading'      => $this->get_heading(),
+				'additional_content' => is_callable( array( $this, 'get_additional_content' ) ) ? $this->get_additional_content() : '', // WC 3.7 introduced an additional content field for all emails.
+				'sent_to_admin'      => true,
+				'plain_text'         => false,
+				'email'              => $this,
 			),
 			'',
 			$this->template_base
@@ -113,12 +114,13 @@ class WCS_Email_Payment_Retry extends WC_Email_Failed_Order {
 		return wc_get_template_html(
 			$this->template_plain,
 			array(
-				'order'         => $this->object,
-				'retry'         => $this->retry,
-				'email_heading' => $this->get_heading(),
-				'sent_to_admin' => true,
-				'plain_text'    => true,
-				'email'			=> $this,
+				'order'              => $this->object,
+				'retry'              => $this->retry,
+				'email_heading'      => $this->get_heading(),
+				'additional_content' => is_callable( array( $this, 'get_additional_content' ) ) ? $this->get_additional_content() : '', // WC 3.7 introduced an additional content field for all emails.
+				'sent_to_admin'      => true,
+				'plain_text'         => true,
+				'email'              => $this,
 			),
 			'',
 			$this->template_base

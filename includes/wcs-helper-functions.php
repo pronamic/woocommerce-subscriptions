@@ -245,3 +245,23 @@ function wcs_get_minor_version_string( $version ) {
 function wcs_is_frontend_request() {
 	return ( ! is_admin() || wcs_doing_ajax() ) && ! wcs_doing_cron() && ! wcs_is_rest_api_request();
 }
+
+/**
+ * Sorts an array of objects by a given property in a given order.
+ *
+ * @since 2.6.0
+ *
+ * @param array  $objects    An array of objects to sort.
+ * @param string $property   The property to sort by.
+ * @param string $sort_order Optional. The order to sort by. Must be 'ascending' or 'descending'. Default is 'ascending'.
+ *
+ * @throws InvalidArgumentException Thrown if an invalid sort order is given.
+ * @return array The array of objects sorted.
+ */
+function wcs_sort_objects( &$objects, $property, $sort_order = 'ascending' ) {
+	if ( 'ascending' !== $sort_order && 'descending' !== $sort_order ) {
+		throw new InvalidArgumentException( sprintf( __( 'Invalid sort order type: %s. The $sort_order argument must be %s or %s.', 'woocommerce-subscriptions' ), $sort_order, '"descending"', '"ascending"' ) );
+	}
+	uasort( $objects, array( new WCS_Object_Sorter( $property ), "{$sort_order}_compare" ) );
+	return $objects;
+}

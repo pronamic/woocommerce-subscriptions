@@ -88,7 +88,7 @@ class WC_Subscriptions_Product {
 	}
 
 	/**
-	 * Override the WooCommerce "Add to Cart" text with "Sign Up Now".
+	 * Override the WooCommerce "Add to cart" text with "Sign up now".
 	 *
 	 * @since 1.0
 	 */
@@ -96,7 +96,7 @@ class WC_Subscriptions_Product {
 		global $product;
 
 		if ( self::is_subscription( $product ) || in_array( $product_type, array( 'subscription', 'subscription-variation' ) ) ) {
-			$button_text = get_option( WC_Subscriptions_Admin::$option_prefix . '_add_to_cart_button_text', __( 'Sign Up Now', 'woocommerce-subscriptions' ) );
+			$button_text = get_option( WC_Subscriptions_Admin::$option_prefix . '_add_to_cart_button_text', __( 'Sign up now', 'woocommerce-subscriptions' ) );
 		}
 
 		return $button_text;
@@ -524,15 +524,15 @@ class WC_Subscriptions_Product {
 	 * Takes a subscription product's ID and returns the date on which the first renewal payment will be processed
 	 * based on the subscription's length and calculated from either the $from_date if specified, or the current date/time.
 	 *
-	 * @param int $product_id The product/post ID of a subscription product
+	 * @param int|WC_Product $product The product instance or product/post ID of a subscription product.
 	 * @param mixed $from_date A MySQL formatted date/time string from which to calculate the expiration date, or empty (default), which will use today's date/time.
 	 * @param string $type The return format for the date, either 'mysql', or 'timezone'. Default 'mysql'.
 	 * @param string $timezone The timezone for the returned date, either 'site' for the site's timezone, or 'gmt'. Default, 'site'.
 	 * @since 2.0
 	 */
-	public static function get_first_renewal_payment_date( $product_id, $from_date = '', $timezone = 'gmt' ) {
+	public static function get_first_renewal_payment_date( $product, $from_date = '', $timezone = 'gmt' ) {
 
-		$first_renewal_timestamp = self::get_first_renewal_payment_time( $product_id, $from_date, $timezone );
+		$first_renewal_timestamp = self::get_first_renewal_payment_time( $product, $from_date, $timezone );
 
 		if ( $first_renewal_timestamp > 0 ) {
 			$first_renewal_date = gmdate( 'Y-m-d H:i:s', $first_renewal_timestamp );
@@ -540,30 +540,30 @@ class WC_Subscriptions_Product {
 			$first_renewal_date = 0;
 		}
 
-		return apply_filters( 'woocommerce_subscriptions_product_first_renewal_payment_date', $first_renewal_date, $product_id, $from_date, $timezone );
+		return apply_filters( 'woocommerce_subscriptions_product_first_renewal_payment_date', $first_renewal_date, $product, $from_date, $timezone );
 	}
 
 	/**
 	 * Takes a subscription product's ID and returns the date on which the first renewal payment will be processed
 	 * based on the subscription's length and calculated from either the $from_date if specified, or the current date/time.
 	 *
-	 * @param int $product_id The product/post ID of a subscription product
+	 * @param int|WC_Product $product The product instance or product/post ID of a subscription product.
 	 * @param mixed $from_date A MySQL formatted date/time string from which to calculate the expiration date, or empty (default), which will use today's date/time.
 	 * @param string $type The return format for the date, either 'mysql', or 'timezone'. Default 'mysql'.
 	 * @param string $timezone The timezone for the returned date, either 'site' for the site's timezone, or 'gmt'. Default, 'site'.
 	 * @since 2.0
 	 */
-	public static function get_first_renewal_payment_time( $product_id, $from_date = '', $timezone = 'gmt' ) {
+	public static function get_first_renewal_payment_time( $product, $from_date = '', $timezone = 'gmt' ) {
 
-		if ( ! self::is_subscription( $product_id ) ) {
+		if ( ! self::is_subscription( $product ) ) {
 			return 0;
 		}
 
 		$from_date_param = $from_date;
 
-		$billing_interval = self::get_interval( $product_id );
-		$billing_length   = self::get_length( $product_id );
-		$trial_length     = self::get_trial_length( $product_id );
+		$billing_interval = self::get_interval( $product );
+		$billing_length   = self::get_length( $product );
+		$trial_length     = self::get_trial_length( $product );
 
 		if ( $billing_interval !== $billing_length || $trial_length > 0 ) {
 
@@ -574,34 +574,37 @@ class WC_Subscriptions_Product {
 			// If the subscription has a free trial period, the first renewal payment date is the same as the expiration of the free trial
 			if ( $trial_length > 0 ) {
 
-				$first_renewal_timestamp = wcs_date_to_time( self::get_trial_expiration_date( $product_id, $from_date ) );
+				$first_renewal_timestamp = wcs_date_to_time( self::get_trial_expiration_date( $product, $from_date ) );
 
 			} else {
 
-				$first_renewal_timestamp = wcs_add_time( $billing_interval, self::get_period( $product_id ), wcs_date_to_time( $from_date ) );
+				$site_time_offset = (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 
-				if ( 'site' == $timezone ) {
-					$first_renewal_timestamp += ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
+				// As wcs_add_time() calls wcs_add_months() which checks for last day of month, pass the site time
+				$first_renewal_timestamp = wcs_add_time( $billing_interval, self::get_period( $product ), wcs_date_to_time( $from_date ) + $site_time_offset );
+
+				if ( 'site' !== $timezone ) {
+					$first_renewal_timestamp -= $site_time_offset;
 				}
 			}
 		} else {
 			$first_renewal_timestamp = 0;
 		}
 
-		return apply_filters( 'woocommerce_subscriptions_product_first_renewal_payment_time', $first_renewal_timestamp, $product_id, $from_date_param, $timezone );
+		return apply_filters( 'woocommerce_subscriptions_product_first_renewal_payment_time', $first_renewal_timestamp, $product, $from_date_param, $timezone );
 	}
 
 	/**
 	 * Takes a subscription product's ID and returns the date on which the subscription product will expire,
 	 * based on the subscription's length and calculated from either the $from_date if specified, or the current date/time.
 	 *
-	 * @param mixed $product_id The product/post ID of the subscription
+	 * @param int|WC_Product $product The product instance or product/post ID of a subscription product.
 	 * @param mixed $from_date A MySQL formatted date/time string from which to calculate the expiration date, or empty (default), which will use today's date/time.
 	 * @since 1.0
 	 */
-	public static function get_expiration_date( $product_id, $from_date = '' ) {
+	public static function get_expiration_date( $product, $from_date = '' ) {
 
-		$subscription_length = self::get_length( $product_id );
+		$subscription_length = self::get_length( $product );
 
 		if ( $subscription_length > 0 ) {
 
@@ -609,11 +612,11 @@ class WC_Subscriptions_Product {
 				$from_date = gmdate( 'Y-m-d H:i:s' );
 			}
 
-			if ( self::get_trial_length( $product_id ) > 0 ) {
-				$from_date = self::get_trial_expiration_date( $product_id, $from_date );
+			if ( self::get_trial_length( $product ) > 0 ) {
+				$from_date = self::get_trial_expiration_date( $product, $from_date );
 			}
 
-			$expiration_date = gmdate( 'Y-m-d H:i:s', wcs_add_time( $subscription_length, self::get_period( $product_id ), wcs_date_to_time( $from_date ) ) );
+			$expiration_date = gmdate( 'Y-m-d H:i:s', wcs_add_time( $subscription_length, self::get_period( $product ), wcs_date_to_time( $from_date ) ) );
 
 		} else {
 
@@ -621,7 +624,7 @@ class WC_Subscriptions_Product {
 
 		}
 
-		return apply_filters( 'woocommerce_subscriptions_product_expiration_date', $expiration_date, $product_id, $from_date );
+		return apply_filters( 'woocommerce_subscriptions_product_expiration_date', $expiration_date, $product, $from_date );
 	}
 
 	/**
@@ -629,13 +632,13 @@ class WC_Subscriptions_Product {
 	 * based on the subscription's trial length and calculated from either the $from_date if specified,
 	 * or the current date/time.
 	 *
-	 * @param int $product_id The product/post ID of the subscription
+	 * @param int|WC_Product $product The product instance or product/post ID of a subscription product.
 	 * @param mixed $from_date A MySQL formatted date/time string from which to calculate the expiration date (in UTC timezone), or empty (default), which will use today's date/time (in UTC timezone).
 	 * @since 1.0
 	 */
-	public static function get_trial_expiration_date( $product_id, $from_date = '' ) {
+	public static function get_trial_expiration_date( $product, $from_date = '' ) {
 
-		$trial_length = self::get_trial_length( $product_id );
+		$trial_length = self::get_trial_length( $product );
 
 		if ( $trial_length > 0 ) {
 
@@ -643,7 +646,7 @@ class WC_Subscriptions_Product {
 				$from_date = gmdate( 'Y-m-d H:i:s' );
 			}
 
-			$trial_expiration_date = gmdate( 'Y-m-d H:i:s', wcs_add_time( $trial_length, self::get_trial_period( $product_id ), wcs_date_to_time( $from_date ) ) );
+			$trial_expiration_date = gmdate( 'Y-m-d H:i:s', wcs_add_time( $trial_length, self::get_trial_period( $product ), wcs_date_to_time( $from_date ) ) );
 
 		} else {
 
@@ -651,7 +654,7 @@ class WC_Subscriptions_Product {
 
 		}
 
-		return apply_filters( 'woocommerce_subscriptions_product_trial_expiration_date', $trial_expiration_date, $product_id, $from_date );
+		return apply_filters( 'woocommerce_subscriptions_product_trial_expiration_date', $trial_expiration_date, $product, $from_date );
 	}
 
 	/**

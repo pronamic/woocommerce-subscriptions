@@ -140,6 +140,7 @@ class WCS_Autoloader {
 	 */
 	protected function is_class_abstract( $class ) {
 		static $abstracts = array(
+			'wcs_background_repairer'      => true,
 			'wcs_background_updater'       => true,
 			'wcs_background_upgrader'      => true,
 			'wcs_cache_manager'            => true,

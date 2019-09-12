@@ -1353,7 +1353,7 @@ class WC_Subscriptions_Synchroniser {
 
 		$subscription = wcs_get_subscription_from_key( $order . '_' . $product_id );
 
-		if ( self::order_contains_synced_subscription( wcs_get_objects_property( $order, 'id' ) ) && 1 >= $subscription->get_completed_payment_count() ) {
+		if ( self::order_contains_synced_subscription( wcs_get_objects_property( $order, 'id' ) ) && 1 >= $subscription->get_payment_count() ) {
 
 			// Don't prematurely set the first payment date when manually adding a subscription from the admin
 			if ( ! is_admin() || 'active' == $subscription->get_status() ) {

@@ -167,7 +167,7 @@ class WCS_PayPal_Standard_Request {
 			if ( $order_contains_failed_renewal ) {
 
 				$subscription_trial_length = 0;
-				$subscription_installments = max( $subscription_installments - $subscription->get_completed_payment_count(), 0 );
+				$subscription_installments = max( $subscription_installments - $subscription->get_payment_count(), 0 );
 
 			// If we're changing the payment date or switching subs, we need to set the trial period to the next payment date & installments to be the number of installments left
 			} elseif ( $is_payment_change || $is_synced_subscription || $is_early_resubscribe ) {
@@ -193,7 +193,7 @@ class WCS_PayPal_Standard_Request {
 
 				// If this is a payment change, we need to account for completed payments on the number of installments owing
 				if ( $is_payment_change && $subscription_length > 0 ) {
-					$subscription_installments = max( $subscription_installments - $subscription->get_completed_payment_count(), 0 );
+					$subscription_installments = max( $subscription_installments - $subscription->get_payment_count(), 0 );
 				}
 			} else {
 

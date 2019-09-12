@@ -19,7 +19,7 @@ class WCS_Upgrade_Notice_Manager {
 	 *
 	 * @var string
 	 */
-	protected static $version = '2.5.0';
+	protected static $version = '2.6.0';
 
 	/**
 	 * The number of times the notice will be displayed before being dismissed automatically.
@@ -77,38 +77,38 @@ class WCS_Upgrade_Notice_Manager {
 			return;
 		}
 
-		$version     = _x( '2.5', 'plugin version number used in admin notice', 'woocommerce-subscriptions' );
+		$version     = _x( '2.6', 'plugin version number used in admin notice', 'woocommerce-subscriptions' );
 		$dismiss_url = wp_nonce_url( add_query_arg( 'dismiss_upgrade_notice', self::$version ), 'dismiss_upgrade_notice', '_wcsnonce' );
 		$notice      = new WCS_Admin_Notice( 'notice notice-info', array(), $dismiss_url );
 		$features    = array(
 			array(
-				'title'       => __( 'New options to allow customers to sign up without a credit card', 'woocommerce-subscriptions' ),
-				'description' => __( 'Allow customers to access free trial and other $0 subscription products without needing to enter their credit card details on sign up.', 'woocommerce-subscriptions' ),
+				'title'       => __( 'Improved experience for customers who renew their subscriptions early', 'woocommerce-subscriptions' ),
+				'description' => sprintf( __( 'Allow customers to renew early from their %sMy Account > Subscription%s page without going through the checkout.', 'woocommerce-subscriptions' ), '<strong>', '</strong>' ),
 			),
 			array(
-				'title'       => __( 'Improved subscription payment method information', 'woocommerce-subscriptions' ),
-				'description' => __( 'Customers can now see more information about what payment method will be used for future payments.', 'woocommerce-subscriptions' ),
+				'title'       => __( 'Improved subscription switching proration calculations', 'woocommerce-subscriptions' ),
+				'description' => __( "We've made improvements to the code which calculates the upgrade costs when a customer switches their subscription. This has enabled us to fix a number of complicated switching scenarios.", 'woocommerce-subscriptions' ),
 			),
 			array(
-				'title'       => __( 'Auto-renewal toggle', 'woocommerce-subscriptions' ),
-				'description' => sprintf( __( 'Enabled via a setting, this new feature will allow your customers to turn on and off automatic payments from the %sMy Account > View Subscription%s pages.', 'woocommerce-subscriptions' ), '<strong>', '</strong>' ),
-			),
-			array(
-				'title'       => __( 'Update all subscription payment methods', 'woocommerce-subscriptions' ),
-				'description' => __( "Customers will now have the option to update all their subscriptions when they are changing one of their subscription's payment methods - provided the payment gateway supports it.", 'woocommerce-subscriptions' ),
+				'title'       => __( 'View subscriptions and orders contributing to reports', 'woocommerce-subscriptions' ),
+				'description' => sprintf(
+					__( 'Want to view which specific orders and subscriptions are contributing to subscription-related reports? You can now do just that by clicking on the %1$s link while viewing %2$ssubscription reports%3$s.', 'woocommerce-subscriptions' ),
+					'<span style="font-size: 17px;" class="dashicons dashicons-external"></span>',
+					'<a href="' . esc_url( add_query_arg( array( 'page' => 'wc-reports', 'tab' => 'subscriptions' ), admin_url( 'admin.php' ) ) ) . '">', '</a>'
+				),
 			),
 		);
 
 		// translators: placeholder is Subscription version string ('2.3')
-		$notice->set_heading( sprintf( __( 'Welcome to Subscriptions %s', 'woocommerce-subscriptions' ), $version ) );
+		$notice->set_heading( sprintf( __( 'Welcome to WooCommerce Subscriptions %s!', 'woocommerce-subscriptions' ), $version ) );
 		$notice->set_content_template( 'update-welcome-notice.php', plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'includes/upgrades/templates/', array(
 			'version'  => $version,
 			'features' => $features,
 		) );
 		$notice->set_actions( array(
 			array(
-				'name' => __( 'Learn More', 'woocommerce-subscriptions' ),
-				'url'  => 'https://docs.woocommerce.com/document/subscriptions/version-2-5/',
+				'name' => __( 'Learn more', 'woocommerce-subscriptions' ),
+				'url'  => 'https://docs.woocommerce.com/document/subscriptions/whats-new-in-subscriptions-2-6/',
 			),
 		) );
 

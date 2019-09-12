@@ -66,6 +66,8 @@ class WCS_Cart_Renewal {
 
 		// Work around WC changing the "created_via" meta to "checkout" regardless of its previous value during checkout.
 		add_action( 'woocommerce_checkout_create_order', array( $this, 'maybe_preserve_order_created_via' ), 0, 1 );
+
+		add_action( 'plugins_loaded', array( $this, 'maybe_disable_manual_renewal_stock_validation' ) );
 	}
 
 	/**
@@ -118,7 +120,8 @@ class WCS_Cart_Renewal {
 		add_filter( 'woocommerce_get_shop_coupon_data', array( &$this, 'renewal_coupon_data' ), 10, 2 );
 
 		add_action( 'woocommerce_remove_cart_item', array( &$this, 'maybe_remove_items' ), 10, 1 );
-		add_action( 'woocommerce_before_cart_item_quantity_zero', array( &$this, 'maybe_remove_items' ), 10, 1 );
+		wcs_add_woocommerce_dependent_action( 'woocommerce_before_cart_item_quantity_zero', array( &$this, 'maybe_remove_items' ), '3.7.0', '<' );
+
 		add_action( 'woocommerce_cart_emptied', array( &$this, 'clear_coupons' ), 10 );
 
 		add_filter( 'woocommerce_cart_item_removed_title', array( &$this, 'items_removed_title' ), 10, 2 );
@@ -210,7 +213,7 @@ class WCS_Cart_Renewal {
 						$this->setup_cart( $order, array(
 							'subscription_id'  => $subscription->get_id(),
 							'renewal_order_id' => $order_id,
-						) );
+						), 'all_items_required' );
 					}
 
 					do_action( 'wcs_after_renewal_setup_cart_subscription', $subscription, $order );
@@ -234,9 +237,14 @@ class WCS_Cart_Renewal {
 	 * Set up cart item meta data to complete a subscription renewal via the cart.
 	 *
 	 * @since 2.2.0
-	 * @version 2.2.6
+	 *
+	 * @param WC_Abstract_Order $subscription The subscription or Order object to set up the cart from.
+	 * @param array             $cart_item_data Additional cart item data to set on the cart items.
+	 * @param string            $validation_type Whether all items are required or not. Optional. Can be 'all_items_not_required' or 'all_items_required'. 'all_items_not_required' by default.
+	 *     'all_items_not_required' - If an order/subscription line item fails to be added to the cart, the remaining items will be added.
+	 *     'all_items_required'     - If an order/subscription line item fails to be added to the cart, all items will be removed and the cart setup will be aborted.
 	 */
-	protected function setup_cart( $subscription, $cart_item_data ) {
+	protected function setup_cart( $subscription, $cart_item_data, $validation_type = 'all_items_not_required' ) {
 
 		WC()->cart->empty_cart( true );
 		$success = true;
@@ -333,11 +341,19 @@ class WCS_Cart_Renewal {
 			$success       = $success && (bool) $cart_item_key;
 		}
 
-		// If a product linked to a subscription failed to be added to the cart prevent partially paying for the order by removing all cart items.
-		if ( ! $success && wcs_is_subscription( $subscription ) ) {
-			// translators: %s is subscription's number
-			wc_add_notice( sprintf( esc_html__( 'Subscription #%s has not been added to the cart.', 'woocommerce-subscriptions' ), $subscription->get_order_number() ) , 'error' );
+		// If a product couldn't be added to the cart and if all items are required, prevent partially paying for the order by removing all cart items.
+		if ( ! $success && 'all_items_required' === $validation_type ) {
+			if ( wcs_is_subscription( $subscription ) ) {
+				// translators: %s is subscription's number
+				wc_add_notice( sprintf( esc_html__( 'Subscription #%s has not been added to the cart.', 'woocommerce-subscriptions' ), $subscription->get_order_number() ) , 'error' );
+			} else {
+				// translators: %s is order's number
+				wc_add_notice( sprintf( esc_html__( 'Order #%s has not been added to the cart.', 'woocommerce-subscriptions' ), $subscription->get_order_number() ) , 'error' );
+			}
+
 			WC()->cart->empty_cart( true );
+			wp_safe_redirect( wc_get_page_permalink( 'cart' ) );
+			exit;
 		}
 
 		do_action( 'woocommerce_setup_cart_for_' . $this->cart_item_key, $subscription, $cart_item_data );
@@ -1393,6 +1409,17 @@ class WCS_Cart_Renewal {
 		}
 	}
 
+	/**
+	 * Disables renewal cart stock validation if the store has switched it off via a filter.
+	 *
+	 * @since 2.6.0
+	 */
+	public function maybe_disable_manual_renewal_stock_validation() {
+		if ( apply_filters( 'woocommerce_subscriptions_disable_manual_renewal_stock_validation', false ) ) {
+			WCS_Renewal_Cart_Stock_Manager::attach_callbacks();
+		}
+	}
+
 	/* Deprecated */
 
 	/**
@@ -1491,7 +1518,7 @@ class WCS_Cart_Renewal {
 
 		if ( wcs_is_subscription( $order ) || wcs_order_contains_renewal( $order ) ) {
 
-			$used_coupons   = $order->get_used_coupons();
+			$used_coupons   = wcs_get_used_coupon_codes( $order );
 			$order_discount = wcs_get_objects_property( $order, 'cart_discount' );
 
 			// Add any used coupon discounts to the cart (as best we can) using our pseudo renewal coupons

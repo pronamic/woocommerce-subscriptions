@@ -116,3 +116,28 @@ function wcs_cart_contains_failed_renewal_order_payment() {
 function wcs_get_subscriptions_for_renewal_order( $order ) {
 	return wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'renewal' ) );
 }
+
+/**
+ * Get the last renewal order which isn't an early renewal order.
+ *
+ * @since 2.6.0
+ *
+ * @param WC_Subscription $subscription The subscription object.
+ * @return WC_Order|bool The last non-early renewal order, otherwise false.
+ */
+function wcs_get_last_non_early_renewal_order( $subscription ) {
+	$last_non_early_renewal = false;
+	$renewal_orders         = $subscription->get_related_orders( 'all', 'renewal' );
+
+	// We need the orders sorted by the date they were created, with the newest first.
+	wcs_sort_objects( $renewal_orders, 'date_created', 'descending' );
+
+	foreach ( $renewal_orders as $renewal_order ) {
+		if ( ! wcs_order_contains_early_renewal( $renewal_order ) ) {
+			$last_non_early_renewal = $renewal_order;
+			break;
+		}
+	}
+
+	return $last_non_early_renewal;
+}

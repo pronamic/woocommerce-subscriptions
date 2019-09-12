@@ -10,7 +10,14 @@
  */
 class WCS_Action_Scheduler extends WCS_Scheduler {
 
-	/*@protected Array of $action_hook => $date_type values */
+	/**
+	 * An internal cache of action hooks and corresponding date types.
+	 *
+	 * This variable has been deprecated and will be removed completely in the future. You should use WCS_Action_Scheduler::get_scheduled_action_hook() and WCS_Action_Scheduler::get_date_types_to_schedule() instead.
+	 *
+	 * @deprecated 2.6.0
+	 * @var array An array of $action_hook => $date_type values
+	 */
 	protected $action_hooks = array(
 		'woocommerce_scheduled_subscription_trial_end'     => 'trial_end',
 		'woocommerce_scheduled_subscription_payment'       => 'next_payment',
@@ -75,7 +82,13 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 
 				$this->unschedule_actions( 'woocommerce_scheduled_subscription_end_of_prepaid_term', $this->get_action_args( 'end', $subscription ) );
 
-				foreach ( $this->action_hooks as $action_hook => $date_type ) {
+				foreach ( $this->get_date_types_to_schedule() as $date_type ) {
+
+					$action_hook = $this->get_scheduled_action_hook( $subscription, $date_type );
+
+					if ( empty( $action_hook ) ) {
+						continue;
+					}
 
 					$event_time = $subscription->get_time( $date_type );
 
@@ -101,7 +114,14 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 			case 'pending-cancel' :
 
 				// Now that we have the current times, clear the scheduled hooks
-				foreach ( $this->action_hooks as $action_hook => $date_type ) {
+				foreach ( $this->get_date_types_to_schedule() as $date_type ) {
+
+					$action_hook = $this->get_scheduled_action_hook( $subscription, $date_type );
+
+					if ( empty( $action_hook ) ) {
+						continue;
+					}
+
 					$this->unschedule_actions( $action_hook, $this->get_action_args( $date_type, $subscription ) );
 				}
 
@@ -123,9 +143,17 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 			case 'switched' :
 			case 'expired' :
 			case 'trash' :
-				foreach ( $this->action_hooks as $action_hook => $date_type ) {
+				foreach ( $this->get_date_types_to_schedule() as $date_type ) {
+
+					$action_hook = $this->get_scheduled_action_hook( $subscription, $date_type );
+
+					if ( empty( $action_hook ) ) {
+						continue;
+					}
+
 					$this->unschedule_actions( $action_hook, $this->get_action_args( $date_type, $subscription ) );
 				}
+				$this->unschedule_actions( 'woocommerce_scheduled_subscription_expiration', $this->get_action_args( 'end', $subscription ) );
 				$this->unschedule_actions( 'woocommerce_scheduled_subscription_end_of_prepaid_term', $this->get_action_args( 'end', $subscription ) );
 				break;
 		}
