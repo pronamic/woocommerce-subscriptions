@@ -1,9 +1,57 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2019.11.14 - version 2.6.5
+* Fix: Account for prorated switch sign up fees in multi-switches. PR#3519
+* Fix: Tooltip content displayed on WooCommerce > Subscriptions administration screen.
+* Dev: Add additional hooks in My Account Subscription Details table template. PR#3523
+
+2019.11.12 - version 2.6.4
+* Tweak: Update the My Account customer has no subscriptions notice to match WC core. PR#3516
+* Fix: Add hidden class to subscription_pricing and subscription_sync edit product fields. Fixes a bug when the subscription product types are removed from the edit product type drop-down. PR#3514
+* Fix: error on My Account > Payment Methods for non credit card tokens and allow deleting tokens with clear alternative. PR#3482
+* Fix: Allow only number of days in specific month for synchronize renewals. PR#3470
+* Fix: Save subscription meta box data via set_props(). Fixes fatal error when saving invalid data. PR#3524
+* Fix: Use update_option() rather than add_option() to record WC Subscriptions activation. Fixes infinitely running activation hook under some circumstances. PR#3525
+* Dev - Opt-in tracking data for Subscriptions PR#3504
+	Data sent to WooCommerce:
+        Staging or live site
+        Live URL
+        WooCommerce Subscriptions Settings
+        Dates of the first and last created subscriptions
+        Number of subscriptions
+        Number of subscriptions with each status
+        Gross totals for switch, renewal, resubscribe, and initial totals
+        Order counts for for switch, renewal, resubscribe, and initial orders
+        To disable this tracking, opt out of WooCommerce tracking, see https://woocommerce.com/usage-tracking/
+
+2019.10.29 - version 2.6.3
+* Fix: use dashicon over fa icon. PR#3497
+* Fix: remove button type from close modal link. PR#3497
+* Fix: Remove double filtering of the meta label through the woocommerce_attribute_label filter. PR#3476
+* Fix: Restore the subscription's end date after reactivation. PR#3399
+* Fix: Tooltip content displayed on WooCommerce > Subscriptions administration screen.
+* Tweak: Allow modals to be displayed on admin screens. PR#3497
+* Tweak: Redirect the customer to checkout after failed early renewal attempt. PR#3494
+* Dev: Allow third parties to filter the switch cart item object properties. PR#3484
+
+2019.10.10 - version 2.6.2
+* Tweak: Add the switch direction the switch data stored in _subscription_switch_data order meta. PR#3440
+* Tweak: Add an order note to manual renewal order to note the order is awaiting customer payment. PR#3456
+* Tweak: Add note on the renewal order when a manual payment retry is ran. PR#3477
+* Fix: Hide sync meta data on the edit order and subscription screen. PR#3454
+* Fix: Fix an issue that led to missing _switched_subscription_item_id line item meta which caused incorrect multi-switch upgrade costs among other issues. PR#3461
+* Fix: Store the full set of current subscription counts not just the last element. Fixes issues when exporting subscription report data. PR#3455
+* Fix: Add the manually admin requested renewal order notes in the correct order. PR#3462
+* Fix: Display the customer facing subscription dates in site time. Fixing display inconsistencies. PR#3469
+* Fix: Updated the link in the staging site admin notice. PR#3473
+* Fix: Only get return retries from the post store which are retry posts. Fixes an issue where it would return a retry object for other post types. PR#3481
+* Fix: Load renewal order fee items to manual renewal carts. PR#3480
+* Dev: Fixed WC_Subscription::get_date() returning dates in the site time if the site was using GMT offsets in their site settings. PR#3469
+
 2019.09.04 - version 2.6.1
 * Fix a bug that would lead to switch log entries not including all information. PR#3441
 * Fix fatal errors that would occur on the admin edit order screen on staging sites. PR#3443
-* Performance: Sort subscription related order IDs on the application layer with rsort() instead of MySQL orderby clause. PR#3442
+* Performance: Sort using subscription related order IDs on the application layer with rsort() instead of MySQL orderby clause. PR#3442
 
 2019.09.02 - version 2.6.0
 * New: New option to allow customers with automatically renewing subscriptions to renew early via a modal rather than going through the checkout. PR#3293

@@ -274,10 +274,10 @@ a.close-subscriptions-search {
 }
 .variable_subscription_pricing_2_3 .wc_input_subscription_payment_sync_day {
 	max-width: 13%;
+	float: right;
 }
 .variable_subscription_pricing_2_3 .wc_input_subscription_payment_sync_month {
 	max-width: 86%;
-	float: right;
 }
 @media screen and (max-width: 1190px) {
 	.variable_subscription_pricing_2_3 p._subscription_price_field,
@@ -290,10 +290,10 @@ a.close-subscriptions-search {
 	}
 	.variable_subscription_pricing_2_3 .wc_input_subscription_payment_sync_day {
 		max-width: 20%;
+		float: right;
 	}
 	.variable_subscription_pricing_2_3 .wc_input_subscription_payment_sync_month {
 		max-width: 78%;
-		float: right;
 	}
 }
 ._subscription_limit_field .description {

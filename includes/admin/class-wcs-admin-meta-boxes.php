@@ -179,8 +179,8 @@ class WCS_Admin_Meta_Boxes {
 	 * @since 2.0
 	 */
 	public static function process_renewal_action_request( $subscription ) {
-		do_action( 'woocommerce_scheduled_subscription_payment', $subscription->get_id() );
 		$subscription->add_order_note( __( 'Process renewal order action requested by admin.', 'woocommerce-subscriptions' ), false, true );
+		do_action( 'woocommerce_scheduled_subscription_payment', $subscription->get_id() );
 	}
 
 	/**
@@ -190,7 +190,7 @@ class WCS_Admin_Meta_Boxes {
 	 * @since 2.0
 	 */
 	public static function create_pending_renewal_action_request( $subscription ) {
-
+		$subscription->add_order_note( __( 'Create pending renewal order requested by admin action.', 'woocommerce-subscriptions' ), false, true );
 		$subscription->update_status( 'on-hold' );
 
 		$renewal_order = wcs_create_renewal_order( $subscription );
@@ -203,8 +203,6 @@ class WCS_Admin_Meta_Boxes {
 				$renewal_order->save();
 			}
 		}
-
-		$subscription->add_order_note( __( 'Create pending renewal order requested by admin action.', 'woocommerce-subscriptions' ), false, true );
 	}
 
 	/**
@@ -264,6 +262,7 @@ class WCS_Admin_Meta_Boxes {
 			// init payment gateways
 			WC()->payment_gateways();
 
+			$order->add_order_note( __( 'Retry renewal payment action requested by admin.', 'woocommerce-subscriptions' ), false, true );
 			do_action( 'woocommerce_scheduled_subscription_payment_' . wcs_get_objects_property( $order, 'payment_method' ), $order->get_total(), $order );
 		}
 	}

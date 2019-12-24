@@ -73,7 +73,7 @@ function wcs_do_subscriptions_exist() {
  *
  * @since  2.0
  * @param  mixed $the_subscription Post object or post ID of the order.
- * @return WC_Subscription
+ * @return WC_Subscription|false The subscription object, or false if it cannot be found.
  */
 function wcs_get_subscription( $the_subscription ) {
 

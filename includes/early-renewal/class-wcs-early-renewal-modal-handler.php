@@ -125,10 +125,12 @@ class WCS_Early_Renewal_Modal_Handler {
 		// Now that we've attempted to process the payment, refresh the order.
 		$renewal_order = wc_get_order( $renewal_order->get_id() );
 
-		// Failed early renewals won't place the subscription on-hold so delete unsuccessful early renewal orders.
+		// Failed early renewals won't place the subscription on-hold so delete unsuccessful early renewal orders and redirect the user to complete the payment via checkout.
 		if ( $renewal_order->needs_payment() ) {
 			$renewal_order->delete( true );
-			wc_add_notice( __( 'Payment for this renewal order was unsuccessful, please try again.', 'woocommerce-subscriptions' ), 'error' );
+			wc_add_notice( __( 'Payment for the renewal order was unsuccessful with your payment method on file, please try again.', 'woocommerce-subscriptions' ), 'error' );
+			wp_redirect( wcs_get_early_renewal_url( $subscription ) );
+			exit();
 		} else {
 			wcs_update_dates_after_early_renewal( $subscription, $renewal_order );
 			wc_add_notice( __( 'Your early renewal order was successful.', 'woocommerce-subscriptions' ), 'success' );

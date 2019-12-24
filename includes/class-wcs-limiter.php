@@ -36,7 +36,7 @@ class WCS_Limiter {
 	public static function admin_edit_product_fields() {
 		global $post;
 
-		echo '<div class="options_group limit_subscription show_if_subscription show_if_variable-subscription">';
+		echo '<div class="options_group limit_subscription show_if_subscription show_if_variable-subscription hidden">';
 
 		// Only one Subscription per customer
 		woocommerce_wp_select( array(

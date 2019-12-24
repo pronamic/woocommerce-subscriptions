@@ -166,9 +166,31 @@ class WCS_Switch_Totals_Calculator {
 					continue;
 				}
 
-				$switches[ $cart_item_key ] = new WCS_Switch_Cart_Item( $cart_item, $subscription, $existing_item );
+				$switch_item = new WCS_Switch_Cart_Item( $cart_item, $subscription, $existing_item );
 			} else {
-				$switches[ $cart_item_key ] = new WCS_Add_Cart_Item( $cart_item, $subscription );
+				$switch_item = new WCS_Add_Cart_Item( $cart_item, $subscription );
+			}
+
+			/**
+			 * Allow third-parties to filter the switch item and its properties.
+			 *
+			 * @since 2.7.2
+			 *
+			 * @param WCS_Switch_Cart_Item $switch_item The switch item.
+			 * @param array $cart_item The item in the cart the switch item was created for.
+			 * @param string $cart_item_key The cart item key.
+			 */
+			$switches[ $cart_item_key ] = apply_filters( 'wcs_proration_switch_item_from_cart_item', $switch_item, $cart_item, $cart_item_key );
+
+			// Ensure the filtered item is the correct object type.
+			if ( ! is_a( $switches[ $cart_item_key ], 'WCS_Switch_Cart_Item' ) ) {
+				unset( $switches[ $cart_item_key ] );
+				WC()->cart->remove_cart_item( $cart_item_key );
+
+				$error_notice = __( 'Your cart contained an invalid subscription switch request. It has been removed from your cart.', 'woocommerce-subscriptions' );
+				if ( ! wc_has_notice( $error_notice, 'error' ) ) {
+					wc_add_notice( $error_notice , 'error' );
+				}
 			}
 		}
 
