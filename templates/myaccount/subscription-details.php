@@ -5,7 +5,7 @@
  * @author  Prospress
  * @package WooCommerce_Subscription/Templates
  * @since 2.2.19
- * @version 2.6.0
+ * @version 2.6.5
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,18 +18,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<td><?php esc_html_e( 'Status', 'woocommerce-subscriptions' ); ?></td>
 			<td><?php echo esc_html( wcs_get_subscription_status_name( $subscription->get_status() ) ); ?></td>
 		</tr>
-		<tr>
-			<td><?php echo esc_html_x( 'Start date', 'table heading', 'woocommerce-subscriptions' ); ?></td>
-			<td><?php echo esc_html( $subscription->get_date_to_display( 'start_date' ) ); ?></td>
-		</tr>
-		<?php foreach (
-			array(
-				'last_order_date_created' => _x( 'Last order date', 'admin subscription table header', 'woocommerce-subscriptions' ),
-				'next_payment'            => _x( 'Next payment date', 'admin subscription table header', 'woocommerce-subscriptions' ),
-				'end'                     => _x( 'End date', 'table heading', 'woocommerce-subscriptions' ),
-				'trial_end'               => _x( 'Trial end date', 'admin subscription table header', 'woocommerce-subscriptions' ),
-			) as $date_type => $date_title
-		) : ?>
+		<?php do_action( 'wcs_subscription_details_table_before_dates', $subscription ); ?>
+		<?php
+		$dates_to_display = apply_filters( 'wcs_subscription_details_table_dates_to_display', array(
+			'start_date'              => _x( 'Start date', 'customer subscription table header', 'woocommerce-subscriptions' ),
+			'last_order_date_created' => _x( 'Last order date', 'customer subscription table header', 'woocommerce-subscriptions' ),
+			'next_payment'            => _x( 'Next payment date', 'customer subscription table header', 'woocommerce-subscriptions' ),
+			'end'                     => _x( 'End date', 'customer subscription table header', 'woocommerce-subscriptions' ),
+			'trial_end'               => _x( 'Trial end date', 'customer subscription table header', 'woocommerce-subscriptions' ),
+		), $subscription );
+		foreach ( $dates_to_display as $date_type => $date_title ) : ?>
 			<?php $date = $subscription->get_date( $date_type ); ?>
 			<?php if ( ! empty( $date ) ) : ?>
 				<tr>
@@ -38,6 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</tr>
 			<?php endif; ?>
 		<?php endforeach; ?>
+		<?php do_action( 'wcs_subscription_details_table_after_dates', $subscription ); ?>
 		<?php if ( WCS_My_Account_Auto_Renew_Toggle::can_subscription_auto_renewal_be_changed( $subscription ) ) : ?>
 			<tr>
 				<td><?php esc_html_e( 'Auto renew', 'woocommerce-subscriptions' ); ?></td>
@@ -66,6 +65,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</td>
 			</tr>
 		<?php endif; ?>
+		<?php do_action( 'wcs_subscription_details_table_before_payment_method', $subscription ); ?>
 		<?php if ( $subscription->get_time( 'next_payment' ) > 0 ) : ?>
 			<tr>
 				<td><?php esc_html_e( 'Payment', 'woocommerce-subscriptions' ); ?></td>
@@ -91,7 +91,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 </table>
 
 <?php if ( $notes = $subscription->get_customer_order_notes() ) : ?>
-	<h2><?php esc_html_e( 'Subscription Updates', 'woocommerce-subscriptions' ); ?></h2>
+	<h2><?php esc_html_e( 'Subscription updates', 'woocommerce-subscriptions' ); ?></h2>
 	<ol class="woocommerce-OrderUpdates commentlist notes">
 		<?php foreach ( $notes as $note ) : ?>
 		<li class="woocommerce-OrderUpdate comment note">

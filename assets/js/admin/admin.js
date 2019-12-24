@@ -12,6 +12,10 @@ jQuery(document).ready(function($){
 				return decodeURIComponent(results[1].replace(/\+/g, ' '));
 			}
 		},
+		daysInMonth: function( month ) {
+			// Intentionally choose a non-leap year because we want february to have only 28 days.
+			return new Date(Date.UTC(2001, month, 0)).getUTCDate();
+		},
 		showHideSubscriptionMeta: function(){
 			if ($('select#product-type').val()==WCSubscriptions.productType) {
 				$('.show_if_simple').show();
@@ -150,7 +154,7 @@ jQuery(document).ready(function($){
 				if ($('select#product-type').val()=='variable-subscription') {
 					var $container = periodField.closest('.woocommerce_variable_attributes').find('.variable_subscription_sync');
 				} else {
-					$container = periodField.closest('#general_product_data').find('.subscription_sync')
+					$container = periodField.closest('#general_product_data').find('.subscription_sync');
 				}
 
 				var $syncWeekMonthContainer = $container.find('.subscription_sync_week_month'),
@@ -170,16 +174,17 @@ jQuery(document).ready(function($){
 
 				if('day'==billingPeriod) {
 					$syncWeekMonthSelect.val(0);
-					$syncAnnualContainer.find('input[type="number"]').val(0);
+					$syncAnnualContainer.find('input[type="number"]').val(0).trigger('change');
 				} else {
 					if('year'==billingPeriod) {
 						// Make sure the year sync fields are reset
-						$syncAnnualContainer.find('input[type="number"]').val(0);
+						$syncAnnualContainer.find('input[type="number"]').val(0).trigger('change');
 						// And the week/month field has no option selected
 						$syncWeekMonthSelect.val(0);
 					} else {
 						// Make sure the year sync value is 0
-						$syncAnnualContainer.find('input[type="number"]').val(0);
+						$syncAnnualContainer.find('input[type="number"]').val(0).trigger('change');
+
 						// And the week/month field has the appropriate options
 						$syncWeekMonthSelect.empty();
 						$.each(WCSubscriptions.syncOptions[billingPeriod], function(key,description) {
@@ -202,6 +207,7 @@ jQuery(document).ready(function($){
 					if ($varSubField.length > 0) { // Variation
 						var matches = $varSubField.attr('name').match(/\[(.*?)\]/);
 						$subscriptionPeriodElement = $('[name="variable_subscription_period['+matches[1]+']"]');
+
 						if ($('select#product-type').val()=='variable-subscription') {
 							$slideSwitch = true;
 						}
@@ -431,6 +437,22 @@ jQuery(document).ready(function($){
 
 	$('#woocommerce-product-data').on('propertychange keyup input paste change','[name^="_subscription_trial_length"], [name^="variable_subscription_trial_length"]',function(){
 		$.setTrialPeriods();
+	});
+
+	// Handles changes to sync date select/input for yearly subscription products.
+	$('#woocommerce-product-data').on('change', '[name^="_subscription_payment_sync_date_day"], [name^="variable_subscription_payment_sync_date_day"]', function() {
+		if ( 0 == $(this).val() ) {
+			$(this).siblings('[name^="_subscription_payment_sync_date_month"], [name^="variable_subscription_payment_sync_date_month"]').val(0);
+			$(this).prop('disabled', true);
+		}
+	}).on('change', '[name^="_subscription_payment_sync_date_month"], [name^="variable_subscription_payment_sync_date_month"]', function() {
+		var $syncDayOfMonthInput = $(this).siblings('[name^="_subscription_payment_sync_date_day"], [name^="variable_subscription_payment_sync_date_day"]');
+
+		if ( 0 < $(this).val() ) {
+			$syncDayOfMonthInput.val(1).attr({step: "1", min: "1", max: $.daysInMonth($(this).val())}).prop('disabled', false);
+		} else {
+			$syncDayOfMonthInput.val(0).trigger('change');
+		}
 	});
 
 	$('body').bind('woocommerce-product-type-change',function(){

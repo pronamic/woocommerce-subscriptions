@@ -83,7 +83,7 @@ class WCS_Retry_Post_Store extends WCS_Retry_Store {
 
 		$retry_post = get_post( $retry_id );
 
-		if ( null !== $retry_post ) {
+		if ( null !== $retry_post && $retry_post->post_type === self::$post_type ) {
 
 			$rule_data = array();
 			$post_meta = get_post_meta( $retry_id );

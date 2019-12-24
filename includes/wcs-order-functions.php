@@ -654,7 +654,7 @@ function wcs_get_order_item_name( $order_item, $include = array() ) {
 				$meta_key   = wc_attribute_label( wc_sanitize_taxonomy_name( $meta_key ) );
 				$meta_value = isset( $term->name ) ? $term->name : $meta_value;
 			} else {
-				$meta_key   = apply_filters( 'woocommerce_attribute_label', wc_attribute_label( $meta_key ), $meta_key );
+				$meta_key   = wc_attribute_label( $meta_key );
 			}
 
 			$attribute_strings[] = sprintf( '%s: %s', wp_kses_post( rawurldecode( $meta_key ) ), wp_kses_post( rawurldecode( $meta_value ) ) );
@@ -707,7 +707,7 @@ function wcs_get_line_item_name( $line_item ) {
 			$meta_key   = wc_attribute_label( wc_sanitize_taxonomy_name( $meta_key ) );
 			$meta_value = isset( $term->name ) ? $term->name : $meta_value;
 		} else {
-			$meta_key   = apply_filters( 'woocommerce_attribute_label', wc_attribute_label( $meta_key ), $meta_key );
+			$meta_key   = wc_attribute_label( $meta_key );
 		}
 
 		$item_meta_strings[] = sprintf( '%s: %s', rawurldecode( $meta_key ), rawurldecode( $meta_value ) );
