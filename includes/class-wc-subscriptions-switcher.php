@@ -820,8 +820,9 @@ class WC_Subscriptions_Switcher {
 	 */
 	public static function add_line_item_meta( $order_item, $cart_item_key, $cart_item, $order ) {
 		if ( isset( $cart_item['subscription_switch'] ) ) {
-			if ( $switches = self::cart_contains_switches( 'any' ) && isset( $switches[ $cart_item_key ] ) ) {
+			$switches = self::cart_contains_switches( 'any' );
 
+			if ( isset( $switches[ $cart_item_key ] ) ) {
 				$switch_details = $switches[ $cart_item_key ];
 
 				if ( wcs_is_subscription( $order ) ) {
@@ -829,8 +830,8 @@ class WC_Subscriptions_Switcher {
 						$order_item->add_meta_data( '_switched_subscription_item_id', $switch_details['item_id'] );
 					}
 				} else {
-					$sign_up_fee_prorated = WC()->cart->cart_contents[ $cart_item_key ]['data']->get_meta( 'subscription_sign_up_fee_prorated', true );
-					$price_prorated       = WC()->cart->cart_contents[ $cart_item_key ]['data']->get_meta( 'subscription_price_prorated', true );
+					$sign_up_fee_prorated = WC()->cart->cart_contents[ $cart_item_key ]['data']->get_meta( '_subscription_sign_up_fee_prorated', true );
+					$price_prorated       = WC()->cart->cart_contents[ $cart_item_key ]['data']->get_meta( '_subscription_price_prorated', true );
 					$order_item->add_meta_data( '_switched_subscription_sign_up_fee_prorated', empty( $sign_up_fee_prorated ) ? 0 : $sign_up_fee_prorated );
 					$order_item->add_meta_data( '_switched_subscription_price_prorated', empty( $price_prorated ) ? 0 : $price_prorated );
 				}
@@ -912,10 +913,11 @@ class WC_Subscriptions_Switcher {
 					$switched_item_data = array();
 
 					if ( ! empty( $cart_item['subscription_switch']['item_id'] ) ) {
-						$switched_item_data['remove_line_item'] = $cart_item['subscription_switch']['item_id'];
 						$existing_item                          = wcs_get_order_item( $cart_item['subscription_switch']['item_id'], $subscription );
 						$switch_item                            = new WCS_Switch_Cart_Item( $cart_item, $subscription, $existing_item );
 						$is_switch_with_matching_trials         = $switch_item->is_switch_during_trial() && $switch_item->trial_periods_match();
+						$switched_item_data['remove_line_item'] = $cart_item['subscription_switch']['item_id'];
+						$switched_item_data['switch_direction'] = $switch_item->get_switch_type();
 					}
 
 					// If the item is on the same schedule, we can just add it to the new subscription and remove the old item.
@@ -2253,16 +2255,21 @@ class WC_Subscriptions_Switcher {
 				}
 
 				// Remove any signup fees if necessary.
-				if ( $order_is_parent && 'include_sign_up_fees' !== $include_sign_up_fees ) {
-					if ( $order_item->meta_exists( '_synced_sign_up_fee' ) ) {
-						$item_total -= $order_item->get_meta( '_synced_sign_up_fee' );
-					} elseif ( $subscription_item->meta_exists( '_has_trial' ) ) {
-						// Where there's a free trial, the sign up fee is the entire item total so the non-sign-up fee portion is 0.
-						$item_total = 0;
-					} else {
-						// For non-free trial subscriptions, the sign up fee portion is the order total minus the recurring total (subscription item total).
-						// Use the subscription item's subtotal (without discounts) to avoid signup fee coupon discrepancies
-						$item_total -= max( $order_item->get_total() - $subscription_item->get_subtotal(), 0 );
+				if ( 'include_sign_up_fees' !== $include_sign_up_fees ) {
+					if ( $order_is_parent ) {
+						if ( $order_item->meta_exists( '_synced_sign_up_fee' ) ) {
+							$item_total -= $order_item->get_meta( '_synced_sign_up_fee' ) * $order_item->get_quantity();
+						} elseif ( $subscription_item->meta_exists( '_has_trial' ) ) {
+							// Where there's a free trial, the sign up fee is the entire item total so the non-sign-up fee portion is 0.
+							$item_total = 0;
+						} else {
+							// For non-free trial subscriptions, the sign up fee portion is the order total minus the recurring total (subscription item total).
+							// Use the subscription item's subtotal (without discounts) to avoid signup fee coupon discrepancies
+							$item_total -= max( $order_item->get_total() - $subscription_item->get_subtotal(), 0 );
+						}
+					// Remove the prorated sign up fees.
+					} elseif ( $order_item->meta_exists( '_switched_subscription_sign_up_fee_prorated' ) ) {
+						$item_total -= $order_item->get_meta( '_switched_subscription_sign_up_fee_prorated' ) * $order_item->get_quantity();
 					}
 				}
 

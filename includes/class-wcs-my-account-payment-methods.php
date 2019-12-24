@@ -100,7 +100,7 @@ class WCS_My_Account_Payment_Methods {
 
 		// translators: $1: the token/credit card label, 2$-3$: opening and closing strong and link tags
 		$notice = sprintf( esc_html__( 'The deleted payment method was used for automatic subscription payments. To avoid failed renewal payments in future the subscriptions using this payment method have been updated to use your %1$s. To change the payment method of individual subscriptions go to your %2$sMy Account > Subscriptions%3$s page.', 'woocommerce-subscriptions' ),
-			self::get_token_label( $new_token ),
+			$new_token->get_display_name(),
 			'<a href="' . esc_url( wc_get_account_endpoint_url( get_option( 'woocommerce_myaccount_subscriptions_endpoint', 'subscriptions' ) ) ) . '"><strong>',
 			'</strong></a>'
 		);
@@ -111,19 +111,15 @@ class WCS_My_Account_Payment_Methods {
 	/**
 	 * Get a WC_Payment_Token label. eg Visa ending in 1234
 	 *
+	 * @deprecated 2.7.2
+	 *
 	 * @param  WC_Payment_Token payment token object
 	 * @return string WC_Payment_Token label
 	 * @since  2.2.7
 	 */
 	public static function get_token_label( $token ) {
-
-		if ( method_exists( $token, 'get_last4' ) && $token->get_last4() ) {
-			$label = sprintf( __( '%s ending in %s', 'woocommerce-subscriptions' ), esc_html( wc_get_credit_card_type_label( $token->get_card_type() ) ), esc_html( $token->get_last4() ) );
-		} else {
-			$label = esc_html( wc_get_credit_card_type_label( $token->get_card_type() ) );
-		}
-
-		return $label;
+		wcs_deprecated_function( __METHOD__, '2.7.2', '$token->get_display_name()' );
+		return $token->get_display_name();
 	}
 
 	/**
@@ -151,7 +147,7 @@ class WCS_My_Account_Payment_Methods {
 		}
 
 		$notice = sprintf( esc_html__( 'Would you like to update your subscriptions to use this new payment method - %1$s?%2$sYes%4$s | %3$sNo%4$s', 'woocommerce-subscriptions' ),
-			self::get_token_label( $default_token ),
+			$default_token->get_display_name(),
 			'</br><a href="' . esc_url( add_query_arg( array(
 				'update-subscription-tokens' => 'true',
 				'token-id'                   => $default_token_id,

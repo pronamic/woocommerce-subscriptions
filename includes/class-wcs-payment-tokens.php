@@ -145,7 +145,7 @@ class WCS_Payment_Tokens extends WC_Payment_Tokens {
 	 * @since  2.2.7
 	 */
 	public static function get_customers_alternative_token( $token ) {
-		$payment_tokens    = self::get_customer_tokens( $token->get_gateway_id(), $token->get_user_id() );
+		$payment_tokens    = self::get_customer_tokens( $token->get_user_id(), $token->get_gateway_id() );
 		$alternative_token = null;
 
 		// Remove the token we're trying to find an alternative for.

@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<?php if ( $modal->has_heading() ) : ?>
 					<h2><?php echo esc_html( $modal->get_heading() ) ?></h2>
 				<?php endif ?>
-				<a href="#" onclick="return false;" type="button" class="close" style="text-decoration: none;"><i class="fas fa-times"></i></a>
+				<a href="#" onclick="return false;" class="close" style="text-decoration: none;"><span class="dashicons dashicons-no"></span></a>
 			</header>
 
 		<div class="content">

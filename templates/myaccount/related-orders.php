@@ -4,7 +4,7 @@
  *
  * @author   Prospress
  * @category WooCommerce Subscriptions/Templates
- * @version  2.6.0
+ * @version  2.6.2
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -36,7 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 
 			$item_count = $order->get_item_count();
-			$order_date = wcs_get_datetime_utc_string( $order->get_date_created() );
+			$order_date = $order->get_date_created();
 
 			?><tr class="order woocommerce-orders-table__row woocommerce-orders-table__row--status-<?php echo esc_attr( $order->get_status() ); ?>">
 				<td class="order-number woocommerce-orders-table__cell woocommerce-orders-table__cell-order-number" data-title="<?php esc_attr_e( 'Order Number', 'woocommerce-subscriptions' ); ?>">
@@ -45,7 +45,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</a>
 				</td>
 				<td class="order-date woocommerce-orders-table__cell woocommerce-orders-table__cell-order-date" data-title="<?php esc_attr_e( 'Date', 'woocommerce-subscriptions' ); ?>">
-					<time datetime="<?php echo esc_attr( gmdate( 'Y-m-d', wcs_date_to_time( $order_date ) ) ); ?>" title="<?php echo esc_attr( wcs_date_to_time( $order_date ) ); ?>"><?php echo wp_kses_post( date_i18n( get_option( 'date_format' ), wcs_date_to_time( $order_date ) ) ); ?></time>
+					<time datetime="<?php echo esc_attr( $order_date->date( 'Y-m-d' ) ); ?>" title="<?php echo esc_attr( $order_date->getTimestamp() ); ?>"><?php echo wp_kses_post( $order_date->date_i18n( wc_date_format() ) ); ?></time>
 				</td>
 				<td class="order-status woocommerce-orders-table__cell woocommerce-orders-table__cell-order-status" data-title="<?php esc_attr_e( 'Status', 'woocommerce-subscriptions' ); ?>" style="white-space:nowrap;">
 					<?php echo esc_html( wc_get_order_status_name( $order->get_status() ) ); ?>

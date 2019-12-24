@@ -668,13 +668,16 @@ class WC_Subscriptions_Product {
 	public static function set_subscription_variation_class( $classname, $product_type, $post_type, $product_id ) {
 
 		if ( 'product_variation' === $post_type && 'variation' === $product_type ) {
+			$post = get_post( $product_id );
 
-			$terms = get_the_terms( get_post( $product_id )->post_parent, 'product_type' );
+			if ( $post ) {
+				$terms = get_the_terms( $post->post_parent, 'product_type' );
 
-			$parent_product_type = ! empty( $terms ) && isset( current( $terms )->slug ) ? current( $terms )->slug : '';
+				$parent_product_type = ! empty( $terms ) && isset( current( $terms )->slug ) ? current( $terms )->slug : '';
 
-			if ( 'variable-subscription' === $parent_product_type ) {
-				$classname = 'WC_Product_Subscription_Variation';
+				if ( 'variable-subscription' === $parent_product_type ) {
+					$classname = 'WC_Product_Subscription_Variation';
+				}
 			}
 		}
 

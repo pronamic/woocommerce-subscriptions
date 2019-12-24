@@ -538,7 +538,7 @@ class WCS_Admin_Post_Types {
 				}
 
 				if ( ! empty( $customer_tip ) ) {
-					echo '<div class="tips" data-tip="' . esc_attr( $customer_tip ) . '">';
+					echo '<div class="tips" data-tip="' . wc_sanitize_tooltip( $customer_tip ) . '">'; // XSS ok.
 				}
 
 				// This is to stop PHP from complaining
@@ -1078,7 +1078,7 @@ class WCS_Admin_Post_Types {
 		$item_html .= wp_kses( $item_name, array( 'a' => array( 'href' => array() ) ) );
 
 		if ( $item_meta_html ) {
-			$item_html .= wcs_help_tip( $item_meta_html );
+			$item_html .= wcs_help_tip( $item_meta_html, true );
 		}
 
 		$item_html .= '</div>';
@@ -1106,7 +1106,7 @@ class WCS_Admin_Post_Types {
 				echo wp_kses( $item_name, array( 'a' => array( 'href' => array() ) ) );
 
 				if ( $item_meta_html ) {
-					echo wcs_help_tip( $item_meta_html );
+					echo wcs_help_tip( $item_meta_html, true );
 				} ?>
 			</td>
 		</tr>

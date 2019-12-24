@@ -139,6 +139,7 @@ class WCS_Webhooks {
 					break;
 				case 'wp_api_v1':
 				case 'wp_api_v2':
+				case 'wp_api_v3':
 					$request    = new WP_REST_Request( 'GET' );
 					$controller = new WC_REST_Subscriptions_Controller;
 

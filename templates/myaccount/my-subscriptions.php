@@ -4,7 +4,7 @@
  *
  * @author   Prospress
  * @category WooCommerce Subscriptions/Templates
- * @version  2.6.0
+ * @version  2.6.4
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -71,9 +71,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php if ( 1 < $current_page ) :
 				printf( esc_html__( 'You have reached the end of subscriptions. Go to the %sfirst page%s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( wc_get_endpoint_url( 'subscriptions', 1 ) ) . '">', '</a>' );
 			else :
-				// translators: placeholders are opening and closing link tags to take to the shop page
-				printf( esc_html__( 'You have no active subscriptions. Find your first subscription in the %sstore%s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( apply_filters( 'woocommerce_subscriptions_message_store_url', get_permalink( wc_get_page_id( 'shop' ) ) ) ) . '">', '</a>' );
-			endif; ?>
+				esc_html_e( 'You have no active subscriptions.', 'woocommerce-subscriptions' );
+				?>
+				<a class="woocommerce-Button button" href="<?php echo esc_url( apply_filters( 'woocommerce_return_to_shop_redirect', wc_get_page_permalink( 'shop' ) ) ); ?>">
+					<?php esc_html_e( 'Browse products', 'woocommerce-subscriptions' ); ?>
+				</a>
+			<?php
+		endif; ?>
 		</p>
 
 	<?php endif; ?>

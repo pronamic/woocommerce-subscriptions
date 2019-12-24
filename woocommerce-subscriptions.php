@@ -5,10 +5,10 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: Automattic
  * Author URI: https://woocommerce.com/
- * Version: 2.6.1
+ * Version: 2.6.5
  *
- * WC requires at least: 3.0
- * WC tested up to: 3.6
+ * WC requires at least: 3.0.9
+ * WC tested up to: 3.8
  * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
  *
  * Copyright 2019 WooCommerce
@@ -83,6 +83,7 @@ WC_Subscriptions_Change_Payment_Gateway::init();
 WC_Subscriptions_Payment_Gateways::init();
 WCS_PayPal_Standard_Change_Payment_Method::init();
 WC_Subscriptions_Switcher::init();
+WC_Subscriptions_Tracker::init();
 WCS_Upgrade_Logger::init();
 new WCS_Cart_Renewal();
 new WCS_Cart_Resubscribe();
@@ -117,7 +118,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.6.1';
+	public static $version = '2.6.5';
 
 	public static $wc_minimum_supported_version = '3.0';
 
@@ -740,7 +741,7 @@ class WC_Subscriptions {
 				update_option( WC_Subscriptions_admin::$option_prefix . '_paypal_debugging_default_set', 'true' );
 			}
 
-			add_option( WC_Subscriptions_Admin::$option_prefix . '_is_active', true );
+			update_option( WC_Subscriptions_Admin::$option_prefix . '_is_active', true );
 
 			set_transient( self::$activation_transient, true, 60 * 60 );
 
@@ -894,7 +895,7 @@ class WC_Subscriptions {
 						// translators: 1$-2$: opening and closing <strong> tags. 3$-4$: opening and closing link tags for learn more. Leads to duplicate site article on docs. 5$-6$: Opening and closing link to production URL. 7$: Production URL .
 						esc_html__( 'It looks like this site has moved or is a duplicate site. %1$sWooCommerce Subscriptions%2$s has disabled automatic payments and subscription related emails on this site to prevent duplicate payments from a staging or test environment. %1$sWooCommerce Subscriptions%2$s considers %5$s%7$s%6$s to be the site\'s URL. %3$sLearn more &raquo;%4$s.', 'woocommerce-subscriptions' ),
 						'<strong>', '</strong>',
-						'<a href="http://docs.woocommerce.com/document/subscriptions/faq/#section-39" target="_blank">', '</a>',
+						'<a href="https://docs.woocommerce.com/document/subscriptions-handles-staging-sites/" target="_blank">', '</a>',
 						'<a href="' . esc_url( self::get_site_url_from_source( 'subscriptions_install' ) ) . '" target="_blank">', '</a>',
 						esc_url( self::get_site_url_from_source( 'subscriptions_install' ) )
 					)

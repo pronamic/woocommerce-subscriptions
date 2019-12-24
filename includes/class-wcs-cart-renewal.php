@@ -1221,6 +1221,12 @@ class WCS_Cart_Renewal {
 
 		$cart_fees = $cart->get_fees();
 
+		// Fees are naturally recurring if they have been applied to the renewal order. Generate a key (name + amount) for each fee applied to the order.
+		$renewal_order_fees = array();
+		foreach ( $this->get_order()->get_fees() as $item_id => $fee_line_item ) {
+			$renewal_order_fees[ $item_id ] = $fee_line_item->get_name() . wc_format_decimal( $fee_line_item->get_total() );
+		}
+
 		// WC doesn't have a method for removing fees individually so we clear them and re-add them where applicable.
 		if ( is_callable( array( $cart, 'fees_api' ) ) ) { // WC 3.2 +
 			$cart->fees_api()->remove_all_fees();
@@ -1229,7 +1235,10 @@ class WCS_Cart_Renewal {
 		}
 
 		foreach ( $cart_fees as $fee ) {
-			if ( true === apply_filters( 'woocommerce_subscriptions_is_recurring_fee', false, $fee, $cart ) ) {
+			// By default, a fee is automatically recurring if it was applied to the renewal order.
+			$is_recurring_fee = in_array( $fee->name . wc_format_decimal( $fee->amount ), $renewal_order_fees );
+
+			if ( true === apply_filters( 'woocommerce_subscriptions_is_recurring_fee', $is_recurring_fee, $fee, $cart ) ) {
 				if ( is_callable( array( $cart, 'fees_api' ) ) ) { // WC 3.2 +
 					$cart->fees_api()->add_fee( $fee );
 				} else {

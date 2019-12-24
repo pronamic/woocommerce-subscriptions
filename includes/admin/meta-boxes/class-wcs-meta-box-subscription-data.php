@@ -315,37 +315,55 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 
 		// Get subscription object.
 		$subscription = wcs_get_subscription( $post_id );
+		$props        = array();
 
 		// Ensure there is an order key.
 		if ( ! $subscription->get_order_key() ) {
-			wcs_set_objects_property( $subscription, 'order_key', wcs_generate_order_key() );
+			$props['order_key'] = wcs_generate_order_key();
 		}
 
 		// Update meta
 		$customer_id = isset( $_POST['customer_user'] ) ? absint( $_POST['customer_user'] ) : 0;
 		if ( $customer_id !== $subscription->get_customer_id() ) {
-			wcs_set_objects_property( $subscription, '_customer_user', $customer_id );
+			$props['customer_id'] = $customer_id;
 		}
 
-		// Handle the billing fields.
+		// Update billing fields.
 		foreach ( self::$billing_fields as $key => $field ) {
 			$field['id'] = isset( $field['id'] ) ? $field['id'] : "_billing_{$key}";
+
 			if ( ! isset( $_POST[ $field['id'] ] ) ) {
 				continue;
 			}
 
-			wcs_set_objects_property( $subscription, $field['id'], wc_clean( $_POST[ $field['id'] ] ) );
+			$value = wc_clean( wp_unslash( $_POST[ $field['id'] ] ) );
+
+			if ( is_callable( array( $subscription, 'set_billing_' . $key ) ) ) {
+				$props[ "billing_{$key}" ] = $value;
+			} else {
+				$subscription->update_meta_data( $field['id'], $value );
+			}
 		}
 
-		// Handle the shipping fields.
-		foreach ( self::$shipping_fields as $key => $field ) {
+		// Update shipping fields.
+		foreach ( self::$billing_fields as $key => $field ) {
 			$field['id'] = isset( $field['id'] ) ? $field['id'] : "_shipping_{$key}";
+
 			if ( ! isset( $_POST[ $field['id'] ] ) ) {
 				continue;
 			}
 
-			wcs_set_objects_property( $subscription, $field['id'], wc_clean( $_POST[ $field['id'] ] ) );
+			$value = wc_clean( wp_unslash( $_POST[ $field['id'] ] ) );
+
+			if ( is_callable( array( $subscription, 'set_billing_' . $key ) ) ) {
+				$props[ "shipping_{$key}" ] = $value;
+			} else {
+				$subscription->update_meta_data( $field['id'], $value );
+			}
 		}
+
+		$subscription->set_props( $props );
+		$subscription->save();
 
 		// Save the linked parent order id
 		if ( ! empty( $_POST['parent-order-id'] ) ) {
