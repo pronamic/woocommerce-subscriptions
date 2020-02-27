@@ -7,7 +7,7 @@
  * @author   Prospress
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin/Meta Boxes
- * @version  2.0
+ * @version  3.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -49,6 +49,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 
 				<div class="order_data_column_container">
 					<div class="order_data_column">
+						<h3><?php esc_html_e( 'General', 'woocommerce-subscriptions' ); ?></h3>
 
 						<p class="form-field form-field-wide wc-customer-user">
 							<label for="customer_user"><?php esc_html_e( 'Customer:', 'woocommerce-subscriptions' ) ?> <?php
@@ -58,14 +59,14 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 									'post_type'      => 'shop_subscription',
 									'_customer_user' => absint( $subscription->get_user_id() ),
 								);
-								printf( '<a href="%s">%s &rarr;</a>',
+								printf( '<a href="%s">%s</a>',
 									esc_url( add_query_arg( $args, admin_url( 'edit.php' ) ) ),
-									esc_html__( 'View other subscriptions', 'woocommerce-subscriptions' )
+									esc_html__( 'View other subscriptions &rarr;', 'woocommerce-subscriptions' )
 								);
 								printf(
 									'<a href="%s">%s</a>',
 									esc_url( add_query_arg( 'user_id', $subscription->get_user_id(), admin_url( 'user-edit.php' ) ) ),
-									esc_html__( 'Profile', 'woocommerce-subscriptions' )
+									esc_html__( 'Profile &rarr;', 'woocommerce-subscriptions' )
 								);
 							}
 							?></label>
@@ -90,7 +91,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 
 						<p class="form-field form-field-wide">
 							<label for="order_status"><?php esc_html_e( 'Subscription status:', 'woocommerce-subscriptions' ); ?></label>
-							<select id="order_status" name="order_status">
+							<select id="order_status" name="order_status" class="wc-enhanced-select">
 								<?php
 								$statuses = wcs_get_subscription_statuses();
 								foreach ( $statuses as $status => $status_name ) {
@@ -130,9 +131,11 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 					</div>
 					<div class="order_data_column">
 						<h3>
-							<?php esc_html_e( 'Billing Details', 'woocommerce-subscriptions' ); ?>
+							<?php esc_html_e( 'Billing', 'woocommerce-subscriptions' ); ?>
 							<a href="#" class="edit_address"><?php esc_html_e( 'Edit', 'woocommerce-subscriptions' ); ?></a>
-							<a href="#" class="tips load_customer_billing" data-tip="<?php esc_attr_e( 'Load billing address', 'woocommerce-subscriptions' ); ?>" style="display:none;"><?php esc_html_e( 'Load billing address', 'woocommerce-subscriptions' ); ?></a>
+							<span>
+								<a href="#" class="load_customer_billing" style="display:none;"><?php esc_html_e( 'Load billing address', 'woocommerce-subscriptions' ); ?></a>
+							</span>
 						</h3>
 						<?php
 						// Display values
@@ -218,10 +221,12 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 					<div class="order_data_column">
 
 						<h3>
-							<?php esc_html_e( 'Shipping Details', 'woocommerce-subscriptions' ); ?>
+							<?php esc_html_e( 'Shipping', 'woocommerce-subscriptions' ); ?>
 							<a href="#" class="edit_address"><?php esc_html_e( 'Edit', 'woocommerce-subscriptions' ); ?></a>
-							<a href="#" class="tips billing-same-as-shipping" data-tip="<?php esc_attr_e( 'Copy from billing', 'woocommerce-subscriptions' ); ?>" style="display:none;"><?php esc_html_e( 'Copy from billing', 'woocommerce-subscriptions' ); ?></a>
-							<a href="#" class="tips load_customer_shipping" data-tip="<?php esc_attr_e( 'Load shipping address', 'woocommerce-subscriptions' ); ?>" style="display:none;"><?php esc_html_e( 'Load shipping address', 'woocommerce-subscriptions' ); ?></a>
+							<span>
+								<a href="#" class="load_customer_shipping" style="display:none;"><?php esc_html_e( 'Load shipping address', 'woocommerce-subscriptions' ); ?></a>
+								<a href="#" class="billing-same-as-shipping" style="display:none;"><?php esc_html_e( 'Copy billing address', 'woocommerce-subscriptions' ); ?></a>
+							</span>
 						</h3>
 						<?php
 						// Display values

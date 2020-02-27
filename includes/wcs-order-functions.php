@@ -796,7 +796,10 @@ function wcs_copy_order_item( $from_item, &$to_item ) {
 			) );
 			break;
 		case 'tax':
-			/** @var WC_Order_Item_Tax $from_item */
+			/**
+			 * @var WC_Order_Item_Tax $from_item
+			 * @var WC_Order_Item_Tax $to_item
+			 */
 			$to_item->set_props( array(
 				'rate_id'            => $from_item->get_rate_id(),
 				'label'              => $from_item->get_label(),
@@ -804,6 +807,12 @@ function wcs_copy_order_item( $from_item, &$to_item ) {
 				'tax_total'          => $from_item->get_tax_total(),
 				'shipping_tax_total' => $from_item->get_shipping_tax_total(),
 			) );
+
+			// WC 3.7.0+ Compatibility.
+			if ( is_callable( array( $from_item, 'get_rate_percent' ) ) ) {
+				$to_item->set_rate_percent( $from_item->get_rate_percent() );
+			}
+
 			break;
 		case 'fee':
 			/** @var WC_Order_Item_Fee $from_item */

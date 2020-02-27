@@ -34,7 +34,9 @@ class WCS_Email_Processing_Renewal_Order extends WC_Email_Customer_Processing_Or
 
 		// Triggers for this email
 		add_action( 'woocommerce_order_status_pending_to_processing_renewal_notification', array( $this, 'trigger' ) );
-		add_action( 'woocommerce_order_status_pending_to_on-hold_renewal_notification', array( $this, 'trigger' ) );
+		add_action( 'woocommerce_order_status_cancelled_to_processing_renewal_notification', array( $this, 'trigger' ) );
+		add_action( 'woocommerce_order_status_failed_to_processing_renewal_notification', array( $this, 'trigger' ) );
+		add_action( 'woocommerce_order_status_on-hold_to_processing_renewal_notification', array( $this, 'trigger' ) );
 
 		// We want all the parent's methods, with none of its properties, so call its parent's constructor
 		WC_Email::__construct();

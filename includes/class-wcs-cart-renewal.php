@@ -423,7 +423,7 @@ class WCS_Cart_Renewal {
 				$price = $item_to_renew['line_subtotal'];
 
 				if ( $_product->is_taxable() && $subscription->get_prices_include_tax() ) {
-					$price += $item_to_renew['subtotal_tax'];
+					$price += array_sum( $item_to_renew['taxes']['subtotal'] ); // Use the taxes array items here as they contain taxes to a more accurate number of decimals.
 				}
 
 				$_product->set_price( $price / $item_to_renew['qty'] );

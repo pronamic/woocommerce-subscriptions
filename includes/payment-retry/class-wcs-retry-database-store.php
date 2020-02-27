@@ -155,6 +155,13 @@ class WCS_Retry_Database_Store extends WCS_Retry_Store {
 			'limit'      => -1,
 		) );
 
+		// Map the internal properties to the database column names.
+		if ( strtolower( $args['orderby'] ) === 'id' ) {
+			$args['orderby'] = 'retry_id';
+		} elseif ( strtolower( $args['orderby'] ) === 'date' ) {
+			$args['orderby'] = 'date_gmt';
+		}
+
 		$where = ' WHERE 1=1';
 
 		if ( 'any' !== $args['status'] ) {
@@ -173,7 +180,7 @@ class WCS_Retry_Database_Store extends WCS_Retry_Store {
 			$where     .= $date_query->get_sql();
 		}
 
-		$orderby = $wpdb->prepare( ' ORDER BY %s %s', $args['orderby'], $args['order'] );
+		$orderby = sprintf( ' ORDER BY %s', sanitize_sql_orderby( "{$args['orderby']} {$args['order']}" ) );
 		$limit   = ( $args['limit'] > 0 ) ? $wpdb->prepare( ' LIMIT %d', $args['limit'] ) : '';
 
 		$raw_retries = $wpdb->get_results( "SELECT * FROM {$this->get_full_table_name()} $where $orderby $limit" );

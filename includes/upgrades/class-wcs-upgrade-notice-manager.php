@@ -19,7 +19,7 @@ class WCS_Upgrade_Notice_Manager {
 	 *
 	 * @var string
 	 */
-	protected static $version = '2.6.0';
+	protected static $version = '3.0.0';
 
 	/**
 	 * The number of times the notice will be displayed before being dismissed automatically.
@@ -77,24 +77,19 @@ class WCS_Upgrade_Notice_Manager {
 			return;
 		}
 
-		$version     = _x( '2.6', 'plugin version number used in admin notice', 'woocommerce-subscriptions' );
+		$version     = _x( '3.0', 'plugin version number used in admin notice', 'woocommerce-subscriptions' );
 		$dismiss_url = wp_nonce_url( add_query_arg( 'dismiss_upgrade_notice', self::$version ), 'dismiss_upgrade_notice', '_wcsnonce' );
 		$notice      = new WCS_Admin_Notice( 'notice notice-info', array(), $dismiss_url );
 		$features    = array(
 			array(
-				'title'       => __( 'Improved experience for customers who renew their subscriptions early', 'woocommerce-subscriptions' ),
-				'description' => sprintf( __( 'Allow customers to renew early from their %sMy Account > Subscription%s page without going through the checkout.', 'woocommerce-subscriptions' ), '<strong>', '</strong>' ),
+				'title'       => __( 'Improved scheduled action data storage', 'woocommerce-subscriptions' ),
+				'description' => __( 'Scheduled action data, which was previously stored in the WordPress post tables, has been moved to a custom database table. Amongst other benefits, this will greatly improve the performance of processing scheduled actions such as subscription payments.', 'woocommerce-subscriptions' ),
 			),
 			array(
-				'title'       => __( 'Improved subscription switching proration calculations', 'woocommerce-subscriptions' ),
-				'description' => __( "We've made improvements to the code which calculates the upgrade costs when a customer switches their subscription. This has enabled us to fix a number of complicated switching scenarios.", 'woocommerce-subscriptions' ),
-			),
-			array(
-				'title'       => __( 'View subscriptions and orders contributing to reports', 'woocommerce-subscriptions' ),
+				'title'       => __( 'Increased processing rate for scheduled payments', 'woocommerce-subscriptions' ),
 				'description' => sprintf(
-					__( 'Want to view which specific orders and subscriptions are contributing to subscription-related reports? You can now do just that by clicking on the %1$s link while viewing %2$ssubscription reports%3$s.', 'woocommerce-subscriptions' ),
-					'<span style="font-size: 17px;" class="dashicons dashicons-external"></span>',
-					'<a href="' . esc_url( add_query_arg( array( 'page' => 'wc-reports', 'tab' => 'subscriptions' ), admin_url( 'admin.php' ) ) ) . '">', '</a>'
+					__( 'Previous versions of Subscriptions relied on %sWP Cron%s to process subscription payments and other scheduled events. In 3.0, these events will now run on admin request with loopback support. This will significantly increase the throughput of payment processing.', 'woocommerce-subscriptions' ),
+					'<a href="https://docs.woocommerce.com/document/subscriptions/develop/complete-guide-to-scheduled-events-with-subscriptions/#section-2">', '</a>'
 				),
 			),
 		);
@@ -108,7 +103,7 @@ class WCS_Upgrade_Notice_Manager {
 		$notice->set_actions( array(
 			array(
 				'name' => __( 'Learn more', 'woocommerce-subscriptions' ),
-				'url'  => 'https://docs.woocommerce.com/document/subscriptions/whats-new-in-subscriptions-2-6/',
+				'url'  => 'https://docs.woocommerce.com/document/subscriptions/whats-new-in-subscriptions-3-0/',
 			),
 		) );
 

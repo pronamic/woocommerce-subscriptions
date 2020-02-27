@@ -509,7 +509,10 @@ class WC_Subscriptions_Switcher {
 						$name  = WC_Subscriptions_Admin::$option_prefix . '_allow_switching_' . $option['id'];
 						$value = get_option( $name, 'no' );
 
-						echo sprintf( '<label><input%s type="checkbox" name="%s" value="1"/> %s</label>', checked( $value, 'yes', false ), esc_attr( $name ), esc_html( $label ) );
+						echo '<label>';
+						echo sprintf( '<input%s type="checkbox" name="%s" value="1"/> %s', checked( $value, 'yes', false ), esc_attr( $name ), esc_html( $label ) );
+						echo isset( $option['desc_tip'] ) ? wcs_help_tip( $option['desc_tip'], true ) : '';
+						echo '</label>';
 					}
 					?>
 				</div>

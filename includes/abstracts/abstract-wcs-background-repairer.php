@@ -4,7 +4,7 @@
  *
  * Provide APIs for a repair script to find objects which need repairing, schedule a separate background process for each object using Action Scheduler, and then in that background process update data for that object.
  *
- * @author   Automattic
+ * @author   WooCommerce
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin/Upgrades
  * @since    2.6.0

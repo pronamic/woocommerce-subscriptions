@@ -36,15 +36,16 @@ class WC_Subscriptions_Email {
 	 * @since 1.4
 	 */
 	public static function add_emails( $email_classes ) {
-		$email_classes['WCS_Email_New_Renewal_Order']        = new WCS_Email_New_Renewal_Order();
-		$email_classes['WCS_Email_New_Switch_Order']         = new WCS_Email_New_Switch_Order();
-		$email_classes['WCS_Email_Processing_Renewal_Order'] = new WCS_Email_Processing_Renewal_Order();
-		$email_classes['WCS_Email_Completed_Renewal_Order']  = new WCS_Email_Completed_Renewal_Order();
-		$email_classes['WCS_Email_Completed_Switch_Order']   = new WCS_Email_Completed_Switch_Order();
-		$email_classes['WCS_Email_Customer_Renewal_Invoice'] = new WCS_Email_Customer_Renewal_Invoice();
-		$email_classes['WCS_Email_Cancelled_Subscription']   = new WCS_Email_Cancelled_Subscription();
-		$email_classes['WCS_Email_Expired_Subscription']     = new WCS_Email_Expired_Subscription();
-		$email_classes['WCS_Email_On_Hold_Subscription']     = new WCS_Email_On_Hold_Subscription();
+		$email_classes['WCS_Email_New_Renewal_Order']              = new WCS_Email_New_Renewal_Order();
+		$email_classes['WCS_Email_New_Switch_Order']               = new WCS_Email_New_Switch_Order();
+		$email_classes['WCS_Email_Processing_Renewal_Order']       = new WCS_Email_Processing_Renewal_Order();
+		$email_classes['WCS_Email_Completed_Renewal_Order']        = new WCS_Email_Completed_Renewal_Order();
+		$email_classes['WCS_Email_Customer_On_Hold_Renewal_Order'] = new WCS_Email_Customer_On_Hold_Renewal_Order();
+		$email_classes['WCS_Email_Completed_Switch_Order']         = new WCS_Email_Completed_Switch_Order();
+		$email_classes['WCS_Email_Customer_Renewal_Invoice']       = new WCS_Email_Customer_Renewal_Invoice();
+		$email_classes['WCS_Email_Cancelled_Subscription']         = new WCS_Email_Cancelled_Subscription();
+		$email_classes['WCS_Email_Expired_Subscription']           = new WCS_Email_Expired_Subscription();
+		$email_classes['WCS_Email_On_Hold_Subscription']           = new WCS_Email_On_Hold_Subscription();
 
 		return $email_classes;
 	}
@@ -67,13 +68,26 @@ class WC_Subscriptions_Email {
 		add_action( 'woocommerce_subscriptions_switch_completed', __CLASS__ . '::send_switch_order_email', 10 );
 
 		$order_email_actions = array(
-			'woocommerce_order_status_pending_to_processing',
+			// WC New Order Emails (Admin) -- other hooks below also trigger this email.
 			'woocommerce_order_status_pending_to_completed',
-			'woocommerce_order_status_pending_to_on-hold',
-			'woocommerce_order_status_failed_to_processing',
 			'woocommerce_order_status_failed_to_completed',
-			'woocommerce_order_status_failed_to_on-hold',
+			'woocommerce_order_status_cancelled_to_completed',
+
+			// WC Order Processing Emails.
+			'woocommerce_order_status_pending_to_processing',
+			'woocommerce_order_status_failed_to_processing',
+			'woocommerce_order_status_cancelled_to_processing',
+			'woocommerce_order_status_on-hold_to_processing',
+
+			// WC Order Completed Emails.
 			'woocommerce_order_status_completed',
+
+			// WC On-hold Order Emails.
+			'woocommerce_order_status_pending_to_on-hold',
+			'woocommerce_order_status_failed_to_on-hold',
+			'woocommerce_order_status_cancelled_to_on-hold',
+
+			// WCS Order Invoice Emails.
 			'woocommerce_generated_manual_renewal_order',
 			'woocommerce_order_status_failed',
 		);
@@ -318,7 +332,7 @@ class WC_Subscriptions_Email {
 			$hook = current_filter();
 		}
 
-		if ( false === WC_Subscriptions::is_woocommerce_pre( '3.0' ) && apply_filters( 'woocommerce_defer_transactional_emails', true ) ) {
+		if ( false === WC_Subscriptions::is_woocommerce_pre( '3.0' ) && apply_filters( 'woocommerce_defer_transactional_emails', false ) ) {
 			add_action( $hook, array( 'WC_Emails', 'queue_transactional_email' ), $priority, $accepted_args );
 		} else {
 			add_action( $hook, array( 'WC_Emails', 'send_transactional_email' ), $priority, $accepted_args );
