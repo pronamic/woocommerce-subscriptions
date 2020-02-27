@@ -125,11 +125,7 @@ class WC_Subscriptions_Manager {
 			}
 
 			if ( 0 == $renewal_order->get_total() ) {
-
-				$renewal_order->payment_complete();
-
-				$subscription->update_status( 'active' ); // don't call payment_complete() because technically, no payment was received
-
+				$renewal_order->payment_complete(); // We don't need to reactivate the subscription here because calling payment complete on the order will do that for us.
 			} else {
 
 				if ( $subscription->is_manual() ) {

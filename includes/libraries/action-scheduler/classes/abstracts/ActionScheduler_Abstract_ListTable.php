@@ -29,7 +29,7 @@ abstract class ActionScheduler_Abstract_ListTable extends WP_List_Table {
 	protected $table_name;
 
 	/**
-	 * Package name, used in translations
+	 * Package name, used to get options from WP_List_Table::get_items_per_page.
 	 */
 	protected $package;
 
@@ -104,10 +104,12 @@ abstract class ActionScheduler_Abstract_ListTable extends WP_List_Table {
 
 	/**
 	 * Makes translation easier, it basically just wraps
-	 * `_x` with some default (the package name)
+	 * `_x` with some default (the package name).
+	 * 
+	 * @deprecated 3.0.0
 	 */
 	protected function translate( $text, $context = '' ) {
-		return _x( $text, $context, $this->package );
+		return $text;
 	}
 
 	/**
@@ -123,7 +125,7 @@ abstract class ActionScheduler_Abstract_ListTable extends WP_List_Table {
 				throw new RuntimeException( "The bulk action $action does not have a callback method" );
 			}
 
-			$actions[ $action ] = $this->translate( $label );
+			$actions[ $action ] = $label;
 		}
 
 		return $actions;
@@ -199,7 +201,7 @@ abstract class ActionScheduler_Abstract_ListTable extends WP_List_Table {
 	public function get_columns() {
 		$columns = array_merge(
 			array( 'cb' => '<input type="checkbox" />' ),
-			array_map( array( $this, 'translate' ), $this->columns )
+			$this->columns
 		);
 
 		return $columns;
@@ -355,7 +357,7 @@ abstract class ActionScheduler_Abstract_ListTable extends WP_List_Table {
 
 		$filter  = array();
 		foreach ( $this->search_by as $column ) {
-			$filter[] = '`' . $column . '` like "%' . $wpdb->esc_like( $_GET['s'] ) . '%"';
+			$filter[] = $wpdb->prepare('`' . $column . '` like "%%s%"', $wpdb->esc_like( $_GET['s'] ));
 		}
 		return implode( ' OR ', $filter );
 	}
@@ -455,14 +457,14 @@ abstract class ActionScheduler_Abstract_ListTable extends WP_List_Table {
 
 			foreach ( $options as $value => $label ) {
 				echo '<option value="' . esc_attr( $value ) . '" ' . esc_html( $value == $default ? 'selected' : '' )  .'>'
-					. esc_html( $this->translate( $label ) )
+					. esc_html( $label )
 				. '</option>';
 			}
 
 			echo '</select>';
 		}
 
-		submit_button( $this->translate( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+		submit_button( esc_html__( 'Filter', 'action-scheduler' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 		echo '</div>';
 	}
 
@@ -561,7 +563,8 @@ abstract class ActionScheduler_Abstract_ListTable extends WP_List_Table {
 	protected function display_header() {
 		echo '<h1 class="wp-heading-inline">' . esc_attr( $this->table_header ) . '</h1>';
 		if ( $this->get_request_search_query() ) {
-			echo '<span class="subtitle">' . esc_attr( $this->translate( sprintf( 'Search results for "%s"', $this->get_request_search_query() ) ) ) . '</span>';
+			/* translators: %s: search query */
+			echo '<span class="subtitle">' . esc_attr( sprintf( __( 'Search results for "%s"', 'action-scheduler' ), $this->get_request_search_query() ) ) . '</span>';
 		}
 		echo '<hr class="wp-header-end">';
 	}
@@ -634,6 +637,21 @@ abstract class ActionScheduler_Abstract_ListTable extends WP_List_Table {
 	}
 
 	/**
+	 * Process any pending actions.
+	 */
+	public function process_actions() {
+		$this->process_bulk_action();
+
+		$this->process_row_actions();
+
+		if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
+			// _wp_http_referer is used only on bulk actions, we remove it to keep the $_GET shorter
+			wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
+			exit;
+		}
+	}
+
+	/**
 	 * Render the list table page, including header, notices, status filters and table.
 	 */
 	public function display_page() {
@@ -651,6 +669,6 @@ abstract class ActionScheduler_Abstract_ListTable extends WP_List_Table {
 	 * Get the text to display in the search box on the list table.
 	 */
 	protected function get_search_box_placeholder() {
-		return $this->translate( 'Search' );
+		return esc_html__( 'Search', 'action-scheduler' );
 	}
 }

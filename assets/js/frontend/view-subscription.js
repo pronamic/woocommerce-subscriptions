@@ -123,8 +123,13 @@ jQuery( document ).ready( function( $ ) {
 		});
 	}
 
-	// Don't display the modal for manual subscriptions, they will need to renew via the checkout.
-	function shouldShowEarlyRenewalModal() {
+	// Don't display the early renewal modal for manual subscriptions, they will need to renew via the checkout.
+	function shouldShowEarlyRenewalModal( event ) {
+		// We're only interested in requests to show the early renewal modal.
+		if ( '.subscription_renewal_early' !== $( event.modal ).data( 'modal-trigger' ) ) {
+			return;
+		}
+
 		return $paymentMethod.data( 'is_manual' ) === 'no';
 	};
 

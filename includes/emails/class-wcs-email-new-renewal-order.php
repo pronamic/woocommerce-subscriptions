@@ -36,6 +36,9 @@ class WCS_Email_New_Renewal_Order extends WC_Email_New_Order {
 		add_action( 'woocommerce_order_status_failed_to_processing_renewal_notification', array( $this, 'trigger' ) );
 		add_action( 'woocommerce_order_status_failed_to_completed_renewal_notification', array( $this, 'trigger' ) );
 		add_action( 'woocommerce_order_status_failed_to_on-hold_renewal_notification', array( $this, 'trigger' ) );
+		add_action( 'woocommerce_order_status_cancelled_to_processing_renewal_notification', array( $this, 'trigger' ) );
+		add_action( 'woocommerce_order_status_cancelled_to_completed_renewal_notification', array( $this, 'trigger' ) );
+		add_action( 'woocommerce_order_status_cancelled_to_on-hold_renewal_notification', array( $this, 'trigger' ) );
 
 		// We want all the parent's methods, with none of its properties, so call its parent's constructor, rather than my parent constructor
 		WC_Email::__construct();

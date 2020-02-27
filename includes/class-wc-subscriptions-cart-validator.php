@@ -69,9 +69,9 @@ class WC_Subscriptions_Cart_Validator {
 
 			// Redirect to cart page to remove subscription & notify shopper
 			if ( WC_Subscriptions::is_woocommerce_pre( '3.0.8' ) ) {
-				add_filter( 'add_to_cart_fragments', __CLASS__ . '::redirect_ajax_add_to_cart' );
+				add_filter( 'add_to_cart_fragments', 'WC_Subscriptions::redirect_ajax_add_to_cart' );
 			} else {
-				add_filter( 'woocommerce_add_to_cart_fragments', __CLASS__ . '::redirect_ajax_add_to_cart' );
+				add_filter( 'woocommerce_add_to_cart_fragments', 'WC_Subscriptions::redirect_ajax_add_to_cart' );
 			}
 		}
 
@@ -98,10 +98,8 @@ class WC_Subscriptions_Cart_Validator {
 		}
 
 		foreach ( $cart->cart_contents as $key => $item ) {
-			$is_subscription = WC_Subscriptions_Product::is_subscription( $item['product_id'] );
-
 			// If a non-subscription product is found in the cart containing subscriptions ( maybe because of carts merge while logging in )
-			if ( ! $is_subscription ) {
+			if ( ! WC_Subscriptions_Product::is_subscription( $item['data'] ) ) {
 
 				// remove the subscriptions from the cart
 				WC_Subscriptions_Cart::remove_subscriptions_from_cart();
@@ -115,9 +113,11 @@ class WC_Subscriptions_Cart_Validator {
 				} else {
 					add_filter( 'woocommerce_add_to_cart_fragments', array( 'WC_Subscriptions', 'redirect_ajax_add_to_cart' ) );
 				}
+
 				break;
 			}
 		}
+
 		return $cart;
 	}
 

@@ -9,6 +9,12 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+// Get the log file URL depending on the log handler (file or database).
+$url = admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&log_file=%s-%s-log', 'failed-scheduled-actions', sanitize_file_name( wp_hash( 'failed-scheduled-actions' ) ) ) );
+
+if ( defined( 'WC_LOG_HANDLER' ) && 'WC_Log_Handler_DB' === WC_LOG_HANDLER ) {
+	$url = admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&source=%s', 'failed-scheduled-actions' ) );
+}
 ?>
 <p><?php
 	printf(
@@ -27,11 +33,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	echo wp_kses( $affected_subscription_events, array( 'a' => array( 'href' => array() ) ) ); ?>
 </code>
 <p><?php
-	// translators: $1 the log file name $2 and $3 are opening and closing link tags, respectively.
 	printf(
+		// translators: $1 the log file name $2 and $3 are opening and closing link tags, respectively.
 		esc_html__( 'To see further details about these errors, view the %1$s log file from the %2$sWooCommerce logs screen.%2$s','woocommerce-subscriptions' ),
 		'<code>failed-scheduled-actions</code>',
-		'<a href="' . esc_url( admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&log_file=%s-%s-log', 'failed-scheduled-actions', sanitize_file_name( wp_hash( 'failed-scheduled-actions' ) ) ) ) )  . '">',
+		'<a href="' . esc_url( $url ) . '">',
 		'</a>'
 	);?>
 </p>

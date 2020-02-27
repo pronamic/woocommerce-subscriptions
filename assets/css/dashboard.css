@@ -43,15 +43,26 @@
 	border-right: 1px solid #ececec;
 }
 
-@media (max-width: 1685px) and (min-width: 1485px),
+#woocommerce_dashboard_status .wc_status_list li.renewal-count a,
+#woocommerce_dashboard_status .wc_status_list li.renewal-revenue a,
+#woocommerce_dashboard_status .wc_status_list li.signup-count a,
+#woocommerce_dashboard_status .wc_status_list li.signup-revenue a,
+#woocommerce_dashboard_status .wc_status_list li.cancel-count a {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+@media (max-width: 1706px) and (min-width: 1485px),
 (max-width: 2193px) and (min-width: 1936px),
-(max-width: 1179px) and (min-width: 1052px),
+(max-width: 1200px) and (min-width: 1052px),
 (max-width: 960px) {
 	#woocommerce_dashboard_status .wc_status_list li.renewal-count,
 	#woocommerce_dashboard_status .wc_status_list li.renewal-revenue,
 	#woocommerce_dashboard_status .wc_status_list li.signup-count,
 	#woocommerce_dashboard_status .wc_status_list li.signup-revenue,
 	#woocommerce_dashboard_status .wc_status_list li.cancel-count {
-		width: 100%
+		border-right: none;
+		width: 100%;
 	}
 }

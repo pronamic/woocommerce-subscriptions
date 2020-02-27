@@ -1,5 +1,33 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2020.01.17 - version 3.0.1
+* Fix: Support multiple modals on the customer's view subscription page. Fixes an issue where preventing the early renewal modal being displayed was preventing all modals on the page from being displayed. PR#3571
+* Fix: Silence PHP warning in events by date report caused by empty set of data. PR#3577
+* Fix: [WC3.7] Copy the rate percent meta to tax line items during renewal meta copy. PR#3578
+* Fix: Introduce a user permissions check for the auto-renewal toggle. PR#3579
+* Fix: Update Action Scheduler library to 3.0.1. This release includes a database tables schema version bump. PR#3593
+
+2020.01.06 - version 3.0.0
+* New: Update Action Scheduler to 3.0.
+* New: Apply WC styling to subscription statuses, subscription related order and retry meta table statuses. PR#3467, PR#3506
+* New: Introduce new Renewal Order On-hold Emails. PR#3475
+* Fix: Display gateway specific errors on the subscription change payment method page. PR#3278
+* Fix: Order the results from WCS_Retry_Manager::store()->get_retries() correctly according to the orderby arg. Previously this function would always return results ordered by ascending ID. PR#3498
+* Fix: Send customer Renewal Order Processing Emails on the correct status transitions. PR#3475
+* Fix: Only update the subscription status once when processing $0 renewals orders. Fixes race condition caused by updating two instances of the same order. PR#3531
+* Fix: Adjust admin CSS and data metabox for recent changes in WP and WC. PR#3540
+* Fix: Fix admin notice error link for failed scheduled action when using WC_Log_Handler_DB. PR#3544
+* Fix: Correctly calculate inclusive line item taxes when paying for manual renewal orders. PR#3545
+* Fix: Add customer note details to renewal order email templates. PR#3536
+* Fix: Validate the subscription start date during admin manual subscription creation. PR#3556
+* Fix: Only display the WC Subscriptions activation notice on sites without a subscription product. PR#3558
+* Fix: [WC 3.9] Ensure WCS_Retry_Manager::check_order_statuses_for_payment() has default value for the $order parameter. PR3565
+* Fix: [WP 5.3] Fix variable subscription product admin field CSS. PR#3564
+* Tweak: [WooCommerce dashboard widget] tweak media screen size breakpoints to avoid misalignment issues. PR#3553
+* Tweak: Use product object rather than ID when validating mixed checkout setting. Improves compatibility with plugins like Mix and Match and Product Bundles. PR#3551
+* Tweak: Display the cart and checkout recurring totals included taxes in a more readable way. PR#3546
+* Dev: Allow 3rd party developers using the 'woocommerce_subscriptions_allow_switching_options' filter to add tooltip content. PR#3542
+
 2019.11.14 - version 2.6.5
 * Fix: Account for prorated switch sign up fees in multi-switches. PR#3519
 * Fix: Tooltip content displayed on WooCommerce > Subscriptions administration screen.
