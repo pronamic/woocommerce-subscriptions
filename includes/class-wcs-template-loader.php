@@ -88,4 +88,15 @@ class WCS_Template_Loader {
 			add_action( 'woocommerce_order_item_meta_end', 'WC_Subscriptions_Switcher::print_switch_link', 10, 3 );
 		}
 	}
+
+	/**
+	 * Gets the subscription receipt template content.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param WC_Subscription $subscription The subscription to display the receipt for.
+	 */
+	public static function get_subscription_receipt_template( $subscription ) {
+		wc_get_template( 'checkout/subscription-receipt.php', array( 'subscription' => $subscription ), '', plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/' );
+	}
 }

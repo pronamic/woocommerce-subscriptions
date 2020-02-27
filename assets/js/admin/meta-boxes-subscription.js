@@ -21,7 +21,10 @@ jQuery(document).ready(function($){
 		}
 	});
 
-	// Make sure date pickers are in the future
+	// Make sure start date picker is in the past
+	$( '.woocommerce-subscriptions.date-picker#start' ).datepicker( 'option','maxDate',moment().toDate());
+
+	// Make sure other date pickers are in the future
 	$( '.woocommerce-subscriptions.date-picker:not(#start)' ).datepicker( 'option','minDate',moment().add(1,'hours').toDate());
 
 	// Validate date when hour/minute inputs change
@@ -57,6 +60,18 @@ jQuery(document).ready(function($){
 				minutes: chosen_minute,
 				seconds: one_hour_from_now.format( 'ss' )
 			});
+
+		// Make sure start date is before now.
+		if ( 'start' == date_type ) {
+
+			if ( false === chosen_date.isBefore( time_now ) ) {
+				alert( wcs_admin_meta_boxes.i18n_start_date_notice );
+				$date_input.val( time_now.year() + '-' + ( zeroise( time_now.months() + 1 ) ) + '-' + ( time_now.format( 'DD' ) ) );
+				$hour_input.val( time_now.format( 'HH' ) );
+				$minute_input.val( time_now.format( 'mm' ) );
+			}
+
+		}
 
 		// Make sure trial end and next payment are after start date
 		if ( ( 'trial_end' == date_type || 'next_payment' == date_type ) && '' != $( '#start_timestamp_utc' ).val() ) {
@@ -155,7 +170,7 @@ jQuery(document).ready(function($){
 	function zeroise( val ) {
 		return (val > 9 ) ? val : '0' + val;
 	}
-	
+
 	if( $( '#parent-order-id' ).is( 'select' ) ) {
 		wcs_update_parent_order_options();
 

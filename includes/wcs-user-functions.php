@@ -419,6 +419,16 @@ function wcs_user_has_capability( $allcaps, $caps, $args ) {
 					}
 				}
 			break;
+			case 'toggle_shop_subscription_auto_renewal' :
+				$user_id      = $args[1];
+				$subscription = wcs_get_subscription( $args[2] );
+
+				if ( $subscription && $user_id === $subscription->get_user_id() ) {
+					$allcaps['toggle_shop_subscription_auto_renewal'] = true;
+				} else {
+					unset( $allcaps['toggle_shop_subscription_auto_renewal'] );
+				}
+			break;
 		}
 	}
 	return $allcaps;

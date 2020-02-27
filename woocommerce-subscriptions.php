@@ -3,12 +3,12 @@
  * Plugin Name: WooCommerce Subscriptions
  * Plugin URI: https://www.woocommerce.com/products/woocommerce-subscriptions/
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
- * Author: Automattic
+ * Author: WooCommerce
  * Author URI: https://woocommerce.com/
- * Version: 2.6.5
+ * Version: 3.0.1
  *
  * WC requires at least: 3.0.9
- * WC tested up to: 3.8
+ * WC tested up to: 3.9
  * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
  *
  * Copyright 2019 WooCommerce
@@ -27,7 +27,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package		WooCommerce Subscriptions
- * @author		Automattic.
+ * @author		WooCommerce.
  * @since		1.0
  */
 
@@ -118,7 +118,7 @@ class WC_Subscriptions {
 
 	public static $plugin_file = __FILE__;
 
-	public static $version = '2.6.5';
+	public static $version = '3.0.1';
 
 	public static $wc_minimum_supported_version = '3.0';
 
@@ -377,7 +377,7 @@ class WC_Subscriptions {
 					'ajax_url'               => esc_url( WC()->ajax_url() ),
 					'subscription_id'        => $subscription->get_id(),
 					'add_payment_method_msg' => __( 'To enable automatic renewals for this subscription, you will first need to add a payment method.', 'woocommerce-subscriptions' ) . "\n\n" . __( 'Would you like to add a payment method now?', 'woocommerce-subscriptions' ),
-					'auto_renew_nonce'       => wp_create_nonce( "toggle-auto-renew-{$subscription->get_id()}" ),
+					'auto_renew_nonce'       => WCS_My_Account_Auto_Renew_Toggle::can_user_toggle_auto_renewal( $subscription ) ? wp_create_nonce( "toggle-auto-renew-{$subscription->get_id()}" ) : false,
 					'add_payment_method_url' => esc_url( $subscription->get_change_payment_method_url() ),
 					'has_payment_gateway'    => $subscription->has_payment_gateway() && wc_get_payment_gateway_by_order( $subscription )->supports( 'subscriptions' ),
 				);

@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php endif; ?>
 		<?php endforeach; ?>
 		<?php do_action( 'wcs_subscription_details_table_after_dates', $subscription ); ?>
-		<?php if ( WCS_My_Account_Auto_Renew_Toggle::can_subscription_auto_renewal_be_changed( $subscription ) ) : ?>
+		<?php if ( WCS_My_Account_Auto_Renew_Toggle::can_user_toggle_auto_renewal( $subscription ) ) : ?>
 			<tr>
 				<td><?php esc_html_e( 'Auto renew', 'woocommerce-subscriptions' ); ?></td>
 				<td>

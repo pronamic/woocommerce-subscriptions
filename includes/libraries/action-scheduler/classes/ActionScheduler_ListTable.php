@@ -140,30 +140,37 @@ class ActionScheduler_ListTable extends ActionScheduler_Abstract_ListTable {
 		self::$time_periods = array(
 			array(
 				'seconds' => YEAR_IN_SECONDS,
+				/* translators: %s: amount of time */
 				'names'   => _n_noop( '%s year', '%s years', 'action-scheduler' ),
 			),
 			array(
 				'seconds' => MONTH_IN_SECONDS,
+				/* translators: %s: amount of time */
 				'names'   => _n_noop( '%s month', '%s months', 'action-scheduler' ),
 			),
 			array(
 				'seconds' => WEEK_IN_SECONDS,
+				/* translators: %s: amount of time */
 				'names'   => _n_noop( '%s week', '%s weeks', 'action-scheduler' ),
 			),
 			array(
 				'seconds' => DAY_IN_SECONDS,
+				/* translators: %s: amount of time */
 				'names'   => _n_noop( '%s day', '%s days', 'action-scheduler' ),
 			),
 			array(
 				'seconds' => HOUR_IN_SECONDS,
+				/* translators: %s: amount of time */
 				'names'   => _n_noop( '%s hour', '%s hours', 'action-scheduler' ),
 			),
 			array(
 				'seconds' => MINUTE_IN_SECONDS,
+				/* translators: %s: amount of time */
 				'names'   => _n_noop( '%s minute', '%s minutes', 'action-scheduler' ),
 			),
 			array(
 				'seconds' => 1,
+				/* translators: %s: amount of time */
 				'names'   => _n_noop( '%s second', '%s seconds', 'action-scheduler' ),
 			),
 		);
@@ -221,14 +228,15 @@ class ActionScheduler_ListTable extends ActionScheduler_Abstract_ListTable {
 	 * @return string
 	 */
 	protected function get_recurrence( $action ) {
-		$recurrence = $action->get_schedule();
-		if ( $recurrence->is_recurring() ) {
-			if ( method_exists( $recurrence, 'interval_in_seconds' ) ) {
-				return sprintf( __( 'Every %s', 'action-scheduler' ), self::human_interval( $recurrence->interval_in_seconds() ) );
-			}
+		$schedule = $action->get_schedule();
+		if ( $schedule->is_recurring() ) {
+			$recurrence = $schedule->get_recurrence();
 
-			if ( method_exists( $recurrence, 'get_recurrence' ) ) {
-				return sprintf( __( 'Cron %s', 'action-scheduler' ), $recurrence->get_recurrence() );
+			if ( is_numeric( $recurrence ) ) {
+				/* translators: %s: time interval */
+				return sprintf( __( 'Every %s', 'action-scheduler' ), self::human_interval( $recurrence ) );
+			} else {
+				return $recurrence;
 			}
 		}
 
@@ -315,10 +323,32 @@ class ActionScheduler_ListTable extends ActionScheduler_Abstract_ListTable {
 	 */
 	public function display_admin_notices() {
 
-		if ( $this->store->get_claim_count() >= $this->runner->get_allowed_concurrent_batches() ) {
+		if ( $this->runner->has_maximum_concurrent_batches() ) {
 			$this->admin_notices[] = array(
 				'class'   => 'updated',
-				'message' => sprintf( __( 'Maximum simultaneous batches already in progress (%s queues). No actions will be processed until the current batches are complete.', 'action-scheduler' ), $this->store->get_claim_count() ),
+				'message' => sprintf(
+					/* translators: %s: amount of claims */
+					__( 'Maximum simultaneous queues already in progress (%s queues). No additional queues will begin processing until the current queues are complete.', 'action-scheduler' ),
+					$this->store->get_claim_count()
+				),
+			);
+		} elseif ( $this->store->has_pending_actions_due() ) {
+
+			$async_request_lock_expiration = ActionScheduler::lock()->get_expiration( 'async-request-runner' );
+
+			// No lock set or lock expired
+			if ( false === $async_request_lock_expiration || $async_request_lock_expiration < time() ) {
+				$in_progress_url       = add_query_arg( 'status', 'in-progress', remove_query_arg( 'status' ) );
+				/* translators: %s: process URL */
+				$async_request_message = sprintf( __( 'A new queue has begun processing. <a href="%s">View actions in-progress &raquo;</a>', 'action-scheduler' ), esc_url( $in_progress_url ) );
+			} else {
+				/* translators: %d: seconds */
+				$async_request_message = sprintf( __( 'The next queue will begin processing in approximately %d seconds.', 'action-scheduler' ), $async_request_lock_expiration - time() );
+			}
+
+			$this->admin_notices[] = array(
+				'class'   => 'notice notice-info',
+				'message' => $async_request_message,
 			);
 		}
 
@@ -333,18 +363,22 @@ class ActionScheduler_ListTable extends ActionScheduler_Abstract_ListTable {
 				$class = 'updated';
 				switch ( $notification['row_action_type'] ) {
 					case 'run' :
+						/* translators: %s: action HTML */
 						$action_message_html = sprintf( __( 'Successfully executed action: %s', 'action-scheduler' ), $action_hook_html );
 						break;
 					case 'cancel' :
+						/* translators: %s: action HTML */
 						$action_message_html = sprintf( __( 'Successfully canceled action: %s', 'action-scheduler' ), $action_hook_html );
 						break;
 					default :
+						/* translators: %s: action HTML */
 						$action_message_html = sprintf( __( 'Successfully processed change for action: %s', 'action-scheduler' ), $action_hook_html );
 						break;
 				}
 			} else {
 				$class = 'error';
-				$action_message_html = sprintf( __( 'Could not process change for action: "%s" (ID: %d). Error: %s', 'action-scheduler' ), $action_hook_html, esc_html( $notification['action_id'] ), esc_html( $notification['error_message'] ) );
+				/* translators: 1: action HTML 2: action ID 3: error message */
+				$action_message_html = sprintf( __( 'Could not process change for action: "%1$s" (ID: %2$d). Error: %3$s', 'action-scheduler' ), $action_hook_html, esc_html( $notification['action_id'] ), esc_html( $notification['error_message'] ) );
 			}
 
 			$action_message_html = apply_filters( 'action_scheduler_admin_notice_html', $action_message_html, $action, $notification );
@@ -379,18 +413,20 @@ class ActionScheduler_ListTable extends ActionScheduler_Abstract_ListTable {
 
 		$schedule_display_string = '';
 
-		if ( ! $schedule->next() ) {
-			return $schedule_display_string;
+		if ( ! $schedule->get_date() ) {
+			return '0000-00-00 00:00:00';
 		}
 
-		$next_timestamp = $schedule->next()->getTimestamp();
+		$next_timestamp = $schedule->get_date()->getTimestamp();
 
-		$schedule_display_string .= $schedule->next()->format( 'Y-m-d H:i:s O' );
+		$schedule_display_string .= $schedule->get_date()->format( 'Y-m-d H:i:s O' );
 		$schedule_display_string .= '<br/>';
 
 		if ( gmdate( 'U' ) > $next_timestamp ) {
+			/* translators: %s: date interval */
 			$schedule_display_string .= sprintf( __( ' (%s ago)', 'action-scheduler' ), self::human_interval( gmdate( 'U' ) - $next_timestamp ) );
 		} else {
+			/* translators: %s: date interval */
 			$schedule_display_string .= sprintf( __( ' (%s)', 'action-scheduler' ), self::human_interval( $next_timestamp - gmdate( 'U' ) ) );
 		}
 
@@ -442,7 +478,7 @@ class ActionScheduler_ListTable extends ActionScheduler_Abstract_ListTable {
 		try {
 			switch ( $row_action_type ) {
 				case 'run' :
-					$this->runner->process_action( $action_id );
+					$this->runner->process_action( $action_id, 'Admin List Table' );
 					break;
 				case 'cancel' :
 					$this->store->cancel_action( $action_id );
@@ -462,16 +498,6 @@ class ActionScheduler_ListTable extends ActionScheduler_Abstract_ListTable {
 	 * {@inheritDoc}
 	 */
 	public function prepare_items() {
-		$this->process_bulk_action();
-
-		$this->process_row_actions();
-
-		if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
-			// _wp_http_referer is used only on bulk actions, we remove it to keep the $_GET shorter
-			wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
-			exit;
-		}
-
 		$this->prepare_column_headers();
 
 		$per_page = $this->get_items_per_page( $this->package . '_items_per_page', $this->items_per_page );

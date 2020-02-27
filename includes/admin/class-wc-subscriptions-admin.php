@@ -889,9 +889,12 @@ class WC_Subscriptions_Admin {
 
 			$woocommerce_plugin_dir_file = self::get_woocommerce_plugin_dir_file();
 
-			if ( ! empty( $woocommerce_plugin_dir_file ) ) {
+			// check if subscription products exist in the store
+			$subscription_product = wc_get_products( array( 'type' => array( 'subscription', 'variable-subscription' ), 'limit' => 1, 'return' => 'ids' ) );
 
-				wp_enqueue_style( 'woocommerce-activation', plugins_url( '/assets/css/activation.css', self::get_woocommerce_plugin_dir_file() ), array(), WC_Subscriptions::$version );
+			if ( ! empty( $woocommerce_plugin_dir_file ) && 0 == count( $subscription_product ) ) {
+
+				wp_enqueue_style( 'woocommerce-activation', plugins_url( '/assets/css/activation.css', $woocommerce_plugin_dir_file ), array(), WC_Subscriptions::$version );
 
 				if ( ! isset( $_GET['page'] ) || 'wcs-about' != $_GET['page'] ) {
 					add_action( 'admin_notices', __CLASS__ . '::admin_installed_notice' );
@@ -905,6 +908,9 @@ class WC_Subscriptions_Admin {
 			wp_enqueue_style( 'woocommerce_subscriptions_admin', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/css/admin.css', array( 'woocommerce_admin_styles' ), WC_Subscriptions::$version );
 		}
 
+		if ( in_array( $screen->id, array( 'shop_order', 'edit-shop_subscription', 'shop_subscription' ) ) && WC_Subscriptions::is_woocommerce_pre( '3.3' ) ) {
+			wp_enqueue_style( 'wc_subscriptions_statuses_admin', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/css/admin-order-statuses.css', array( 'woocommerce_admin_styles' ), WC_Subscriptions::$version );
+		}
 	}
 
 	/**

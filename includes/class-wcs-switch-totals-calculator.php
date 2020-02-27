@@ -174,7 +174,7 @@ class WCS_Switch_Totals_Calculator {
 			/**
 			 * Allow third-parties to filter the switch item and its properties.
 			 *
-			 * @since 2.7.2
+			 * @since 3.0.0
 			 *
 			 * @param WCS_Switch_Cart_Item $switch_item The switch item.
 			 * @param array $cart_item The item in the cart the switch item was created for.

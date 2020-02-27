@@ -6,7 +6,7 @@
  *
  * @package  WooCommerce Subscriptions
  * @category Class
- * @author   Automattic
+ * @author   WooCommerce
  * @since    2.6.0
  */
 

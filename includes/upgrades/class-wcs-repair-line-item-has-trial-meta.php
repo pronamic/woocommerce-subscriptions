@@ -11,7 +11,7 @@
  * All line items on subscriptions with _trial_period meta, that were purchased in the parent order must have had a free trial because subscriptions are grouped in the cart by trial period and length.
  * For more details @see https://github.com/Prospress/woocommerce-subscriptions/pull/3239
  *
- * @author   Automattic
+ * @author   WooCommerce
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin/Upgrades
  * @version  2.6.0

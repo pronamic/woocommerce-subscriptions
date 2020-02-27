@@ -450,7 +450,7 @@ class WCS_Admin_Post_Types {
 		switch ( $column ) {
 			case 'status' :
 				// The status label
-				$column_content = sprintf( '<mark class="%s tips" data-tip="%s">%s</mark>', sanitize_title( $the_subscription->get_status() ), wcs_get_subscription_status_name( $the_subscription->get_status() ), wcs_get_subscription_status_name( $the_subscription->get_status() ) );
+				$column_content = sprintf( '<mark class="subscription-status order-status status-%1$s %1$s tips" data-tip="%2$s"><span>%3$s</span></mark>', sanitize_title( $the_subscription->get_status() ), wcs_get_subscription_status_name( $the_subscription->get_status() ), wcs_get_subscription_status_name( $the_subscription->get_status() ) );
 
 				$post_type_object = get_post_type_object( $post->post_type );
 
