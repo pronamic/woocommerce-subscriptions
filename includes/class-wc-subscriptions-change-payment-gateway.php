@@ -2,11 +2,11 @@
 /**
  * Make it possible for customers to change the payment gateway used for an existing subscription.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Change_Payment_Gateway
- * @category	Class
- * @author		Brent Shepherd
- * @since		1.4
+ * @package WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Change_Payment_Gateway
+ * @category Class
+ * @author Brent Shepherd
+ * @since 1.4
  */
 class WC_Subscriptions_Change_Payment_Gateway {
 
@@ -185,7 +185,11 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			// Re-add all the notices that would have been displayed but have now been cleared from the output.
 			foreach ( self::$notices as $notice_type => $notices ) {
 				foreach ( $notices as $notice ) {
-					wc_add_notice( $notice, $notice_type );
+					if ( WC_Subscriptions::is_woocommerce_pre( '3.9' ) ) {
+						wc_add_notice( $notice, $notice_type );
+					} else {
+						wc_add_notice( $notice['notice'], $notice_type, $notice['data'] );
+					}
 				}
 			}
 
@@ -508,11 +512,11 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			$new_payment_method_title = '';
 		}
 
-		if ( empty( $old_payment_method_title )  ) {
+		if ( empty( $old_payment_method_title ) ) {
 			$old_payment_method_title = $old_payment_method;
 		}
 
-		if ( empty( $new_payment_method_title )  ) {
+		if ( empty( $new_payment_method_title ) ) {
 			$new_payment_method_title = $new_payment_method;
 		}
 
@@ -522,6 +526,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 		$subscription->set_payment_method_title( $new_payment_method_title );
 
 		// Log change on order
+		// translators: 1: old payment title, 2: new payment title.
 		$subscription->add_order_note( sprintf( _x( 'Payment method changed from "%1$s" to "%2$s" by the subscriber from their account page.', '%1$s: old payment title, %2$s: new payment title', 'woocommerce-subscriptions' ), $old_payment_method_title, $new_payment_method_title ) );
 
 		$subscription->save();
@@ -728,6 +733,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			);
 
 			$crumbs[2] = array(
+				// translators: %s: order number.
 				sprintf( _x( 'Subscription #%s', 'hash before order number', 'woocommerce-subscriptions' ), $subscription->get_order_number() ),
 				esc_url( $subscription->get_view_order_url() ),
 			);
@@ -846,12 +852,12 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * @param bool $subscription_can_be_changed Flag of whether the subscription can be changed to
 	 * @param string $new_status_or_meta The status or meta data you want to change th subscription to. Can be 'active', 'on-hold', 'cancelled', 'expired', 'trash', 'deleted', 'failed', 'new-payment-date' or some other value attached to the 'woocommerce_can_subscription_be_changed_to' filter.
 	 * @param object $args Set of values used in @see WC_Subscriptions_Manager::can_subscription_be_changed_to() for determining if a subscription can be changes, include:
-	 *			'subscription_key'           string A subscription key of the form created by @see WC_Subscriptions_Manager::get_subscription_key()
-	 *			'subscription'               array Subscription of the form returned by @see WC_Subscriptions_Manager::get_subscription()
-	 *			'user_id'                    int The ID of the subscriber.
-	 *			'order'                      WC_Order The order which recorded the successful payment (to make up for the failed automatic payment).
-	 *			'payment_gateway'            WC_Payment_Gateway The subscription's recurring payment gateway
-	 *			'order_uses_manual_payments' bool A boolean flag indicating whether the subscription requires manual renewal payment.
+	 *    'subscription_key'           string A subscription key of the form created by @see WC_Subscriptions_Manager::get_subscription_key()
+	 *    'subscription'               array Subscription of the form returned by @see WC_Subscriptions_Manager::get_subscription()
+	 *    'user_id'                    int The ID of the subscriber.
+	 *    'order'                      WC_Order The order which recorded the successful payment (to make up for the failed automatic payment).
+	 *    'payment_gateway'            WC_Payment_Gateway The subscription's recurring payment gateway
+	 *    'order_uses_manual_payments' bool A boolean flag indicating whether the subscription requires manual renewal payment.
 	 * @since 1.4
 	 */
 	public static function can_subscription_be_changed_to( $subscription_can_be_changed, $new_status_or_meta, $args ) {

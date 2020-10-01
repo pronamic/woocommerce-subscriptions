@@ -222,7 +222,7 @@ class WCS_Retry_Manager {
 				'rule_raw' => $retry_rule->get_raw_data(),
 			) ) );
 
-			foreach ( array( 'order' => $last_order, 'subscription' => $subscription ) as $object_key => $object ) {
+			foreach ( array( 'order' => $last_order, 'subscription' => $subscription ) as $object_key => $object ) { // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 
 				$new_status = $retry_rule->get_status_to_apply( $object_key );
 
@@ -262,7 +262,7 @@ class WCS_Retry_Manager {
 			return;
 		}
 
-		foreach ( array( 'order' => $last_order, 'subscription' => $subscription ) as $object_type => $object ) {
+		foreach ( array( 'order' => $last_order, 'subscription' => $subscription ) as $object_type => $object ) { // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 			$new_status = $last_retry_rule->get_status_to_apply( $object_type );
 			if ( '' !== $new_status && ! $object->has_status( $new_status ) ) {
 				$object->update_status( $new_status, _x( 'Retry rule reapplied:', 'used in order note as reason for why status changed', 'woocommerce-subscriptions' ) );

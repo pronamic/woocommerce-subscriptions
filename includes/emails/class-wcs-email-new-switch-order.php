@@ -7,9 +7,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * An email sent to the admin when a customer switches their subscription.
  *
- * @class 		WCS_Email_New_Switch_Order
- * @version		1.5
- * @extends 	WC_Email_New_Order
+ * @class WCS_Email_New_Switch_Order
+ * @version 1.5
+ * @extends WC_Email_New_Order
  */
 class WCS_Email_New_Switch_Order extends WC_Email_New_Order {
 

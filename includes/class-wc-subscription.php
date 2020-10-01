@@ -161,28 +161,28 @@ class WC_Subscription extends WC_Order {
 
 			switch ( $key ) {
 
-				case 'order' :
+				case 'order':
 					$function = 'WC_Subscription::set_parent_id( $order_id )';
 					$this->set_parent_id( wcs_get_objects_property( $value, 'id' ) );
 					$this->order = $value;
 					break;
 
-				case 'requires_manual_renewal' :
+				case 'requires_manual_renewal':
 					$function = 'WC_Subscription::set_requires_manual_renewal()';
 					$this->set_requires_manual_renewal( $value );
 					break;
 
-				case 'payment_gateway' :
+				case 'payment_gateway':
 					$function = 'WC_Subscription::set_payment_method()';
 					$this->set_payment_method( $value );
 					break;
 
-				case 'suspension_count' :
+				case 'suspension_count':
 					$function = 'WC_Subscription::set_suspension_count()';
 					$this->set_suspension_count( $value );
 					break;
 
-				default :
+				default:
 					$function = 'WC_Subscription::update_dates()';
 					$this->update_dates( array( $key => $value ) );
 					break;
@@ -209,27 +209,27 @@ class WC_Subscription extends WC_Order {
 
 			switch ( $key ) {
 
-				case 'order' :
+				case 'order':
 					$function = 'WC_Subscription::get_parent()';
 					$value    = $this->get_parent();
 					break;
 
-				case 'requires_manual_renewal' :
+				case 'requires_manual_renewal':
 					$function = 'WC_Subscription::get_requires_manual_renewal()';
 					$value    = $this->get_requires_manual_renewal() ? 'true' : 'false'; // We now use booleans for getter return values, so we need to convert it when being accessed via the old property approach to the string value returned
 					break;
 
-				case 'payment_gateway' :
+				case 'payment_gateway':
 					$function = 'wc_get_payment_gateway_by_order( $subscription )';
 					$value    = wc_get_payment_gateway_by_order( $this );
 					break;
 
-				case 'suspension_count' :
+				case 'suspension_count':
 					$function = 'WC_Subscription::get_suspension_count()';
 					$value    = $this->get_suspension_count();
 					break;
 
-				default :
+				default:
 					$function = 'WC_Subscription::get_date( ' . $key . ' )';
 					$value    = $this->get_date( $key );
 					break;
@@ -265,7 +265,7 @@ class WC_Subscription extends WC_Order {
 			$needs_payment = true;
 
 		// Now make sure the parent order doesn't need payment
-		} elseif ( ( $parent_order = $this->get_parent() ) && ( $parent_order->needs_payment() || $parent_order->has_status( 'on-hold' ) ) ) {
+		} elseif ( ( $parent_order = $this->get_parent() ) && ( $parent_order->needs_payment() || $parent_order->has_status( array( 'on-hold', 'cancelled' ) ) ) ) {
 
 			$needs_payment = true;
 
@@ -290,11 +290,11 @@ class WC_Subscription extends WC_Order {
 	 * method supports for the feature.
 	 *
 	 * @param string $payment_gateway_feature one of:
-	 *		'subscription_suspension'
-	 *		'subscription_reactivation'
-	 *		'subscription_cancellation'
-	 *		'subscription_date_changes'
-	 *		'subscription_amount_changes'
+	 *    'subscription_suspension'
+	 *    'subscription_reactivation'
+	 *    'subscription_cancellation'
+	 *    'subscription_date_changes'
+	 *    'subscription_amount_changes'
 	 * @since 2.0
 	 */
 	public function payment_method_supports( $payment_gateway_feature ) {
@@ -316,15 +316,15 @@ class WC_Subscription extends WC_Order {
 		$new_status = ( 'wc-' === substr( $new_status, 0, 3 ) ) ? substr( $new_status, 3 ) : $new_status;
 
 		switch ( $new_status ) {
-			case 'pending' :
+			case 'pending':
 				if ( $this->has_status( array( 'auto-draft', 'draft' ) ) ) {
 					$can_be_updated = true;
 				} else {
 					$can_be_updated = false;
 				}
 				break;
-			case 'completed' : // core WC order status mapped internally to avoid exceptions
-			case 'active' :
+			case 'completed': // core WC order status mapped internally to avoid exceptions
+			case 'active':
 				if ( $this->payment_method_supports( 'subscription_reactivation' ) && $this->has_status( 'on-hold' ) ) {
 					$can_be_updated = true;
 				} elseif ( $this->has_status( 'pending' ) ) {
@@ -335,51 +335,50 @@ class WC_Subscription extends WC_Order {
 					$can_be_updated = false;
 				}
 				break;
-			case 'failed' : // core WC order status mapped internally to avoid exceptions
-			case 'on-hold' :
+			case 'failed': // core WC order status mapped internally to avoid exceptions
+			case 'on-hold':
 				if ( $this->payment_method_supports( 'subscription_suspension' ) && $this->has_status( array( 'active', 'pending' ) ) ) {
 					$can_be_updated = true;
 				} else {
 					$can_be_updated = false;
 				}
 				break;
-			case 'cancelled' :
+			case 'cancelled':
 				if ( $this->payment_method_supports( 'subscription_cancellation' ) && ( $this->has_status( 'pending-cancel' ) || ! $this->has_status( wcs_get_subscription_ended_statuses() ) ) ) {
 					$can_be_updated = true;
 				} else {
 					$can_be_updated = false;
 				}
 				break;
-			case 'pending-cancel' :
-				// Only active subscriptions can be given the "pending cancellation" status, becuase it is used to account for a prepaid term
-				if ( $this->payment_method_supports( 'subscription_cancellation' ) && $this->has_status( 'active' ) ) {
+			case 'pending-cancel':
+				if ( $this->payment_method_supports( 'subscription_cancellation' ) && ( $this->has_status( 'active' ) || $this->has_status( 'on-hold' ) && ! $this->needs_payment() ) ) {
 					$can_be_updated = true;
 				} else {
 					$can_be_updated = false;
 				}
 				break;
-			case 'expired' :
+			case 'expired':
 				if ( ! $this->has_status( array( 'cancelled', 'trash', 'switched' ) ) ) {
 					$can_be_updated = true;
 				} else {
 					$can_be_updated = false;
 				}
 				break;
-			case 'trash' :
+			case 'trash':
 				if ( $this->has_status( wcs_get_subscription_ended_statuses() ) || $this->can_be_updated_to( 'cancelled' ) ) {
 					$can_be_updated = true;
 				} else {
 					$can_be_updated = false;
 				}
 				break;
-			case 'deleted' :
-				if ( 'trash' == $this->get_status()  ) {
+			case 'deleted':
+				if ( 'trash' == $this->get_status() ) {
 					$can_be_updated = true;
 				} else {
 					$can_be_updated = false;
 				}
 				break;
-			default :
+			default:
 				$can_be_updated = apply_filters( 'woocommerce_can_subscription_be_updated_to', false, $new_status, $this );
 				break;
 		}
@@ -412,6 +411,7 @@ class WC_Subscription extends WC_Order {
 			// Only update if possible
 			if ( ! $this->can_be_updated_to( $new_status ) ) {
 
+				// translators: %s: subscription status.
 				$message = sprintf( __( 'Unable to change subscription status to "%s".', 'woocommerce-subscriptions' ), $new_status );
 
 				$this->add_order_note( $message );
@@ -429,13 +429,15 @@ class WC_Subscription extends WC_Order {
 
 				switch ( $new_status ) {
 
-					case 'pending' :
+					case 'pending':
 						// Nothing to do here
 					break;
 
-					case 'pending-cancel' :
-						// Store the subscription's end date before overriding it. Used for restoring the dates if the customer reactivates the subscription.
+					case 'pending-cancel':
+						// Store the subscription's end date and trial end date before overriding/deleting them.
+						// Used for restoring the dates if the customer reactivates the subscription.
 						$this->update_meta_data( 'end_date_pre_cancellation', $this->get_date( 'end' ) );
+						$this->update_meta_data( 'trial_end_pre_cancellation', $this->get_date( 'trial_end' ) );
 
 						$end_date = $this->calculate_date( 'end_of_prepaid_term' );
 
@@ -449,16 +451,22 @@ class WC_Subscription extends WC_Order {
 
 						$this->delete_date( 'trial_end' );
 						$this->delete_date( 'next_payment' );
-						$this->update_dates( array( 'cancelled' => $cancelled_date, 'end' => $end_date ) );
+						$this->update_dates(
+							array(
+								'cancelled' => $cancelled_date,
+								'end'       => $end_date,
+							)
+						);
 					break;
 
-					case 'completed' : // core WC order status mapped internally to avoid exceptions
-					case 'active' :
+					case 'completed': // core WC order status mapped internally to avoid exceptions
+					case 'active':
 
 						if ( 'pending-cancel' === $old_status ) {
 							$this->update_dates( array(
 								'cancelled'    => 0,
 								'end'          => $this->meta_exists( 'end_date_pre_cancellation' ) ? $this->get_meta( 'end_date_pre_cancellation' ) : 0,
+								'trial_end'    => $this->meta_exists( 'trial_end_pre_cancellation' ) ? $this->get_meta( 'trial_end_pre_cancellation' ) : 0,
 								'next_payment' => $this->get_date( 'end' ),
 							) );
 						} else {
@@ -485,14 +493,14 @@ class WC_Subscription extends WC_Order {
 						wcs_make_user_active( $this->get_user_id() );
 					break;
 
-					case 'failed' : // core WC order status mapped internally to avoid exceptions
-					case 'on-hold' :
+					case 'failed': // core WC order status mapped internally to avoid exceptions
+					case 'on-hold':
 						// Record date of suspension - 'post_modified' column?
 						$this->set_suspension_count( $this->get_suspension_count() + 1 );
 					break;
-					case 'cancelled' :
-					case 'switched' :
-					case 'expired' :
+					case 'cancelled':
+					case 'switched':
+					case 'expired':
 						$this->delete_date( 'trial_end' );
 						$this->delete_date( 'next_payment' );
 
@@ -526,7 +534,8 @@ class WC_Subscription extends WC_Order {
 				// There is no status transition
 				$this->status_transition = false;
 
-				$this->add_order_note( sprintf( __( 'Unable to change subscription status to "%s". Exception: %s', 'woocommerce-subscriptions' ), $new_status, $e->getMessage() ) );
+				// translators: 1: subscription status, 2: error message.
+				$this->add_order_note( sprintf( __( 'Unable to change subscription status to "%1$s". Exception: %2$s', 'woocommerce-subscriptions' ), $new_status, $e->getMessage() ) );
 
 				// Make sure status is saved when WC 3.0+ is active, similar to WC_Order::update_status() with WC 3.0+ - set_status() can be used to avoid saving.
 				$this->save();
@@ -977,29 +986,29 @@ class WC_Subscription extends WC_Order {
 			$date = 0;
 		} else {
 			switch ( $date_type ) {
-				case 'date_created' :
+				case 'date_created':
 					$date = $this->get_date_created();
 					$date = is_null( $date ) ? wcs_get_datetime_from( get_the_date( 'Y-m-d H:i:s', $this->get_id() ) ) : $date; // When a post is first created via the Add Subscription screen, it has a post_date but not a date_created value yet
 					break;
-				case 'date_modified' :
+				case 'date_modified':
 					$date = $this->get_date_modified();
 					break;
-				case 'date_paid' :
+				case 'date_paid':
 					$date = $this->get_date_paid();
 					break;
-				case 'date_completed' :
+				case 'date_completed':
 					$date = $this->get_date_completed();
 					break;
-				case 'last_order_date_created' :
+				case 'last_order_date_created':
 					$date = $this->get_related_orders_date( 'date_created', 'last' );
 					break;
-				case 'last_order_date_paid' :
+				case 'last_order_date_paid':
 					$date = $this->get_related_orders_date( 'date_paid', 'last' );
 					break;
-				case 'last_order_date_completed' :
+				case 'last_order_date_completed':
 					$date = $this->get_related_orders_date( 'date_completed', 'last' );
 					break;
-				default :
+				default:
 					$date = $this->get_date_prop( $date_type );
 					break;
 			}
@@ -1189,15 +1198,15 @@ class WC_Subscription extends WC_Order {
 			}
 		} else {
 			switch ( $date_type ) {
-				case 'end' :
+				case 'end':
 					$date_to_display = __( 'Not yet ended', 'woocommerce-subscriptions' );
 					break;
-				case 'cancelled' :
+				case 'cancelled':
 					$date_to_display = __( 'Not cancelled', 'woocommerce-subscriptions' );
 					break;
-				case 'next_payment' :
-				case 'trial_end' :
-				default :
+				case 'next_payment':
+				case 'trial_end':
+				default:
 					$date_to_display = _x( '-', 'original denotes there is no date to display', 'woocommerce-subscriptions' );
 					break;
 			}
@@ -1253,35 +1262,35 @@ class WC_Subscription extends WC_Order {
 			$utc_timestamp = ( 0 === $datetime ) ? null : wcs_date_to_time( $datetime );
 
 			switch ( $date_type ) {
-				case 'date_created' :
+				case 'date_created':
 					$this->set_date_created( $utc_timestamp );
 					$is_updated = true;
 					break;
-				case 'date_modified' :
+				case 'date_modified':
 					$this->set_date_modified( $utc_timestamp );
 					$is_updated = true;
 					break;
-				case 'date_paid' :
+				case 'date_paid':
 					$this->set_date_paid( $utc_timestamp );
 					$is_updated = true;
 					break;
-				case 'date_completed' :
+				case 'date_completed':
 					$this->set_date_completed( $utc_timestamp );
 					$is_updated = true;
 					break;
-				case 'last_order_date_created' :
+				case 'last_order_date_created':
 					$this->set_last_order_date( 'date_created', $utc_timestamp );
 					$is_updated = true;
 					break;
-				case 'last_order_date_paid' :
+				case 'last_order_date_paid':
 					$this->set_last_order_date( 'date_paid', $utc_timestamp );
 					$is_updated = true;
 					break;
-				case 'last_order_date_completed' :
+				case 'last_order_date_completed':
 					$this->set_last_order_date( 'date_completed', $utc_timestamp );
 					$is_updated = true;
 					break;
-				default :
+				default:
 					$this->set_date_prop( $date_type, $utc_timestamp );
 					$is_updated = true;
 					break;
@@ -1305,22 +1314,24 @@ class WC_Subscription extends WC_Order {
 
 		// Make sure some dates are before next payment date
 		switch ( $date_type ) {
-			case 'date_created' :
+			case 'date_created':
 				$message = __( 'The creation date of a subscription can not be deleted, only updated.', 'woocommerce-subscriptions' );
 			break;
-			case 'start' :
+			case 'start':
 				$message = __( 'The start date of a subscription can not be deleted, only updated.', 'woocommerce-subscriptions' );
 			break;
-			case 'last_order_date_created' :
-			case 'last_order_date_modified' :
+			case 'last_order_date_created':
+			case 'last_order_date_modified':
+				// translators: %s: date type (e.g. "trial_end").
 				$message = sprintf( __( 'The %s date of a subscription can not be deleted. You must delete the order.', 'woocommerce-subscriptions' ), $date_type );
 			break;
-			default :
+			default:
 				$message = '';
 			break;
 		}
 
 		if ( ! empty( $message ) ) {
+			// translators: %d: subscription ID.
 			throw new Exception( sprintf( __( 'Subscription #%d: ', 'woocommerce-subscriptions' ), $this->get_id() ) . $message );
 		}
 
@@ -1341,14 +1352,14 @@ class WC_Subscription extends WC_Order {
 
 		switch ( $date_type ) {
 			case 'start':
-			case 'date_created' :
+			case 'date_created':
 				if ( $this->has_status( array( 'auto-draft', 'pending' ) ) ) {
 					$can_date_be_updated = true;
 				} else {
 					$can_date_be_updated = false;
 				}
 				break;
-			case 'trial_end' :
+			case 'trial_end':
 				if ( isset( $this->cached_payment_count['completed'] ) ) {
 					$this->cached_payment_count = null;
 				}
@@ -1359,18 +1370,18 @@ class WC_Subscription extends WC_Order {
 					$can_date_be_updated = false;
 				}
 				break;
-			case 'next_payment' :
-			case 'end' :
+			case 'next_payment':
+			case 'end':
 				if ( ! $this->has_status( wcs_get_subscription_ended_statuses() ) && ( $this->has_status( 'pending' ) || $this->payment_method_supports( 'subscription_date_changes' ) ) ) {
 					$can_date_be_updated = true;
 				} else {
 					$can_date_be_updated = false;
 				}
 				break;
-			case 'last_order_date_created' :
+			case 'last_order_date_created':
 				$can_date_be_updated = true;
 				break;
-			default :
+			default:
 				$can_date_be_updated = false;
 				break;
 		}
@@ -1386,10 +1397,10 @@ class WC_Subscription extends WC_Order {
 	public function calculate_date( $date_type ) {
 
 		switch ( $date_type ) {
-			case 'next_payment' :
+			case 'next_payment':
 				$date = $this->calculate_next_payment_date();
 				break;
-			case 'trial_end' :
+			case 'trial_end':
 				if ( $this->get_payment_count() >= 2 ) {
 					$date = 0;
 				} else {
@@ -1397,7 +1408,7 @@ class WC_Subscription extends WC_Order {
 					$date = $this->calculate_next_payment_date();
 				}
 				break;
-			case 'end_of_prepaid_term' :
+			case 'end_of_prepaid_term':
 
 				$next_payment_time = $this->get_time( 'next_payment' );
 				$end_time          = $this->get_time( 'end' );
@@ -1412,7 +1423,7 @@ class WC_Subscription extends WC_Order {
 					$date = $this->get_date( 'end' );
 				}
 				break;
-			default :
+			default:
 				$date = 0;
 				break;
 		}
@@ -1457,12 +1468,12 @@ class WC_Subscription extends WC_Order {
 				$from_timestamp = $start_time;
 			}
 
-			$next_payment_timestamp = wcs_add_time( $this->get_billing_interval(), $this->get_billing_period(), $from_timestamp );
+			$next_payment_timestamp = wcs_add_time( $this->get_billing_interval(), $this->get_billing_period(), $from_timestamp, 'offset_site_time' );
 
 			// Make sure the next payment is more than 2 hours in the future, this ensures changes to the site's timezone because of daylight savings will never cause a 2nd renewal payment to be processed on the same day
 			$i = 1;
 			while ( $next_payment_timestamp < ( current_time( 'timestamp', true ) + 2 * HOUR_IN_SECONDS ) && $i < 3000 ) {
-				$next_payment_timestamp = wcs_add_time( $this->get_billing_interval(), $this->get_billing_period(), $next_payment_timestamp );
+				$next_payment_timestamp = wcs_add_time( $this->get_billing_interval(), $this->get_billing_period(), $next_payment_timestamp, 'offset_site_time' );
 				$i += 1;
 			}
 		}
@@ -1650,12 +1661,12 @@ class WC_Subscription extends WC_Order {
 	 */
 	public function cancel_order( $note = '' ) {
 
-		// If the customer hasn't been through the pending cancellation period yet set the subscription to be pending cancellation
-		if ( $this->has_status( 'active' ) && $this->calculate_date( 'end_of_prepaid_term' ) > current_time( 'mysql', true ) && apply_filters( 'woocommerce_subscription_use_pending_cancel', true ) ) {
+		// If the customer hasn't been through the pending cancellation period yet set the subscription to be pending cancellation unless there is a pending renewal order.
+		if ( apply_filters( 'woocommerce_subscription_use_pending_cancel', true ) && $this->calculate_date( 'end_of_prepaid_term' ) > current_time( 'mysql', true ) && ( $this->has_status( 'active' ) || $this->has_status( 'on-hold' ) && ! $this->needs_payment() ) ) {
 
 			$this->update_status( 'pending-cancel', $note );
 
-		// If the subscription has already ended or can't be cancelled for some other reason, just record the note
+		// If the subscription has already ended or can't be cancelled for some other reason, just record the note.
 		} elseif ( ! $this->can_be_updated_to( 'cancelled' ) ) {
 
 			$this->add_order_note( $note );
@@ -2002,6 +2013,7 @@ class WC_Subscription extends WC_Order {
 		$payment_method_to_display = apply_filters( 'woocommerce_subscription_payment_method_to_display', $payment_method_to_display, $this, $context );
 
 		if ( 'customer' === $context ) {
+			// translators: %s: payment method.
 			$payment_method_to_display = sprintf( __( 'Via %s', 'woocommerce-subscriptions' ), $payment_method_to_display );
 
 			// Only filter the result for non-manual subscriptions.
@@ -2257,7 +2269,7 @@ class WC_Subscription extends WC_Order {
 				$subscription_order_count = count( $this->get_related_orders() );
 
 				// when we have a sync'd subscription before its 1st payment, we need to base the calculations for the next payment on the first/next payment timestamp.
-				if ( $subscription_order_count < 2 && 0 != ( $next_payment_timestamp = $this->get_time( 'next_payment' ) )  ) {
+				if ( $subscription_order_count < 2 && 0 != ( $next_payment_timestamp = $this->get_time( 'next_payment' ) ) ) {
 					$from_timestamp = $next_payment_timestamp;
 
 				// when we have a sync'd subscription after its 1st payment, we need to base the calculations for the next payment on the last payment timestamp.
@@ -2384,26 +2396,31 @@ class WC_Subscription extends WC_Order {
 		// And then iterate over them checking the relationships between them.
 		foreach ( $timestamps as $date_type => $timestamp ) {
 			switch ( $date_type ) {
-				case 'end' :
+				case 'end':
 					if ( array_key_exists( 'cancelled', $timestamps ) && $timestamp < $timestamps['cancelled'] ) {
+						// translators: %s: date type (e.g. "end").
 						$messages[] = sprintf( __( 'The %s date must occur after the cancellation date.', 'woocommerce-subscriptions' ), $date_type );
 					}
 
-				case 'cancelled' :
+				case 'cancelled':
 					if ( array_key_exists( 'last_order_date_created', $timestamps ) && $timestamp < $timestamps['last_order_date_created'] ) {
+						// translators: %s: date type (e.g. "end").
 						$messages[] = sprintf( __( 'The %s date must occur after the last payment date.', 'woocommerce-subscriptions' ), $date_type );
 					}
 
 					if ( array_key_exists( 'next_payment', $timestamps ) && $timestamp <= $timestamps['next_payment'] ) {
+						// translators: %s: date type (e.g. "end").
 						$messages[] = sprintf( __( 'The %s date must occur after the next payment date.', 'woocommerce-subscriptions' ), $date_type );
 					}
-				case 'next_payment' :
+				case 'next_payment':
 					// Guarantees that end is strictly after trial_end, because if next_payment and end can't be at same time
 					if ( array_key_exists( 'trial_end', $timestamps ) && $timestamp < $timestamps['trial_end'] ) {
+						// translators: %s: date type (e.g. "end").
 						$messages[] = sprintf( __( 'The %s date must occur after the trial end date.', 'woocommerce-subscriptions' ), $date_type );
 					}
-				case 'trial_end' :
+				case 'trial_end':
 					if ( ! in_array( $date_type, array( 'end', 'cancelled' ) ) && $timestamp <= $timestamps['start'] ) {
+						// translators: %s: date type (e.g. "next_payment").
 						$messages[] = sprintf( __( 'The %s date must occur after the start date.', 'woocommerce-subscriptions' ), $date_type );
 					}
 			}
@@ -2413,6 +2430,7 @@ class WC_Subscription extends WC_Order {
 
 		// Don't validate dates while the subscription is being read, only dates set outside of instantiation require the strict validation rules to apply
 		if ( $this->object_read && ! empty( $messages ) ) {
+			// translators: %d: order ID.
 			throw new Exception( sprintf( __( 'Subscription #%d: ', 'woocommerce-subscriptions' ), $this->get_id() ) . join( ' ', $messages ) );
 		}
 
@@ -2479,7 +2497,7 @@ class WC_Subscription extends WC_Order {
 		return apply_filters( 'wcs_get_change_payment_method_url', $change_payment_method_url, $this->get_id() );
 	}
 
-	 /* Get the subscription's payment method meta.
+	/* Get the subscription's payment method meta.
 	 *
 	 * @since 2.4.3
 	 * @return array The subscription's payment meta in the format returned by the woocommerce_subscription_payment_meta filter.
@@ -2493,7 +2511,7 @@ class WC_Subscription extends WC_Order {
 
 		$payment_meta = apply_filters( 'woocommerce_subscription_payment_meta', array(), $this );
 
-		return isset( $payment_meta[ $this->get_payment_method() ] ) ? $payment_meta[ $this->get_payment_method() ]: array();
+		return isset( $payment_meta[ $this->get_payment_method() ] ) ? $payment_meta[ $this->get_payment_method() ] : array();
 	}
 
 	/************************

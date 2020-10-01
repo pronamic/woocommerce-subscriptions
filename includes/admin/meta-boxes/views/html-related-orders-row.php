@@ -16,7 +16,10 @@ $order_post = wcs_get_objects_property( $order, 'post' );
 <tr>
 	<td>
 		<a href="<?php echo esc_url( get_edit_post_link( wcs_get_objects_property( $order, 'id' ) ) ); ?>">
-			<?php echo sprintf( esc_html_x( '#%s', 'hash before order number', 'woocommerce-subscriptions' ), esc_html( $order->get_order_number() ) ); ?>
+			<?php
+			// translators: placeholder is an order number.
+			echo sprintf( esc_html_x( '#%s', 'hash before order number', 'woocommerce-subscriptions' ), esc_html( $order->get_order_number() ) );
+			?>
 		</a>
 	</td>
 	<td>
@@ -41,7 +44,7 @@ $order_post = wcs_get_objects_property( $order, 'post' );
 		$classes = array(
 			'order-status',
 			sanitize_html_class( 'status-' . $order->get_status() ),
-		 );
+		);
 
 		if ( wcs_is_subscription( $order ) ) {
 			$status_name = wcs_get_subscription_status_name( $order->get_status() );
@@ -54,6 +57,6 @@ $order_post = wcs_get_objects_property( $order, 'post' );
 		?>
 	</td>
 	<td>
-		<span class="amount"><?php echo wp_kses( $order->get_formatted_order_total(), array( 'small' => array(), 'span' => array( 'class' => array() ), 'del' => array(), 'ins' => array() ) ); ?></span>
+		<span class="amount"><?php echo wp_kses( $order->get_formatted_order_total(), array( 'small' => array(), 'span' => array( 'class' => array() ), 'del' => array(), 'ins' => array() ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound ?></span>
 	</td>
 </tr>

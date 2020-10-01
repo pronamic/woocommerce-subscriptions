@@ -21,7 +21,7 @@ class WCS_My_Account_Payment_Methods {
 		}
 
 		add_filter( 'woocommerce_payment_methods_list_item', array( __CLASS__, 'flag_subscription_payment_token_deletions' ), 10, 2 );
-		add_action( 'woocommerce_payment_token_deleted',array( __CLASS__, 'maybe_update_subscriptions_payment_meta' ), 10, 2 );
+		add_action( 'woocommerce_payment_token_deleted', array( __CLASS__, 'maybe_update_subscriptions_payment_meta' ), 10, 2 );
 		add_action( 'woocommerce_payment_token_set_default', array( __CLASS__, 'display_default_payment_token_change_notice' ), 10, 2 );
 		add_action( 'wp', array( __CLASS__, 'update_subscription_tokens' ) );
 
@@ -94,6 +94,7 @@ class WCS_My_Account_Payment_Methods {
 			}
 
 			if ( WCS_Payment_Tokens::update_subscription_token( $subscription, $new_token, $deleted_token ) ) {
+				// translators: 1: deleted token, 2: new token.
 				$subscription->add_order_note( sprintf( _x( 'Payment method meta updated after customer deleted a token from their My Account page. Payment meta changed from %1$s to %2$s', 'used in subscription note', 'woocommerce-subscriptions' ), $deleted_token->get_token(), $new_token->get_token() ) );
 			}
 		}
@@ -105,7 +106,7 @@ class WCS_My_Account_Payment_Methods {
 			'</strong></a>'
 		);
 
-		wc_add_notice( $notice , 'notice' );
+		wc_add_notice( $notice, 'notice' );
 	}
 
 	/**
@@ -130,6 +131,13 @@ class WCS_My_Account_Payment_Methods {
 	 * @since 2.3.3
 	 */
 	public static function display_default_payment_token_change_notice( $default_token_id, $default_token ) {
+		global $wp;
+
+		// Only display the change token notice on the My Account > Add Payment Method page.
+		if ( ! isset( $wp->query_vars['set-default-payment-method'] ) ) {
+			return;
+		}
+
 		$display_notice  = false;
 		$customer_tokens = WCS_Payment_Tokens::get_customer_tokens( $default_token->get_user_id(), $default_token->get_gateway_id() );
 		unset( $customer_tokens[ $default_token_id ] );
@@ -146,6 +154,7 @@ class WCS_My_Account_Payment_Methods {
 			return;
 		}
 
+		// translators: 1: token display name, 2: opening link tag, 4: closing link tag, 3: opening link tag.
 		$notice = sprintf( esc_html__( 'Would you like to update your subscriptions to use this new payment method - %1$s?%2$sYes%4$s | %3$sNo%4$s', 'woocommerce-subscriptions' ),
 			$default_token->get_display_name(),
 			'</br><a href="' . esc_url( add_query_arg( array(
@@ -157,7 +166,7 @@ class WCS_My_Account_Payment_Methods {
 			'</strong></a>'
 		);
 
-		wc_add_notice( $notice , 'notice' );
+		wc_add_notice( $notice, 'notice' );
 	}
 
 	/**
@@ -166,7 +175,7 @@ class WCS_My_Account_Payment_Methods {
 	 * @since 2.3.3
 	 */
 	public static function update_subscription_tokens() {
-		if ( ! isset( $_GET['update-subscription-tokens'], $_GET['token-id'],  $_GET['_wcsnonce'] ) || ! wp_verify_nonce( $_GET['_wcsnonce'], 'wcs-update-subscription-tokens' ) ) {
+		if ( ! isset( $_GET['update-subscription-tokens'], $_GET['token-id'], $_GET['_wcsnonce'] ) || ! wp_verify_nonce( $_GET['_wcsnonce'], 'wcs-update-subscription-tokens' ) ) {
 			return;
 		}
 
@@ -186,6 +195,7 @@ class WCS_My_Account_Payment_Methods {
 		foreach ( $tokens as $old_token ) {
 			foreach ( WCS_Payment_Tokens::get_subscriptions_from_token( $old_token ) as $subscription ) {
 				if ( ! empty( $subscription ) && WCS_Payment_Tokens::update_subscription_token( $subscription, $default_token, $old_token ) ) {
+					// translators: 1: previous token, 2: new token.
 					$subscription->add_order_note( sprintf( _x( 'Payment method meta updated after customer changed their default token and opted to update their subscriptions. Payment meta changed from %1$s to %2$s', 'used in subscription note', 'woocommerce-subscriptions' ), $old_token->get_token(), $default_token->get_token() ) );
 				}
 			}

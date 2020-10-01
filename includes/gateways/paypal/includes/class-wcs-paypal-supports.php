@@ -7,11 +7,11 @@
  * reference transactions enabled or not. However, because we use two flavours of PayPal, both identified with
  * the same gateway ID, we also need to hook in to check for feature support on a subscription specific basis.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	Gateways/PayPal
- * @category	Class
- * @author		Prospress
- * @since		2.0
+ * @package     WooCommerce Subscriptions
+ * @subpackage  Gateways/PayPal
+ * @category    Class
+ * @author      Prospress
+ * @since       2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -92,7 +92,7 @@ class WCS_PayPal_Supports {
 
 			} elseif ( in_array( $feature, self::$standard_supported_features ) ) {
 
-				if ( wcs_is_paypal_profile_a( $paypal_profile_id, 'out_of_date_id' )  ) {
+				if ( wcs_is_paypal_profile_a( $paypal_profile_id, 'out_of_date_id' ) ) {
 					$is_supported = false;
 				} else {
 					$is_supported = true;

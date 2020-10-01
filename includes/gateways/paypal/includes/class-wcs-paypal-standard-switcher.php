@@ -6,11 +6,11 @@
  * profile ID for PayPal Standard. However, PayPal Reference Transactions do allow these to be updated and because switching uses the checkout
  * process, we can migrate a subscription from PayPal Standard to Reference Transactions when the customer switches.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	Gateways/PayPal
- * @category	Class
- * @author		Prospress
- * @since		2.0
+ * @package     WooCommerce Subscriptions
+ * @subpackage  Gateways/PayPal
+ * @category    Class
+ * @author      Prospress
+ * @since       2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -30,10 +30,10 @@ class WCS_PayPal_Standard_Switcher {
 		add_filter( 'woocommerce_subscriptions_can_item_be_switched', __CLASS__ . '::can_item_be_switched', 10, 3 );
 
 		// Sometimes, even if the order total is $0, the cart still needs payment
-		add_filter( 'woocommerce_cart_needs_payment', __CLASS__ . '::cart_needs_payment' , 100, 2 );
+		add_filter( 'woocommerce_cart_needs_payment', __CLASS__ . '::cart_needs_payment', 100, 2 );
 
 		// Update the new payment method if switching from PayPal Standard and not creating a new subscription
-		add_filter( 'woocommerce_payment_successful_result', __CLASS__ . '::maybe_set_payment_method' , 10, 2 );
+		add_filter( 'woocommerce_payment_successful_result', __CLASS__ . '::maybe_set_payment_method', 10, 2 );
 
 		// Save old PP standand id on switched orders so that PP recurring payments can be cancelled after successful switch
 		add_action( 'woocommerce_checkout_update_order_meta', __CLASS__ . '::save_old_paypal_meta', 15, 2 );

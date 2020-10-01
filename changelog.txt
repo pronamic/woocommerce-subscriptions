@@ -1,5 +1,84 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2020-09-29 - version 3.0.9
+* Fix: Offset subscription next payment date calculations based on site time. All dates still remain in UTC, but calculations on the 1st and last day of the month will now take into account the site timezone. PR#3708
+* Fix: Only attempt to display the customer notice when updating the default token from the My Account page. PR#3799
+* Fix: Prefix variation attributes with `attribute_` when setting up renewal carts. PR#3809
+* Dev: Add a new hook to the change_users_subscription() function - this hook is triggered before the status change. PR#3787
+
+2020-09-24 - version 3.0.8
+* Tweak: Remove the '$X now' from price string when synced product sign up date is today. PR#3797
+* Fix: Treat a subscription with a cancelled parent order as "needing payment". This ensures cancelling the subscription will go right to cancelled, rather than pending-cancellation. PR#3784
+* Fix: Remove code responsible for hiding/showing the WC order totals meta box. This fixes the deprecated jQuery.fn.load() warnings. PR#3786
+* Fix: Fix updating status and end dates via the REST API. PR#3796
+* Dev: Add an action hook to edit subscription admin payment meta inputs. Enables third-parties to display custom fields for each gateway. PR#3798
+* Dev: Opt-in tracking data for Subscriptions Reports PR#3738
+        Data sent to WooCommerce:
+        Subscriptions report views
+        Subscriptions report filter usage - clicks and report range
+        Number of subscriptions, orders, products
+        Plugin version
+        To disable this tracking, opt-out of WooCommerce tracking, see https://woocommerce.com/usage-tracking/
+
+2020-08-11 - version 3.0.7
+* Fix: Prevent possible errors caused by inaccessible get_current_screen() function. PR#3678
+* Fix: Decouple single_add_to_cart_text() from add_to_cart_text() and remove double and incorrect filtering. PR#3705
+* Fix: Account for the pre-paid term when canceling a subscription which is on-hold without a required payment. PR#3726
+* Fix: [WC4.4] Replace uses of `get_product_from_item()` with `$item->get_product()`. PR#3769
+* Fix: [WC4.4] Deprecate use of the WC_Cart::tax_display_cart. PR#3741
+* Fix: [WC4.4] Update WC_Product_Variable_Subscription::get_available_variations() function signature. PR#3761
+* Fix: [WC4.0] Use the WC version appropriate hook to override the text explaining uneditable subscriptions. PR#3678
+* Fix: [WP5.5] Add permission callback for the REST statuses endpoint. PR#3765
+* Fix: [WP5.5] Remove the post box header from edit subscription meta boxes #3771
+* Performance: Validate product type changes on large sites to avoid running queries on edit product page loads. PR#3699
+* Tweak: [WC Code Standards] Fixes for i18n-related issues. PR#3757
+
+2020-07-29 - version 3.0.6
+* Tweak: Add placeholder explanation for the upcoming recurring report. PR#3655
+* Tweak: Add a link to QuickForget.com in the IPN error notice. PR#3744
+* Fix: Fix COD gateway availability for trial subscriptions. PR#3740
+* Fix: Fetch customer error notice messages on the change payment method page in WC post 3.9 version compatible way. PR#3730
+* Fix: Don't reduce stock for items added to a subscription manually via admin screen. PR#3725
+* Fix: Only display the automatic renewal note in emails when there's a next payment. PR#3679
+* Fix: Use the interval to calculate first payment date for synced products. Fixes an issue that caused a purchase outside the sync grace period to not account for the subscription interval. PR#3303
+* Dev: Add two new action hooks before and after change payment submit button. PR#3718
+* Dev: Add a new helper function wcs_trial_has_passed(). PR#3289
+* Dev: Replace uses of cal_days_in_month() with a date() equivalent. PR#3734
+* Dev: Make various changes to improve coding standards. PRs#3748, #3749, #3753
+
+2020-06-16 - version 3.0.5
+* Fix: Ensure the mixed checkout setting correctly prevents mixed carts after customer login. PR#3696
+* Fix: Translate the automatic subscription recurring note in emails. PR#3684
+* Fix: Account for limited coupon use across recurring carts. Fixes an issue which leads to limited coupons applying beyond the limit. PR#3552
+* Fix: Copy the item usage limit to coupons applied to manual renewal carts. PR#3686
+* Dev: Add a filter to control access to the early renewal modal. PR#3675
+
+2020-04-28 - version 3.0.4
+* Fix: Save changes to payment method meta on the edit subscription screen. PR#3666
+* Fix: Grant Shop Managers edit capabilities over subscriber users. PR#3669
+* Fix: Remove original item from switched subscription during a multiple line item, different billing schedule switch. PR#3659
+* Fix: Use strict conditionals when comparing results of as_next_scheduled_action. Fixes rescheduling of actions which were ran manually. PR#3661
+* Tweak: To comply with Visa's changes to rules governing free trial subscriptions, add additional subscription details to email templates. PR#3664
+
+2020-04-01 - version 3.0.3
+* Fix: Only set the payment method if it has changed via admin edit. PR#3646
+* Fix: Performance issue in WCS_Payment_Tokens::get_subscriptions_from_token. PR#3649
+* Fix: Exclude empty nonce.
+
+2020-03-11 - version 3.0.2
+* New: Add WC Admin Compatibility. PR#3628
+* Fix: Restore the trial end date after reactivating a subscription which was cancelled. PR#3572
+* Fix: Hide the order again button for orders which contain limited products. PR#3612
+* Fix: Don't show recurring cart taxes when no taxes apply. PR#3633
+* Fix: Prevent autocompleting orders which contain free, simple, non-digital products. PR#3621
+* Fix: Remove redundant double line from customer report query. PR#3640
+* Fix: [PayPal] Modify WC payload regex to account for alphanumeric chars. PR#3629
+* Fix: Hide the free shipping label for free shipping and free local pickup options. PR#3618
+* Fix: Prevent fatal errors when getting price for variable products which aren't synced. PR#3616
+* Fix: Don't send WC core emails for subscription related orders when in Staging mode. PR#3576
+* Fix: Update PayPal settings URL used in admin notices. PR#3617
+* Tweak: Update wording in warning when attempting to change the subscription product type. PR#3623
+
 2020.01.17 - version 3.0.1
 * Fix: Support multiple modals on the customer's view subscription page. Fixes an issue where preventing the early renewal modal being displayed was preventing all modals on the page from being displayed. PR#3571
 * Fix: Silence PHP warning in events by date report caused by empty set of data. PR#3577

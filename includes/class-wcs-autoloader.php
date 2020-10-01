@@ -103,9 +103,7 @@ class WCS_Autoloader {
 			return true;
 		}
 
-		return false !== strpos( $class, 'wcs_' ) ||
-		       0 === strpos( $class, 'wc_subscription' ) ||
-		       ( false !== strpos( $class, 'wc_' ) && false !== strpos( $class, 'subscription' ) );
+		return false !== strpos( $class, 'wcs_' ) || 0 === strpos( $class, 'wc_subscription' ) || ( false !== strpos( $class, 'wc_' ) && false !== strpos( $class, 'subscription' ) );
 	}
 
 	/**

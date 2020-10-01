@@ -7,10 +7,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * An email sent to the admin when a subscription is expired.
  *
- * @class 	WCS_Email_On_Hold_Subscription
- * @version	2.1
- * @package	WooCommerce_Subscriptions/Classes/Emails
- * @author 	Prospress
+ * @class WCS_Email_On_Hold_Subscription
+ * @version 2.1
+ * @package WooCommerce_Subscriptions/Classes/Emails
+ * @author Prospress
  * @extends WC_Email
  */
 class WCS_Email_On_Hold_Subscription extends WC_Email {
@@ -137,44 +137,46 @@ class WCS_Email_On_Hold_Subscription extends WC_Email {
 	 */
 	function init_form_fields() {
 		$this->form_fields = array(
-			'enabled' => array(
-				'title'         => _x( 'Enable/Disable', 'an email notification', 'woocommerce-subscriptions' ),
-				'type'          => 'checkbox',
-				'label'         => __( 'Enable this email notification', 'woocommerce-subscriptions' ),
-				'default'       => 'no',
+			'enabled'    => array(
+				'title'   => _x( 'Enable/Disable', 'an email notification', 'woocommerce-subscriptions' ),
+				'type'    => 'checkbox',
+				'label'   => __( 'Enable this email notification', 'woocommerce-subscriptions' ),
+				'default' => 'no',
 			),
-			'recipient' => array(
-				'title'         => _x( 'Recipient(s)', 'of an email', 'woocommerce-subscriptions' ),
-				'type'          => 'text',
+			'recipient'  => array(
+				'title'       => _x( 'Recipient(s)', 'of an email', 'woocommerce-subscriptions' ),
+				'type'        => 'text',
 				// translators: placeholder is admin email
-				'description'   => sprintf( __( 'Enter recipients (comma separated) for this email. Defaults to %s.', 'woocommerce-subscriptions' ), '<code>' . esc_attr( get_option( 'admin_email' ) ) . '</code>' ),
-				'placeholder'   => '',
-				'default'       => '',
+				'description' => sprintf( __( 'Enter recipients (comma separated) for this email. Defaults to %s.', 'woocommerce-subscriptions' ), '<code>' . esc_attr( get_option( 'admin_email' ) ) . '</code>' ),
+				'placeholder' => '',
+				'default'     => '',
 			),
-			'subject' => array(
-				'title'         => _x( 'Subject', 'of an email', 'woocommerce-subscriptions' ),
-				'type'          => 'text',
-				'description'   => sprintf( __( 'This controls the email subject line. Leave blank to use the default subject: %s.', 'woocommerce-subscriptions' ), '<code>' . $this->subject . '</code>' ),
-				'placeholder'   => $this->get_default_subject(),
-				'default'       => '',
+			'subject'    => array(
+				'title'       => _x( 'Subject', 'of an email', 'woocommerce-subscriptions' ),
+				'type'        => 'text',
+				// translators: %s: default e-mail subject.
+				'description' => sprintf( __( 'This controls the email subject line. Leave blank to use the default subject: %s.', 'woocommerce-subscriptions' ), '<code>' . $this->subject . '</code>' ),
+				'placeholder' => $this->get_default_subject(),
+				'default'     => '',
 			),
-			'heading' => array(
-				'title'         => _x( 'Email Heading', 'Name the setting that controls the main heading contained within the email notification', 'woocommerce-subscriptions' ),
-				'type'          => 'text',
-				'description'   => sprintf( __( 'This controls the main heading contained within the email notification. Leave blank to use the default heading: <code>%s</code>.', 'woocommerce-subscriptions' ), $this->heading ),
-				'placeholder'   => $this->get_default_heading(),
-				'default'       => '',
+			'heading'    => array(
+				'title'       => _x( 'Email Heading', 'Name the setting that controls the main heading contained within the email notification', 'woocommerce-subscriptions' ),
+				'type'        => 'text',
+				// translators: %s: default e-mail heading.
+				'description' => sprintf( __( 'This controls the main heading contained within the email notification. Leave blank to use the default heading: <code>%s</code>.', 'woocommerce-subscriptions' ), $this->heading ),
+				'placeholder' => $this->get_default_heading(),
+				'default'     => '',
 			),
 			'email_type' => array(
-				'title'         => _x( 'Email type', 'text, html or multipart', 'woocommerce-subscriptions' ),
-				'type'          => 'select',
-				'description'   => __( 'Choose which format of email to send.', 'woocommerce-subscriptions' ),
-				'default'       => 'html',
-				'class'         => 'email_type',
-				'options'       => array(
-					'plain'         => _x( 'Plain text', 'email type', 'woocommerce-subscriptions' ),
-					'html'          => _x( 'HTML', 'email type', 'woocommerce-subscriptions' ),
-					'multipart'     => _x( 'Multipart', 'email type', 'woocommerce-subscriptions' ),
+				'title'       => _x( 'Email type', 'text, html or multipart', 'woocommerce-subscriptions' ),
+				'type'        => 'select',
+				'description' => __( 'Choose which format of email to send.', 'woocommerce-subscriptions' ),
+				'default'     => 'html',
+				'class'       => 'email_type',
+				'options'     => array(
+					'plain'     => _x( 'Plain text', 'email type', 'woocommerce-subscriptions' ),
+					'html'      => _x( 'HTML', 'email type', 'woocommerce-subscriptions' ),
+					'multipart' => _x( 'Multipart', 'email type', 'woocommerce-subscriptions' ),
 				),
 			),
 		);

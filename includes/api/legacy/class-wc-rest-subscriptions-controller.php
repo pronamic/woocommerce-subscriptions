@@ -65,6 +65,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_statuses' ),
+				'permission_callback' => '__return_true',
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
@@ -237,6 +238,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		$subscription = wcs_create_subscription( $args );
 
 		if ( is_wp_error( $subscription ) ) {
+			// translators: placeholder is an error message.
 			throw new WC_REST_Exception( 'woocommerce_rest_cannot_create_subscription', sprintf( __( 'Cannot create subscription: %s.', 'woocommerce-subscriptions' ), implode( ', ', $subscription->get_error_messages() ) ), 400 );
 		}
 
@@ -281,6 +283,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 				$subscription->update_dates( $dates_to_update );
 			}
 		} catch ( Exception $e ) {
+			// translators: placeholder is an error message.
 			throw new WC_REST_Exception( 'woocommerce_rest_cannot_update_subscription_dates', sprintf( __( 'Updating subscription dates errored with message: %s', 'woocommerce-subscriptions' ), $e->getMessage() ), 400 );
 		}
 	}
@@ -343,18 +346,18 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		$schema = parent::get_item_schema();
 
 		$subscriptions_schema = array(
-			'billing_interval' => array(
+			'billing_interval'  => array(
 				'description' => __( 'The number of billing periods between subscription renewals.', 'woocommerce-subscriptions' ),
 				'type'        => 'integer',
 				'context'     => array( 'view', 'edit' ),
 			),
-			'billing_period' => array(
+			'billing_period'    => array(
 				'description' => __( 'Billing period for the subscription.', 'woocommerce-subscriptions' ),
 				'type'        => 'string',
 				'enum'        => array_keys( wcs_get_subscription_period_strings() ),
 				'context'     => array( 'view', 'edit' ),
 			),
-			'payment_details' => array(
+			'payment_details'   => array(
 				'description' => __( 'Subscription payment details.', 'woocommerce-subscriptions' ),
 				'type'        => 'object',
 				'context'     => array( 'edit' ),
@@ -366,12 +369,12 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 					),
 				),
 			),
-			'start_date' => array(
+			'start_date'        => array(
 				'description' => __( "The subscription's start date.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
 			),
-			'trial_date' => array(
+			'trial_date'        => array(
 				'description' => __( "The subscription's trial date", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
@@ -381,7 +384,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
 			),
-			'end_date' => array(
+			'end_date'          => array(
 				'description' => __( "The subscription's end date.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),

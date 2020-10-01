@@ -8,11 +8,11 @@
  *
  * This is the base class for handling those deprecated hooks.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WCS_Hook_Deprecator
- * @category	Class
- * @author		Prospress
- * @since		2.0
+ * @package WooCommerce Subscriptions
+ * @subpackage WCS_Hook_Deprecator
+ * @category Class
+ * @author Prospress
+ * @since 2.0
  */
 
 abstract class WCS_Hook_Deprecator {
@@ -100,7 +100,7 @@ abstract class WCS_Hook_Deprecator {
 	 * @since 2.0
 	 */
 	protected static function get_order( $subscription ) {
-		return ( false == $subscription->get_parent_id() ) ? $subscription :  $subscription->get_parent();
+		return ( false == $subscription->get_parent_id() ) ? $subscription : $subscription->get_parent();
 	}
 
 	/**

@@ -271,7 +271,8 @@ a.close-subscriptions-search {
 /* Add/Edit Subscription Screen */
 #woocommerce-subscription-data .handlediv,
 #woocommerce-subscription-data h2.hndle,
-#woocommerce-subscription-data h3.hndle {
+#woocommerce-subscription-data h3.hndle,
+#woocommerce-subscription-data .postbox-header {
 	display: none;
 }
 #woocommerce-subscription-data .inside {

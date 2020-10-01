@@ -76,14 +76,14 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		$this->generating_report                   = 'new_subscriptions';
 		$this->report_data->new_subscriptions_data = (array) $this->get_order_report_data(
 			array(
-				'data' => array(
-					'ID' => array(
+				'data'         => array(
+					'ID'        => array(
 						'type'     => 'post_data',
 						'function' => 'COUNT',
 						'name'     => 'count',
 						'distinct' => true,
 					),
-					'id' => array(
+					'id'        => array(
 						'type'     => 'post_data',
 						'function' => 'GROUP_CONCAT',
 						'name'     => 'subscription_ids',
@@ -95,140 +95,140 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 						'name'     => 'post_date',
 					),
 				),
-				'where' => array(
+				'where'        => array(
 					'post_status' => array(
 						'key'      => 'post_status',
 						'operator' => 'NOT IN',
 						'value'    => array( 'trash', 'auto-draft' ),
 					),
 				),
-				'group_by'            => $this->group_by_query,
-				'order_status'        => '',
-				'order_by'            => 'post_date ASC',
-				'query_type'          => 'get_results',
-				'filter_range'        => true,
-				'order_types'         => array( 'shop_subscription' ),
-				'nocache'             => $args['no_cache'],
+				'group_by'     => $this->group_by_query,
+				'order_status' => '',
+				'order_by'     => 'post_date ASC',
+				'query_type'   => 'get_results',
+				'filter_range' => true,
+				'order_types'  => array( 'shop_subscription' ),
+				'nocache'      => $args['no_cache'],
 			)
 		);
 
 		$this->generating_report         = 'renewals';
 		$this->report_data->renewal_data = (array) $this->get_order_report_data(
 			array(
-				'data' => array(
-					'ID' => array(
+				'data'         => array(
+					'ID'                    => array(
 						'type'     => 'post_data',
 						'function' => 'COUNT',
 						'name'     => 'count',
 						'distinct' => true,
 					),
-					'id' => array(
+					'id'                    => array(
 						'type'     => 'post_data',
 						'function' => 'GROUP_CONCAT',
 						'name'     => 'order_ids',
 						'distinct' => true,
 					),
-					'post_date' => array(
+					'post_date'             => array(
 						'type'     => 'post_data',
 						'function' => '',
 						'name'     => 'post_date',
 					),
 					'_subscription_renewal' => array(
-						'type'      => 'meta',
-						'function'  => '',
-						'name'      => 'renewal_orders',
+						'type'     => 'meta',
+						'function' => '',
+						'name'     => 'renewal_orders',
 					),
-					'_order_total' => array(
+					'_order_total'          => array(
 						'type'      => 'meta',
 						'function'  => 'SUM',
 						'name'      => 'renewal_totals',
 						'join_type' => 'LEFT',   // To avoid issues if there is no renewal_total meta
-						),
+					),
 				),
-				'where' => array(
+				'where'        => array(
 					'post_status' => array(
 						'key'      => 'post_status',
 						'operator' => 'NOT IN',
 						'value'    => array( 'trash', 'auto-draft' ),
 					),
 				),
-				'group_by'            => $this->group_by_query,
-				'order_status'        => $args['order_status'],
-				'order_by'            => 'post_date ASC',
-				'query_type'          => 'get_results',
-				'filter_range'        => true,
-				'order_types'         => wc_get_order_types( 'order-count' ),
-				'nocache'             => $args['no_cache'],
+				'group_by'     => $this->group_by_query,
+				'order_status' => $args['order_status'],
+				'order_by'     => 'post_date ASC',
+				'query_type'   => 'get_results',
+				'filter_range' => true,
+				'order_types'  => wc_get_order_types( 'order-count' ),
+				'nocache'      => $args['no_cache'],
 			)
 		);
 
 		$this->generating_report             = 'resubscribes';
 		$this->report_data->resubscribe_data = (array) $this->get_order_report_data(
 			array(
-				'data' => array(
-					'ID' => array(
+				'data'         => array(
+					'ID'                        => array(
 						'type'     => 'post_data',
 						'function' => 'COUNT',
 						'name'     => 'count',
 						'distinct' => true,
 					),
-					'id' => array(
+					'id'                        => array(
 						'type'     => 'post_data',
 						'function' => 'GROUP_CONCAT',
 						'name'     => 'order_ids',
 						'distinct' => true,
 					),
-					'post_date' => array(
+					'post_date'                 => array(
 						'type'     => 'post_data',
 						'function' => '',
 						'name'     => 'post_date',
 					),
 					'_subscription_resubscribe' => array(
-						'type'      => 'meta',
-						'function'  => '',
-						'name'      => 'resubscribe_orders',
+						'type'     => 'meta',
+						'function' => '',
+						'name'     => 'resubscribe_orders',
 					),
-					'_order_total' => array(
+					'_order_total'              => array(
 						'type'      => 'meta',
 						'function'  => 'SUM',
 						'name'      => 'resubscribe_totals',
-						'join_type' => 'LEFT',   // To avoid issues if there is no resubscribe_total meta
-						),
+						'join_type' => 'LEFT', // To avoid issues if there is no resubscribe_total meta
+					),
 				),
-				'where' => array(
+				'where'        => array(
 					'post_status' => array(
 						'key'      => 'post_status',
 						'operator' => 'NOT IN',
 						'value'    => array( 'trash', 'auto-draft' ),
 					),
 				),
-				'group_by'            => $this->group_by_query,
-				'order_status'        => $args['order_status'],
-				'order_by'            => 'post_date ASC',
-				'query_type'          => 'get_results',
-				'filter_range'        => true,
-				'order_types'         => wc_get_order_types( 'order-count' ),
-				'nocache'             => $args['no_cache'],
+				'group_by'     => $this->group_by_query,
+				'order_status' => $args['order_status'],
+				'order_by'     => 'post_date ASC',
+				'query_type'   => 'get_results',
+				'filter_range' => true,
+				'order_types'  => wc_get_order_types( 'order-count' ),
+				'nocache'      => $args['no_cache'],
 			)
 		);
 
 		$this->generating_report        = 'switches';
 		$this->report_data->switch_data = (array) $this->get_order_report_data(
 			array(
-				'data' => array(
-					'ID' => array(
+				'data'         => array(
+					'ID'                   => array(
 						'type'     => 'post_data',
 						'function' => 'COUNT',
 						'name'     => 'count',
 						'distinct' => true,
 					),
-					'id' => array(
+					'id'                   => array(
 						'type'     => 'post_data',
 						'function' => 'GROUP_CONCAT',
 						'name'     => 'order_ids',
 						'distinct' => true,
 					),
-					'post_date' => array(
+					'post_date'            => array(
 						'type'     => 'post_data',
 						'function' => '',
 						'name'     => 'post_date',
@@ -238,27 +238,27 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 						'function' => '',
 						'name'     => 'switch_orders',
 					),
-					'_order_total' => array(
+					'_order_total'         => array(
 						'type'      => 'meta',
 						'function'  => 'SUM',
 						'name'      => 'switch_totals',
 						'join_type' => 'LEFT',   // To avoid issues if there is no switch_total meta
 					),
 				),
-				'where' => array(
+				'where'        => array(
 					'post_status' => array(
 						'key'      => 'post_status',
 						'operator' => 'NOT IN',
 						'value'    => array( 'trash', 'auto-draft' ),
 					),
 				),
-				'group_by'            => $this->group_by_query,
-				'order_status'        => $args['order_status'],
-				'order_by'            => 'post_date ASC',
-				'query_type'          => 'get_results',
-				'filter_range'        => true,
-				'order_types'         => wc_get_order_types( 'order-count' ),
-				'nocache'             => $args['no_cache'],
+				'group_by'     => $this->group_by_query,
+				'order_status' => $args['order_status'],
+				'order_by'     => 'post_date ASC',
+				'query_type'   => 'get_results',
+				'filter_range' => true,
+				'order_types'  => wc_get_order_types( 'order-count' ),
+				'nocache'      => $args['no_cache'],
 			)
 		);
 
@@ -269,7 +269,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		$cached_results = get_transient( strtolower( get_class( $this ) ) );
 
 		// Check if we need to update the cache with the query results from the figures generated by get_order_report_data().
-		foreach ( array( 'new_subscriptions' => 'new_subscriptions', 'renewals' => 'renewal', 'resubscribes' => 'resubscribe', 'switches' => 'switch' ) as $report => $property_key ) {
+		foreach ( array( 'new_subscriptions' => 'new_subscriptions', 'renewals' => 'renewal', 'resubscribes' => 'resubscribe', 'switches' => 'switch' ) as $report => $property_key ) { // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 			$query_hash = $this->report_data->{"{$report}_query_hash"};
 			if ( ! isset( $cached_results[ $query_hash ] ) ) {
 				$cached_results[ $query_hash ] = $this->report_data->{"{$property_key}_data"};
@@ -475,13 +475,16 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 
 	/**
 	 * Get the legend for the main chart sidebar
+	 *
 	 * @return array
 	 */
 	public function get_chart_legend() {
 		$legend = array();
 		$data   = $this->get_report_data();
+		$tracks_id = 'report_subscription_events_by_date_';
 
 		$legend[] = array(
+			// translators: %s: formatted total amount.
 			'title'            => sprintf( __( '%s signup revenue in this period', 'woocommerce-subscriptions' ), '<strong>' . wc_price( $data->signup_orders_total_amount ) . '</strong>' ),
 			'placeholder'      => __( 'The sum of all subscription parent orders, including other items, fees, tax and shipping.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['signup_total'],
@@ -489,6 +492,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		);
 
 		$legend[] = array(
+			// translators: %s: formatted total amount.
 			'title'            => sprintf( __( '%s renewal revenue in this period', 'woocommerce-subscriptions' ), '<strong>' . wc_price( $data->renewal_orders_total_amount ) . '</strong>' ),
 			'placeholder'      => __( 'The sum of all renewal orders including tax and shipping.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['renewal_total'],
@@ -496,6 +500,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		);
 
 		$legend[] = array(
+			// translators: %s: formatted total amount.
 			'title'            => sprintf( __( '%s resubscribe revenue in this period', 'woocommerce-subscriptions' ), '<strong>' . wc_price( $data->resubscribe_orders_total_amount ) . '</strong>' ),
 			'placeholder'      => __( 'The sum of all resubscribe orders including tax and shipping.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['resubscribe_total'],
@@ -503,6 +508,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		);
 
 		$legend[] = array(
+			// translators: %s: formatted total amount.
 			'title'            => sprintf( __( '%s switch revenue in this period', 'woocommerce-subscriptions' ), '<strong>' . wc_price( $data->switch_orders_total_amount ) . '</strong>' ),
 			'placeholder'      => __( 'The sum of all switch orders including tax and shipping.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['switch_total'],
@@ -510,56 +516,154 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		);
 
 		$legend[] = array(
-			'title'            => sprintf( __( '%2$s %1$s new subscriptions', 'woocommerce-subscriptions' ), '<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->new_subscription_total_count . '</span> </strong> </a>',
-			'<a href="' . esc_url( add_query_arg( array( 'post_type' => 'shop_subscription', '_subscriptions_list_key' => $this->report_data->new_subscriptions_query_hash, '_report' => strtolower( get_class( $this ) ) ), admin_url( 'edit.php' ) ) ). '">' ),
+			'title'            => sprintf(
+				// translators: 2: link opening tag, 1: subscription count and closing tag.
+				__( '%2$s %1$s new subscriptions', 'woocommerce-subscriptions' ),
+				'<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->new_subscription_total_count . '</span> </strong> </a>',
+				'<a href="' .
+				esc_url(
+					add_query_arg(
+						array(
+							'post_type'               => 'shop_subscription',
+							'_subscriptions_list_key' => $this->report_data->new_subscriptions_query_hash,
+							'_report'                 => strtolower( get_class( $this ) ),
+						),
+						admin_url( 'edit.php' )
+					)
+				) . '" id="' . $tracks_id . 'new">'
+			),
 			'placeholder'      => __( 'The number of subscriptions created during this period, either by being manually created, imported or a customer placing an order. This includes orders pending payment.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['new_count'],
 			'highlight_series' => 1,
 		);
 
 		$legend[] = array(
-			'title'            => sprintf( __( '%2$s %1$s subscription signups', 'woocommerce-subscriptions' ), '<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->signup_orders_total_count . '</strong> </a>',
-			'<a href="' . esc_url( add_query_arg( array( 'post_type' => 'shop_subscription', '_subscriptions_list_key' => $this->report_data->signup_orders_query_hash, '_report' => strtolower( get_class( $this ) ) ), admin_url( 'edit.php' ) ) ). '">' ),
+			'title'            => sprintf(
+				// translators: 2: link opening tag, 1: subscription count and closing tag.
+				__( '%2$s %1$s subscription signups', 'woocommerce-subscriptions' ),
+				'<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->signup_orders_total_count . '</strong> </a>',
+				'<a href="' .
+				esc_url(
+					add_query_arg(
+						array(
+							'post_type'               => 'shop_subscription',
+							'_subscriptions_list_key' => $this->report_data->signup_orders_query_hash,
+							'_report'                 => strtolower( get_class( $this ) ),
+						),
+						admin_url( 'edit.php' )
+					)
+				) . '" id="' . $tracks_id . 'signups">'
+			),
 			'placeholder'      => __( 'The number of subscriptions purchased in parent orders created during this period. This represents the new subscriptions created by customers placing an order via checkout.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['signup_count'],
 			'highlight_series' => 2,
 		);
 
 		$legend[] = array(
-			'title'            => sprintf( __( '%2$s %1$s subscription resubscribes', 'woocommerce-subscriptions' ), '<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->resubscribe_orders_total_count . '</strong> </a>',
-			'<a href="' . esc_url( add_query_arg( array( 'post_type' => 'shop_order', '_orders_list_key' => $this->report_data->resubscribes_query_hash, '_report' => strtolower( get_class( $this ) ) ), admin_url( 'edit.php' ) ) ). '">' ),
+			'title'            => sprintf(
+				// translators: 2: link opening tag, 1: subscription count and closing tag.
+				__( '%2$s %1$s subscription resubscribes', 'woocommerce-subscriptions' ),
+				'<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->resubscribe_orders_total_count . '</strong> </a>',
+				'<a href="' .
+				esc_url(
+					add_query_arg(
+						array(
+							'post_type'        => 'shop_order',
+							'_orders_list_key' => $this->report_data->resubscribes_query_hash,
+							'_report'          => strtolower( get_class( $this ) ),
+						),
+						admin_url( 'edit.php' )
+					)
+				) . '" id="' . $tracks_id . 'resubscribes">'
+			),
 			'placeholder'      => __( 'The number of resubscribe orders processed during this period.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['resubscribe_count'],
 			'highlight_series' => 3,
 		);
 
 		$legend[] = array(
-			'title'            => sprintf( __( '%2$s %1$s subscription renewals', 'woocommerce-subscriptions' ), '<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->renewal_orders_total_count . '</strong> </a>',
-			'<a href="' . esc_url( add_query_arg( array( 'post_type' => 'shop_order', '_orders_list_key' => $this->report_data->renewals_query_hash, '_report' => strtolower( get_class( $this ) ) ), admin_url( 'edit.php' ) ) ). '">' ),
+			'title'            => sprintf(
+				// translators: 2: link opening tag, 1: subscription count and closing tag.
+				__( '%2$s %1$s subscription renewals', 'woocommerce-subscriptions' ),
+				'<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->renewal_orders_total_count . '</strong> </a>',
+				'<a href="' .
+				esc_url(
+					add_query_arg(
+						array(
+							'post_type'        => 'shop_order',
+							'_orders_list_key' => $this->report_data->renewals_query_hash,
+							'_report'          => strtolower( get_class( $this ) ),
+						),
+						admin_url( 'edit.php' )
+					)
+				) . '" id="' . $tracks_id . 'renewals">'
+			),
 			'placeholder'      => __( 'The number of renewal orders processed during this period.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['renewal_count'],
 			'highlight_series' => 4,
 		);
 
 		$legend[] = array(
-			'title'            => sprintf( __( '%2$s %1$s subscription switches', 'woocommerce-subscriptions' ), '<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->switch_orders_total_count . '</strong> </a>',
-			'<a href="' . esc_url( add_query_arg( array( 'post_type' => 'shop_order', '_orders_list_key' => $this->report_data->switches_query_hash, '_report' => strtolower( get_class( $this ) ) ), admin_url( 'edit.php' ) ) ). '">' ),
+			'title'            => sprintf(
+				// translators: 2: link opening tag, 1: subscription count and closing tag.
+				__( '%2$s %1$s subscription switches', 'woocommerce-subscriptions' ),
+				'<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->switch_orders_total_count . '</strong> </a>',
+				'<a href="' .
+				esc_url(
+					add_query_arg(
+						array(
+							'post_type'        => 'shop_order',
+							'_orders_list_key' => $this->report_data->switches_query_hash,
+							'_report'          => strtolower( get_class( $this ) ),
+						),
+						admin_url( 'edit.php' )
+					)
+				) . '" id="' . $tracks_id . 'switches">'
+			),
 			'placeholder'      => __( 'The number of subscriptions upgraded, downgraded or cross-graded during this period.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['switch_count'],
 			'highlight_series' => 0,
 		);
 
 		$legend[] = array(
-			'title'            => sprintf( __( '%2$s %1$s subscription cancellations', 'woocommerce-subscriptions' ), '<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->total_subscriptions_cancelled . '</strong> </a>',
-			'<a href="' . esc_url( add_query_arg( array( 'post_type' => 'shop_subscription', '_subscriptions_list_key' => $this->report_data->cancelled_subscriptions_query_hash, '_report' => strtolower( get_class( $this ) ) ), admin_url( 'edit.php' ) ) ). '">' ),
+			'title'            => sprintf(
+				// translators: 2: link opening tag, 1: subscription count and closing tag.
+				__( '%2$s %1$s subscription cancellations', 'woocommerce-subscriptions' ),
+				'<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->total_subscriptions_cancelled . '</strong> </a>',
+				'<a href="' .
+				esc_url(
+					add_query_arg(
+						array(
+							'post_type'               => 'shop_subscription',
+							'_subscriptions_list_key' => $this->report_data->cancelled_subscriptions_query_hash,
+							'_report'                 => strtolower( get_class( $this ) ),
+						),
+						admin_url( 'edit.php' )
+					)
+				) . '" id="' . $tracks_id . 'cancellations">'
+			),
 			'placeholder'      => __( 'The number of subscriptions cancelled by the customer or store manager during this period.  The pre-paid term may not yet have ended during this period.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['cancel_count'],
 			'highlight_series' => 7,
 		);
 
 		$legend[] = array(
-			'title'            => sprintf( __( '%2$s %1$s ended subscriptions', 'woocommerce-subscriptions' ), '<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->total_subscriptions_ended . '</strong> </a>',
-			'<a href="' . esc_url( add_query_arg( array( 'post_type' => 'shop_subscription', '_subscriptions_list_key' => $this->report_data->ended_subscriptions_query_hash, '_report' => strtolower( get_class( $this ) ) ), admin_url( 'edit.php' ) ) ). '">' ),
+			'title'            => sprintf(
+				// translators: 2: link opening tag, 1: subscription count and closing tag.
+				__( '%2$s %1$s ended subscriptions', 'woocommerce-subscriptions' ),
+				'<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->total_subscriptions_ended . '</strong> </a>',
+				'<a href="' .
+				esc_url(
+					add_query_arg(
+						array(
+							'post_type'               => 'shop_subscription',
+							'_subscriptions_list_key' => $this->report_data->ended_subscriptions_query_hash,
+							'_report'                 => strtolower( get_class( $this ) ),
+						),
+						admin_url( 'edit.php' )
+					)
+				) . '" id="' . $tracks_id . 'ended">'
+			),
 			'placeholder'      => __( 'The number of subscriptions which have either expired or reached the end of the prepaid term if it was previously cancelled.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['ended_count'],
 			'highlight_series' => 6,
@@ -569,8 +673,23 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		$data_key = $this->report_data->subscriber_counts ? max( array_keys( $this->report_data->subscriber_counts ) ) : false;
 
 		$legend[] = array(
-			'title'            => sprintf( __( '%2$s %1$s current subscriptions', 'woocommerce-subscriptions' ), '<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->total_subscriptions_at_period_end . '</strong> </a>',
-			'<a href="' . esc_url( add_query_arg( array( 'post_type' => 'shop_subscription', '_subscriptions_list_key' => $this->report_data->current_subscriptions_query_hash, '_report' => strtolower( get_class( $this ) ), '_data_key' => $data_key ), admin_url( 'edit.php' ) ) ). '">' ),
+			'title'            => sprintf(
+				// translators: 2: link opening tag, 1: subscription count and closing tag.
+				__( '%2$s %1$s current subscriptions', 'woocommerce-subscriptions' ),
+				'<strong> <span class="woocommerce-subscriptions-count count">' . $this->report_data->total_subscriptions_at_period_end . '</strong> </a>',
+				'<a href="' .
+				esc_url(
+					add_query_arg(
+						array(
+							'post_type'               => 'shop_subscription',
+							'_subscriptions_list_key' => $this->report_data->current_subscriptions_query_hash,
+							'_report'                 => strtolower( get_class( $this ) ),
+							'_data_key'               => $data_key,
+						),
+						admin_url( 'edit.php' )
+					)
+				) . '" id="' . $tracks_id . 'current">'
+			),
 			'placeholder'      => __( 'The number of subscriptions during this period with an end date in the future and a status other than pending.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['subscriber_count'],
 			'highlight_series' => 5,
@@ -578,8 +697,8 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 
 		$subscription_change_count = ( $data->total_subscriptions_at_period_end - $data->total_subscriptions_at_period_start > 0 ) ? '+' . ( $data->total_subscriptions_at_period_end - $data->total_subscriptions_at_period_start ) : ( $data->total_subscriptions_at_period_end - $data->total_subscriptions_at_period_start );
 
-		if ( $data->total_subscriptions_at_period_start === 0 ) {
-			$subscription_change_percent = '&#x221e;%'; // infinite percentage increase if the starting subs is 0
+		if ( 0 === $data->total_subscriptions_at_period_start ) {
+			$subscription_change_percent = '&#x221e;%'; // infinite percentage increase if the starting subs is 0.
 		} elseif ( $data->total_subscriptions_at_period_end - $data->total_subscriptions_at_period_start >= 0 ) {
 			$subscription_change_percent = '+' . number_format( ( ( ( $data->total_subscriptions_at_period_end - $data->total_subscriptions_at_period_start ) / $data->total_subscriptions_at_period_start ) * 100 ), 2 ) . '%';
 		} else {
@@ -587,8 +706,10 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		}
 
 		if ( $data->total_subscriptions_at_period_end - $data->total_subscriptions_at_period_start >= 0 ) {
+			// translators: %s: subscription net gain (with percentage).
 			$legend_title = __( '%s net subscription gain', 'woocommerce-subscriptions' );
 		} else {
+			// translators: %s: subscription net loss (with percentage).
 			$legend_title = __( '%s net subscription loss', 'woocommerce-subscriptions' );
 		}
 
@@ -608,10 +729,10 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 	public function output_report() {
 
 		$ranges = array(
-			'year'         => __( 'Year', 'woocommerce-subscriptions' ),
-			'last_month'   => __( 'Last Month', 'woocommerce-subscriptions' ),
-			'month'        => __( 'This Month', 'woocommerce-subscriptions' ),
-			'7day'         => __( 'Last 7 Days', 'woocommerce-subscriptions' ),
+			'year'       => __( 'Year', 'woocommerce-subscriptions' ),
+			'last_month' => __( 'Last Month', 'woocommerce-subscriptions' ),
+			'month'      => __( 'This Month', 'woocommerce-subscriptions' ),
+			'7day'       => __( 'Last 7 Days', 'woocommerce-subscriptions' ),
 		);
 
 		$this->chart_colours = array(
@@ -899,26 +1020,26 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 							shadowSize: 0,
 							<?php echo wp_kses_post( $this->get_currency_tooltip() ); ?>
 						},
-                        {
-                            label: "<?php echo esc_js( __( 'Switch Totals', 'woocommerce-subscriptions' ) ) ?>",
-                            data: order_data.switch_orders_amount,
-                            yaxis: 2,
-                            color: '<?php echo esc_js( $this->chart_colours['switch_total'] ); ?>',
-                            points: {
-                                show: true,
-                                radius: 5,
-                                lineWidth: 4,
-                                fillColor: '#fff',
-                                fill: true
-                            },
-                            lines: {
-                                show: true,
-                                lineWidth: 5,
-                                fill: false
-                            },
-                            shadowSize: 0,
+						{
+							label: "<?php echo esc_js( __( 'Switch Totals', 'woocommerce-subscriptions' ) ) ?>",
+							data: order_data.switch_orders_amount,
+							yaxis: 2,
+							color: '<?php echo esc_js( $this->chart_colours['switch_total'] ); ?>',
+							points: {
+								show: true,
+								radius: 5,
+								lineWidth: 4,
+								fillColor: '#fff',
+								fill: true
+							},
+							lines: {
+								show: true,
+								lineWidth: 5,
+								fill: false
+							},
+							shadowSize: 0,
 							<?php echo wp_kses_post( $this->get_currency_tooltip() ); ?>
-                        },
+						},
 					];
 
 					if ( highlight !== 'undefined' && series[ highlight ] ) {
@@ -1047,7 +1168,11 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 				$time = strtotime( date( 'Ym', strtotime( "+{$i} MONTH", $start_date ) ) . '01' ) . '000';
 
 				if ( ! isset( $prepared_data[ $time ] ) ) {
-					$prepared_data[ $time ] = array( esc_js( $time ), 0, 'count' => 0 );
+					$prepared_data[ $time ] = array(
+						esc_js( $time ),
+						0,
+						'count' => 0,
+					);
 				}
 			}
 

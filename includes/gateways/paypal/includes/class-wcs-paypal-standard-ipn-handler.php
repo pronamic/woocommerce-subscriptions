@@ -8,11 +8,11 @@
  *
  * @link https://developer.paypal.com/docs/classic/ipn/integration-guide/IPNandPDTVariables/#id08CTB0S055Z
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	Gateways/PayPal
- * @category	Class
- * @author		Prospress
- * @since		2.0
+ * @package     WooCommerce Subscriptions
+ * @subpackage  Gateways/PayPal
+ * @category    Class
+ * @author      Prospress
+ * @since       2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -435,15 +435,15 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 							$this->add_order_note( sprintf( _x( 'IPN subscription payment %s.', 'used in order note', 'woocommerce-subscriptions' ), $transaction_details['payment_status'] ), $transaction_order, $transaction_details );
 						} else {
 							$transaction_order->update_status( 'on-hold' );
-							// translators: placeholder is payment status (e.g. "completed")
-							$this->add_order_note( sprintf( _x( 'IPN subscription payment %s for reason: %s.', 'used in order note', 'woocommerce-subscriptions' ), $transaction_details['payment_status'], $transaction_details['pending_reason'] ), $transaction_order, $transaction_details );
+							// translators: 1: payment status (e.g. "completed"), 2: pending reason.
+							$this->add_order_note( sprintf( _x( 'IPN subscription payment %1$s for reason: %2$s.', 'used in order note', 'woocommerce-subscriptions' ), $transaction_details['payment_status'], $transaction_details['pending_reason'] ), $transaction_order, $transaction_details );
 						}
 					}
 
 					WC_Gateway_Paypal::log( sprintf( 'IPN subscription payment %s for subscription %d ', $transaction_details['payment_status'], $subscription->get_id() ) );
 				} else {
 
-					WC_Gateway_Paypal::log( 'IPN subscription payment notification received for subscription ' . $subscription->get_id()  . ' with status ' . $transaction_details['payment_status'] );
+					WC_Gateway_Paypal::log( 'IPN subscription payment notification received for subscription ' . $subscription->get_id() . ' with status ' . $transaction_details['payment_status'] );
 
 				}
 
@@ -571,13 +571,13 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	 * function uses regular expressions and looks for 'order key'. WooCommerce allows plugins to modify the order
 	 * keys through filtering, unfortunatelly we only check for the original
 	 *
-	 * @param string $payload	PayPal payload data
+	 * @param string $payload PayPal payload data
 	 *
 	 * @return bool
 	 */
 	protected function is_woocommerce_payload( $payload ) {
 		return is_numeric( $payload ) ||
-			(bool) preg_match( '/(wc_)?order_[a-f0-9]{5,20}/', $payload );
+			(bool) preg_match( '/(wc_)?order_[A-Za-z0-9]{5,20}/', $payload );
 	}
 
 	/**
@@ -646,7 +646,10 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 			}
 		}
 
-		return array( 'order_id' => (int) $order_id, 'order_key' => $order_key );
+		return array(
+			'order_id'  => (int) $order_id,
+			'order_key' => $order_key,
+		);
 	}
 
 	/**

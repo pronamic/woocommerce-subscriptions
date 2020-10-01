@@ -553,7 +553,12 @@ class WC_Subscription_Legacy extends WC_Subscription {
 		$prefix     = substr( $new_status, 0, 3 );
 		$new_status = 'wc-' === $prefix ? substr( $new_status, 3 ) : $new_status;
 
-		wp_update_post( array( 'ID' => $this->get_id(), 'post_status' => wcs_maybe_prefix_key( $new_status, 'wc-' ) ) );
+		wp_update_post(
+			array(
+				'ID'          => $this->get_id(),
+				'post_status' => wcs_maybe_prefix_key( $new_status, 'wc-' ),
+			)
+		);
 		$this->post_status = $this->post->post_status = wcs_maybe_prefix_key( $new_status, 'wc-' );
 
 		if ( $old_status !== $new_status ) {
@@ -629,19 +634,19 @@ class WC_Subscription_Legacy extends WC_Subscription {
 			$datetime = wcs_get_datetime_from( $date );
 
 			switch ( $date_type ) {
-				case 'date_paid' :
+				case 'date_paid':
 					update_post_meta( $last_order->id, '_paid_date', ! is_null( $date ) ? $datetime->date( 'Y-m-d H:i:s' ) : '' );
 					// Preemptively set the UTC timestamp for WC 3.0+ also to avoid incorrect values when the site's timezone is changed between now and upgrading to WC 3.0
 					update_post_meta( $last_order->id, '_date_paid', ! is_null( $date ) ? $datetime->getTimestamp() : '' );
 				break;
 
-				case 'date_completed' :
+				case 'date_completed':
 					update_post_meta( $last_order->id, '_completed_date', ! is_null( $date ) ? $datetime->date( 'Y-m-d H:i:s' ) : '' );
 					// Preemptively set the UTC timestamp for WC 3.0+ also to avoid incorrect values when the site's timezone is changed between now and upgrading to WC 3.0
 					update_post_meta( $last_order->id, '_date_completed', ! is_null( $date ) ? $datetime->getTimestamp() : '' );
 				break;
 
-				case 'date_modified' :
+				case 'date_modified':
 					wp_update_post( array(
 						'ID'                => $last_order->id,
 						'post_modified'     => $datetime->date( 'Y-m-d H:i:s' ),
@@ -649,7 +654,7 @@ class WC_Subscription_Legacy extends WC_Subscription {
 					) );
 				break;
 
-				case 'date_created' :
+				case 'date_created':
 					wp_update_post( array(
 						'ID'            => $last_order->id,
 						'post_date'     => $datetime->date( 'Y-m-d H:i:s' ),

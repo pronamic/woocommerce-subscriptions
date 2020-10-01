@@ -88,15 +88,15 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 	 * @since 2.2.20
 	 */
 	public function get_privacy_message() {
-		return
+		return '' .
 		'<p>' . __( 'By using WooCommerce Subscriptions, you may be storing personal data and depending on which third-party payment processors you’re using to take subscription payments, you may be sharing personal data with external sources.', 'woocommerce-subscriptions' ) . '</p>' .
 		// translators: placeholders are opening and closing link tags, linking to additional privacy policy documentation.
 		'<h3>' . __( 'What we collect and store', 'woocommerce-subscriptions' ) . '</h3>' .
 		'<p>' . __( 'For the purposes of processing recurring subscription payments, we store the customer\'s name, billing address, shipping address, email address, phone number and credit card/payment details.', 'woocommerce-subscriptions' ) . '</p>' .
 		'<h3>' . __( 'What we share with others', 'woocommerce-subscriptions' ) . '</h3>' .
-		'<p>' . __( 'What personal information your store shares with external sources depends on which third-party payment processor plugins you are using to collect subscription payments. We recommend that you consult with their privacy policies to inform this section of your privacy policy.', 'woocommerce-subscriptions' )  . '</p>' .
+		'<p>' . __( 'What personal information your store shares with external sources depends on which third-party payment processor plugins you are using to collect subscription payments. We recommend that you consult with their privacy policies to inform this section of your privacy policy.', 'woocommerce-subscriptions' ) . '</p>' .
 		// translators: placeholders are opening and closing link tags, linking to additional privacy policy documentation.
-		'<p>' . sprintf( __( 'If you are using PayPal Standard or PayPal Reference transactions please see the %sPayPal Privacy Policy%s for more details.', 'woocommerce-subscriptions' ), '<a href="https://www.paypal.com/us/webapps/mpp/ua/privacy-full">', '</a>' )  . '</p>';
+		'<p>' . sprintf( __( 'If you are using PayPal Standard or PayPal Reference transactions please see the %1$sPayPal Privacy Policy%2$s for more details.', 'woocommerce-subscriptions' ), '<a href="https://www.paypal.com/us/webapps/mpp/ua/privacy-full">', '</a>' ) . '</p>';
 	}
 
 	/**
@@ -137,10 +137,10 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 		$subscription_ids = array_map( 'absint', (array) $_REQUEST['post'] );
 		$changed          = 0;
 		$sendback_args    = array(
-			'post_type'    => 'shop_subscription',
-			'bulk_action'  => 'remove_personal_data',
-			'ids'          => join( ',', $subscription_ids ),
-			'error_count'  => 0,
+			'post_type'   => 'shop_subscription',
+			'bulk_action' => 'remove_personal_data',
+			'ids'         => join( ',', $subscription_ids ),
+			'error_count' => 0,
 		);
 
 		foreach ( $subscription_ids as $subscription_id ) {
@@ -172,6 +172,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 		}
 
 		$changed = isset( $_REQUEST['changed'] ) ? absint( $_REQUEST['changed'] ) : 0;
+		// translators: %d: number of subscriptions affected.
 		$message = sprintf( _n( 'Removed personal data from %d subscription.', 'Removed personal data from %d subscriptions.', $changed, 'woocommerce-subscriptions' ), number_format_i18n( $changed ) );
 		echo '<div class="updated"><p>' . esc_html( $message ) . '</p></div>';
 	}
@@ -191,7 +192,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 		foreach ( $settings as &$setting ) {
 			if ( isset( $setting['id'], $setting['type'] ) && 'personal_data_retention' === $setting['id'] && 'title' === $setting['type'] ) {
 				// translators: placeholders are opening and closing tags.
-				$note            = sprintf( __( '%sNote:%s Orders which are related to subscriptions will not be included in the orders affected by these settings.', 'woocommerce-subscriptions' ), '<b>', '</b>' );
+				$note            = sprintf( __( '%1$sNote:%2$s Orders which are related to subscriptions will not be included in the orders affected by these settings.', 'woocommerce-subscriptions' ), '<b>', '</b>' );
 				$setting['desc'] = isset( $setting['desc'] ) ? $setting['desc'] . '<br>' . $note : $note;
 			}
 		}
@@ -273,7 +274,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 	public static function add_inactive_user_retention_note( $settings ) {
 		foreach ( $settings as &$setting ) {
 			if ( isset( $setting['id'], $setting['desc_tip'] ) && 'woocommerce_delete_inactive_accounts' === $setting['id'] ) {
-				$setting['desc_tip'] .= ' ' .  __( 'Customers with a subscription are excluded from this setting.', 'woocommerce-subscriptions' );
+				$setting['desc_tip'] .= ' ' . __( 'Customers with a subscription are excluded from this setting.', 'woocommerce-subscriptions' );
 				break;
 			}
 		}

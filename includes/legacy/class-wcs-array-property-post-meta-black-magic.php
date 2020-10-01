@@ -13,9 +13,9 @@
  * of other objects, like WC_Product_Subscription_Variation::__get() for the property formerly known as
  * $subscription_variation_level_meta_data.
  *
- * @package		WooCommerce Subscriptions
- * @category	Class
- * @since		2.2.0
+ * @package WooCommerce Subscriptions
+ * @category Class
+ * @since 2.2.0
  *
  */
 if ( ! defined( 'ABSPATH' ) ) {

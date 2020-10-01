@@ -2,10 +2,10 @@
 /**
  * Repair subscriptions data corrupted with the v2.0.0 upgrade process
  *
- * @author		Prospress
- * @category	Admin
- * @package		WooCommerce Subscriptions/Admin/Upgrades
- * @version		2.0.2
+ * @author      Prospress
+ * @category    Admin
+ * @package     WooCommerce Subscriptions/Admin/Upgrades
+ * @version     2.0.2
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -124,7 +124,7 @@ class WCS_Repair_2_0_2 {
 		$matching_line_item_meta = $matching_line_item['item_meta'];
 
 		// if the order item doesn't have migrated subscription data, the subscription wasn't migrated from 1.5
-		if ( ! isset( $matching_line_item_meta['_wcs_migrated_subscription_status'] ) && ! isset( $matching_line_item_meta['_wcs_migrated_subscription_start_date'] )  ) {
+		if ( ! isset( $matching_line_item_meta['_wcs_migrated_subscription_status'] ) && ! isset( $matching_line_item_meta['_wcs_migrated_subscription_start_date'] ) ) {
 			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: no need to repair: matching line item has no migrated meta data.', $subscription->get_id() ) );
 			return $repaired_subscription;
 		}
@@ -360,7 +360,12 @@ class WCS_Repair_2_0_2 {
 			try {
 
 				// we need to bypass the update_status() method here because normally an expired subscription can't have it's status changed, we also don't want normal status change hooks to be fired
-				wp_update_post( array( 'ID' => $subscription->get_id(), 'post_status' => 'wc-on-hold' ) );
+				wp_update_post(
+					array(
+						'ID'          => $subscription->get_id(),
+						'post_status' => 'wc-on-hold',
+					)
+				);
 
 				// if the payment method doesn't support date changes, we still want to reactivate the subscription but we also need to process a special failed payment at the next renewal to fix up the payment method so we'll set a special flag in post meta to handle that
 				if ( ! $subscription->payment_method_supports( 'subscription_date_changes' ) && $subscription->get_total() > 0 ) {
@@ -400,7 +405,7 @@ class WCS_Repair_2_0_2 {
 	protected static function maybe_repair_line_tax_data( $subscription_line_item_id, $old_order_item_id, $old_order_item ) {
 
 		// we need item meta in the old format so that we can use the (now fixed) WCS_Upgrade_2_0::add_line_tax_data() method and save duplicating its code
-		$old_order_item['item_meta']['_recurring_line_total']        = isset( $old_order_item['item_meta']['_wcs_migrated_recurring_line_total'] ) ? $old_order_item['item_meta']['_wcs_migrated_recurring_line_total']: 0;
+		$old_order_item['item_meta']['_recurring_line_total']        = isset( $old_order_item['item_meta']['_wcs_migrated_recurring_line_total'] ) ? $old_order_item['item_meta']['_wcs_migrated_recurring_line_total'] : 0;
 		$old_order_item['item_meta']['_recurring_line_tax']          = isset( $old_order_item['item_meta']['_wcs_migrated_recurring_line_tax'] ) ? $old_order_item['item_meta']['_wcs_migrated_recurring_line_tax'] : 0;
 		$old_order_item['item_meta']['_recurring_line_subtotal_tax'] = isset( $old_order_item['item_meta']['_wcs_migrated_recurring_line_subtotal_tax'] ) ? $old_order_item['item_meta']['_wcs_migrated_recurring_line_subtotal_tax'] : 0;
 

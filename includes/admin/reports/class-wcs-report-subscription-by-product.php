@@ -17,9 +17,9 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 	 */
 	public function __construct() {
 		parent::__construct( array(
-			'singular'  => __( 'Product', 'woocommerce-subscriptions' ),
-			'plural'    => __( 'Products', 'woocommerce-subscriptions' ),
-			'ajax'      => false,
+			'singular' => __( 'Product', 'woocommerce-subscriptions' ),
+			'plural'   => __( 'Products', 'woocommerce-subscriptions' ),
+			'ajax'     => false,
 		) );
 	}
 
@@ -54,7 +54,7 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 
 		switch ( $column_name ) {
 
-			case 'product_name' :
+			case 'product_name':
 				// If the product is a subscription variation, use the parent product's edit post link
 				if ( $report_item->parent_product_id > 0 ) {
 					return edit_post_link( $report_item->product_name, ' - ', null, $report_item->parent_product_id );
@@ -62,14 +62,14 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 					return edit_post_link( $report_item->product_name, null, null, $report_item->product_id );
 				}
 
-			case 'subscription_count' :
+			case 'subscription_count':
 				return sprintf( '<a href="%s%d">%d</a>', admin_url( 'edit.php?post_type=shop_subscription&_wcs_product=' ), $report_item->product_id, $report_item->subscription_count );
 
-			case 'average_recurring_total' :
+			case 'average_recurring_total':
 				$average_subscription_amount = ( 0 !== $report_item->subscription_count ? wc_price( $report_item->recurring_total / $report_item->subscription_count ) : '-' );
 				return $average_subscription_amount;
 
-			case 'average_lifetime_value' :
+			case 'average_lifetime_value':
 				$average_subscription_amount = ( 0 !== $report_item->subscription_count ? wc_price( $report_item->product_total / $report_item->subscription_count ) : '-' );
 				return $average_subscription_amount;
 
@@ -87,8 +87,11 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 
 		$columns = array(
 			'product_name'            => __( 'Subscription Product', 'woocommerce-subscriptions' ),
+			// translators: %s: help tip.
 			'subscription_count'      => sprintf( __( 'Subscription Count %s', 'woocommerce-subscriptions' ), wcs_help_tip( __( 'The number of subscriptions that include this product as a line item and have a status other than pending or trashed.', 'woocommerce-subscriptions' ) ) ),
+			// translators: %s: help tip.
 			'average_recurring_total' => sprintf( __( 'Average Recurring Line Total %s', 'woocommerce-subscriptions' ), wcs_help_tip( __( 'The average line total for this product on each subscription.', 'woocommerce-subscriptions' ) ) ),
+			// translators: %s: help tip.
 			'average_lifetime_value'  => sprintf( __( 'Average Lifetime Value %s', 'woocommerce-subscriptions' ), wcs_help_tip( __( 'The average line total on all orders for this product line item.', 'woocommerce-subscriptions' ) ) ),
 		);
 
@@ -183,14 +186,14 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 		// Create an array with all the report data in the correct order
 		$ordered_report_data = array();
 		foreach ( $tree as $parent_id => $children ) {
-		    foreach ( $children as $child_id ) {
+			foreach ( $children as $child_id ) {
 				$ordered_report_data[ $child_id ] = $report_data[ $child_id ];
 
 				// When there are variations, store the variation ids.
 				if ( 'variable-subscription' === $report_data[ $child_id ]->product_type ) {
-				    $ordered_report_data[ $child_id ]->variations = array_diff( $children, array( $parent_id ) );
+					$ordered_report_data[ $child_id ]->variations = array_diff( $children, array( $parent_id ) );
 				}
-		    }
+			}
 		}
 
 		// Now let's get the total revenue for each product so we can provide an average lifetime value for that product
@@ -238,13 +241,13 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 		// Filter top n variations corresponding to top 12 parent products
 		$variations = array();
 		foreach ( $products as $product ) {
-		    if ( ! empty( $product->variations ) ) { // Variable subscription
-		        foreach ( $product->variations as $variation_id ) {
-		            $variations[] = $this->items[ $variation_id ];
-		        }
-		    } else { // Simple subscription
+			if ( ! empty( $product->variations ) ) { // Variable subscription
+				foreach ( $product->variations as $variation_id ) {
+					$variations[] = $this->items[ $variation_id ];
+				}
+			} else { // Simple subscription
 				$variations[] = $product;
-		    }
+			}
 		}
 		?>
 		<div class="chart-container" style="float: left; padding-top: 50px; min-width: 0px;">

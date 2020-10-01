@@ -49,6 +49,7 @@ class WCS_Change_Payment_Method_Admin {
 
 		} elseif ( count( $valid_payment_methods ) == 1 ) {
 			echo '<strong>' . esc_html__( 'Payment Method', 'woocommerce-subscriptions' ) . ':</strong><br/>' . esc_html( current( $valid_payment_methods ) );
+			// translators: %s: gateway ID.
 			echo wcs_help_tip( sprintf( _x( 'Gateway ID: [%s]', 'The gateway ID displayed on the Edit Subscriptions screen when editing payment method.', 'woocommerce-subscriptions' ), key( $valid_payment_methods ) ) );
 			echo '<input type="hidden" value="' . esc_attr( key( $valid_payment_methods ) ) . '" id="_payment_method" name="_payment_method">';
 		}
@@ -61,20 +62,29 @@ class WCS_Change_Payment_Method_Admin {
 
 			foreach ( $payment_method_table as $payment_method_id => $payment_method_meta ) {
 
-				echo '<div class="wcs_payment_method_meta_fields" id="wcs_' . esc_attr( $payment_method_id ) . '_fields" ' . ( ( $payment_method_id != $payment_method || $subscription->is_manual() ) ? 'style="display:none;"' : '' ) .' >';
+				echo '<div class="wcs_payment_method_meta_fields" id="wcs_' . esc_attr( $payment_method_id ) . '_fields" ' . ( ( $payment_method_id != $payment_method || $subscription->is_manual() ) ? 'style="display:none;"' : '' ) . ' >';
 
 				foreach ( $payment_method_meta as $meta_table => $meta ) {
 
 					foreach ( $meta as $meta_key => $meta_data ) {
 
 						$field_id       = sprintf( '_payment_method_meta[%s][%s][%s]', $payment_method_id, $meta_table, $meta_key );
-						$field_label    = ( ! empty( $meta_data['label'] ) ) ? $meta_data['label'] : $meta_key ;
-						$field_value    = ( ! empty( $meta_data['value'] ) ) ? $meta_data['value'] : null ;
+						$field_label    = ( ! empty( $meta_data['label'] ) ) ? $meta_data['label'] : $meta_key;
+						$field_value    = ( ! empty( $meta_data['value'] ) ) ? $meta_data['value'] : null;
 						$field_disabled = ( isset( $meta_data['disabled'] ) && true == $meta_data['disabled'] ) ? ' readonly' : '';
 
 						echo '<p class="form-field form-field-wide">';
 						echo '<label for="' . esc_attr( $field_id ) . '">' . esc_html( $field_label ) . '</label>';
-						echo '<input type="text" class="short" name="' . esc_attr( $field_id ) . '" id="' . esc_attr( $field_id ) . '" value="' . esc_attr( $field_value ) . '" placeholder="" ' . esc_attr( $field_disabled ) . '>';
+
+						$payment_meta_input_action_name = sprintf( 'woocommerce_subscription_payment_meta_input_%s_%s_%s', $payment_method_id, $meta_table, $meta_key );
+
+						// Allow third parties to display their own custom meta input fields.
+						if ( has_action( $payment_meta_input_action_name ) ) {
+							do_action( $payment_meta_input_action_name, $subscription, $field_id, $field_value, $meta_data );
+						} else {
+							echo '<input type="text" class="short" name="' . esc_attr( $field_id ) . '" id="' . esc_attr( $field_id ) . '" value="' . esc_attr( $field_value ) . '" placeholder="" ' . esc_attr( $field_disabled ) . '>';
+						}
+
 						echo '</p>';
 					}
 				}
@@ -135,8 +145,11 @@ class WCS_Change_Payment_Method_Admin {
 			WC_Subscriptions_Payment_Gateways::trigger_gateway_status_updated_hook( $subscription, $gateway_status );
 		}
 
-		$subscription->set_payment_method( $payment_gateway, $payment_method_meta );
-		$subscription->save();
+		// Update the payment method for manual only if it has changed.
+		if ( ! $subscription->is_manual() || 'manual' !== $payment_method ) {
+			$subscription->set_payment_method( $payment_gateway, $payment_method_meta );
+			$subscription->save();
+		}
 	}
 
 	/**

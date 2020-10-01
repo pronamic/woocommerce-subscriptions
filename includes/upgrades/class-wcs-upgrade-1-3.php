@@ -5,10 +5,10 @@
  * Upgrade cron lock values to be options rather than transients to work around potential early deletion by W3TC
  * and other caching plugins. Also add the Variable Subscription product type (if it doesn't exist).
  *
- * @author		Prospress
- * @category	Admin
- * @package		WooCommerce Subscriptions/Admin/Upgrades
- * @version		1.3.0
+ * @author      Prospress
+ * @category    Admin
+ * @package     WooCommerce Subscriptions/Admin/Upgrades
+ * @version     1.3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

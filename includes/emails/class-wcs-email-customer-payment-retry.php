@@ -8,10 +8,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Email sent to the customer when an attempt to automatically process a subscription renewal payment has failed
  * and a retry rule has been applied to retry the payment in the future.
  *
- * @version		2.1
- * @package		WooCommerce_Subscriptions/Includes/Emails
- * @author		Prospress
- * @extends		WCS_Email_Customer_Renewal_Invoice
+ * @version 2.1
+ * @package WooCommerce_Subscriptions/Includes/Emails
+ * @author Prospress
+ * @extends WCS_Email_Customer_Renewal_Invoice
  */
 class WCS_Email_Customer_Payment_Retry extends WCS_Email_Customer_Renewal_Invoice {
 

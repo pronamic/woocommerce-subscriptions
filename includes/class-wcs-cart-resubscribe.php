@@ -6,11 +6,11 @@
  * - creates a new subscription with similar terms to the existing subscription, where as a renewal resumes the existing subscription
  * - is for an expired or cancelled subscription only.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WCS_Cart_Resubscribe
- * @category	Class
- * @author		Prospress
- * @since		2.0
+ * @package WooCommerce Subscriptions
+ * @subpackage WCS_Cart_Resubscribe
+ * @category Class
+ * @author Prospress
+ * @since 2.0
  */
 
 class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
@@ -316,6 +316,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 
 			foreach ( wcs_get_subscriptions_for_resubscribe_order( $order_id ) as $subscription ) {
 				if ( $subscription->has_status( 'pending-cancel' ) ) {
+					// translators: %s: order number.
 					$cancel_note = sprintf( __( 'Customer resubscribed in order #%s', 'woocommerce-subscriptions' ), $order->get_order_number() );
 					$subscription->update_status( 'cancelled', $cancel_note );
 				}

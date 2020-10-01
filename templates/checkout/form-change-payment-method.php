@@ -52,7 +52,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 		$pay_order_button_text     = apply_filters( 'woocommerce_change_payment_button_text', $pay_order_button_text );
 		$customer_subscription_ids = WCS_Customer_Store::instance()->get_users_subscription_ids( $subscription->get_customer_id() );
 
-		if ( $available_gateways = WC()->payment_gateways->get_available_payment_gateways() ) : ?>
+		if ( $available_gateways = WC()->payment_gateways->get_available_payment_gateways() ) :
+			?>
 			<ul class="payment_methods methods">
 				<?php
 
@@ -85,7 +86,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php if ( $available_gateways ) : ?>
 			<?php if ( count( $customer_subscription_ids ) > 1 && WC_Subscriptions_Payment_Gateways::one_gateway_supports( 'subscription_payment_method_change_admin' ) ) : ?>
 			<span class="update-all-subscriptions-payment-method-wrap">
-			<?php
+				<?php
 				// translators: $1: opening <strong> tag, $2: closing </strong> tag
 				$label = sprintf( esc_html__( 'Update the payment method used for %1$sall%2$s of my current subscriptions', 'woocommerce-subscriptions' ), '<strong>', '</strong>' );
 
@@ -98,12 +99,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 						'default' => apply_filters( 'wcs_update_all_subscriptions_payment_method_checked', false ),
 					)
 				);
-			?>
+				?>
 			</span>
 			<?php endif; ?>
+
 		<div class="form-row">
 			<?php wp_nonce_field( 'wcs_change_payment_method', '_wcsnonce', true, true ); ?>
-			<?php echo wp_kses( apply_filters( 'woocommerce_change_payment_button_html', '<input type="submit" class="button alt" id="place_order" value="' . esc_attr( $pay_order_button_text ) . '" data-value="' . esc_attr( $pay_order_button_text ) . '" />' ), array( 'input' => array( 'type' => array(), 'class' => array(), 'id' => array(), 'value' => array(), 'data-value' => array() ) ) ); ?>
+
+			<?php do_action( 'woocommerce_subscriptions_change_payment_before_submit' ); ?>
+
+			<?php
+			echo wp_kses(
+				apply_filters( 'woocommerce_change_payment_button_html', '<input type="submit" class="button alt" id="place_order" value="' . esc_attr( $pay_order_button_text ) . '" data-value="' . esc_attr( $pay_order_button_text ) . '" />' ),
+				array(
+					'input' => array(
+						'type'       => array(),
+						'class'      => array(),
+						'id'         => array(),
+						'value'      => array(),
+						'data-value' => array(),
+					),
+				)
+			);
+			?>
+
+			<?php do_action( 'woocommerce_subscriptions_change_payment_after_submit' ); ?>
+
 			<input type="hidden" name="woocommerce_change_payment" value="<?php echo esc_attr( $subscription->get_id() ); ?>" />
 		</div>
 		<?php endif; ?>

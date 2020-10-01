@@ -4,11 +4,11 @@
  *
  * Hooks into WooCommerce to handle editing addresses for subscriptions (by editing the original order for the subscription)
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Addresses
- * @category	Class
- * @author		Brent Shepherd
- * @since		1.3
+ * @package    WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Addresses
+ * @category   Class
+ * @author     Brent Shepherd
+ * @since      1.3
  */
 class WC_Subscriptions_Addresses {
 
@@ -203,11 +203,13 @@ class WC_Subscriptions_Addresses {
 			);
 
 			$crumbs[2] = array(
+				// translators: %s: subscription ID.
 				sprintf( _x( 'Subscription #%s', 'hash before order number', 'woocommerce-subscriptions' ), $subscription->get_order_number() ),
 				esc_url( $subscription->get_view_order_url() ),
 			);
 
 			$crumbs[3] = array(
+				// translators: %s: address type (eg. 'billing' or 'shipping').
 				sprintf( _x( 'Change %s address', 'change billing or shipping address', 'woocommerce-subscriptions' ), $wp_query->query_vars['edit-address'] ),
 				'',
 			);

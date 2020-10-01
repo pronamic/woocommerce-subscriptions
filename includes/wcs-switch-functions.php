@@ -2,9 +2,9 @@
 /**
  * WooCommerce Subscriptions Switch Functions
  *
- * @author 		Prospress
- * @category 	Core
- * @package 	WooCommerce Subscriptions/Functions
+ * @author Prospress
+ * @category Core
+ * @package WooCommerce Subscriptions/Functions
  * @version     2.0
  */
 
@@ -95,16 +95,16 @@ function wcs_is_product_switchable_type( $product ) {
 		$allow_switching = get_option( WC_Subscriptions_Admin::$option_prefix . '_allow_switching', 'no' );
 
 		switch ( $allow_switching ) {
-			case 'variable' :
+			case 'variable':
 				$is_product_switchable = $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) && 'publish' === wcs_get_objects_property( $product, 'post_status' );
 				break;
-			case 'grouped' :
+			case 'grouped':
 				$is_product_switchable = (bool) WC_Subscriptions_Product::get_visible_grouped_parent_product_ids( $product );
 				break;
-			case 'variable_grouped' :
+			case 'variable_grouped':
 				$is_product_switchable = ( $product->is_type( array( 'variable-subscription', 'subscription_variation' ) ) && 'publish' === wcs_get_objects_property( $product, 'post_status' ) ) || WC_Subscriptions_Product::get_visible_grouped_parent_product_ids( $product );
 				break;
-			case 'no' :
+			case 'no':
 			default:
 				$is_product_switchable = false;
 				break;

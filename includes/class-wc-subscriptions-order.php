@@ -4,10 +4,10 @@
  *
  * Mirrors and overloads a few functions in the WC_Order class to work for subscriptions.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Order
- * @category	Class
- * @author		Brent Shepherd
+ * @package    WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Order
+ * @category   Class
+ * @author     Brent Shepherd
  */
 class WC_Subscriptions_Order {
 
@@ -47,7 +47,7 @@ class WC_Subscriptions_Order {
 		add_action( 'woocommerce_order_status_changed', __CLASS__ . '::maybe_record_subscription_payment', 9, 3 );
 
 		// Sometimes, even if the order total is $0, the order still needs payment
-		add_filter( 'woocommerce_order_needs_payment', __CLASS__ . '::order_needs_payment' , 10, 3 );
+		add_filter( 'woocommerce_order_needs_payment', __CLASS__ . '::order_needs_payment', 10, 3 );
 
 		// Add subscription information to the order complete emails.
 		add_action( 'woocommerce_email_after_order_table', __CLASS__ . '::add_sub_info_email', 15, 3 );
@@ -383,8 +383,23 @@ class WC_Subscriptions_Order {
 			}
 
 			// translators: placeholders are opening and closing link tags
-			$thank_you_message .= '<p>' . sprintf( _n( 'View the status of your subscription in %syour account%s.', 'View the status of your subscriptions in %syour account%s.', $subscription_count, 'woocommerce-subscriptions' ), '<a href="' . $my_account_subscriptions_url . '">', '</a>' ) . '</p>';
-			echo wp_kses( apply_filters( 'woocommerce_subscriptions_thank_you_message', $thank_you_message, $order_id ), array( 'a' => array( 'href' => array(), 'title' => array() ), 'p' => array(), 'em' => array(), 'strong' => array() ) );
+			$thank_you_message .= '<p>' . sprintf( _n( 'View the status of your subscription in %1$syour account%2$s.', 'View the status of your subscriptions in %1$syour account%2$s.', $subscription_count, 'woocommerce-subscriptions' ), '<a href="' . $my_account_subscriptions_url . '">', '</a>' ) . '</p>';
+			echo wp_kses(
+				apply_filters(
+					'woocommerce_subscriptions_thank_you_message',
+					$thank_you_message,
+					$order_id
+				),
+				array(
+					'a'      => array(
+						'href'  => array(),
+						'title' => array(),
+					),
+					'p'      => array(),
+					'em'     => array(),
+					'strong' => array(),
+				)
+			);
 		}
 
 	}
@@ -737,13 +752,13 @@ class WC_Subscriptions_Order {
 			} else {
 
 				switch ( $_GET['shop_order_subtype'] ) {
-					case 'renewal' :
+					case 'renewal':
 						$meta_key = '_subscription_renewal';
 						break;
-					case 'resubscribe' :
+					case 'resubscribe':
 						$meta_key = '_subscription_resubscribe';
 						break;
-					case 'switch' :
+					case 'switch':
 						$meta_key = '_subscription_switch';
 						break;
 					default:
@@ -781,7 +796,15 @@ class WC_Subscriptions_Order {
 		$subscriptions = wcs_get_subscriptions_for_order( $order_id, array( 'order_type' => 'any' ) );
 
 		if ( ! empty( $subscriptions ) ) {
-			wc_get_template( $template, array( 'order_id' => $order_id, 'subscriptions' => $subscriptions ), '', plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/' );
+			wc_get_template(
+				$template,
+				array(
+					'order_id'      => $order_id,
+					'subscriptions' => $subscriptions,
+				),
+				'',
+				plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/'
+			);
 		}
 	}
 
@@ -795,7 +818,15 @@ class WC_Subscriptions_Order {
 		$subscription_orders = $subscription->get_related_orders();
 
 		if ( 0 !== count( $subscription_orders ) ) {
-			wc_get_template( 'myaccount/related-orders.php', array( 'subscription_orders' => $subscription_orders, 'subscription' => $subscription ), '', plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/' );
+			wc_get_template(
+				'myaccount/related-orders.php',
+				array(
+					'subscription_orders' => $subscription_orders,
+					'subscription'        => $subscription,
+				),
+				'',
+				plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/'
+			);
 		}
 	}
 
@@ -1054,6 +1085,23 @@ class WC_Subscriptions_Order {
 			return $new_order_status;
 		}
 
+		// Exit early if the order contains a non-subscription which needs processing product.
+		foreach ( $order->get_items() as $item ) {
+			$product = $item->get_product();
+
+			// We're only interested in non-subscription products.
+			if ( WC_Subscriptions_Product::is_subscription( $item->get_product() ) ) {
+				continue;
+			}
+
+			$virtual_downloadable_item = $product->is_downloadable() && $product->is_virtual();
+			$needs_processing          = apply_filters( 'woocommerce_order_item_needs_processing', ! $virtual_downloadable_item, $product, $order_id );
+
+			if ( $needs_processing ) {
+				return $new_order_status;
+			}
+		}
+
 		if ( wcs_order_contains_resubscribe( $order ) ) {
 			$new_order_status = 'completed';
 		} elseif ( wcs_order_contains_switch( $order ) ) {
@@ -1112,8 +1160,8 @@ class WC_Subscriptions_Order {
 
 			$value      = $args[ $order_type ];
 			$meta_query = array(
-				'key'     => $meta_key,
-				'value'   => $value,
+				'key'   => $meta_key,
+				'value' => $value,
 			);
 
 			// Map the value type to the appropriate compare arg.

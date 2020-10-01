@@ -109,6 +109,7 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 		$data   = $this->get_report_data();
 
 		$legend[] = array(
+			// translators: %s: formatted amount.
 			'title'            => sprintf( __( '%s renewal revenue recovered', 'woocommerce-subscriptions' ), '<strong>' . wc_price( $data->renewal_total_amount ) . '</strong>' ),
 			'placeholder'      => __( 'The total amount of revenue, including tax and shipping, recovered with the failed payment retry system for renewal orders with a failed payment.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['renewal_total'],
@@ -116,12 +117,14 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 		);
 
 		$legend[] = array(
-			'title'            => sprintf( __( '%s renewal orders', 'woocommerce-subscriptions' ), '<strong>' . $data->renewal_total_count . '</strong>' ),
-			'placeholder'      => __( 'The number of renewal orders which had a failed payment use the retry system.', 'woocommerce-subscriptions' ),
-			'color'            => $this->chart_colours['renewal_count'],
+			// translators: %s: renewal count.
+			'title'       => sprintf( __( '%s renewal orders', 'woocommerce-subscriptions' ), '<strong>' . $data->renewal_total_count . '</strong>' ),
+			'placeholder' => __( 'The number of renewal orders which had a failed payment use the retry system.', 'woocommerce-subscriptions' ),
+			'color'       => $this->chart_colours['renewal_count'],
 		);
 
 		$legend[] = array(
+			// translators: %s: retry count.
 			'title'            => sprintf( __( '%s retry attempts succeeded', 'woocommerce-subscriptions' ), '<strong>' . $data->retry_success_count . '</strong>' ),
 			'placeholder'      => __( 'The number of renewal payment retries for this period which were able to process the payment which had previously failed one or more times.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['retry_success_count'],
@@ -129,6 +132,7 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 		);
 
 		$legend[] = array(
+			// translators: %s: retry count.
 			'title'            => sprintf( __( '%s retry attempts failed', 'woocommerce-subscriptions' ), '<strong>' . $data->retry_failed_count . '</strong>' ),
 			'placeholder'      => __( 'The number of renewal payment retries for this period which did not result in a successful payment.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['retry_failure_count'],
@@ -136,6 +140,7 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 		);
 
 		$legend[] = array(
+			// translators: %s: retry count.
 			'title'            => sprintf( __( '%s retry attempts pending', 'woocommerce-subscriptions' ), '<strong>' . $data->retry_pending_count . '</strong>' ),
 			'placeholder'      => __( 'The number of renewal payment retries not yet processed.', 'woocommerce-subscriptions' ),
 			'color'            => $this->chart_colours['retry_pending_count'],
@@ -151,10 +156,10 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 	public function output_report() {
 
 		$ranges = array(
-			'year'         => __( 'Year', 'woocommerce-subscriptions' ),
-			'last_month'   => __( 'Last Month', 'woocommerce-subscriptions' ),
-			'month'        => __( 'This Month', 'woocommerce-subscriptions' ),
-			'7day'         => __( 'Last 7 Days', 'woocommerce-subscriptions' ),
+			'year'       => __( 'Year', 'woocommerce-subscriptions' ),
+			'last_month' => __( 'Last Month', 'woocommerce-subscriptions' ),
+			'month'      => __( 'This Month', 'woocommerce-subscriptions' ),
+			'7day'       => __( 'Last 7 Days', 'woocommerce-subscriptions' ),
 		);
 
 		$this->chart_colours = array(

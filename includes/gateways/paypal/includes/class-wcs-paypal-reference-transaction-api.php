@@ -12,10 +12,10 @@
  *
  * Heavily inspired by the WC_Paypal_Express_API class developed by the masterful SkyVerge team
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	Gateways/PayPal
- * @category	Class
- * @since		2.0
+ * @package     WooCommerce Subscriptions
+ * @subpackage  Gateways/PayPal
+ * @category    Class
+ * @since       2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

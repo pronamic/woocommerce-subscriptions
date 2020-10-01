@@ -4,10 +4,10 @@
  *
  * Helper functions to check for data types etc.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	Gateways/PayPal
- * @author		Brent Shepherd
- * @since		2.0
+ * @package     WooCommerce Subscriptions
+ * @subpackage  Gateways/PayPal
+ * @author      Brent Shepherd
+ * @since       2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

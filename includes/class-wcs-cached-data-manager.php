@@ -76,14 +76,14 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 		$post_type = get_post_type( $post_id );
 
 		if ( 'shop_order' === $post_type ) {
-			wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Related order caching is now handled by %1$s.', 'woocommerce-subscriptions' ), 'WCS_Related_Order_Store' ) );
+			wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Related order caching is now handled by %1$s.', 'woocommerce-subscriptions' ), 'WCS_Related_Order_Store' ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment
 			if ( is_callable( array( WCS_Related_Order_Store::instance(), 'delete_related_order_id_from_caches' ) ) ) {
 				WCS_Related_Order_Store::instance()->delete_related_order_id_from_caches( $post_id );
 			}
 		}
 
 		if ( 'shop_subscription' === $post_type ) {
-			wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT' ) );
+			wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT' ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment
 
 			// Purge wcs_do_subscriptions_exist cache, but only on the before_delete_post hook.
 			if ( doing_action( 'before_delete_post' ) ) {
@@ -107,7 +107,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * @param $meta_value mixed the ID of the subscription that relates to the order
 	 */
 	public function purge_from_metadata( $meta_id, $object_id, $meta_key, $meta_value ) {
-		wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s and %2$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT', 'WCS_Post_Meta_Cache_Manager' ) );
+		wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s and %2$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT', 'WCS_Post_Meta_Cache_Manager' ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment
 
 		// Ensure we're handling a meta key we actually care about.
 		if ( '_customer_user' !== $meta_key || 'shop_subscription' !== get_post_type( $object_id ) ) {
@@ -237,7 +237,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * @param int $subscription_id The subscription to purge.
 	 */
 	protected function purge_subscription_user_cache( $subscription_id ) {
-		wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s and %2$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT', 'WCS_Post_Meta_Cache_Manager' ) );
+		wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s and %2$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT', 'WCS_Post_Meta_Cache_Manager' ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment
 
 		$subscription         = wcs_get_subscription( $subscription_id );
 		$subscription_user_id = $subscription->get_user_id();

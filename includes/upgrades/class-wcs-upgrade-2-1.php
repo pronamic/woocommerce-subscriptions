@@ -2,10 +2,10 @@
 /**
  * Methods to upgrade subscriptions data to v2.1
  *
- * @author		Prospress
- * @category	Admin
- * @package		WooCommerce Subscriptions/Admin/Upgrades
- * @version		2.1
+ * @author      Prospress
+ * @category    Admin
+ * @package     WooCommerce Subscriptions/Admin/Upgrades
+ * @version     2.1
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -37,7 +37,7 @@ class WCS_Upgrade_2_1 {
 						FROM {$wpdb->posts} as posts
 					WHERE post_status = %s
 					AND NOT EXISTS (
-						SELECT null 
+						SELECT null
 						FROM {$wpdb->postmeta} as postmeta
 						WHERE postmeta.post_id = posts.ID
 						AND postmeta.meta_key = %s

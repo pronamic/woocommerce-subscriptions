@@ -96,18 +96,23 @@ class WCS_Retry_Admin {
 
 					switch ( $retry_status ) {
 						case 'pending':
+							// translators: %d: retry count.
 							$tool_tip .= sprintf( _n( '%d Pending Payment Retry', '%d Pending Payment Retries', $retry_count, 'woocommerce-subscriptions' ), $retry_count );
 							break;
 						case 'processing':
+							// translators: %d: retry count.
 							$tool_tip .= sprintf( _n( '%d Processing Payment Retry', '%d Processing Payment Retries', $retry_count, 'woocommerce-subscriptions' ), $retry_count );
 							break;
 						case 'failed':
+							// translators: %d: retry count.
 							$tool_tip .= sprintf( _n( '%d Failed Payment Retry', '%d Failed Payment Retries', $retry_count, 'woocommerce-subscriptions' ), $retry_count );
 							break;
 						case 'complete':
+							// translators: %d: retry count.
 							$tool_tip .= sprintf( _n( '%d Successful Payment Retry', '%d Successful Payment Retries', $retry_count, 'woocommerce-subscriptions' ), $retry_count );
 							break;
 						case 'cancelled':
+							// translators: %d: retry count.
 							$tool_tip .= sprintf( _n( '%d Cancelled Payment Retry', '%d Cancelled Payment Retries', $retry_count, 'woocommerce-subscriptions' ), $retry_count );
 							break;
 					}
@@ -141,7 +146,8 @@ class WCS_Retry_Admin {
 				'id'       => $this->setting_id,
 				'default'  => 'no',
 				'type'     => 'checkbox',
-				'desc_tip' => sprintf( __( 'Attempt to recover recurring revenue that would otherwise be lost due to payment methods being declined only temporarily. %sLearn more%s.', 'woocommerce-subscriptions' ), '<a href="https://docs.woocommerce.com/document/subscriptions/failed-payment-retry/">', '</a>' ),
+				// translators: 1,2: opening/closing link tags (to documentation).
+				'desc_tip' => sprintf( __( 'Attempt to recover recurring revenue that would otherwise be lost due to payment methods being declined only temporarily. %1$sLearn more%2$s.', 'woocommerce-subscriptions' ), '<a href="https://docs.woocommerce.com/document/subscriptions/failed-payment-retry/">', '</a>' ),
 			),
 		) );
 

@@ -4,10 +4,10 @@
  *
  * Functions for managing renewal of a subscription.
  *
- * @author 		Prospress
- * @category 	Core
- * @package 	WooCommerce Subscriptions/Functions
- * @version     2.0
+ * @author Prospress
+ * @category Core
+ * @package WooCommerce Subscriptions/Functions
+ * @version 2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -44,42 +44,42 @@ class WC_Subscriptions_Tracker {
 	private static function get_subscriptions_options() {
 		return array(
 			// Staging and live site
-			'wc_subscriptions_staging'    => WC_Subscriptions::is_duplicate_site() ? 'staging' : 'live',
-			'wc_subscriptions_live_url'   => esc_url( WC_Subscriptions::get_site_url_from_source( 'subscriptions_install' ) ),
+			'wc_subscriptions_staging'             => WC_Subscriptions::is_duplicate_site() ? 'staging' : 'live',
+			'wc_subscriptions_live_url'            => esc_url( WC_Subscriptions::get_site_url_from_source( 'subscriptions_install' ) ),
 
 			// Button text, roles
-			'add_to_cart_button_text'     => get_option( WC_Subscriptions_Admin::$option_prefix . '_add_to_cart_button_text' ),
-			'order_button_text'           => get_option( WC_Subscriptions_Admin::$option_prefix . '_order_button_text' ),
-			'subscriber_role'             => get_option( WC_Subscriptions_Admin::$option_prefix . '_subscriber_role' ),
-			'cancelled_role'              => get_option( WC_Subscriptions_Admin::$option_prefix . '_cancelled_role' ),
+			'add_to_cart_button_text'              => get_option( WC_Subscriptions_Admin::$option_prefix . '_add_to_cart_button_text' ),
+			'order_button_text'                    => get_option( WC_Subscriptions_Admin::$option_prefix . '_order_button_text' ),
+			'subscriber_role'                      => get_option( WC_Subscriptions_Admin::$option_prefix . '_subscriber_role' ),
+			'cancelled_role'                       => get_option( WC_Subscriptions_Admin::$option_prefix . '_cancelled_role' ),
 
 			// Renewals
-			'accept_manual_renewals'      => get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals' ),
-			'turn_off_automatic_payments' => 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_turn_off_automatic_payments', 'none' ),
-			'enable_auto_renewal_toggle'  => get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_auto_renewal_toggle' ),
+			'accept_manual_renewals'               => get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals' ),
+			'turn_off_automatic_payments'          => 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_turn_off_automatic_payments', 'none' ),
+			'enable_auto_renewal_toggle'           => get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_auto_renewal_toggle' ),
 
 			// Early renewal
-			'enable_early_renewal'           => get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal' ),
-			'enable_early_renewal_via_modal' => 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal_via_modal', 'none' ),
+			'enable_early_renewal'                 => get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal' ),
+			'enable_early_renewal_via_modal'       => 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal_via_modal', 'none' ),
 
 			// Switching
-			'allow_switching'           => get_option( WC_Subscriptions_Admin::$option_prefix . '_allow_switching' ),
-			'apportion_recurring_price' => get_option( WC_Subscriptions_Admin::$option_prefix . '_apportion_recurring_price', 'none' ),
-			'apportion_sign_up_fee'     => get_option( WC_Subscriptions_Admin::$option_prefix . '_apportion_sign_up_fee', 'none' ),
-			'apportion_length'          => get_option( WC_Subscriptions_Admin::$option_prefix . '_apportion_length', 'none' ),
-			'switch_button_text'        => get_option( WC_Subscriptions_Admin::$option_prefix . '_switch_button_text', 'none' ),
+			'allow_switching'                      => get_option( WC_Subscriptions_Admin::$option_prefix . '_allow_switching' ),
+			'apportion_recurring_price'            => get_option( WC_Subscriptions_Admin::$option_prefix . '_apportion_recurring_price', 'none' ),
+			'apportion_sign_up_fee'                => get_option( WC_Subscriptions_Admin::$option_prefix . '_apportion_sign_up_fee', 'none' ),
+			'apportion_length'                     => get_option( WC_Subscriptions_Admin::$option_prefix . '_apportion_length', 'none' ),
+			'switch_button_text'                   => get_option( WC_Subscriptions_Admin::$option_prefix . '_switch_button_text', 'none' ),
 
 			// Synchronization
-			'sync_payments'           => get_option( WC_Subscriptions_Admin::$option_prefix . '_sync_payments' ),
-			'prorate_synced_payments' => $prorate_synced_payments = ( 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_sync_payments' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_prorate_synced_payments', 'none' ) ),
-			'days_no_fee'             => 'recurring' == $prorate_synced_payments ? get_option( WC_Subscriptions_Admin::$option_prefix . '_days_no_fee', 'none' ) : 'none',
+			'sync_payments'                        => get_option( WC_Subscriptions_Admin::$option_prefix . '_sync_payments' ),
+			'prorate_synced_payments'              => $prorate_synced_payments = ( 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_sync_payments' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_prorate_synced_payments', 'none' ) ),
+			'days_no_fee'                          => 'recurring' == $prorate_synced_payments ? get_option( WC_Subscriptions_Admin::$option_prefix . '_days_no_fee', 'none' ) : 'none',
 
 			// Miscellaneous
-			'max_customer_suspensions'                        => get_option( WC_Subscriptions_Admin::$option_prefix . '_max_customer_suspensions' ),
-			'multiple_purchase'                               => get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase' ),
+			'max_customer_suspensions'             => get_option( WC_Subscriptions_Admin::$option_prefix . '_max_customer_suspensions' ),
+			'multiple_purchase'                    => get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase' ),
 			'allow_zero_initial_order_without_payment_method' => get_option( WC_Subscriptions_Admin::$option_prefix . '_zero_initial_payment_requires_payment' ),
-			'drip_downloadable_content_on_renewal'            => get_option( WC_Subscriptions_Admin::$option_prefix . '_drip_downloadable_content_on_renewal' ),
-			'enable_retry'                                    => get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_retry' ),
+			'drip_downloadable_content_on_renewal' => get_option( WC_Subscriptions_Admin::$option_prefix . '_drip_downloadable_content_on_renewal' ),
+			'enable_retry'                         => get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_retry' ),
 		);
 	}
 

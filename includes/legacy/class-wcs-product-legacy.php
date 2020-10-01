@@ -5,10 +5,10 @@
  * Ensures subscription products work with versions of WooCommerce prior to 3.0 by loading
  * legacy classes to provide CRUD methods only added with WC 3.0.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WCS_Product_Legacy
- * @category	Class
- * @since		2.2.0
+ * @package WooCommerce Subscriptions
+ * @subpackage WCS_Product_Legacy
+ * @category Class
+ * @since 2.2.0
  */
 class WCS_Product_Legacy {
 

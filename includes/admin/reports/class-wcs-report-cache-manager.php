@@ -33,7 +33,7 @@ class WCS_Report_Cache_Manager {
 			4 => 'WCS_Report_Subscription_By_Product',
 			5 => 'WCS_Report_Subscription_By_Customer',
 		),
-		'woocommerce_subscription_payment_complete' => array( // this hook takes care of renewal, switch and initial payments
+		'woocommerce_subscription_payment_complete'  => array( // this hook takes care of renewal, switch and initial payments
 			0 => 'WCS_Report_Dashboard',
 			1 => 'WCS_Report_Subscription_Events_By_Date',
 			5 => 'WCS_Report_Subscription_By_Customer',
@@ -41,18 +41,18 @@ class WCS_Report_Cache_Manager {
 		'woocommerce_subscriptions_switch_completed' => array(
 			1 => 'WCS_Report_Subscription_Events_By_Date',
 		),
-		'woocommerce_subscription_status_changed' => array(
+		'woocommerce_subscription_status_changed'    => array(
 			0 => 'WCS_Report_Dashboard',
 			1 => 'WCS_Report_Subscription_Events_By_Date', // we really only need cancelled, expired and active status here, but we'll use a more generic hook for convenience
 			5 => 'WCS_Report_Subscription_By_Customer',
 		),
-		'woocommerce_subscription_status_active' => array(
+		'woocommerce_subscription_status_active'     => array(
 			2 => 'WCS_Report_Upcoming_Recurring_Revenue',
 		),
-		'woocommerce_new_order_item' => array(
+		'woocommerce_new_order_item'                 => array(
 			4 => 'WCS_Report_Subscription_By_Product',
 		),
-		'woocommerce_update_order_item' => array(
+		'woocommerce_update_order_item'              => array(
 			4 => 'WCS_Report_Subscription_By_Product',
 		),
 	);
@@ -106,6 +106,8 @@ class WCS_Report_Cache_Manager {
 
 		// Add system status information.
 		add_filter( 'wcs_system_status', array( $this, 'add_system_status_info' ) );
+
+		add_action( 'woocommerce_subscriptions_upgraded', array( $this, 'transfer_large_site_cache_option' ), 10, 2 );
 	}
 
 	/**
@@ -244,23 +246,7 @@ class WCS_Report_Cache_Manager {
 	protected function use_large_site_cache() {
 
 		if ( null === $this->use_large_site_cache ) {
-
-			if ( false == get_option( 'wcs_report_use_large_site_cache' ) ) {
-
-				$subscription_counts = (array) wp_count_posts( 'shop_subscription' );
-				$order_counts        = (array) wp_count_posts( 'shop_order' );
-
-				if ( array_sum( $subscription_counts ) > 3000 || array_sum( $order_counts ) > 25000 ) {
-
-					update_option( 'wcs_report_use_large_site_cache', 'true', false );
-
-					$this->use_large_site_cache = true;
-				} else {
-					$this->use_large_site_cache = false;
-				}
-			} else {
-				$this->use_large_site_cache = true;
-			}
+			$this->use_large_site_cache = wcs_is_large_site();
 		}
 
 		return apply_filters( 'wcs_report_use_large_site_cache', $this->use_large_site_cache );
@@ -360,5 +346,25 @@ class WCS_Report_Cache_Manager {
 		}
 
 		return $cache_update_timestamp;
+	}
+
+	/**
+	 * Transfers the 'wcs_report_use_large_site_cache' option to the new 'wcs_is_large_site' option.
+	 *
+	 * In 3.0.7 we introduced a more general use option, 'wcs_is_large_site', replacing the need for one specifically
+	 * for report caching. This function migrates the existing option value if it was previously set.
+	 *
+	 * @since 3.0.7
+	 *
+	 * @param string $new_version      The new Subscriptions plugin version.
+	 * @param string $previous_version The version of Subscriptions prior to upgrade.
+	 */
+	public function transfer_large_site_cache_option( $new_version, $previous_version ) {
+
+		// Check if the plugin upgrade is from a version prior to the option being deprecated (before 3.0.7).
+		if ( version_compare( $previous_version, '3.0.7', '<' ) && false !== get_option( 'wcs_report_use_large_site_cache' ) ) {
+			update_option( 'wcs_is_large_site', 'yes', false );
+			delete_option( 'wcs_report_use_large_site_cache' );
+		}
 	}
 }

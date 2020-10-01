@@ -88,7 +88,8 @@ class WCS_Upgrade_Notice_Manager {
 			array(
 				'title'       => __( 'Increased processing rate for scheduled payments', 'woocommerce-subscriptions' ),
 				'description' => sprintf(
-					__( 'Previous versions of Subscriptions relied on %sWP Cron%s to process subscription payments and other scheduled events. In 3.0, these events will now run on admin request with loopback support. This will significantly increase the throughput of payment processing.', 'woocommerce-subscriptions' ),
+					// translators: 1-2: opening/closing <a> tags - link to documentation.
+					__( 'Previous versions of Subscriptions relied on %1$sWP Cron%2$s to process subscription payments and other scheduled events. In 3.0, these events will now run on admin request with loopback support. This will significantly increase the throughput of payment processing.', 'woocommerce-subscriptions' ),
 					'<a href="https://docs.woocommerce.com/document/subscriptions/develop/complete-guide-to-scheduled-events-with-subscriptions/#section-2">', '</a>'
 				),
 			),

@@ -4,9 +4,9 @@
  *
  * Functions for managing renewal of a subscription.
  *
- * @author 		Prospress
- * @category 	Core
- * @package 	WooCommerce Subscriptions/Functions
+ * @author Prospress
+ * @category Core
+ * @package WooCommerce Subscriptions/Functions
  * @version     2.2.0
  */
 
@@ -126,12 +126,12 @@ function wcs_get_min_max_variation_data( $variable_product, $child_variation_ids
 				'regular_price' => $prices['regular_price'],
 				'sale_price'    => $prices['sale_price'],
 				'subscription'  => array(
-					'sign_up_fee'     => $prices['sign_up_fee'],
-					'period'          => WC_Subscriptions_Product::get_period( $variation ),
-					'interval'        => WC_Subscriptions_Product::get_interval( $variation ),
-					'trial_length'    => WC_Subscriptions_Product::get_trial_length( $variation ),
-					'trial_period'    => WC_Subscriptions_Product::get_trial_period( $variation ),
-					'length'          => WC_Subscriptions_Product::get_length( $variation ),
+					'sign_up_fee'  => $prices['sign_up_fee'],
+					'period'       => WC_Subscriptions_Product::get_period( $variation ),
+					'interval'     => WC_Subscriptions_Product::get_interval( $variation ),
+					'trial_length' => WC_Subscriptions_Product::get_trial_length( $variation ),
+					'trial_period' => WC_Subscriptions_Product::get_trial_period( $variation ),
+					'length'       => WC_Subscriptions_Product::get_length( $variation ),
 				),
 			);
 		}
@@ -412,7 +412,7 @@ function wcs_calculate_min_max_variations( $variations_data ) {
 	}
 
 	return array(
-		'min' => array(
+		'min'          => array(
 			'variation_id'  => $min_variation_id,
 			'price'         => $lowest_price,
 			'regular_price' => $lowest_regular_price,
@@ -420,7 +420,7 @@ function wcs_calculate_min_max_variations( $variations_data ) {
 			'period'        => $variable_subscription_period,
 			'interval'      => $variable_subscription_period_interval,
 		),
-		'max' => array(
+		'max'          => array(
 			'variation_id'  => $max_variation_id,
 			'price'         => $highest_price,
 			'regular_price' => $highest_regular_price,
@@ -434,6 +434,6 @@ function wcs_calculate_min_max_variations( $variations_data ) {
 			'trial_length' => $variable_subscription_trial_length,
 			'length'       => $variable_subscription_length,
 		),
-		'identical' => $subscription_details_identical,
+		'identical'    => $subscription_details_identical,
 	);
 }

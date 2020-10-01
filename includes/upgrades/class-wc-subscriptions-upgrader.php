@@ -8,11 +8,11 @@
  * the data be upgraded to the new schema without hassle. A hassle could easily occur if 100,000 orders were being
  * modified - memory exhaustion, script time out etc.
  *
- * @author		Prospress
- * @category	Admin
- * @package		WooCommerce Subscriptions/Admin/Upgrades
- * @version		2.0.0
- * @since		1.2
+ * @author      Prospress
+ * @category    Admin
+ * @package     WooCommerce Subscriptions/Admin/Upgrades
+ * @version     2.0.0
+ * @since       1.2
  */
 class WC_Subscriptions_Upgrader {
 
@@ -376,7 +376,7 @@ class WC_Subscriptions_Upgrader {
 					$results = array(
 						'upgraded_count' => 0,
 						// translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
-						'message'        => sprintf( __( 'Unable to upgrade subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage(). '</code>', '<a href="' . esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' ) . '">', '</a>', '<br />' ),
+						'message'        => sprintf( __( 'Unable to upgrade subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage() . '</code>', '<a href="' . esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' ) . '">', '</a>', '<br />' ),
 						'status'         => 'error',
 					);
 				}
@@ -423,7 +423,7 @@ class WC_Subscriptions_Upgrader {
 						'repaired_count'   => 0,
 						'unrepaired_count' => 0,
 						// translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
-						'message'          => sprintf( _x( 'Unable to repair subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'Error message that gets sent to front end when upgrading Subscriptions', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage(). '</code>', '<a href="' . esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' ) . '">', '</a>', '<br />' ),
+						'message'          => sprintf( _x( 'Unable to repair subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s.', 'Error message that gets sent to front end when upgrading Subscriptions', 'woocommerce-subscriptions' ), '<code>' . $e->getMessage() . '</code>', '<a href="' . esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' ) . '">', '</a>', '<br />' ),
 						'status'           => 'error',
 					);
 				}
@@ -572,14 +572,14 @@ class WC_Subscriptions_Upgrader {
 		}
 
 		$script_data = array(
-			'really_old_version'        => ( version_compare( self::$active_version, '1.4', '<' ) ) ? 'true' : 'false',
-			'upgrade_to_1_5'            => ( version_compare( self::$active_version, '1.5', '<' ) ) ? 'true' : 'false',
-			'upgrade_to_2_0'            => ( version_compare( self::$active_version, '2.0.0', '<' ) ) ? 'true' : 'false',
-			'repair_2_0'                => ( version_compare( self::$active_version, '2.0.0', '>=' ) && version_compare( self::$active_version, '2.0.2', '<' ) ) ? 'true' : 'false',
-			'hooks_per_request'         => self::$upgrade_limit_hooks,
-			'ajax_url'                  => admin_url( 'admin-ajax.php' ),
-			'upgrade_nonce'             => wp_create_nonce( 'wcs_upgrade_process' ),
-			'subscription_count'        => $subscription_count,
+			'really_old_version' => ( version_compare( self::$active_version, '1.4', '<' ) ) ? 'true' : 'false',
+			'upgrade_to_1_5'     => ( version_compare( self::$active_version, '1.5', '<' ) ) ? 'true' : 'false',
+			'upgrade_to_2_0'     => ( version_compare( self::$active_version, '2.0.0', '<' ) ) ? 'true' : 'false',
+			'repair_2_0'         => ( version_compare( self::$active_version, '2.0.0', '>=' ) && version_compare( self::$active_version, '2.0.2', '<' ) ) ? 'true' : 'false',
+			'hooks_per_request'  => self::$upgrade_limit_hooks,
+			'ajax_url'           => admin_url( 'admin-ajax.php' ),
+			'upgrade_nonce'      => wp_create_nonce( 'wcs_upgrade_process' ),
+			'subscription_count' => $subscription_count,
 		);
 
 		wp_localize_script( 'wcs-upgrade', 'wcs_update_script_data', $script_data );
@@ -628,8 +628,8 @@ class WC_Subscriptions_Upgrader {
 	 */
 	public static function updated_welcome_page() {
 		$about_page = add_dashboard_page( __( 'Welcome to WooCommerce Subscriptions 2.1', 'woocommerce-subscriptions' ), __( 'About WooCommerce Subscriptions', 'woocommerce-subscriptions' ), 'manage_options', 'wcs-about', __CLASS__ . '::about_screen' );
-		add_action( 'admin_print_styles-'. $about_page, __CLASS__ . '::admin_css' );
-		add_action( 'admin_head',  __CLASS__ . '::admin_head' );
+		add_action( 'admin_print_styles-' . $about_page, __CLASS__ . '::admin_css' );
+		add_action( 'admin_head', __CLASS__ . '::admin_head' );
 	}
 
 	/**
@@ -808,6 +808,7 @@ class WC_Subscriptions_Upgrader {
 		}
 
 		$admin_notice = new WCS_Admin_Notice( 'error' );
+		// translators: 1-2: opening/closing <strong> tags, 3: active version of Subscriptions, 4: current version of Subscriptions, 5-6: opening/closing tags linked to ticket form, 7-8: opening/closing tags linked to documentation.
 		$admin_notice->set_simple_content( sprintf( esc_html__( '%1$sWarning!%2$s It appears that you have downgraded %1$sWooCommerce Subscriptions%2$s from %3$s to %4$s. Downgrading the plugin in this way may cause issues. Please update to %3$s or higher, or %5$sopen a new support ticket%6$s for further assistance. %7$sLearn more &raquo;%8$s', 'woocommerce-subscriptions' ),
 			'<strong>', '</strong>',
 			'<code>' . self::$active_version . '</code>',
@@ -878,10 +879,14 @@ class WC_Subscriptions_Upgrader {
 		}
 
 		$admin_notice = new WCS_Admin_Notice( 'error' );
-		$admin_notice->set_simple_content( sprintf( esc_html__( '%1$sWarning!%2$s We discovered an issue in %1$sWooCommerce Subscriptions 2.3.0 - 2.3.2%2$s that may cause your subscription renewal order and customer subscription caches to contain invalid data. For information about how to update the cached data, please %3$sopen a new support ticket%4$s.', 'woocommerce-subscriptions' ),
-			'<strong>', '</strong>',
-			'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">', '</a>'
-		) );
+		$admin_notice->set_simple_content(
+			sprintf(
+				// translators: 1-2: opening/closing <strong> tags, 3-4: opening/closing tags linked to ticket form.
+				esc_html__( '%1$sWarning!%2$s We discovered an issue in %1$sWooCommerce Subscriptions 2.3.0 - 2.3.2%2$s that may cause your subscription renewal order and customer subscription caches to contain invalid data. For information about how to update the cached data, please %3$sopen a new support ticket%4$s.', 'woocommerce-subscriptions' ),
+				'<strong>', '</strong>',
+				'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">', '</a>'
+			)
+		);
 		$admin_notice->set_actions( array(
 			array(
 				'name' => 'Dismiss',

@@ -11,10 +11,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * and a retry rule has been applied to retry the payment in the future.
  *
  * @class       WCS_Email_Payment_Retry
- * @version		2.1
- * @package		WooCommerce_Subscriptions/Includes/Emails
- * @author		Prospress
- * @extends		WC_Email_Failed_Order
+ * @version 2.1
+ * @package WooCommerce_Subscriptions/Includes/Emails
+ * @author Prospress
+ * @extends WC_Email_Failed_Order
  */
 class WCS_Email_Payment_Retry extends WC_Email_Failed_Order {
 

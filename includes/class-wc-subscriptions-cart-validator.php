@@ -4,10 +4,10 @@
  *
  * Validates the Cart contents
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Cart_Validator
- * @category	Class
- * @since		2.6.0
+ * @package    WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Cart_Validator
+ * @category   Class
+ * @since      2.6.0
  */
 class WC_Subscriptions_Cart_Validator {
 
@@ -98,14 +98,17 @@ class WC_Subscriptions_Cart_Validator {
 		}
 
 		foreach ( $cart->cart_contents as $key => $item ) {
-			// If a non-subscription product is found in the cart containing subscriptions ( maybe because of carts merge while logging in )
-			if ( ! WC_Subscriptions_Product::is_subscription( $item['data'] ) ) {
 
+			// If two different subscription products are in the cart
+			// or a non-subscription product is found in the cart containing subscriptions
+			// ( maybe because of carts merge while logging in )
+			if ( ! WC_Subscriptions_Product::is_subscription( $item['data'] ) ||
+				WC_Subscriptions_Cart::cart_contains_other_subscription_products( wcs_get_canonical_product_id( $item['data'] ) ) ) {
 				// remove the subscriptions from the cart
 				WC_Subscriptions_Cart::remove_subscriptions_from_cart();
 
 				// and add an appropriate notice
-				wc_add_notice( __( 'Your cart has been emptied of subscription products. Products and subscriptions cannot be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
+				wc_add_notice( __( 'Your cart has been emptied of subscription products. Only one subscription product can be purchased at a time.', 'woocommerce-subscriptions' ), 'notice' );
 
 				// Redirect to cart page to remove subscription & notify shopper
 				if ( WC_Subscriptions::is_woocommerce_pre( '3.0.8' ) ) {

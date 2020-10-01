@@ -6,11 +6,11 @@
  *
  * Replaced by WCS_PayPal.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_PayPal_Standard_Subscriptions
- * @category	Class
- * @author		Brent Shepherd
- * @since		1.0
+ * @package     WooCommerce Subscriptions
+ * @subpackage  WC_PayPal_Standard_Subscriptions
+ * @category    Class
+ * @author      Brent Shepherd
+ * @since       1.0
  */
 
 class WC_PayPal_Standard_Subscriptions {
@@ -31,7 +31,7 @@ class WC_PayPal_Standard_Subscriptions {
 		self::$api_username  = WCS_PayPal::get_option( 'api_username' );
 		self::$api_password  = WCS_PayPal::get_option( 'api_password' );
 		self::$api_signature = WCS_PayPal::get_option( 'api_signature' );
-		self::$api_endpoint  = ( 'no' == WCS_PayPal::get_option( 'testmode' ) ) ? 'https://api-3t.paypal.com/nvp' :  'https://api-3t.sandbox.paypal.com/nvp';
+		self::$api_endpoint  = ( 'no' == WCS_PayPal::get_option( 'testmode' ) ) ? 'https://api-3t.paypal.com/nvp' : 'https://api-3t.sandbox.paypal.com/nvp';
 	}
 
 	/**
@@ -225,15 +225,17 @@ class WC_PayPal_Standard_Subscriptions {
 		_deprecated_function( __METHOD__, '2.0' );
 
 		if ( 'parent' == $new_order_role ) {
+			// phpcs:disable WordPress.WhiteSpace.PrecisionAlignment.Found
 			$order_meta_query .= ' AND `meta_key` NOT IN ('
-							  .		"'Transaction ID', "
-							  .		"'Payer first name', "
-							  .		"'Payer last name', "
-							  .		"'Payment type', "
-							  .		"'Payer PayPal address', "
-							  .		"'Payer PayPal first name', "
-							  .		"'Payer PayPal last name', "
-							  .		"'PayPal Subscriber ID' )";
+				. "'Transaction ID', "
+				. "'Payer first name', "
+				. "'Payer last name', "
+				. "'Payment type', "
+				. "'Payer PayPal address', "
+				. "'Payer PayPal first name', "
+				. "'Payer PayPal last name', "
+				. "'PayPal Subscriber ID' )";
+			// phpcs:enable
 		}
 
 		return $order_meta_query;

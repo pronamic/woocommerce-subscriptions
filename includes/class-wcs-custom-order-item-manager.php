@@ -16,11 +16,11 @@ class WCS_Custom_Order_Item_Manager {
 	 *   - Optional. A 'data_store' arg. If provided, the line item will use this data store to load the line item data. Default is WC_Order_Item_Product_Data_Store.
 	 */
 	protected static $line_item_type_args = array(
-		'line_item_removed' => array(
+		'line_item_removed'     => array(
 			'group' => 'removed_line_items',
 			'class' => 'WC_Subscription_Line_Item_Removed',
 		),
-		'line_item_switched' => array(
+		'line_item_switched'    => array(
 			'group' => 'switched_line_items',
 			'class' => 'WC_Subscription_Line_Item_Switched',
 		),
@@ -29,7 +29,7 @@ class WCS_Custom_Order_Item_Manager {
 			'class'      => 'WC_Subscription_Item_Coupon_Pending_Switch',
 			'data_store' => 'WC_Order_Item_Coupon_Data_Store',
 		),
-		'fee_pending_switch' => array(
+		'fee_pending_switch'    => array(
 			'group'      => 'pending_switch_fees',
 			'class'      => 'WC_Subscription_Item_Fee_Pending_Switch',
 			'data_store' => 'WC_Order_Item_Fee_Data_Store',

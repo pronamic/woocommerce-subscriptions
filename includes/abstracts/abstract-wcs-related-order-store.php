@@ -144,7 +144,8 @@ abstract class WCS_Related_Order_Store {
 	 */
 	protected function check_relation_type( $relation_type ) {
 		if ( ! isset( self::$relation_type_keys[ $relation_type ] ) ) {
-			throw new InvalidArgumentException( sprintf( __( 'Invalid relation type: %s. Order relationship type must be one of: %s.', 'woocommerce-subscriptions' ), $relation_type, implode( ', ', $this->get_relation_types() ) ) );
+			// translators: 1: relation type, 2: list of valid relation types.
+			throw new InvalidArgumentException( sprintf( __( 'Invalid relation type: %1$s. Order relationship type must be one of: %2$s.', 'woocommerce-subscriptions' ), $relation_type, implode( ', ', $this->get_relation_types() ) ) );
 		}
 	}
 }

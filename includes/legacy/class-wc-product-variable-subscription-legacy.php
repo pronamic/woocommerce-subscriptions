@@ -4,10 +4,10 @@
  *
  * Extends WC_Product_Variable_Subscription to provide compatibility methods when running WooCommerce < 3.0.
  *
- * @class 		WC_Product_Variable_Subscription_Legacy
- * @package		WooCommerce Subscriptions
- * @category	Class
- * @since		2.2.0
+ * @class WC_Product_Variable_Subscription_Legacy
+ * @package WooCommerce Subscriptions
+ * @category Class
+ * @since 2.2.0
  *
  */
 if ( ! defined( 'ABSPATH' ) ) {
@@ -303,8 +303,14 @@ class WC_Product_Variable_Subscription_Legacy extends WC_Product_Variable_Subscr
 				$variation        = wc_get_product( $variation_id );
 				$tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
 
-				$sale_price_args    = array( 'qty' => 1, 'price' => $variation->get_sale_price() );
-				$regular_price_args = array( 'qty' => 1, 'price' => $variation->get_regular_price() );
+				$sale_price_args    = array(
+					'qty'   => 1,
+					'price' => $variation->get_sale_price(),
+				);
+				$regular_price_args = array(
+					'qty'   => 1,
+					'price' => $variation->get_regular_price(),
+				);
 
 				if ( 'incl' == $tax_display_mode ) {
 					$sale_price    = wcs_get_price_including_tax( $variation, $sale_price_args );

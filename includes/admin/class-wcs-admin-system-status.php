@@ -132,16 +132,17 @@ class WCS_Admin_System_Status {
 
 		if ( ! empty( $theme_overrides['overrides'] ) ) {
 			$debug_data['wcs_theme_overrides'] = array(
-				'name'      => _x( 'Subscriptions Template Theme Overrides', 'label for the system status page', 'woocommerce-subscriptions' ),
-				'label'     => 'Subscriptions Template Theme Overrides',
-				'data'      => $theme_overrides['overrides'],
+				'name'  => _x( 'Subscriptions Template Theme Overrides', 'label for the system status page', 'woocommerce-subscriptions' ),
+				'label' => 'Subscriptions Template Theme Overrides',
+				'data'  => $theme_overrides['overrides'],
 			);
 
 			// Include a note on how to update if the templates are out of date.
 			if ( ! empty( $theme_overrides['has_outdated_templates'] ) && true === $theme_overrides['has_outdated_templates'] ) {
 				$debug_data['wcs_theme_overrides'] += array(
 					'mark_icon' => 'warning',
-					'note'      => sprintf( __( '%sLearn how to update%s', 'woocommerce-subscriptions' ), '<a href="https://docs.woocommerce.com/document/fix-outdated-templates-woocommerce/" target="_blank">', '</a>' ),
+					// translators: placeholders are opening/closing tags linking to documentation on outdated templates.
+					'note'      => sprintf( __( '%1$sLearn how to update%2$s', 'woocommerce-subscriptions' ), '<a href="https://docs.woocommerce.com/document/fix-outdated-templates-woocommerce/" target="_blank">', '</a>' ),
 				);
 			}
 		}
@@ -238,10 +239,10 @@ class WCS_Admin_System_Status {
 		$woocommerce_account_connected = ! empty( $woocommerce_account_auth );
 
 		$debug_data['wcs_woocommerce_account_connected'] = array(
-			'name'      => _x( 'WooCommerce Account Connected', 'label for the system status page', 'woocommerce-subscriptions' ),
-			'label'     => 'WooCommerce Account Connected',
-			'note'      => $woocommerce_account_connected ? 'Yes' : 'No',
-			'success'   => $woocommerce_account_connected,
+			'name'    => _x( 'WooCommerce Account Connected', 'label for the system status page', 'woocommerce-subscriptions' ),
+			'label'   => 'WooCommerce Account Connected',
+			'note'    => $woocommerce_account_connected ? 'Yes' : 'No',
+			'success' => $woocommerce_account_connected,
 		);
 
 		if ( ! $woocommerce_account_connected ) {
@@ -261,10 +262,10 @@ class WCS_Admin_System_Status {
 		}
 
 		$debug_data['wcs_active_product_key'] = array(
-			'name'      => _x( 'Active Product Key', 'label for the system status page', 'woocommerce-subscriptions' ),
-			'label'     => 'Active Product Key',
-			'note'      => $has_active_product_key ? 'Yes' : 'No',
-			'success'   => $has_active_product_key,
+			'name'    => _x( 'Active Product Key', 'label for the system status page', 'woocommerce-subscriptions' ),
+			'label'   => 'Active Product Key',
+			'note'    => $has_active_product_key ? 'Yes' : 'No',
+			'success' => $has_active_product_key,
 		);
 	}
 

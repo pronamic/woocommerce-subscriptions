@@ -2,8 +2,8 @@
 /**
  * WooCommerce Subscriptions Query Handler
  *
- * @version		2.0
- * @author 		Prospress
+ * @version 2.0
+ * @author  Prospress
  */
 class WCS_Query extends WC_Query {
 
@@ -107,10 +107,12 @@ class WCS_Query extends WC_Query {
 		switch ( $endpoint ) {
 			case 'view-subscription':
 				$subscription = wcs_get_subscription( $wp->query_vars['view-subscription'] );
+				// translators: placeholder is a subscription ID.
 				$title        = ( $subscription ) ? sprintf( _x( 'Subscription #%s', 'hash before order number', 'woocommerce-subscriptions' ), $subscription->get_order_number() ) : '';
 				break;
 			case 'subscriptions':
 				if ( ! empty( $wp->query_vars['subscriptions'] ) ) {
+					// translators: placeholder is a page number.
 					$title = sprintf( __( 'Subscriptions (page %d)', 'woocommerce-subscriptions' ), intval( $wp->query_vars['subscriptions'] ) );
 				} else {
 					$title = __( 'Subscriptions', 'woocommerce-subscriptions' );
@@ -325,7 +327,7 @@ class WCS_Query extends WC_Query {
 	}
 
 	/**
-	 *	Get endpoint URL.
+	 * Get endpoint URL.
 	 *
 	 * Gets the URL for an endpoint, which varies depending on permalink settings.
 	 *

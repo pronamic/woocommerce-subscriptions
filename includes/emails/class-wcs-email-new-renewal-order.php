@@ -7,9 +7,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * An email sent to the admin when a new order is received/paid for.
  *
- * @class 		WCS_Email_New_Renewal_Order
- * @version		1.4
- * @extends 	WC_Email_New_Order
+ * @class WCS_Email_New_Renewal_Order
+ * @version 1.4
+ * @extends WC_Email_New_Order
  */
 class WCS_Email_New_Renewal_Order extends WC_Email_New_Order {
 

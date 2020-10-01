@@ -5,11 +5,11 @@
  * For manual renewals and the renewal of a subscription after a failed automatic payment, the customer must complete
  * the renewal via checkout in order to pay for the renewal. This class handles that.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WCS_Cart_Renewal
- * @category	Class
- * @author		Prospress
- * @since		2.0
+ * @package    WooCommerce Subscriptions
+ * @subpackage WCS_Cart_Renewal
+ * @category   Class
+ * @author     Prospress
+ * @since      2.0
  */
 
 class WCS_Cart_Renewal {
@@ -42,7 +42,7 @@ class WCS_Cart_Renewal {
 		add_filter( 'woocommerce_create_order', array( &$this, 'update_cart_hash' ), 10, 1 );
 
 		// When a user is prevented from paying for a failed/pending renewal order because they aren't logged in, redirect them back after login
-		add_filter( 'woocommerce_login_redirect', array( &$this, 'maybe_redirect_after_login' ), 10 , 1 );
+		add_filter( 'woocommerce_login_redirect', array( &$this, 'maybe_redirect_after_login' ), 10, 1 );
 
 		// Once we have finished updating the renewal order on checkout, update the session cart so the cart changes are honoured.
 		add_action( 'woocommerce_checkout_order_processed', array( &$this, 'update_session_cart_after_updating_renewal_order' ), 10 );
@@ -154,7 +154,7 @@ class WCS_Cart_Renewal {
 			add_action( 'woocommerce_add_order_item_meta', array( &$this, 'add_order_item_meta' ), 10, 2 );
 			add_action( 'woocommerce_add_subscription_item_meta', array( &$this, 'add_order_item_meta' ), 10, 2 );
 		} else {
-			add_action( 'woocommerce_checkout_create_order_line_item',  array( &$this, 'add_order_line_item_meta' ), 10, 3 );
+			add_action( 'woocommerce_checkout_create_order_line_item', array( &$this, 'add_order_line_item_meta' ), 10, 3 );
 		}
 	}
 
@@ -271,37 +271,16 @@ class WCS_Cart_Renewal {
 			);
 
 			// Load all product info including variation data
-			if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+			$product_id   = $line_item->get_product_id();
+			$quantity     = $line_item->get_quantity();
+			$variation_id = $line_item->get_variation_id();
+			$item_name    = $line_item->get_name();
 
-				$product_id   = (int) $line_item['product_id'];
-				$quantity     = (int) $line_item['qty'];
-				$variation_id = (int) $line_item['variation_id'];
-				$item_name    = $line_item['name'];
-
-				foreach ( $line_item['item_meta'] as $meta_name => $meta_value ) {
-					if ( taxonomy_is_product_attribute( $meta_name ) ) {
-						$variations[ $meta_name ] = $meta_value[0];
-					} elseif ( meta_is_product_attribute( $meta_name, $meta_value[0], $product_id ) ) {
-						$variations[ $meta_name ] = $meta_value[0];
-					} elseif ( ! in_array( $meta_name, $reserved_item_meta_keys ) ) {
-						$custom_line_item_meta[ $meta_name ] = $meta_value[0];
-					}
-				}
-			} else {
-
-				$product_id   = $line_item->get_product_id();
-				$quantity     = $line_item->get_quantity();
-				$variation_id = $line_item->get_variation_id();
-				$item_name    = $line_item->get_name();
-
-				foreach ( $line_item->get_meta_data() as $meta ) {
-					if ( taxonomy_is_product_attribute( $meta->key ) ) {
-						$variations[ $meta->key ] = $meta->value;
-					} elseif ( meta_is_product_attribute( $meta->key, $meta->value, $product_id ) ) {
-						$variations[ $meta->key ] = $meta->value;
-					} elseif ( ! in_array( $meta->key, $reserved_item_meta_keys ) ) {
-						$custom_line_item_meta[ $meta->key ] = $meta->value;
-					}
+			foreach ( $line_item->get_meta_data() as $meta ) {
+				if ( taxonomy_is_product_attribute( $meta->key ) || meta_is_product_attribute( $meta->key, $meta->value, $product_id ) ) {
+					$variations[ "attribute_{$meta->key}" ] = $meta->value;
+				} elseif ( ! in_array( $meta->key, $reserved_item_meta_keys, true ) ) {
+					$custom_line_item_meta[ $meta->key ] = $meta->value;
 				}
 			}
 
@@ -345,10 +324,10 @@ class WCS_Cart_Renewal {
 		if ( ! $success && 'all_items_required' === $validation_type ) {
 			if ( wcs_is_subscription( $subscription ) ) {
 				// translators: %s is subscription's number
-				wc_add_notice( sprintf( esc_html__( 'Subscription #%s has not been added to the cart.', 'woocommerce-subscriptions' ), $subscription->get_order_number() ) , 'error' );
+				wc_add_notice( sprintf( esc_html__( 'Subscription #%s has not been added to the cart.', 'woocommerce-subscriptions' ), $subscription->get_order_number() ), 'error' );
 			} else {
 				// translators: %s is order's number
-				wc_add_notice( sprintf( esc_html__( 'Order #%s has not been added to the cart.', 'woocommerce-subscriptions' ), $subscription->get_order_number() ) , 'error' );
+				wc_add_notice( sprintf( esc_html__( 'Order #%s has not been added to the cart.', 'woocommerce-subscriptions' ), $subscription->get_order_number() ), 'error' );
 			}
 
 			WC()->cart->empty_cart( true );
@@ -816,6 +795,7 @@ class WCS_Cart_Renewal {
 				'minimum_amount'              => '',
 				'maximum_amount'              => '',
 				'email_restrictions'          => array(),
+				'limit_usage_to_x_items'      => null,
 			);
 
 			foreach ( $property_defaults as $property => $value ) {
@@ -936,7 +916,7 @@ class WCS_Cart_Renewal {
 			$cart_item = $this->cart_contains();
 		}
 
-		if ( false !== $cart_item  && isset( $cart_item[ $this->cart_item_key ] ) ) {
+		if ( false !== $cart_item && isset( $cart_item[ $this->cart_item_key ] ) ) {
 			$order = wc_get_order( $cart_item[ $this->cart_item_key ]['renewal_order_id'] );
 		}
 
@@ -1136,7 +1116,7 @@ class WCS_Cart_Renewal {
 				if ( is_array( $checkout_fields ) ) {
 					foreach ( array_keys( $checkout_fields ) as $field ) {
 						if ( isset( $checkout_data[ $field ] ) ) {
-							$field_name = str_replace( $address_type. '_', '', $field );
+							$field_name = str_replace( $address_type . '_', '', $field );
 							${$address_type . '_address'}[ $field_name ] = $checkout_data[ $field ];
 						}
 					}
@@ -1437,7 +1417,7 @@ class WCS_Cart_Renewal {
 	 * @since 2.0
 	 */
 	public function set_renewal_discounts( $cart ) {
-		_deprecated_function( __METHOD__, '2.0.10', 'Applying original subscription discounts to renewals via cart are now handled within ' . __CLASS__ .'::maybe_setup_cart()' );
+		_deprecated_function( __METHOD__, '2.0.10', 'Applying original subscription discounts to renewals via cart are now handled within ' . __CLASS__ . '::maybe_setup_cart()' );
 	}
 
 	/**
@@ -1458,7 +1438,7 @@ class WCS_Cart_Renewal {
 	 * @since 2.0.10
 	 */
 	public function maybe_add_subscription_fees( $cart ) {
-		_deprecated_function( __METHOD__, '2.0.13', __CLASS__ .'::maybe_add_fees()' );
+		_deprecated_function( __METHOD__, '2.0.13', __CLASS__ . '::maybe_add_fees()' );
 	}
 
 	/**

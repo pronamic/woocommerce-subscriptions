@@ -10,10 +10,10 @@
  * number of orders and the upgrade process times out, only the orders not already upgraded
  * will be upgraded in future requests that trigger this function.
  *
- * @author		Prospress
- * @category	Admin
- * @package		WooCommerce Subscriptions/Admin/Upgrades
- * @version		1.2.0
+ * @author      Prospress
+ * @category    Admin
+ * @package     WooCommerce Subscriptions/Admin/Upgrades
+ * @version     1.2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

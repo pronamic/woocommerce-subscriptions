@@ -35,13 +35,13 @@ class WCS_Auth {
 	public function get_permissions_in_scope( $permissions, $scope ) {
 
 		switch ( $scope ) {
-			case 'read' :
+			case 'read':
 				$permissions[] = __( 'View subscriptions', 'woocommerce-subscriptions' );
 			break;
-			case 'write' :
+			case 'write':
 				$permissions[] = __( 'Create subscriptions', 'woocommerce-subscriptions' );
 			break;
-			case 'read_write' :
+			case 'read_write':
 				$permissions[] = __( 'View and manage subscriptions', 'woocommerce-subscriptions' );
 			break;
 		}
