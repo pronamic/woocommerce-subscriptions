@@ -62,6 +62,7 @@ class WCS_Early_Renewal_Manager {
 				'id'              => self::$via_modal_setting_id,
 				'desc'            => __( 'Accept Early Renewal Payments via a Modal', 'woocommerce-subscriptions' ),
 				'desc_tip'        => sprintf(
+					/* translators: 1-2: opening/closing <strong> tags , 2-3: opening/closing tags for a link to docs on early renewal. */
 					__( 'Allow customers to bypass the checkout and renew their subscription early from their %1$sMy Account > View Subscription%2$s page. %3$sLearn more.%4$s', 'woocommerce-subscriptions' ),
 					'<strong>', '</strong>',
 					'<a href="https://docs.woocommerce.com/document/subscriptions/early-renewal/">', '</a>'
@@ -71,7 +72,7 @@ class WCS_Early_Renewal_Manager {
 				'checkboxgroup'   => 'end',
 				'show_if_checked' => 'yes',
 			),
-		 );
+		);
 
 		WC_Subscriptions_Admin::insert_setting_after( $settings, 'woocommerce_subscriptions_turn_off_automatic_payments', $early_renewal_settings, 'multiple_settings' );
 
@@ -123,7 +124,7 @@ class WCS_Early_Renewal_Manager {
 			$next_payment_timestamp = wcs_add_time( $subscription->get_billing_interval(), $subscription->get_billing_period(), $next_payment_time );
 
 			if ( $subscription->get_time( 'end' ) === 0 || $next_payment_timestamp < $subscription->get_time( 'end' ) ) {
-				$dates_to_update['next_payment'] = gmdate( 'Y-m-d H:i:s',  $next_payment_timestamp );
+				$dates_to_update['next_payment'] = gmdate( 'Y-m-d H:i:s', $next_payment_timestamp );
 			} else {
 				// Delete the next payment date if the calculated next payment date occurs after the end date.
 				$dates_to_update['next_payment'] = 0;

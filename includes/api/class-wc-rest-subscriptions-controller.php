@@ -63,6 +63,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_statuses' ),
+				'permission_callback' => '__return_true',
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
@@ -180,7 +181,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 	protected function create_order( $request ) {
 		try {
 			if ( ! is_null( $request['customer_id'] ) && 0 !== $request['customer_id'] && false === get_user_by( 'id', $request['customer_id'] ) ) {
-				throw new WC_REST_Exception( 'woocommerce_rest_invalid_customer_id',__( 'Customer ID is invalid.', 'woocommerce-subscriptions' ), 400 );
+				throw new WC_REST_Exception( 'woocommerce_rest_invalid_customer_id', __( 'Customer ID is invalid.', 'woocommerce-subscriptions' ), 400 );
 			}
 
 			// If the start date is not set in the request, set its default to now
@@ -438,6 +439,9 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 							}
 						}
 						break;
+					case 'transition_status':
+						$subscription->update_status( $value );
+						break;
 					case 'start_date':
 					case 'trial_end_date':
 					case 'next_payment_date':
@@ -460,6 +464,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 				$subscription->update_dates( $dates_to_update );
 			}
 		} catch ( Exception $e ) {
+			// translators: placeholder is an error message.
 			throw new WC_REST_Exception( 'woocommerce_rest_cannot_update_subscription_dates', sprintf( __( 'Updating subscription dates errored with message: %s', 'woocommerce-subscriptions' ), $e->getMessage() ), 400 );
 		}
 
@@ -484,18 +489,24 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 		$schema = parent::get_item_schema();
 
 		$subscriptions_schema = array(
-			'billing_interval' => array(
+			'transition_status'         => array(
+				'description' => __( 'The status to transition the subscription to. Unlike the "status" param, this will calculate and update the subscription dates.', 'woocommerce-subscriptions' ),
+				'type'        => 'string',
+				'enum'        => $this->get_order_statuses(),
+				'context'     => array( 'edit' ),
+			),
+			'billing_interval'          => array(
 				'description' => __( 'The number of billing periods between subscription renewals.', 'woocommerce-subscriptions' ),
 				'type'        => 'integer',
 				'context'     => array( 'view', 'edit' ),
 			),
-			'billing_period' => array(
+			'billing_period'            => array(
 				'description' => __( 'Billing period for the subscription.', 'woocommerce-subscriptions' ),
 				'type'        => 'string',
 				'enum'        => array_keys( wcs_get_subscription_period_strings() ),
 				'context'     => array( 'view', 'edit' ),
 			),
-			'payment_details' => array(
+			'payment_details'           => array(
 				'description' => __( 'Subscription payment details.', 'woocommerce-subscriptions' ),
 				'type'        => 'object',
 				'context'     => array( 'edit' ),
@@ -507,27 +518,27 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 					),
 				),
 			),
-			'start_date' => array(
+			'start_date'                => array(
 				'description' => __( "The subscription's start date.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
 			),
-			'trial_end_date' => array(
+			'trial_end_date'            => array(
 				'description' => __( "The subscription's trial date", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
 			),
-			'next_payment_date' => array(
+			'next_payment_date'         => array(
 				'description' => __( "The subscription's next payment date.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
 			),
-			'end_date' => array(
+			'end_date'                  => array(
 				'description' => __( "The subscription's end date.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
 			),
-			'resubscribed_from' => array(
+			'resubscribed_from'         => array(
 				'description' => __( "The subscription's original subscription ID if this is a resubscribed subscription.", 'woocommerce-subscriptions' ),
 				'type'        => 'string',
 				'context'     => array( 'view' ),
@@ -539,44 +550,44 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 				'context'     => array( 'view' ),
 				'readonly'    => true,
 			),
-			'date_completed_gmt' => array(
+			'date_completed_gmt'        => array(
 				'description' => __( "The date the subscription's latest order was completed, in GMT.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view' ),
 				'readonly'    => true,
 			),
-			'date_paid_gmt' => array(
+			'date_paid_gmt'             => array(
 				'description' => __( "The date the subscription's latest order was paid, in GMT.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view' ),
 				'readonly'    => true,
 			),
-			'removed_line_items' => array(
+			'removed_line_items'        => array(
 				'description' => __( 'Removed line items data.', 'woocommerce-subscriptions' ),
 				'type'        => 'array',
 				'context'     => array( 'view', 'edit' ),
 				'items'       => array(
 					'type'       => 'object',
 					'properties' => array(
-						'id' => array(
+						'id'           => array(
 							'description' => __( 'Item ID.', 'woocommerce-subscriptions' ),
 							'type'        => 'integer',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 						),
-						'name' => array(
+						'name'         => array(
 							'description' => __( 'Product name.', 'woocommerce-subscriptions' ),
 							'type'        => 'mixed',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 						),
-						'sku' => array(
+						'sku'          => array(
 							'description' => __( 'Product SKU.', 'woocommerce-subscriptions' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 						),
-						'product_id' => array(
+						'product_id'   => array(
 							'description' => __( 'Product ID.', 'woocommerce-subscriptions' ),
 							'type'        => 'mixed',
 							'context'     => array( 'view', 'edit' ),
@@ -586,24 +597,24 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 							'type'        => 'integer',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'quantity' => array(
+						'quantity'     => array(
 							'description' => __( 'Quantity ordered.', 'woocommerce-subscriptions' ),
 							'type'        => 'integer',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'tax_class' => array(
+						'tax_class'    => array(
 							'description' => __( 'Tax class of product.', 'woocommerce-subscriptions' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 						),
-						'price' => array(
+						'price'        => array(
 							'description' => __( 'Product price.', 'woocommerce-subscriptions' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 						),
-						'subtotal' => array(
+						'subtotal'     => array(
 							'description' => __( 'Line subtotal (before discounts).', 'woocommerce-subscriptions' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
@@ -613,17 +624,17 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'total' => array(
+						'total'        => array(
 							'description' => __( 'Line total (after discounts).', 'woocommerce-subscriptions' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'total_tax' => array(
+						'total_tax'    => array(
 							'description' => __( 'Line total tax (after discounts).', 'woocommerce-subscriptions' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'taxes' => array(
+						'taxes'        => array(
 							'description' => __( 'Line taxes.', 'woocommerce-subscriptions' ),
 							'type'        => 'array',
 							'context'     => array( 'view', 'edit' ),
@@ -631,13 +642,13 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 							'items'       => array(
 								'type'       => 'object',
 								'properties' => array(
-									'id' => array(
+									'id'       => array(
 										'description' => __( 'Tax rate ID.', 'woocommerce-subscriptions' ),
 										'type'        => 'integer',
 										'context'     => array( 'view', 'edit' ),
 										'readonly'    => true,
 									),
-									'total' => array(
+									'total'    => array(
 										'description' => __( 'Tax total.', 'woocommerce-subscriptions' ),
 										'type'        => 'string',
 										'context'     => array( 'view', 'edit' ),
@@ -652,7 +663,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 								),
 							),
 						),
-						'meta' => array(
+						'meta'         => array(
 							'description' => __( 'Removed line item meta data.', 'woocommerce-subscriptions' ),
 							'type'        => 'array',
 							'context'     => array( 'view', 'edit' ),
@@ -660,7 +671,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 							'items'       => array(
 								'type'       => 'object',
 								'properties' => array(
-									'key' => array(
+									'key'   => array(
 										'description' => __( 'Meta key.', 'woocommerce-subscriptions' ),
 										'type'        => 'string',
 										'context'     => array( 'view', 'edit' ),
@@ -759,6 +770,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_V1_Controller {
 				$subscription->update_dates( $dates_to_update );
 			}
 		} catch ( Exception $e ) {
+			// translators: placeholder is an error message.
 			throw new WC_REST_Exception( 'woocommerce_rest_cannot_update_subscription_dates', sprintf( __( 'Updating subscription dates errored with message: %s', 'woocommerce-subscriptions' ), $e->getMessage() ), 400 );
 		}
 	}

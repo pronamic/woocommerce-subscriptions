@@ -2,11 +2,11 @@
 /**
  * Deprecate filters that use a dynamic hook by appending a variable, like a payment gateway's name.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WCS_Hook_Deprecator
- * @category	Class
- * @author		Prospress
- * @since		2.0
+ * @package    WooCommerce Subscriptions
+ * @subpackage WCS_Hook_Deprecator
+ * @category   Class
+ * @author     Prospress
+ * @since      2.0
  */
 
 class WCS_Dynamic_Filter_Deprecator extends WCS_Dynamic_Hook_Deprecator {

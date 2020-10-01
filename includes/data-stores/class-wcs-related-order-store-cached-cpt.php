@@ -344,10 +344,10 @@ class WCS_Related_Order_Store_Cached_CPT extends WCS_Related_Order_Store_CPT imp
 		}
 
 		switch ( $update_type ) {
-			case 'add' :
+			case 'add':
 				$this->add_related_order_id_to_cache( $order_id, $subscription_id, $relation_type );
 				break;
-			case 'delete' :
+			case 'delete':
 				// If we don't have a specific subscription ID, the order/post is being deleted, so clear it from all caches
 				if ( empty( $subscription_id ) ) {
 					$this->delete_related_order_id_from_caches( $order_id, $relation_type );
@@ -355,7 +355,7 @@ class WCS_Related_Order_Store_Cached_CPT extends WCS_Related_Order_Store_CPT imp
 					$this->delete_related_order_id_from_cache( $order_id, $subscription_id, $relation_type );
 				}
 				break;
-			case 'update' :
+			case 'update':
 				if ( ! empty( $old_subscription_id ) ) {
 					$this->delete_related_order_id_from_cache( $order_id, $old_subscription_id, $relation_type );
 				}

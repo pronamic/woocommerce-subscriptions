@@ -37,17 +37,20 @@ class WCS_Admin_Meta_Boxes {
 		add_action( 'woocommerce_process_shop_order_meta', 'WCS_Meta_Box_Schedule::save', 10, 2 );
 		add_action( 'woocommerce_process_shop_order_meta', 'WCS_Meta_Box_Subscription_Data::save', 10, 2 );
 
-		add_filter( 'woocommerce_order_actions', __CLASS__ . '::add_subscription_actions', 10, 1 );
+		add_filter( 'woocommerce_order_actions', array( __CLASS__, 'add_subscription_actions' ), 10, 1 );
 
-		add_action( 'woocommerce_order_action_wcs_process_renewal', __CLASS__ .  '::process_renewal_action_request', 10, 1 );
-		add_action( 'woocommerce_order_action_wcs_create_pending_renewal', __CLASS__ .  '::create_pending_renewal_action_request', 10, 1 );
-		add_action( 'woocommerce_order_action_wcs_create_pending_parent', __CLASS__ .  '::create_pending_parent_action_request', 10, 1 );
+		add_action( 'woocommerce_order_action_wcs_process_renewal', array( __CLASS__, 'process_renewal_action_request' ), 10, 1 );
+		add_action( 'woocommerce_order_action_wcs_create_pending_renewal', array( __CLASS__, 'create_pending_renewal_action_request' ), 10, 1 );
+		add_action( 'woocommerce_order_action_wcs_create_pending_parent', array( __CLASS__, 'create_pending_parent_action_request' ), 10, 1 );
 
 		if ( WC_Subscriptions::is_woocommerce_pre( '3.2' ) ) {
-			add_filter( 'woocommerce_resend_order_emails_available', __CLASS__ . '::remove_order_email_actions', 0, 1 );
+			add_filter( 'woocommerce_resend_order_emails_available', array( __CLASS__, 'remove_order_email_actions' ), 0, 1 );
 		}
 
-		add_action( 'woocommerce_order_action_wcs_retry_renewal_payment', __CLASS__ .  '::process_retry_renewal_payment_action_request', 10, 1 );
+		add_action( 'woocommerce_order_action_wcs_retry_renewal_payment', array( __CLASS__, 'process_retry_renewal_payment_action_request' ), 10, 1 );
+
+		// Disable stock managment while adding line items to a subscription via AJAX.
+		add_action( 'option_woocommerce_manage_stock', array( __CLASS__, 'override_stock_management' ) );
 	}
 
 	/**
@@ -122,8 +125,11 @@ class WCS_Admin_Meta_Boxes {
 
 			wp_enqueue_script( 'wcs-admin-meta-boxes-order', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/admin/wcs-meta-boxes-order.js' );
 
-			wp_localize_script( 'wcs-admin-meta-boxes-order', 'wcs_admin_order_meta_boxes', array(
-				'retry_renewal_payment_action_warning' => __( "Are you sure you want to retry payment for this renewal order?\n\nThis will attempt to charge the customer and send renewal order emails (if emails are enabled).", 'woocommerce-subscriptions' ),
+			wp_localize_script(
+				'wcs-admin-meta-boxes-order',
+				'wcs_admin_order_meta_boxes',
+				array(
+					'retry_renewal_payment_action_warning' => __( "Are you sure you want to retry payment for this renewal order?\n\nThis will attempt to charge the customer and send renewal order emails (if emails are enabled).", 'woocommerce-subscriptions' ),
 				)
 			);
 		}
@@ -231,6 +237,7 @@ class WCS_Admin_Meta_Boxes {
 			}
 		}
 
+		wc_maybe_reduce_stock_levels( $parent_order );
 		$subscription->add_order_note( __( 'Create pending parent order requested by admin action.', 'woocommerce-subscriptions' ), false, true );
 	}
 
@@ -300,5 +307,23 @@ class WCS_Admin_Meta_Boxes {
 		}
 
 		return $can_be_retried;
+	}
+
+	/**
+	 * Disables stock managment while adding items to a subscription via the edit subscription screen.
+	 *
+	 * @since 3.0.6
+	 *
+	 * @param string $manage_stock The default manage stock setting.
+	 * @return string Whether the stock should be managed.
+	 */
+	public static function override_stock_management( $manage_stock ) {
+
+		// Override stock management while adding line items to a subscription via AJAX.
+		if ( isset( $_POST['order_id'] ) && wp_verify_nonce( $_REQUEST['security'], 'order-item' ) && doing_action( 'wp_ajax_woocommerce_add_order_item' ) && wcs_is_subscription( absint( wp_unslash( $_POST['order_id'] ) ) ) ) {
+			$manage_stock = 'no';
+		}
+
+		return $manage_stock;
 	}
 }

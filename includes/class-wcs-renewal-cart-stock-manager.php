@@ -20,10 +20,10 @@ class WCS_Renewal_Cart_Stock_Manager {
 	 * @since 2.6.0
 	 */
 	public static function attach_callbacks() {
-		add_action( 'wcs_before_renewal_setup_cart_subscription', array( __CLASS__, 'maybe_adjust_stock_cart' ), 10, 2 );
-		add_action( 'woocommerce_check_cart_items', array( __CLASS__, 'maybe_adjust_stock_checkout' ), 0 );
-		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'remove_filters' ) );
-		add_action( 'woocommerce_check_cart_items', array( __CLASS__, 'remove_filters' ), 20 );
+		add_action( 'wcs_before_renewal_setup_cart_subscription', array( get_called_class(), 'maybe_adjust_stock_cart' ), 10, 2 );
+		add_action( 'woocommerce_check_cart_items', array( get_called_class(), 'maybe_adjust_stock_checkout' ), 0 );
+		add_action( 'woocommerce_checkout_create_order', array( get_called_class(), 'remove_filters' ) );
+		add_action( 'woocommerce_check_cart_items', array( get_called_class(), 'remove_filters' ), 20 );
 	}
 
 	/**
@@ -37,7 +37,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	 * @param WC_Order $order               The renewal order object.
 	 */
 	public static function maybe_adjust_stock_cart( $subscription, $order ) {
-		self::maybe_attach_stock_filters( $order );
+		static::maybe_attach_stock_filters( $order );
 	}
 
 	/**
@@ -46,15 +46,15 @@ class WCS_Renewal_Cart_Stock_Manager {
 	 * @since 2.6.0
 	 */
 	public static function maybe_adjust_stock_checkout() {
-		$renewal_order = self::get_order_from_cart();
+		$renewal_order = static::get_order_from_cart();
 
 		// Get the order from query vars if the cart isn't loaded yet.
 		if ( ! $renewal_order ) {
-			$renewal_order = self::get_order_from_query_vars();
+			$renewal_order = static::get_order_from_query_vars();
 		}
 
 		if ( $renewal_order ) {
-			self::maybe_attach_stock_filters( $renewal_order );
+			static::maybe_attach_stock_filters( $renewal_order );
 		}
 	}
 
@@ -84,8 +84,8 @@ class WCS_Renewal_Cart_Stock_Manager {
 			$required_stock = wcs_get_total_line_item_product_quantity( $order, $stock_managed_product );
 
 			if ( ! $product->is_in_stock() || ( $required_stock + $held_stock ) > $stock_managed_product->get_stock_quantity() ) {
-				add_filter( 'woocommerce_product_is_in_stock', array( __CLASS__, 'adjust_is_in_stock' ), 10, 2 );
-				add_filter( 'woocommerce_product_backorders_allowed', array( __CLASS__, 'adjust_backorder_status' ), 10, 3 );
+				add_filter( 'woocommerce_product_is_in_stock', array( get_called_class(), 'adjust_is_in_stock' ), 10, 2 );
+				add_filter( 'woocommerce_product_backorders_allowed', array( get_called_class(), 'adjust_backorder_status' ), 10, 3 );
 				break;
 			}
 		}
@@ -103,7 +103,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	 */
 	public static function adjust_is_in_stock( $is_in_stock, $product ) {
 		if ( ! $is_in_stock ) {
-			$is_in_stock = self::cart_contains_renewal_to_product( $product );
+			$is_in_stock = static::cart_contains_renewal_to_product( $product );
 		}
 
 		return $is_in_stock;
@@ -123,7 +123,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	 */
 	public static function adjust_backorder_status( $backorders_allowed, $product_id, $product ) {
 		if ( ! $backorders_allowed ) {
-			$backorders_allowed = self::cart_contains_renewal_to_product( $product );
+			$backorders_allowed = static::cart_contains_renewal_to_product( $product );
 		}
 
 		return $backorders_allowed;
@@ -135,8 +135,8 @@ class WCS_Renewal_Cart_Stock_Manager {
 	 * @since 2.6.0
 	 */
 	public static function remove_filters() {
-		remove_filter( 'woocommerce_product_is_in_stock', array( __CLASS__, 'adjust_is_in_stock' ) );
-		remove_filter( 'woocommerce_product_backorders_allowed', array( __CLASS__, 'adjust_backorder_status' ) );
+		remove_filter( 'woocommerce_product_is_in_stock', array( get_called_class(), 'adjust_is_in_stock' ) );
+		remove_filter( 'woocommerce_product_backorders_allowed', array( get_called_class(), 'adjust_backorder_status' ) );
 	}
 
 	/**
@@ -148,10 +148,10 @@ class WCS_Renewal_Cart_Stock_Manager {
 	 */
 	protected static function cart_contains_renewal_to_product( $product ) {
 		$cart_contains_renewal_to_product = false;
-		$renewal_order = self::get_order_from_cart();
+		$renewal_order = static::get_order_from_cart();
 
 		if ( ! $renewal_order ) {
-			$renewal_order = self::get_order_from_query_vars();
+			$renewal_order = static::get_order_from_query_vars();
 		}
 
 		if ( $renewal_order && wcs_order_contains_product( $renewal_order, $product ) ) {

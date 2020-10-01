@@ -20,10 +20,10 @@ class WCS_Failed_Scheduled_Action_Manager {
 	 * @var array
 	 */
 	protected $tracked_scheduled_actions = array(
-		'woocommerce_scheduled_subscription_trial_end'           => 1,
-		'woocommerce_scheduled_subscription_payment'             => 1,
-		'woocommerce_scheduled_subscription_payment_retry'       => 1,
-		'woocommerce_scheduled_subscription_expiration'          => 1,
+		'woocommerce_scheduled_subscription_trial_end'     => 1,
+		'woocommerce_scheduled_subscription_payment'       => 1,
+		'woocommerce_scheduled_subscription_payment_retry' => 1,
+		'woocommerce_scheduled_subscription_expiration'    => 1,
 		'woocommerce_scheduled_subscription_end_of_prepaid_term' => 1,
 	);
 
@@ -81,7 +81,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 
 		$subscription_action = $this->get_action_hook_label( $action->get_hook() );
 
-		$this->log( sprintf( 'scheduled action %s (%s) failed to finish processing after %s seconds', $action_id, $subscription_action , $timeout ) );
+		$this->log( sprintf( 'scheduled action %s (%s) failed to finish processing after %s seconds', $action_id, $subscription_action, $timeout ) );
 		$this->log( sprintf( 'action args: %s', $this->get_action_args_string( $action->get_args() ) ) );
 
 		// Store information about the scheduled action for displaying an admin notice

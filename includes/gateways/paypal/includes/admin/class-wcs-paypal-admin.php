@@ -4,11 +4,11 @@
  *
  * Hooks into WooCommerce's core PayPal class to display fields and notices relating to subscriptions.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	Gateways/PayPal
- * @category	Class
- * @author		Prospress
- * @since		2.0
+ * @package     WooCommerce Subscriptions
+ * @subpackage  Gateways/PayPal
+ * @category    Class
+ * @author      Prospress
+ * @since       2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -60,7 +60,7 @@ class WCS_PayPal_Admin {
 			// Warn store managers not to change their PayPal Email address as it can break existing Subscriptions in WC2.0+
 			WC()->payment_gateways->payment_gateways[ $key ]->form_fields['receiver_email']['desc_tip']     = false;
 			// translators: $1 and $2 are opening and closing strong tags, respectively.
-			WC()->payment_gateways->payment_gateways[ $key ]->form_fields['receiver_email']['description'] .= ' </p><p class="description">' . sprintf( __( 'It is %sstrongly recommended you do not change the Receiver Email address%s if you have active subscriptions with PayPal. Doing so can break existing subscriptions.', 'woocommerce-subscriptions' ), '<strong>', '</strong>' );
+			WC()->payment_gateways->payment_gateways[ $key ]->form_fields['receiver_email']['description'] .= ' </p><p class="description">' . sprintf( __( 'It is %1$sstrongly recommended you do not change the Receiver Email address%2$s if you have active subscriptions with PayPal. Doing so can break existing subscriptions.', 'woocommerce-subscriptions' ), '<strong>', '</strong>' );
 		}
 	}
 
@@ -99,7 +99,7 @@ class WCS_PayPal_Admin {
 			return;
 		}
 
-		$payment_gateway_tab_url = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=wc_gateway_paypal' );
+		$payment_gateway_tab_url = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=paypal' );
 		$notices                 = array();
 
 		if ( ! WCS_PayPal::are_credentials_set() ) {
@@ -107,7 +107,7 @@ class WCS_PayPal_Admin {
 				$notices[] = array(
 					'type' => 'warning',
 					// translators: placeholders are opening and closing link tags. 1$-2$: to docs on woocommerce, 3$-4$ to gateway settings on the site
-					'text'  => sprintf( esc_html__( 'PayPal is inactive for subscription transactions. Please %1$sset up the PayPal IPN%2$s and %3$senter your API credentials%4$s to enable PayPal for Subscriptions.', 'woocommerce-subscriptions' ),
+					'text' => sprintf( esc_html__( 'PayPal is inactive for subscription transactions. Please %1$sset up the PayPal IPN%2$s and %3$senter your API credentials%4$s to enable PayPal for Subscriptions.', 'woocommerce-subscriptions' ),
 						'<a href="https://docs.woocommerce.com/document/subscriptions/store-manager-guide/#ipn-setup" target="_blank">',
 						'</a>',
 						'<a href="' . esc_url( $payment_gateway_tab_url ) . '">',
@@ -118,9 +118,11 @@ class WCS_PayPal_Admin {
 		} elseif ( 'woocommerce_page_wc-settings' === get_current_screen()->base && isset( $_GET['tab'] ) && in_array( $_GET['tab'], array( 'subscriptions', 'checkout' ) ) && ! WCS_PayPal::are_reference_transactions_enabled() ) {
 			if ( 'yes' === WCS_PayPal::get_option( 'enabled_for_subscriptions' ) ) {
 				$notice_type = 'warning';
+				// translators: opening/closing tags - links to documentation.
 				$notice_text = esc_html__( '%1$sPayPal Reference Transactions are not enabled on your account%2$s, some subscription management features are not enabled. Please contact PayPal and request they %3$senable PayPal Reference Transactions%4$s on your account. %5$sCheck PayPal Account%6$s  %3$sLearn more %7$s', 'woocommerce-subscriptions' );
 			} else {
 				$notice_type = 'info';
+				// translators: opening/closing tags - links to documentation.
 				$notice_text = esc_html__( '%1$sPayPal Reference Transactions are not enabled on your account%2$s. If you wish to use PayPal Reference Transactions with Subscriptions, please contact PayPal and request they %3$senable PayPal Reference Transactions%4$s on your account. %5$sCheck PayPal Account%6$s  %3$sLearn more %7$s', 'woocommerce-subscriptions' );
 			}
 
@@ -143,7 +145,7 @@ class WCS_PayPal_Admin {
 			$notices[] = array(
 				'type' => 'confirmation',
 				// translators: placeholders are opening and closing strong tags.
-				'text'  => sprintf( esc_html__( '%1$sPayPal Reference Transactions are enabled on your account%2$s. All subscription management features are now enabled. Happy selling!', 'woocommerce-subscriptions' ),
+				'text' => sprintf( esc_html__( '%1$sPayPal Reference Transactions are enabled on your account%2$s. All subscription management features are now enabled. Happy selling!', 'woocommerce-subscriptions' ),
 					'<strong>',
 					'</strong>'
 				),
@@ -154,7 +156,7 @@ class WCS_PayPal_Admin {
 			$notices[] = array(
 				'type' => 'error',
 				// translators: placeholders are link opening and closing tags. 1$-2$: to gateway settings, 3$-4$: support docs on woocommerce.com
-				'text'  => sprintf( esc_html__( 'There is a problem with PayPal. Your API credentials may be incorrect. Please update your %1$sAPI credentials%2$s. %3$sLearn more%4$s.', 'woocommerce-subscriptions' ),
+				'text' => sprintf( esc_html__( 'There is a problem with PayPal. Your API credentials may be incorrect. Please update your %1$sAPI credentials%2$s. %3$sLearn more%4$s.', 'woocommerce-subscriptions' ),
 					'<a href="' . esc_url( $payment_gateway_tab_url ) . '">',
 					'</a>',
 					'<a href="https://docs.woocommerce.com/document/subscriptions-canceled-suspended-paypal/#section-2" target="_blank">',
@@ -167,7 +169,7 @@ class WCS_PayPal_Admin {
 			$notices[] = array(
 				'type' => 'error',
 				// translators: placeholders are opening and closing link tags. 1$-2$: docs on woocommerce, 3$-4$: dismiss link
-				'text'  => sprintf( esc_html__( 'There is a problem with PayPal. Your PayPal account is issuing out-of-date subscription IDs. %1$sLearn more%2$s. %3$sDismiss%4$s.', 'woocommerce-subscriptions' ),
+				'text' => sprintf( esc_html__( 'There is a problem with PayPal. Your PayPal account is issuing out-of-date subscription IDs. %1$sLearn more%2$s. %3$sDismiss%4$s.', 'woocommerce-subscriptions' ),
 					'<a href="https://docs.woocommerce.com/document/subscriptions-canceled-suspended-paypal/#section-3" target="_blank">',
 					'</a>',
 					'<a href="' . esc_url( add_query_arg( 'wcs_disable_paypal_invalid_profile_id_notice', 'true' ) ) . '">',
@@ -185,7 +187,7 @@ class WCS_PayPal_Admin {
 				'failed_ipn_log_handle' => $failed_ipn_log_handle,
 				'last_ipn_error'        => $last_ipn_error,
 				'log_file_url'          => admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&log_file=%s-%s-log', $failed_ipn_log_handle, sanitize_file_name( wp_hash( $failed_ipn_log_handle ) ) ) ),
-			 ) );
+			) );
 
 			$notice->set_actions( array(
 				array(
@@ -287,7 +289,7 @@ class WCS_PayPal_Admin {
 		if ( ! empty( $url ) ) {
 			echo '<a href="' . esc_url( $url ) . '" target="_blank">' . esc_html( $paypal_profile_id ) . '</a>';
 		} else {
-			echo  esc_html( $paypal_profile_id );
+			echo esc_html( $paypal_profile_id );
 		}
 
 		echo '</p></div>';
@@ -315,7 +317,7 @@ class WCS_PayPal_Admin {
 		if ( 'no' === WCS_PayPal::get_option( 'enabled_for_subscriptions' ) ) {
 			$setting['description'] = sprintf(
 				/* translators: Placeholders are the opening and closing link tags.*/
-				__( "Before enabling PayPal Standard for Subscriptions, please note, when using PayPal Standard, customers are locked into using PayPal Standard for the life of their subscription, and PayPal Standard has a number of limitations. Please read the guide on %swhy we don't recommend PayPal Standard%s for Subscriptions before choosing to enable this option.", 'woocommerce-subscriptions' ),
+				__( "Before enabling PayPal Standard for Subscriptions, please note, when using PayPal Standard, customers are locked into using PayPal Standard for the life of their subscription, and PayPal Standard has a number of limitations. Please read the guide on %1\$swhy we don't recommend PayPal Standard%2\$s for Subscriptions before choosing to enable this option.", 'woocommerce-subscriptions' ),
 				'<a href="https://docs.woocommerce.com/document/subscriptions/payment-gateways/#paypal-limitations">', '</a>'
 			);
 		}

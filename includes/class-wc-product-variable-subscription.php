@@ -4,10 +4,10 @@
  *
  * This class extends the WC Variable product class to create variable products with recurring payments.
  *
- * @class 		WC_Product_Variable_Subscription
- * @package		WooCommerce Subscriptions
- * @category	Class
- * @since		1.3
+ * @class WC_Product_Variable_Subscription
+ * @package WooCommerce Subscriptions
+ * @category Class
+ * @since 1.3
  *
  */
 if ( ! defined( 'ABSPATH' ) ) {
@@ -86,16 +86,21 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 	 * @return string
 	 */
 	public function get_price_html( $price = '' ) {
+		$prices                 = $this->get_variation_prices( true );
+		$min_price_variation_id = $this->get_meta( '_min_price_variation_id' );
 
-		$prices = $this->get_variation_prices( true );
+		if ( empty( $min_price_variation_id ) ) {
+			WC_Subscriptions_Product::variable_subscription_product_sync( $this );
+			$min_price_variation_id = $this->get_meta( '_min_price_variation_id' );
+		}
 
-		if ( empty( $prices['price'] ) ) {
+		if ( empty( $prices['price'] ) || ! $min_price_variation_id ) {
 			return apply_filters( 'woocommerce_variable_empty_price_html', '', $this );
 		}
 
 		$tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
 
-		$price = WC_Subscriptions_Product::get_price( $this->get_meta( '_min_price_variation_id' ) );
+		$price = WC_Subscriptions_Product::get_price( $min_price_variation_id );
 		$price = 'incl' == $tax_display_mode ? wcs_get_price_including_tax( $this, array( 'price' => $price ) ) : wcs_get_price_excluding_tax( $this, array( 'price' => $price ) );
 		$price = $this->get_price_prefix( $prices ) . wc_price( $price ) . $this->get_price_suffix();
 		$price = apply_filters( 'woocommerce_variable_price_html', $price, $this );
@@ -253,7 +258,13 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 	 */
 	public function get_sign_up_fee_including_tax( $qty = 1 ) {
 		wcs_deprecated_function( __METHOD__, '2.2.0', 'wcs_get_price_including_tax( $product, array( "qty" => $qty, "price" => WC_Subscriptions_Product::get_sign_up_fee( $product ) ) )' );
-		return wcs_get_price_including_tax( $this, array( 'qty' => $qty, 'price' => WC_Subscriptions_Product::get_sign_up_fee( $this ) ) );
+		return wcs_get_price_including_tax(
+			$this,
+			array(
+				'qty'   => $qty,
+				'price' => WC_Subscriptions_Product::get_sign_up_fee( $this ),
+			)
+		);
 	}
 
 	/**
@@ -264,7 +275,13 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 	 */
 	public function get_sign_up_fee_excluding_tax( $qty = 1 ) {
 		wcs_deprecated_function( __METHOD__, '2.2.0', 'wcs_get_price_excluding_tax( $product, array( "qty" => $qty, "price" => WC_Subscriptions_Product::get_sign_up_fee( $product ) ) )' );
-		return wcs_get_price_excluding_tax( $this, array( 'qty' => $qty, 'price' => WC_Subscriptions_Product::get_sign_up_fee( $this ) ) );
+		return wcs_get_price_excluding_tax(
+			$this,
+			array(
+				'qty'   => $qty,
+				'price' => WC_Subscriptions_Product::get_sign_up_fee( $this ),
+			)
+		);
 	}
 
 	/**
@@ -314,21 +331,25 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 	}
 
 	/**
-	 * Get an array of available variations for the current product.
+	 * Gets an array of available variations.
 	 *
-	 * @return array
+	 * @param string $return Optional. The format to return the results in. Can be 'array' to return an array of variation data or 'objects' for the product objects. Default 'array'.
+	 * @return array|WC_Product_Subscription_Variation[]
 	 */
-	public function get_available_variations() {
-		$available_variations_data = parent::get_available_variations();
+	public function get_available_variations( $return = 'array' ) {
+		$available_variations = parent::get_available_variations( $return );
 
-		foreach ( $available_variations_data as $index => $variation_data ) {
+		// Add the variation first payment date if data is being prepared for the add to cart form.
+		if ( 'array' === $return ) {
+			foreach ( $available_variations as $index => $variation_data ) {
 
-			// Add the product's synced first payment date to the variation data if applicable.
-			if ( isset( $variation_data['variation_id'] ) ) {
-				$available_variations_data[ $index ]['first_payment_html'] = WC_Subscriptions_Synchroniser::get_products_first_payment_date( wc_get_product( $variation_data['variation_id'] ) );
+				// Add the product's synced first payment date to the variation data if applicable.
+				if ( isset( $variation_data['variation_id'] ) ) {
+					$available_variations[ $index ]['first_payment_html'] = WC_Subscriptions_Synchroniser::get_products_first_payment_date( wc_get_product( $variation_data['variation_id'] ) );
+				}
 			}
 		}
 
-		return $available_variations_data;
+		return $available_variations;
 	}
 }

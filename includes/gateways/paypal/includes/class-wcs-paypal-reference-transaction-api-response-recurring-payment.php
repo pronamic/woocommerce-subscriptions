@@ -12,10 +12,10 @@
  *
  * @link https://developer.paypal.com/webapps/developer/docs/classic/api/merchant/DoReferenceTransaction_API_Operation_NVP/
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	Gateways/PayPal
- * @category	Class
- * @since		2.0.9
+ * @package     WooCommerce Subscriptions
+ * @subpackage  Gateways/PayPal
+ * @category    Class
+ * @since       2.0.9
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

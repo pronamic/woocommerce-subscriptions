@@ -2,11 +2,11 @@
 /**
  * An instance of a failed payment retry.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WCS_Retry
- * @category	Class
- * @author		Prospress
- * @since		2.1
+ * @package     WooCommerce Subscriptions
+ * @subpackage  WCS_Retry
+ * @category    Class
+ * @author      Prospress
+ * @since       2.1
  */
 
 class WCS_Retry {

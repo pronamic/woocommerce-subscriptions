@@ -55,7 +55,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 							<label for="customer_user"><?php esc_html_e( 'Customer:', 'woocommerce-subscriptions' ) ?> <?php
 							if ( $subscription->get_user_id() ) {
 								$args = array(
-									'post_status' => 'all',
+									'post_status'    => 'all',
 									'post_type'      => 'shop_subscription',
 									'_customer_user' => absint( $subscription->get_user_id() ),
 								);
@@ -109,7 +109,10 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 						<p class="form-field form-field-wide">
 						<?php echo esc_html__( 'Parent order: ', 'woocommerce-subscriptions' ) ?>
 						<a href="<?php echo esc_url( get_edit_post_link( $subscription->get_parent_id() ) ); ?>">
-						<?php echo sprintf( esc_html__( '#%1$s', 'woocommerce-subscriptions' ), esc_html( $parent_order->get_order_number() ) ); ?>
+						<?php
+						// translators: placeholder is an order number.
+						echo sprintf( esc_html__( '#%1$s', 'woocommerce-subscriptions' ), esc_html( $parent_order->get_order_number() ) );
+						?>
 						</a>
 						</p>
 						<?php } else {
@@ -168,6 +171,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 
 						// Display help tip
 						if ( '' != $subscription->get_payment_method() && ! $subscription->is_manual() ) {
+							// translators: %s: gateway ID.
 							echo wcs_help_tip( sprintf( _x( 'Gateway ID: [%s]', 'The gateway ID displayed on the Edit Subscriptions screen when editing payment method.', 'woocommerce-subscriptions' ), $subscription->get_payment_method() ) );
 						}
 
@@ -186,10 +190,10 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 								$field['id'] = '_billing_' . $key;
 							}
 							switch ( $field['type'] ) {
-								case 'select' :
+								case 'select':
 									woocommerce_wp_select( $field );
 								break;
-								default :
+								default:
 									woocommerce_wp_text_input( $field );
 								break;
 							}
@@ -275,10 +279,10 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 								}
 
 								switch ( $field['type'] ) {
-									case 'select' :
+									case 'select':
 										woocommerce_wp_select( $field );
 									break;
-									default :
+									default:
 										woocommerce_wp_text_input( $field );
 									break;
 								}
@@ -379,6 +383,7 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 				wcs_delete_objects_property( $parent, 'subscription_renewal' );
 			}
 			$subscription->set_parent_id( wc_clean( $_POST['parent-order-id'] ) );
+			// translators: %s: parent order number (linked to its details screen).
 			$subscription->add_order_note( sprintf( _x( 'Subscription linked to parent order %s via admin.', 'subscription note after linking to a parent order', 'woocommerce-subscriptions' ), sprintf( '<a href="%1$s">#%2$s</a> ', esc_url( wcs_get_edit_post_link( $subscription->get_parent_id() ) ), $subscription->get_parent()->get_order_number() ) ), false, true );
 			$subscription->save();
 		}

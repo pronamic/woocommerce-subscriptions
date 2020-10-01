@@ -7,11 +7,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * An email sent to the customer via admin.
  *
- * @class		WCS_Email_Customer_Renewal_Invoice
- * @version		1.4
- * @package		WooCommerce_Subscriptions/Includes/Emails
- * @author		Prospress
- * @extends		WC_Email_Customer_Invoice
+ * @class WCS_Email_Customer_Renewal_Invoice
+ * @version 1.4
+ * @package WooCommerce_Subscriptions/Includes/Emails
+ * @author Prospress
+ * @extends WC_Email_Customer_Invoice
  */
 class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 

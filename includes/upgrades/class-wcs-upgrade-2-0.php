@@ -2,10 +2,10 @@
 /**
  * Upgrade subscriptions data to v2.0
  *
- * @author		Prospress
- * @category	Admin
- * @package		WooCommerce Subscriptions/Admin/Upgrades
- * @version		2.0
+ * @author      Prospress
+ * @category    Admin
+ * @package     WooCommerce Subscriptions/Admin/Upgrades
+ * @version     2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -68,7 +68,7 @@ class WCS_Upgrade_2_0 {
 				$original_order = wc_get_order( $old_subscription['order_id'] );
 
 				// If we're still in a prepaid term, the new subscription has the new pending cancellation status
-				if ( 'cancelled' == $old_subscription['status'] && false != as_next_scheduled_action( 'scheduled_subscription_end_of_prepaid_term', array( 'user_id' => $old_subscription['user_id'], 'subscription_key' => $old_subscription['subscription_key'] ) ) ) {
+				if ( 'cancelled' == $old_subscription['status'] && false != as_next_scheduled_action( 'scheduled_subscription_end_of_prepaid_term', array( 'user_id' => $old_subscription['user_id'], 'subscription_key' => $old_subscription['subscription_key'] ) ) ) { // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 					$subscription_status = 'pending-cancel';
 				} elseif ( 'trash' == $old_subscription['status'] ) {
 					$subscription_status = 'cancelled'; // we'll trash it properly after migrating it
@@ -336,7 +336,10 @@ class WCS_Upgrade_2_0 {
 		if ( isset( $order_item['item_meta']['_recurring_line_tax_data'] ) ) {
 
 			$line_tax_data      = maybe_unserialize( $order_item['item_meta']['_recurring_line_tax_data'][0] );
-			$recurring_tax_data = array( 'total' => array(), 'subtotal' => array() );
+			$recurring_tax_data = array(
+				'total'    => array(),
+				'subtotal' => array(),
+			);
 			$tax_data_keys      = array( 'total', 'subtotal' );
 
 			foreach ( $tax_data_keys as $tax_data_key ) {
@@ -359,7 +362,10 @@ class WCS_Upgrade_2_0 {
 				// Make sure we account for any sign-up fees by determining what proportion of the initial amount the recurring total represents
 				$recurring_ratio = $recurring_line_total / $line_total;
 
-				$recurring_tax_data = array( 'total' => array(), 'subtotal' => array() );
+				$recurring_tax_data = array(
+					'total'    => array(),
+					'subtotal' => array(),
+				);
 				$tax_data_keys      = array( 'total', 'subtotal' );
 
 				foreach ( $tax_data_keys as $tax_data_key ) {
@@ -390,10 +396,16 @@ class WCS_Upgrade_2_0 {
 					'total'    => array( $tax_rate_key => $order_item['item_meta']['_recurring_line_tax'][0] ),
 				);
 			} else {
-				$recurring_tax_data = array( 'total' => array(), 'subtotal' => array() );
+				$recurring_tax_data = array(
+					'total'    => array(),
+					'subtotal' => array(),
+				);
 			}
 		} else {
-			$recurring_tax_data = array( 'total' => array(), 'subtotal' => array() );
+			$recurring_tax_data = array(
+				'total'    => array(),
+				'subtotal' => array(),
+			);
 		}
 
 		return wc_add_order_item_meta( $new_order_item_id, '_line_tax_data', $recurring_tax_data, true );
@@ -464,19 +476,19 @@ class WCS_Upgrade_2_0 {
 
 		// old hook => new hook
 		$date_keys = array(
-			'trial_end' => array(
+			'trial_end'           => array(
 				'old_subscription_key' => 'trial_expiry_date',
 				'old_scheduled_hook'   => 'scheduled_subscription_trial_end',
 			),
-			'end' => array(
+			'end'                 => array(
 				'old_subscription_key' => 'expiry_date',
 				'old_scheduled_hook'   => 'scheduled_subscription_expiration',
 			),
-			'end_date' => array(
+			'end_date'            => array(
 				'old_subscription_key' => '_subscription_end_date', // this is the actual end date, not just the date it was scheduled to expire
 				'old_scheduled_hook'   => '',
 			),
-			'next_payment' => array(
+			'next_payment'        => array(
 				'old_subscription_key' => '',
 				'old_scheduled_hook'   => 'scheduled_subscription_payment',
 			),
@@ -515,7 +527,17 @@ class WCS_Upgrade_2_0 {
 		}
 
 		// Trash all the hooks in one go to save write requests
-		$wpdb->update( $wpdb->posts, array( 'post_status' => 'trash' ), array( 'post_type' => ActionScheduler_wpPostStore::POST_TYPE, 'post_content' => wcs_json_encode( $old_hook_args ) ), array( '%s', '%s' ) );
+		$wpdb->update(
+			$wpdb->posts,
+			array(
+				'post_status' => 'trash',
+			),
+			array(
+				'post_type'    => ActionScheduler_wpPostStore::POST_TYPE,
+				'post_content' => wcs_json_encode( $old_hook_args ),
+			),
+			array( '%s', '%s' )
+		);
 
 		$dates_to_update['date_created'] = $new_subscription->post->post_date_gmt;
 
@@ -527,15 +549,15 @@ class WCS_Upgrade_2_0 {
 			}
 
 			switch ( $date_type ) {
-				case 'end' :
+				case 'end':
 					if ( array_key_exists( 'next_payment', $dates_to_update ) && $date <= $dates_to_update['next_payment'] ) {
 						$dates_to_update[ $date_type ] = $date;
 					}
-				case 'next_payment' :
+				case 'next_payment':
 					if ( array_key_exists( 'trial_end', $dates_to_update ) && $date < $dates_to_update['trial_end'] ) {
 						$dates_to_update[ $date_type ] = $date;
 					}
-				case 'trial_end' :
+				case 'trial_end':
 					if ( array_key_exists( 'date_created', $dates_to_update ) && $date <= $dates_to_update['date_created'] ) {
 						$dates_to_update[ $date_type ] = $date;
 					}
@@ -865,18 +887,20 @@ class WCS_Upgrade_2_0 {
 		) );
 
 		// Select the orders which had the items which were switched by this order
-		$previous_order_id = get_posts( array(
-			'post_type'      => 'shop_order',
-			'post_status'    => 'any',
-			'fields'         => 'ids',
-			'posts_per_page' => -1,
-			'meta_query' => array(
-				array(
-					'key'   => '_switched_subscription_new_order',
-					'value' => wcs_get_objects_property( $switch_order, 'id' ),
+		$previous_order_id = get_posts(
+			array(
+				'post_type'      => 'shop_order',
+				'post_status'    => 'any',
+				'fields'         => 'ids',
+				'posts_per_page' => -1,
+				'meta_query'     => array(
+					array(
+						'key'   => '_switched_subscription_new_order',
+						'value' => wcs_get_objects_property( $switch_order, 'id' ),
+					),
 				),
-			),
-		) );
+			)
+		);
 
 		if ( ! empty( $previous_order_id ) ) {
 

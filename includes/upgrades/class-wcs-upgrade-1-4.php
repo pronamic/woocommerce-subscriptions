@@ -4,10 +4,10 @@
  *
  * Version 1.4 moved subscription meta out of usermeta and into the new WC2.0 order item meta table.
  *
- * @author		Prospress
- * @category	Admin
- * @package		WooCommerce Subscriptions/Admin/Upgrades
- * @version		1.4.0
+ * @author      Prospress
+ * @category    Admin
+ * @package     WooCommerce Subscriptions/Admin/Upgrades
+ * @version     1.4.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -27,10 +27,11 @@ class WCS_Upgrade_1_4 {
 		$order_item_meta_table  = $wpdb->get_blog_prefix() . 'woocommerce_order_itemmeta';
 
 		// Get the IDs of all users who have a subscription
-		$users_to_upgrade = get_users( array(
-			'meta_key' => $subscriptions_meta_key,
-			'fields'   => 'ID',
-			'orderby'  => 'ID',
+		$users_to_upgrade = get_users(
+			array(
+				'meta_key' => $subscriptions_meta_key,
+				'fields'   => 'ID',
+				'orderby'  => 'ID',
 			)
 		);
 

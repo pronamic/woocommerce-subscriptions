@@ -305,7 +305,10 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 		$subscription = wcs_get_subscription( $cart_item[ $this->cart_item_key ]['subscription_id'] );
 
 		if ( wcs_is_order( $order ) && wcs_is_subscription( $subscription ) ) {
+			// translators: %s: order ID.
 			$order_number = sprintf( _x( '#%s', 'hash before order number', 'woocommerce-subscriptions' ), $order->get_order_number() );
+
+			// translators: %s: order ID (linked to details page).
 			$subscription->add_order_note( sprintf( __( 'Order %s created to record early renewal.', 'woocommerce-subscriptions' ), sprintf( '<a href="%s">%s</a> ', esc_url( wcs_get_edit_post_link( $order_id ) ), $order_number ) ) );
 		}
 	}

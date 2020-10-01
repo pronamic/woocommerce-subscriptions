@@ -158,6 +158,7 @@ function wcs_update_dates_after_early_renewal( $subscription, $early_renewal ) {
 	$dates_to_update = WCS_Early_Renewal_Manager::get_dates_to_update( $subscription );
 
 	if ( ! empty( $dates_to_update ) ) {
+		// translators: %s: order ID.
 		$order_number = sprintf( _x( '#%s', 'hash before order number', 'woocommerce-subscriptions' ), $early_renewal->get_order_number() );
 		$order_link   = sprintf( '<a href="%s">%s</a>', esc_url( wcs_get_edit_post_link( $early_renewal->get_id() ) ), $order_number );
 

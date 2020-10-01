@@ -2,11 +2,11 @@
 /**
  * Allow for payment dates to be synchronised to a specific day of the week, month or year.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Sync
- * @category	Class
- * @author		Brent Shepherd
- * @since		1.5
+ * @package WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Sync
+ * @category Class
+ * @author Brent Shepherd
+ * @since 1.5
  */
 class WC_Subscriptions_Synchroniser {
 
@@ -65,7 +65,7 @@ class WC_Subscriptions_Synchroniser {
 
 		// Save sync options when a variable subscription product is saved
 		add_action( 'woocommerce_process_product_meta_variable-subscription', __CLASS__ . '::process_product_meta_variable_subscription' );
-		add_action( 'woocommerce_save_product_variation',  __CLASS__ . '::save_product_variation', 20, 2 );
+		add_action( 'woocommerce_save_product_variation', __CLASS__ . '::save_product_variation', 20, 2 );
 
 		// Make sure the expiration dates are calculated from the synced start date
 		add_filter( 'woocommerce_subscriptions_product_trial_expiration_date', __CLASS__ . '::recalculate_product_trial_expiration_date', 10, 2 );
@@ -207,19 +207,19 @@ class WC_Subscriptions_Synchroniser {
 		array_splice( $settings, $index, 0, array(
 
 			array(
-				'name'          => __( 'Synchronisation', 'woocommerce-subscriptions' ),
-				'type'          => 'title',
+				'name' => __( 'Synchronisation', 'woocommerce-subscriptions' ),
+				'type' => 'title',
 				// translators: placeholders are opening and closing link tags
-				'desc'          => sprintf( _x( 'Align subscription renewal to a specific day of the week, month or year. For example, the first day of the month. %sLearn more%s.', 'used in the general subscription options page', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'http://docs.woocommerce.com/document/subscriptions/renewal-synchronisation/' ) . '">', '</a>' ),
-				'id'            => self::$setting_id . '_title',
+				'desc' => sprintf( _x( 'Align subscription renewal to a specific day of the week, month or year. For example, the first day of the month. %1$sLearn more%2$s.', 'used in the general subscription options page', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'http://docs.woocommerce.com/document/subscriptions/renewal-synchronisation/' ) . '">', '</a>' ),
+				'id'   => self::$setting_id . '_title',
 			),
 
 			array(
-				'name'          => self::$sync_field_label,
-				'desc'          => __( 'Align Subscription Renewal Day', 'woocommerce-subscriptions' ),
-				'id'            => self::$setting_id,
-				'default'       => 'no',
-				'type'          => 'checkbox',
+				'name'    => self::$sync_field_label,
+				'desc'    => __( 'Align Subscription Renewal Day', 'woocommerce-subscriptions' ),
+				'id'      => self::$setting_id,
+				'default' => 'no',
+				'type'    => 'checkbox',
 			),
 
 			array(
@@ -247,7 +247,10 @@ class WC_Subscriptions_Synchroniser {
 				'desc_tip' => __( 'Subscriptions created within this many days prior to the Renewal Day will not be charged at sign-up. Set to zero for all new Subscriptions to be charged the full recurring amount. Must be a positive number.', 'woocommerce-subscriptions' ),
 			),
 
-			array( 'type' => 'sectionend', 'id' => self::$setting_id . '_title' ),
+			array(
+				'type' => 'sectionend',
+				'id'   => self::$setting_id . '_title',
+			),
 		) );
 
 		return $settings;
@@ -265,7 +268,7 @@ class WC_Subscriptions_Synchroniser {
 
 			// Set month as the default billing period
 			if ( ! $subscription_period = get_post_meta( $post->ID, '_subscription_period', true ) ) {
-			 	$subscription_period = 'month';
+				$subscription_period = 'month';
 			}
 
 			// Determine whether to display the week/month sync fields or the annual sync fields
@@ -285,14 +288,15 @@ class WC_Subscriptions_Synchroniser {
 			echo '<div class="options_group subscription_pricing subscription_sync show_if_subscription hidden">';
 			echo '<div class="subscription_sync_week_month" style="' . esc_attr( $display_week_month_select ) . '">';
 
-			woocommerce_wp_select( array(
-				'id'          => self::$post_meta_key,
-				'class'       => 'wc_input_subscription_payment_sync select short',
-				'label'       => self::$sync_field_label,
-				'options'     => self::get_billing_period_ranges( $subscription_period ),
-				'description' => self::$sync_description,
-				'desc_tip'    => true,
-				'value'       => $payment_day, // Explicity set value in to ensure backward compatibility
+			woocommerce_wp_select(
+				array(
+					'id'          => self::$post_meta_key,
+					'class'       => 'wc_input_subscription_payment_sync select short',
+					'label'       => self::$sync_field_label,
+					'options'     => self::get_billing_period_ranges( $subscription_period ),
+					'description' => self::$sync_description,
+					'desc_tip'    => true,
+					'value'       => $payment_day, // Explicity set value in to ensure backward compatibility
 				)
 			);
 
@@ -311,7 +315,7 @@ class WC_Subscriptions_Synchroniser {
 						<?php } ?>
 					</select>
 
-					<?php $daysInMonth = $payment_month ? cal_days_in_month( CAL_GREGORIAN, (int) $payment_month, 2001 ) : 0; ?>
+					<?php $daysInMonth = $payment_month ? gmdate( 't', wc_string_to_timestamp( "2001-{$payment_month}-01" ) ) : 0; ?>
 					<input type="number" id="<?php echo esc_attr( self::$post_meta_key_day ); ?>" name="<?php echo esc_attr( self::$post_meta_key_day ); ?>" class="wc_input_subscription_payment_sync" value="<?php echo esc_attr( $payment_day ); ?>" placeholder="<?php echo esc_attr_x( 'Day', 'input field placeholder for day field for annual subscriptions', 'woocommerce-subscriptions' ); ?>" step="1" min="<?php echo esc_attr( min( 1, $daysInMonth ) ); ?>" max="<?php echo esc_attr( $daysInMonth ); ?>" <?php disabled( 0, $payment_month, true ); ?> />
 				</span>
 				<?php echo wcs_help_tip( self::$sync_description_year ); ?>
@@ -375,8 +379,8 @@ class WC_Subscriptions_Synchroniser {
 		if ( 'year' == $_POST['_subscription_period'] ) { // save the day & month for the date rather than just the day
 
 			$_POST[ self::$post_meta_key ] = array(
-				'day'    => isset( $_POST[ self::$post_meta_key_day ] ) ? $_POST[ self::$post_meta_key_day ] : 0,
-				'month'  => isset( $_POST[ self::$post_meta_key_month ] ) ? $_POST[ self::$post_meta_key_month ] : '01',
+				'day'   => isset( $_POST[ self::$post_meta_key_day ] ) ? $_POST[ self::$post_meta_key_day ] : 0,
+				'month' => isset( $_POST[ self::$post_meta_key_month ] ) ? $_POST[ self::$post_meta_key_month ] : '01',
 			);
 
 		} else {
@@ -421,8 +425,8 @@ class WC_Subscriptions_Synchroniser {
 		if ( 'year' == $_POST['variable_subscription_period'][ $index ] ) { // save the day & month for the date rather than just the day
 
 			$_POST[ 'variable' . self::$post_meta_key ][ $index ] = array(
-				'day'    => isset( $_POST[ $day_field ][ $index ] ) ? $_POST[ $day_field ][ $index ] : 0,
-				'month'  => isset( $_POST[ $month_field ][ $index ] ) ? $_POST[ $month_field ][ $index ] : 0,
+				'day'   => isset( $_POST[ $day_field ][ $index ] ) ? $_POST[ $day_field ][ $index ] : 0,
+				'month' => isset( $_POST[ $month_field ][ $index ] ) ? $_POST[ $month_field ][ $index ] : 0,
 			);
 
 		} elseif ( ! isset( $_POST[ 'variable' . self::$post_meta_key ][ $index ] ) ) {
@@ -519,12 +523,14 @@ class WC_Subscriptions_Synchroniser {
 	 * @author Jeremy Pry
 	 *
 	 * @param WC_Product $product The product to check.
+	 * @param string     $from_date Optional. A MySQL formatted date/time string from which to calculate from. The default is an empty string which is today's date/time.
 	 *
 	 * @return bool Whether an upfront payment is required for the product.
 	 */
-	public static function is_payment_upfront( $product ) {
+	public static function is_payment_upfront( $product, $from_date = '' ) {
 		static $results = array();
-		$is_upfront = null;
+		$is_upfront     = null;
+
 		if ( array_key_exists( $product->get_id(), $results ) ) {
 			return $results[ $product->get_id() ];
 		}
@@ -532,20 +538,28 @@ class WC_Subscriptions_Synchroniser {
 		// Normal cases where we aren't concerned with an upfront payment.
 		if (
 			0 !== WC_Subscriptions_Product::get_trial_length( $product ) ||
-			! self::is_product_synced( $product ) ||
-			'recurring' !== get_option( self::$setting_id_proration, 'no' )
+			! self::is_product_synced( $product )
 		) {
 			$is_upfront = false;
 		}
 
 		// Maybe account for number of days without a fee.
 		if ( null === $is_upfront ) {
-			$no_fee_days = get_option( self::$setting_id_days_no_fee );
+			$no_fee_days    = self::get_number_of_grace_period_days();
+			$payment_date   = self::calculate_first_payment_date( $product, 'timestamp', $from_date );
+			$from_timestamp = $from_date ? wcs_date_to_time( $from_date ) : gmdate( 'U' );
+			$site_offset    = (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 
-			if ( $no_fee_days > 0 ) {
-				$payment_date = self::calculate_first_payment_date( $product, 'timestamp' );
-				$buffer_date  = $payment_date - ( $no_fee_days * DAY_IN_SECONDS );
-				$is_upfront   = wcs_strtotime_dark_knight( 'now' ) < $buffer_date;
+			// The payment date is today - check for it in site time.
+			if ( gmdate( 'Ymd', $payment_date + $site_offset ) === gmdate( 'Ymd', $from_timestamp + $site_offset ) ) {
+				$is_upfront = true;
+			} elseif ( 'recurring' !== get_option( self::$setting_id_proration, 'no' ) ) {
+				$is_upfront = false;
+			} elseif ( $no_fee_days > 0 ) {
+				// When proration setting is 'recurring' and there is a grace period.
+				$buffer_date = $payment_date - ( $no_fee_days * DAY_IN_SECONDS );
+
+				$is_upfront = $from_timestamp < wcs_date_to_time( gmdate( 'Y-m-d 23:59:59', $buffer_date ) );
 			} else {
 				$is_upfront = true;
 			}
@@ -601,8 +615,14 @@ class WC_Subscriptions_Synchroniser {
 		}
 
 		$period       = WC_Subscriptions_Product::get_period( $product );
-		$trial_period = WC_Subscriptions_Product::get_trial_period( $product );
 		$trial_length = WC_Subscriptions_Product::get_trial_length( $product );
+
+		// For billing intervals > 1:
+		// When the proration setting is 'recurring', there is a full upfront payment for the entire billing interval
+		// So, the first payment date should be calculated after the entire interval
+		// When the proration setting is 'no' or 'yes', the upfront payment is until the next date occurrence (1 week/month/year).
+		// So, the first payment date should be calculated with 1 as the interval
+		$interval = get_option( self::$setting_id_proration, 'no' ) === 'recurring' ? WC_Subscriptions_Product::get_interval( $product ) : 1;
 
 		$from_date_param = $from_date;
 
@@ -615,91 +635,96 @@ class WC_Subscriptions_Synchroniser {
 			$from_date = WC_Subscriptions_Product::get_trial_expiration_date( $product, $from_date );
 		}
 
-		$from_timestamp = wcs_date_to_time( $from_date ) + ( get_option( 'gmt_offset' ) * 3600 ); // Site time
-
-		$payment_day = self::get_products_payment_day( $product );
+		$from_timestamp = wcs_date_to_time( $from_date ) + ( (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) ); // Site time
+		$payment_day    = self::get_products_payment_day( $product );
+		$no_fee_days    = self::get_number_of_grace_period_days();
 
 		if ( 'week' == $period ) {
 
-			// strtotime() will figure out if the day is in the future or today (see: https://gist.github.com/thenbrent/9698083)
-			$first_payment_timestamp = wcs_strtotime_dark_knight( self::$weekdays[ $payment_day ], $from_timestamp );
+			// Get the day of the week for the from date
+			$from_day = gmdate( 'N', $from_timestamp );
 
-		} elseif ( 'month' == $period ) {
+			// To account for rollover of the weekdays. For example, if from day is Saturday and the payment date is Monday,
+			// and the grace period is 2, Saturday is day 6 and Monday is day 1.
+			$add_days = $payment_day < $from_day ? 0 : 7;
 
-			// strtotime() needs to know the month, so we need to determine if the specified day has occured this month yet or if we want the last day of the month (see: https://gist.github.com/thenbrent/9698083)
-			if ( $payment_day > 27 ) { // we actually want the last day of the month
-
-				$payment_day = gmdate( 't', $from_timestamp );
-				$month       = gmdate( 'F', $from_timestamp );
-
-			} elseif ( gmdate( 'j', $from_timestamp ) > $payment_day ) { // today is later than specified day in the from date, we need the next month
-
-				$month = gmdate( 'F', wcs_add_months( $from_timestamp, 1 ) );
-
-			} else { // specified day is either today or still to come in the month of the from date
-
-				$month = gmdate( 'F', $from_timestamp );
-
+			// Calculate difference between the the two days after adding number of weekdays and compare against grace period
+			if ( ( $payment_day + $add_days - $from_day ) <= $no_fee_days ) {
+				$from_timestamp = wcs_add_time( $interval - 1, $period, $from_timestamp );
 			}
 
-			$first_payment_timestamp = wcs_strtotime_dark_knight( "{$payment_day} {$month}", $from_timestamp );
+			// strtotime() will figure out if the day is in the future or today (see: https://gist.github.com/thenbrent/9698083)
+			$first_payment_timestamp = wcs_strtotime_dark_knight( self::$weekdays[ $payment_day ], $from_timestamp );
+		} elseif ( 'month' == $period ) {
 
+			// strtotime() needs to know the month, so we need to determine if the payment day has occurred this month yet or if we want the last day of the month (see: https://gist.github.com/thenbrent/9698083)
+			if ( $payment_day > 27 ) { // we actually want the last day of the month
+				$payment_day = gmdate( 't', $from_timestamp ); // the number of days in the month
+			}
+
+			$from_day = gmdate( 'j', $from_timestamp );
+
+			// If 'from day' is before 'sync day' in the month
+			if ( $from_day <= $payment_day ) {
+				if ( $from_day + $no_fee_days >= $payment_day ) { // In grace period
+					$month        = gmdate( 'F', $from_timestamp );
+					$month_number = gmdate( 'm', $from_timestamp );
+				} else { // If not in grace period, then the sync day has passed by. So, reduce interval by 1.
+					$month        = gmdate( 'F', wcs_add_months( $from_timestamp, $interval - 1 ) );
+					$month_number = gmdate( 'm', wcs_add_months( $from_timestamp, $interval - 1 ) );
+				}
+			} else { // If 'from day' is after 'sync day' in the month
+				$days_in_month = gmdate( 't', $from_timestamp );
+				// Use 'days in month' to account for end of month dates
+				if ( $from_day + $no_fee_days - $days_in_month >= $payment_day ) { // In grace period
+					$month        = gmdate( 'F', wcs_add_months( $from_timestamp, 1 ) );
+					$month_number = gmdate( 'm', wcs_add_months( $from_timestamp, 1 ) );
+				} else { // Not in grace period, so add interval number of months
+					$month        = gmdate( 'F', wcs_add_months( $from_timestamp, $interval ) );
+					$month_number = gmdate( 'm', wcs_add_months( $from_timestamp, $interval ) );
+				}
+			}
+			// when a certain number of months are added and the first payment date moves to next year
+			if ( $month_number < gmdate( 'm', $from_timestamp ) ) {
+				$year       = gmdate( 'Y', $from_timestamp );
+				$year++;
+				$first_payment_timestamp = wcs_strtotime_dark_knight( "{$payment_day} {$month} {$year}", $from_timestamp );
+			} else {
+				$first_payment_timestamp = wcs_strtotime_dark_knight( "{$payment_day} {$month}", $from_timestamp );
+			}
 		} elseif ( 'year' == $period ) {
 
 			// We can't use $wp_locale here because it is translated
-			switch ( $payment_day['month'] ) {
-				case 1 :
-					$month = 'January';
-					break;
-				case 2 :
-					$month = 'February';
-					break;
-				case 3 :
-					$month = 'March';
-					break;
-				case 4 :
-					$month = 'April';
-					break;
-				case 5 :
-					$month = 'May';
-					break;
-				case 6 :
-					$month = 'June';
-					break;
-				case 7 :
-					$month = 'July';
-					break;
-				case 8 :
-					$month = 'August';
-					break;
-				case 9 :
-					$month = 'September';
-					break;
-				case 10 :
-					$month = 'October';
-					break;
-				case 11 :
-					$month = 'November';
-					break;
-				case 12 :
-					$month = 'December';
-					break;
+			$month_map = array(
+				'01' => 'January',
+				'02' => 'February',
+				'03' => 'March',
+				'04' => 'April',
+				'05' => 'May',
+				'06' => 'June',
+				'07' => 'July',
+				'08' => 'August',
+				'09' => 'September',
+				'10' => 'October',
+				'11' => 'November',
+				'12' => 'December',
+			);
+
+			$month             = $month_map[ $payment_day['month'] ];
+			$payment_month_day = sprintf( '%02d%02d', $payment_day['month'], $payment_day['day'] );
+			$year              = gmdate( 'Y', $from_timestamp );
+			$from_month_day    = gmdate( 'md', $from_timestamp );
+
+			if ( $from_month_day > $payment_month_day ) { // If 'from day' is after 'sync day' in the year
+				$year++;
 			}
 
-			$first_payment_timestamp = wcs_strtotime_dark_knight( "{$payment_day['day']} {$month}", $from_timestamp );
-		}
-
-		// Make sure the next payment is in the future and after the $from_date, as strtotime() will return the date this year for any day in the past when adding months or years (see: https://gist.github.com/thenbrent/9698083)
-		if ( 'year' == $period || 'month' == $period ) {
-
-			// First make sure the day is in the past so that we don't end up jumping a month or year because of a few hours difference between now and the billing date
-			if ( gmdate( 'Ymd', $first_payment_timestamp ) < gmdate( 'Ymd', $from_timestamp ) || gmdate( 'Ymd', $first_payment_timestamp ) < gmdate( 'Ymd', current_time( 'timestamp' ) ) ) {
-				$i = 1;
-				// Then make sure the date and time of the payment is in the future
-				while ( ( $first_payment_timestamp < gmdate( 'U' ) || $first_payment_timestamp < $from_timestamp ) && $i < 30 ) {
-					$first_payment_timestamp = wcs_add_time( 1, $period, $first_payment_timestamp );
-					$i = $i + 1;
-				}
+			if ( $from_timestamp + ( $no_fee_days * DAY_IN_SECONDS ) >=
+				wcs_strtotime_dark_knight( "{$payment_day['day']} {$month} {$year}" ) ) { // In grace period
+				$first_payment_timestamp = wcs_strtotime_dark_knight( "{$payment_day['day']} {$month} {$year}", $from_timestamp );
+			} else { // If not in grace period, then the sync day has passed by. So, reduce interval by 1.
+				$year += $interval - 1;
+				$first_payment_timestamp = wcs_strtotime_dark_knight( "{$payment_day['day']} {$month} {$year}", wcs_add_time( $interval - 1, $period, $from_timestamp ) );
 			}
 		}
 
@@ -707,7 +732,7 @@ class WC_Subscriptions_Synchroniser {
 		$first_payment_timestamp += 3 * HOUR_IN_SECONDS;
 
 		// And convert it to the UTC equivalent of 3am on that day
-		$first_payment_timestamp -= ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
+		$first_payment_timestamp -= ( (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
 
 		$first_payment = ( 'mysql' == $type && 0 != $first_payment_timestamp ) ? gmdate( 'Y-m-d H:i:s', $first_payment_timestamp ) : $first_payment_timestamp;
 
@@ -777,10 +802,10 @@ class WC_Subscriptions_Synchroniser {
 	public static function products_first_payment_date( $echo = false ) {
 		global $product;
 
-		$first_payment_date = '<p class="first-payment-date"><small>' . self::get_products_first_payment_date( $product ) .  '</small></p>';
+		$first_payment_date = '<p class="first-payment-date"><small>' . self::get_products_first_payment_date( $product ) . '</small></p>';
 
 		if ( false !== $echo ) {
-			echo wp_kses( $first_payment_date, array( 'p' => array( 'class' => array() ), 'small' => array() ) );
+			echo wp_kses( $first_payment_date, array( 'p' => array( 'class' => array() ), 'small' => array() ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 		}
 
 		return $first_payment_date;
@@ -805,7 +830,7 @@ class WC_Subscriptions_Synchroniser {
 				if ( $is_first_payment_today ) {
 					$payment_date_string = __( 'Today!', 'woocommerce-subscriptions' );
 				} else {
-					$payment_date_string = date_i18n( wc_date_format(), $first_payment_timestamp + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
+					$payment_date_string = date_i18n( wc_date_format(), $first_payment_timestamp + ( (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) ) );
 				}
 
 				if ( self::is_product_prorated( $product ) && ! $is_first_payment_today ) {
@@ -837,7 +862,7 @@ class WC_Subscriptions_Synchroniser {
 			if ( ! self::is_today( $next_renewal_timestamp ) ) {
 
 				if ( 'site' == $timezone ) {
-					$next_renewal_timestamp += ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
+					$next_renewal_timestamp += ( (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
 				}
 				$first_renewal_timestamp = $next_renewal_timestamp;
 			}
@@ -937,7 +962,7 @@ class WC_Subscriptions_Synchroniser {
 
 			// First make sure the day is in the past so that we don't end up jumping a month or year because of a few hours difference between now and the billing date
 			// Use site time to check if the trial expiration and first payment fall on the same day
-			$site_offset = get_option( 'gmt_offset' ) * 3600;
+			$site_offset = (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 
 			if ( $trial_expiration_timestamp > $first_payment_timestamp && gmdate( 'Ymd', $first_payment_timestamp + $site_offset ) === gmdate( 'Ymd', $trial_expiration_timestamp + $site_offset ) ) {
 				$trial_expiration_date = date( 'Y-m-d H:i:s', $first_payment_timestamp );
@@ -977,7 +1002,7 @@ class WC_Subscriptions_Synchroniser {
 	public static function is_today( $timestamp ) {
 
 		// Convert timestamp to site's time
-		$timestamp += get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+		$timestamp += (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 
 		return gmdate( 'Y-m-d', current_time( 'timestamp' ) ) == gmdate( 'Y-m-d', $timestamp );
 	}
@@ -1022,13 +1047,13 @@ class WC_Subscriptions_Synchroniser {
 			}
 
 			switch ( WC_Subscriptions_Product::get_period( $product ) ) {
-				case 'week' :
+				case 'week':
 					$days_in_cycle = 7 * WC_Subscriptions_Product::get_interval( $product );
 					break;
-				case 'month' :
+				case 'month':
 					$days_in_cycle = gmdate( 't' ) * WC_Subscriptions_Product::get_interval( $product );
 					break;
-				case 'year' :
+				case 'year':
 					$days_in_cycle = ( 365 + gmdate( 'L' ) ) * WC_Subscriptions_Product::get_interval( $product );
 					break;
 			}
@@ -1259,6 +1284,16 @@ class WC_Subscriptions_Synchroniser {
 
 		return $hidden_meta_keys;
 
+	}
+
+	/**
+	 * Gets the number of sign-up grace period days.
+	 *
+	 * @since 3.0.6
+	 * @return int The number of days in the grace period. 0 will be returned if the stroe isn't charging the full recurring price on sign-up -- a prerequiste for setting a grace period.
+	 */
+	private static function get_number_of_grace_period_days() {
+		return get_option( self::$setting_id_proration, 'no' ) === 'recurring' ? get_option( self::$setting_id_days_no_fee ) : 0;
 	}
 
 	/* Deprecated Functions */

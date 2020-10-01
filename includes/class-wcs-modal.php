@@ -177,7 +177,7 @@ class WCS_Modal {
 	 * @since 2.6.0
 	 *
 	 * @param array $action_args {
-	 *	   Action button or link details.
+	 *     Action button or link details.
 	 *
 	 *     @type string $type Optional. The element type. Can be 'button' or 'a'. Default 'a' (link element).
 	 *     @type array  $attributes Optional. An array of HTML attributes in a array( 'attribute' => 'value' ) format. The value can also be an array of attribute values. Default is empty array.

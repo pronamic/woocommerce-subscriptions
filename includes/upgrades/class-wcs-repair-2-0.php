@@ -2,10 +2,10 @@
 /**
  * Repair subscriptions data to v2.0
  *
- * @author		Prospress
- * @category	Admin
- * @package		WooCommerce Subscriptions/Admin/Upgrades
- * @version		2.0
+ * @author      Prospress
+ * @category    Admin
+ * @package     WooCommerce Subscriptions/Admin/Upgrades
+ * @version     2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -58,23 +58,24 @@ class WCS_Repair_2_0 {
 	public static function integrity_check( $subscription ) {
 		$repairs_needed = array();
 
-		foreach ( array(
-			'order_id',
-			'product_id',
-			'variation_id',
-			'subscription_key',
-			'status',
-			'period',
-			'interval',
-			'length',
-			'start_date',
-			'trial_expiry_date',
-			'expiry_date',
-			'end_date',
+		foreach (
+			array(
+				'order_id',
+				'product_id',
+				'variation_id',
+				'subscription_key',
+				'status',
+				'period',
+				'interval',
+				'length',
+				'start_date',
+				'trial_expiry_date',
+				'expiry_date',
+				'end_date',
 			) as $meta ) {
-			if ( ! array_key_exists( $meta, $subscription ) || '' === $subscription[ $meta ] ) {
-				$repairs_needed[] = $meta;
-			}
+				if ( ! array_key_exists( $meta, $subscription ) || '' === $subscription[ $meta ] ) {
+					$repairs_needed[] = $meta;
+				}
 		}
 
 		return $repairs_needed;
@@ -588,12 +589,12 @@ class WCS_Repair_2_0 {
 	 */
 	private static function maybe_get_date_from_action_scheduler( $type, $subscription ) {
 		$action_args = array(
-			'user_id' => intval( $subscription['user_id'] ),
+			'user_id'          => intval( $subscription['user_id'] ),
 			'subscription_key' => $subscription['subscription_key'],
 		);
 
 		WCS_Upgrade_Logger::add( sprintf( '-- For order %d: Repairing date type "%s" from action scheduler...', $subscription['order_id'], $type ) );
-		WCS_Upgrade_Logger::add( '-- This is the arguments: ' . PHP_EOL . print_r( array( $action_args, 'hook' => $type ), true ) . PHP_EOL );
+		WCS_Upgrade_Logger::add( '-- This is the arguments: ' . PHP_EOL . print_r( array( $action_args, 'hook' => $type ), true ) . PHP_EOL ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 
 		$next_date_timestamp = as_next_scheduled_action( $type, $action_args );
 

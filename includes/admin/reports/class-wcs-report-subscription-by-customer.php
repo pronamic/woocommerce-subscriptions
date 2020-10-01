@@ -19,9 +19,9 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 	 */
 	public function __construct() {
 		parent::__construct( array(
-			'singular'  => __( 'Customer', 'woocommerce-subscriptions' ),
-			'plural'    => __( 'Customers', 'woocommerce-subscriptions' ),
-			'ajax'      => false,
+			'singular' => __( 'Customer', 'woocommerce-subscriptions' ),
+			'plural'   => __( 'Customers', 'woocommerce-subscriptions' ),
+			'ajax'     => false,
 		) );
 	}
 
@@ -66,20 +66,20 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 
 		switch ( $column_name ) {
 
-			case 'customer_name' :
+			case 'customer_name':
 				$user_info = get_userdata( $user->customer_id );
-				return '<a href="' . get_edit_user_link( $user->customer_id ) . '">' . $user_info->user_email  . '</a>';
+				return '<a href="' . get_edit_user_link( $user->customer_id ) . '">' . $user_info->user_email . '</a>';
 
-			case 'active_subscription_count' :
+			case 'active_subscription_count':
 				return $user->active_subscriptions;
 
-			case 'total_subscription_count' :
+			case 'total_subscription_count':
 				return sprintf( '<a href="%s%d">%d</a>', admin_url( 'edit.php?post_type=shop_subscription&_customer_user=' ), $user->customer_id, $user->total_subscriptions );
 
-			case 'total_subscription_order_count' :
+			case 'total_subscription_order_count':
 				return sprintf( '<a href="%s%d">%d</a>', admin_url( 'edit.php?post_type=shop_order&_paid_subscription_orders_for_customer_user=' ), $user->customer_id, $user->initial_order_count + $user->renewal_switch_count );
 
-			case 'customer_lifetime_value' :
+			case 'customer_lifetime_value':
 				return wc_price( $user->initial_order_total + $user->renewal_switch_total );
 
 		}
@@ -95,9 +95,13 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 	public function get_columns() {
 		$columns = array(
 			'customer_name'                  => __( 'Customer', 'woocommerce-subscriptions' ),
+			// translators: %s: help tip.
 			'active_subscription_count'      => sprintf( __( 'Active Subscriptions %s', 'woocommerce-subscriptions' ), wcs_help_tip( __( 'The number of subscriptions this customer has with a status of active or pending cancellation.', 'woocommerce-subscriptions' ) ) ),
+			// translators: %s: help tip.
 			'total_subscription_count'       => sprintf( __( 'Total Subscriptions %s', 'woocommerce-subscriptions' ), wcs_help_tip( __( 'The number of subscriptions this customer has with a status other than pending or trashed.', 'woocommerce-subscriptions' ) ) ),
+			// translators: %s: help tip.
 			'total_subscription_order_count' => sprintf( __( 'Total Subscription Orders %s', 'woocommerce-subscriptions' ), wcs_help_tip( __( 'The number of sign-up, switch and renewal orders this customer has placed with your store with a paid status (i.e. processing or complete).', 'woocommerce-subscriptions' ) ) ),
+			// translators: %s: help tip.
 			'customer_lifetime_value'        => sprintf( __( 'Lifetime Value from Subscriptions %s', 'woocommerce-subscriptions' ), wcs_help_tip( __( 'The total value of this customer\'s sign-up, switch and renewal orders.', 'woocommerce-subscriptions' ) ) ),
 		);
 
@@ -187,9 +191,9 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 		 * Pagination.
 		 */
 		$this->set_pagination_args( array(
-			 'total_items' => $this->totals->total_customers,
-			 'per_page'    => $per_page,
-			 'total_pages' => ceil( $this->totals->total_customers / $per_page ),
+			'total_items' => $this->totals->total_customers,
+			'per_page'    => $per_page,
+			'total_pages' => ceil( $this->totals->total_customers / $per_page ),
 		) );
 
 	}
@@ -211,7 +215,6 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 		$total_query = apply_filters( 'wcs_reports_customer_total_query',
 			"SELECT COUNT( DISTINCT customer_ids.meta_value) as total_customers,
 					COUNT(subscription_posts.ID) as total_subscriptions,
-					COALESCE( SUM(parent_total.meta_value), 0) as initial_order_total,
 					COALESCE( SUM(parent_total.meta_value), 0) as initial_order_total,
 					COUNT(DISTINCT parent_order.ID) as initial_order_count,
 					COALESCE(SUM(CASE

@@ -40,7 +40,7 @@ class WCS_Webhooks {
 
 		add_action( 'woocommerce_subscriptions_switch_completed', __CLASS__ . '::add_subscription_switched_callback', 10, 1 );
 
-		add_filter( 'woocommerce_webhook_topics' , __CLASS__ . '::add_topics_admin_menu', 10, 1 );
+		add_filter( 'woocommerce_webhook_topics', __CLASS__ . '::add_topics_admin_menu', 10, 1 );
 
 		add_filter( 'wcs_new_order_created', __CLASS__ . '::add_subscription_created_order_callback', 10, 1 );
 
@@ -49,7 +49,7 @@ class WCS_Webhooks {
 	/**
 	 * Trigger `order.create` every time an order is created by Subscriptions.
 	 *
-	 * @param WC_Order $order	WC_Order Object
+	 * @param WC_Order $order WC_Order Object
 	 */
 	public static function add_subscription_created_order_callback( $order ) {
 
@@ -73,18 +73,18 @@ class WCS_Webhooks {
 
 			case 'subscription':
 				$topic_hooks = apply_filters( 'woocommerce_subscriptions_webhook_topics', array(
-					'subscription.created' => array(
+					'subscription.created'  => array(
 						'wcs_api_subscription_created',
 						'wcs_webhook_subscription_created',
 						'woocommerce_process_shop_subscription_meta',
 					),
-					'subscription.updated' => array(
+					'subscription.updated'  => array(
 						'wcs_api_subscription_updated',
 						'woocommerce_subscription_status_changed',
 						'wcs_webhook_subscription_updated',
 						'woocommerce_process_shop_subscription_meta',
 					),
-					'subscription.deleted' => array(
+					'subscription.deleted'  => array(
 						'woocommerce_subscription_trashed',
 						'woocommerce_subscription_deleted',
 						'woocommerce_api_delete_subscription',

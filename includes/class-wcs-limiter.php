@@ -2,9 +2,9 @@
 /**
  * A class to make it possible to limit a subscription product.
  *
- * @package		WooCommerce Subscriptions
- * @category	Class
- * @since		2.1
+ * @package WooCommerce Subscriptions
+ * @category Class
+ * @since 2.1
  */
 class WCS_Limiter {
 
@@ -25,6 +25,7 @@ class WCS_Limiter {
 			add_filter( 'woocommerce_subscription_variation_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
 			add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable_renewal', 12, 2 );
 			add_filter( 'woocommerce_subscription_variation_is_purchasable', __CLASS__ . '::is_purchasable_renewal', 12, 2 );
+			add_filter( 'woocommerce_valid_order_statuses_for_order_again', array( __CLASS__, 'filter_order_again_statuses_for_limited_subscriptions' ) );
 		}
 	}
 
@@ -39,17 +40,19 @@ class WCS_Limiter {
 		echo '<div class="options_group limit_subscription show_if_subscription show_if_variable-subscription hidden">';
 
 		// Only one Subscription per customer
-		woocommerce_wp_select( array(
-			'id'          => '_subscription_limit',
-			'label'       => __( 'Limit subscription', 'woocommerce-subscriptions' ),
-			// translators: placeholders are opening and closing link tags
-			'description' => sprintf( __( 'Only allow a customer to have one subscription to this product. %sLearn more%s.', 'woocommerce-subscriptions' ), '<a href="http://docs.woocommerce.com/document/subscriptions/store-manager-guide/#limit-subscription">', '</a>' ),
-			'options'     => array(
-				'no'      => __( 'Do not limit', 'woocommerce-subscriptions' ),
-				'active'  => __( 'Limit to one active subscription', 'woocommerce-subscriptions' ),
-				'any'     => __( 'Limit to one of any status', 'woocommerce-subscriptions' ),
-			),
-		) );
+		woocommerce_wp_select(
+			array(
+				'id'          => '_subscription_limit',
+				'label'       => __( 'Limit subscription', 'woocommerce-subscriptions' ),
+				// translators: placeholders are opening and closing link tags
+				'description' => sprintf( __( 'Only allow a customer to have one subscription to this product. %1$sLearn more%2$s.', 'woocommerce-subscriptions' ), '<a href="http://docs.woocommerce.com/document/subscriptions/store-manager-guide/#limit-subscription">', '</a>' ),
+				'options'     => array(
+					'no'     => __( 'Do not limit', 'woocommerce-subscriptions' ),
+					'active' => __( 'Limit to one active subscription', 'woocommerce-subscriptions' ),
+					'any'    => __( 'Limit to one of any status', 'woocommerce-subscriptions' ),
+				),
+			)
+		);
 		echo '</div>';
 
 		do_action( 'woocommerce_subscriptions_product_options_advanced' );
@@ -66,13 +69,13 @@ class WCS_Limiter {
 	 */
 	public static function is_purchasable( $purchasable, $product ) {
 		switch ( $product->get_type() ) {
-			case 'subscription' :
-			case 'variable-subscription' :
+			case 'subscription':
+			case 'variable-subscription':
 				if ( true === $purchasable && false === self::is_purchasable_product( $purchasable, $product ) ) {
 					$purchasable = false;
 				}
 				break;
-			case 'subscription_variation' :
+			case 'subscription_variation':
 				$variable_product = wc_get_product( $product->get_parent_id() );
 
 				if ( 'no' != wcs_get_product_limitation( $variable_product ) && ! empty( WC()->cart->cart_contents ) && ! wcs_is_order_received_page() && ! wcs_is_paypal_api_page() ) {
@@ -270,4 +273,45 @@ class WCS_Limiter {
 		return self::$order_awaiting_payment_for_product[ $product_id ];
 	}
 
+	/**
+	 * Filters the order statuses that enable the order again button and functionality.
+	 *
+	 * This function will return no statuses if the order contains non purchasable or limited products.
+	 *
+	 * @since 3.0.2
+	 *
+	 * @param array $statuses The order statuses that enable the order again button.
+	 * @return array $statuses An empty array if the order contains limited products, otherwise the default statuses are returned.
+	 */
+	public static function filter_order_again_statuses_for_limited_subscriptions( $statuses ) {
+		global $wp;
+
+		if ( is_view_order_page() ) {
+			$order = wc_get_order( absint( $wp->query_vars['view-order'] ) );
+		} elseif ( is_order_received_page() ) {
+			$order = wc_get_order( absint( $wp->query_vars['order-received'] ) );
+		}
+
+		if ( empty( $order ) ) {
+			return $statuses;
+		}
+
+		$is_purchasable = true;
+
+		foreach ( $order->get_items() as $line_item ) {
+			$product = $line_item->get_product();
+
+			if ( WC_Subscriptions_Product::is_subscription( $product ) && wcs_is_product_limited_for_user( $product ) ) {
+				$is_purchasable = false;
+				break;
+			}
+		}
+
+		// If all products are purchasable, return the default statuses, otherwise return no statuses.
+		if ( $is_purchasable ) {
+			return $statuses;
+		} else {
+			return array();
+		}
+	}
 }

@@ -6,11 +6,11 @@
  *
  * @link https://developer.paypal.com/docs/classic/ipn/integration-guide/IPNandPDTVariables/#id08CTB0S055Z
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	Gateways/PayPal
- * @category	Class
- * @author		Prospress
- * @since		2.0
+ * @package     WooCommerce Subscriptions
+ * @subpackage  Gateways/PayPal
+ * @category    Class
+ * @author      Prospress
+ * @since       2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -54,7 +54,7 @@ class WCS_PayPal_Reference_Transaction_IPN_Handler extends WCS_PayPal_Standard_I
 				$this->remove_billing_agreement_from_subscriptions( $transaction_details['mp_id'] );
 				break;
 
-			case 'merch_pmt' :
+			case 'merch_pmt':
 
 				if ( ! empty( $transaction_details['custom'] ) && ( $order = $this->get_paypal_order( $transaction_details['custom'] ) ) ) {
 
@@ -76,7 +76,7 @@ class WCS_PayPal_Reference_Transaction_IPN_Handler extends WCS_PayPal_Standard_I
 				}
 				break;
 
-			case 'mp_signup' :
+			case 'mp_signup':
 				// Silence is Golden
 				break;
 

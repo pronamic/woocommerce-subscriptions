@@ -4,11 +4,11 @@
  *
  * Provides an API for creating and handling renewal orders.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Order
- * @category	Class
- * @author		Brent Shepherd
- * @since 		1.2
+ * @package WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Order
+ * @category Class
+ * @author Brent Shepherd
+ * @since 1.2
  */
 class WC_Subscriptions_Renewal_Order {
 
@@ -154,6 +154,7 @@ class WC_Subscriptions_Renewal_Order {
 
 		if ( is_a( $renewal_order, 'WC_Order' ) && wcs_is_subscription( $subscription ) ) {
 
+			// translators: %s: order number.
 			$order_number = sprintf( _x( '#%s', 'hash before order number', 'woocommerce-subscriptions' ), $renewal_order->get_order_number() );
 
 			// translators: placeholder is order ID
@@ -198,8 +199,8 @@ class WC_Subscriptions_Renewal_Order {
 
 		$switched_order_item_keys = array(
 			'_switched_subscription_sign_up_fee_prorated' => '',
-			'_switched_subscription_price_prorated' => '',
-			'_switched_subscription_item_id' => '',
+			'_switched_subscription_price_prorated'       => '',
+			'_switched_subscription_item_id'              => '',
 		);
 
 		foreach ( $order_items as $order_item_id => $item ) {
@@ -436,9 +437,11 @@ class WC_Subscriptions_Renewal_Order {
 			return false;
 		}
 
-		$args = wp_parse_args( $args, array(
-			'new_order_role'   => 'parent',
-			'checkout_renewal' => false,
+		$args = wp_parse_args(
+			$args,
+			array(
+				'new_order_role'   => 'parent',
+				'checkout_renewal' => false,
 			)
 		);
 
@@ -477,9 +480,11 @@ class WC_Subscriptions_Renewal_Order {
 	 */
 	public static function is_renewal( $order, $args = array() ) {
 
-		$args = wp_parse_args( $args, array(
-			'order_role'   => '',
-			'via_checkout' => false,
+		$args = wp_parse_args(
+			$args,
+			array(
+				'order_role'   => '',
+				'via_checkout' => false,
 			)
 		);
 

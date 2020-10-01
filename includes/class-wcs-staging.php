@@ -36,7 +36,8 @@ class WCS_Staging {
 			$wp_site_url  = WC_Subscriptions::get_site_url_from_source( 'current_wp_site' );
 			$wcs_site_url = WC_Subscriptions::get_site_url_from_source( 'subscriptions_install' );
 
-			$message = sprintf( __( 'Payment processing skipped - renewal order created on %sstaging site%s under staging site lock. Live site is at %s', 'woocommerce-subscriptions' ), '<a href="' . $wp_site_url . '">', '</a>', '<a href="' . $wcs_site_url . '">'. $wcs_site_url . '</a>' );
+			// translators: 1-2: opening/closing <a> tags - linked to staging site, 3: link to live site.
+			$message = sprintf( __( 'Payment processing skipped - renewal order created on %1$sstaging site%2$s under staging site lock. Live site is at %3$s', 'woocommerce-subscriptions' ), '<a href="' . $wp_site_url . '">', '</a>', '<a href="' . $wcs_site_url . '">' . $wcs_site_url . '</a>' );
 
 			$renewal_order->add_order_note( $message );
 		}
@@ -92,6 +93,7 @@ class WCS_Staging {
 	 * @since 2.6.0
 	 */
 	public static function get_payment_method_tooltip( $subscription ) {
-		return '<div class="woocommerce-help-tip" data-tip="' . esc_attr__( sprintf( 'Subscription locked to Manual Renewal while the store is in staging mode. Live payment method: %s', $subscription->get_payment_method_title() ), 'woocommerce-subscriptions' ) . '"></div>';
+		// translators: placeholder is a payment method title.
+		return '<div class="woocommerce-help-tip" data-tip="' . sprintf( esc_attr__( 'Subscription locked to Manual Renewal while the store is in staging mode. Live payment method: %s', 'woocommerce-subscriptions' ), $subscription->get_payment_method_title() ) . '"></div>';
 	}
 }

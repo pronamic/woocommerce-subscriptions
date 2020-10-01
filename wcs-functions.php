@@ -2,10 +2,10 @@
 /**
  * WooCommerce Subscriptions Functions
  *
- * @author 		Prospress
- * @category 	Core
- * @package 	WooCommerce Subscriptions/Functions
- * @version     2.0
+ * @author    Prospress
+ * @category  Core
+ * @package   WooCommerce Subscriptions/Functions
+ * @version   2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -56,7 +56,7 @@ function wcs_is_subscription( $subscription ) {
  * least one up, so we can give them the standard message. Otherwise
  *
  * @since  2.0
- * @return boolean 							true if anything is found
+ * @return boolean true if anything is found
  */
 function wcs_do_subscriptions_exist() {
 	global $wpdb;
@@ -158,7 +158,7 @@ function wcs_create_subscription( $args = array() ) {
 	$subscription_data['post_author']   = 1;
 	$subscription_data['post_password'] = uniqid( 'order_' );
 	// translators: Order date parsed by strftime
-	$post_title_date = strftime( _x( '%b %d, %Y @ %I:%M %p', 'Used in subscription post title. "Subscription renewal order - <this>"', 'woocommerce-subscriptions' ) );
+	$post_title_date = strftime( _x( '%b %d, %Y @ %I:%M %p', 'Used in subscription post title. "Subscription renewal order - <this>"', 'woocommerce-subscriptions' ) ); // phpcs:ignore WordPress.WP.I18n.UnorderedPlaceholdersText
 	// translators: placeholder is order date parsed by strftime
 	$subscription_data['post_title']    = sprintf( _x( 'Subscription &ndash; %s', 'The post title for the new subscription', 'woocommerce-subscriptions' ), $post_title_date );
 	$subscription_data['post_date_gmt'] = $args['date_created'];
@@ -277,10 +277,13 @@ function wcs_get_address_type_to_display( $address_type ) {
 		return new WP_Error( 'woocommerce_subscription_wrong_address_type_format', __( 'Can not get address type display name. Address type is not a string.', 'woocommerce-subscriptions' ) );
 	}
 
-	$address_types = apply_filters( 'woocommerce_subscription_address_types', array(
-		'shipping' => __( 'Shipping Address', 'woocommerce-subscriptions' ),
-		'billing' => __( 'Billing Address', 'woocommerce-subscriptions' ),
-	) );
+	$address_types = apply_filters(
+		'woocommerce_subscription_address_types',
+		array(
+			'shipping' => __( 'Shipping Address', 'woocommerce-subscriptions' ),
+			'billing'  => __( 'Billing Address', 'woocommerce-subscriptions' ),
+		)
+	);
 
 	// if we can't find the address type, return the raw key
 	$address_type_display = isset( $address_types[ $address_type ] ) ? $address_types[ $address_type ] : $address_type;
@@ -408,21 +411,23 @@ function wcs_sanitize_subscription_status_key( $status_key ) {
  * and in what order those subscriptions should be returned.
  *
  * @param array $args A set of name value pairs to determine the return value.
- *		'subscriptions_per_page' The number of subscriptions to return. Set to -1 for unlimited. Default 10.
- *		'offset' An optional number of subscription to displace or pass over. Default 0.
- *		'orderby' The field which the subscriptions should be ordered by. Can be 'start_date', 'trial_end_date', 'end_date', 'status' or 'order_id'. Defaults to 'start_date'.
- *		'order' The order of the values returned. Can be 'ASC' or 'DESC'. Defaults to 'DESC'
- *		'customer_id' The user ID of a customer on the site.
- *		'product_id' The post ID of a WC_Product_Subscription, WC_Product_Variable_Subscription or WC_Product_Subscription_Variation object
- *		'order_id' The post ID of a shop_order post/WC_Order object which was used to create the subscription
- *		'subscription_status' Any valid subscription status. Can be 'any', 'active', 'cancelled', 'on-hold', 'expired', 'pending' or 'trash'. Defaults to 'any'.
+ *   'subscriptions_per_page' The number of subscriptions to return. Set to -1 for unlimited. Default 10.
+ *   'offset' An optional number of subscription to displace or pass over. Default 0.
+ *   'orderby' The field which the subscriptions should be ordered by. Can be 'start_date', 'trial_end_date', 'end_date', 'status' or 'order_id'. Defaults to 'start_date'.
+ *   'order' The order of the values returned. Can be 'ASC' or 'DESC'. Defaults to 'DESC'
+ *   'customer_id' The user ID of a customer on the site.
+ *   'product_id' The post ID of a WC_Product_Subscription, WC_Product_Variable_Subscription or WC_Product_Subscription_Variation object
+ *   'order_id' The post ID of a shop_order post/WC_Order object which was used to create the subscription
+ *   'subscription_status' Any valid subscription status. Can be 'any', 'active', 'cancelled', 'on-hold', 'expired', 'pending' or 'trash'. Defaults to 'any'.
  * @return array Subscription details in post_id => WC_Subscription form.
  * @since  2.0
  */
 function wcs_get_subscriptions( $args ) {
 	global $wpdb;
 
-	$args = wp_parse_args( $args, array(
+	$args = wp_parse_args(
+		$args,
+		array(
 			'subscriptions_per_page' => 10,
 			'paged'                  => 1,
 			'offset'                 => 0,
@@ -478,14 +483,14 @@ function wcs_get_subscriptions( $args ) {
 
 	// Map subscription specific orderby values to internal/WordPress keys
 	switch ( $args['orderby'] ) {
-		case 'status' :
+		case 'status':
 			$query_args['orderby'] = 'post_status';
 			break;
-		case 'start_date' :
+		case 'start_date':
 			$query_args['orderby'] = 'date';
 			break;
-		case 'trial_end_date' :
-		case 'end_date' :
+		case 'trial_end_date':
+		case 'end_date':
 			// We need to orderby post meta value: http://www.paulund.co.uk/order-meta-query
 			$date_type  = str_replace( '_date', '', $args['orderby'] );
 			$query_args = array_merge( $query_args, array(
@@ -499,7 +504,7 @@ function wcs_get_subscriptions( $args ) {
 				'type'    => 'DATETIME',
 			);
 			break;
-		default :
+		default:
 			$query_args['orderby'] = $args['orderby'];
 			break;
 	}
@@ -886,4 +891,28 @@ function wcs_get_total_line_item_product_quantity( $order, $product, $product_ma
 	}
 
 	return $quantity;
+}
+
+/**
+ * Determines if a site can be considered large for the purposes of performance.
+ *
+ * Sites are considered large if they have more than 3000 subscriptions or more than 25000 orders.
+ *
+ * @since 3.0.7
+ * @return bool True for large sites, otherwise false.
+ */
+function wcs_is_large_site() {
+	$is_large_site = get_option( 'wcs_is_large_site' );
+
+	// If an option has been set previously, convert it to a bool.
+	if ( false !== $is_large_site ) {
+		$is_large_site = wc_string_to_bool( $is_large_site );
+	} elseif ( array_sum( (array) wp_count_posts( 'shop_subscription' ) ) > 3000 || array_sum( (array) wp_count_posts( 'shop_order' ) ) > 25000 ) {
+		$is_large_site = true;
+		update_option( 'wcs_is_large_site', wc_bool_to_string( $is_large_site ), false );
+	} else {
+		$is_large_site = false;
+	}
+
+	return apply_filters( 'wcs_is_large_site', $is_large_site );
 }

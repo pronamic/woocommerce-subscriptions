@@ -2,11 +2,11 @@
 /**
  * Setup the rules for retrying failed automatic renewal payments and provide methods for working with them.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WCS_Retry_Rules
- * @category	Class
- * @author		Prospress
- * @since		2.1
+ * @package     WooCommerce Subscriptions
+ * @subpackage  WCS_Retry_Rules
+ * @category    Class
+ * @author      Prospress
+ * @since       2.1
  */
 
 class WCS_Retry_Rules {

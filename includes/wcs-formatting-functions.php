@@ -4,9 +4,9 @@
  *
  * Functions for formatting subscription data.
  *
- * @author 		Prospress
- * @category 	Core
- * @package 	WooCommerce Subscriptions/Functions
+ * @author Prospress
+ * @category Core
+ * @package WooCommerce Subscriptions/Functions
  * @version     2.0
  */
 
@@ -18,43 +18,45 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Creates a subscription price string from an array of subscription details. For example, "$5 / month for 12 months".
  *
  * @param array $subscription_details A set of name => value pairs for the subscription details to include in the string. Available keys:
- *		'initial_amount': The upfront payment for the subscription, including sign up fees, as a string from the @see wc_price(). Default empty string (no initial payment)
- *		'initial_description': The word after the initial payment amount to describe the amount. Examples include "now" or "initial payment". Defaults to "up front".
- *		'recurring_amount': The amount charged per period. Default 0 (no recurring payment).
- *		'subscription_interval': How regularly the subscription payments are charged. Default 1, meaning each period e.g. per month.
- *		'subscription_period': The temporal period of the subscription. Should be one of {day|week|month|year} as used by @see wcs_get_subscription_period_strings()
- *		'subscription_length': The total number of periods the subscription should continue for. Default 0, meaning continue indefinitely.
- *		'trial_length': The total number of periods the subscription trial period should continue for.  Default 0, meaning no trial period.
- *		'trial_period': The temporal period for the subscription's trial period. Should be one of {day|week|month|year} as used by @see wcs_get_subscription_period_strings()
- *		'use_per_slash': Allow calling code to determine if they want the shorter price string using a slash for singular billing intervals, e.g. $5 / month, or the longer form, e.g. $5 every month, which is normally reserved for intervals > 1
+ *    'initial_amount': The upfront payment for the subscription, including sign up fees, as a string from the @see wc_price(). Default empty string (no initial payment)
+ *    'initial_description': The word after the initial payment amount to describe the amount. Examples include "now" or "initial payment". Defaults to "up front".
+ *    'recurring_amount': The amount charged per period. Default 0 (no recurring payment).
+ *    'subscription_interval': How regularly the subscription payments are charged. Default 1, meaning each period e.g. per month.
+ *    'subscription_period': The temporal period of the subscription. Should be one of {day|week|month|year} as used by @see wcs_get_subscription_period_strings()
+ *    'subscription_length': The total number of periods the subscription should continue for. Default 0, meaning continue indefinitely.
+ *    'trial_length': The total number of periods the subscription trial period should continue for.  Default 0, meaning no trial period.
+ *    'trial_period': The temporal period for the subscription's trial period. Should be one of {day|week|month|year} as used by @see wcs_get_subscription_period_strings()
+ *    'use_per_slash': Allow calling code to determine if they want the shorter price string using a slash for singular billing intervals, e.g. $5 / month, or the longer form, e.g. $5 every month, which is normally reserved for intervals > 1
  * @since 2.0
  * @return string The price string with translated and billing periods included
  */
 function wcs_price_string( $subscription_details ) {
 	global $wp_locale;
 
-	$subscription_details = wp_parse_args( $subscription_details, array(
-			'currency'              => '',
-			'initial_amount'        => '',
-			'initial_description'   => _x( 'up front', 'initial payment on a subscription', 'woocommerce-subscriptions' ),
-			'recurring_amount'      => '',
+	$subscription_details = wp_parse_args(
+		$subscription_details,
+		array(
+			'currency'                    => '',
+			'initial_amount'              => '',
+			'initial_description'         => _x( 'up front', 'initial payment on a subscription', 'woocommerce-subscriptions' ),
+			'recurring_amount'            => '',
 
 			// Schedule details
-			'subscription_interval' => 1,
-			'subscription_period'   => '',
-			'subscription_length'   => 0,
-			'trial_length'          => 0,
-			'trial_period'          => '',
+			'subscription_interval'       => 1,
+			'subscription_period'         => '',
+			'subscription_length'         => 0,
+			'trial_length'                => 0,
+			'trial_period'                => '',
 
 			// Syncing details
-			'is_synced'                => false,
-			'synchronised_payment_day' => 0,
+			'is_synced'                   => false,
+			'synchronised_payment_day'    => 0,
 
 			// Params for wc_price()
 			'display_excluding_tax_label' => false,
 
 			// Params for formatting customisation
-			'use_per_slash' => true,
+			'use_per_slash'               => true,
 		)
 	);
 
@@ -62,13 +64,25 @@ function wcs_price_string( $subscription_details ) {
 
 	// Make sure prices have been through wc_price()
 	if ( is_numeric( $subscription_details['initial_amount'] ) ) {
-		$initial_amount_string = wc_price( $subscription_details['initial_amount'], array( 'currency' => $subscription_details['currency'], 'ex_tax_label' => $subscription_details['display_excluding_tax_label'] ) );
+		$initial_amount_string = wc_price(
+			$subscription_details['initial_amount'],
+			array(
+				'currency'     => $subscription_details['currency'],
+				'ex_tax_label' => $subscription_details['display_excluding_tax_label'],
+			)
+		);
 	} else {
 		$initial_amount_string = $subscription_details['initial_amount'];
 	}
 
 	if ( is_numeric( $subscription_details['recurring_amount'] ) ) {
-		$recurring_amount_string = wc_price( $subscription_details['recurring_amount'], array( 'currency' => $subscription_details['currency'], 'ex_tax_label' => $subscription_details['display_excluding_tax_label'] ) );
+		$recurring_amount_string = wc_price(
+			$subscription_details['recurring_amount'],
+			array(
+				'currency'     => $subscription_details['currency'],
+				'ex_tax_label' => $subscription_details['display_excluding_tax_label'],
+			)
+		);
 	} else {
 		$recurring_amount_string = $subscription_details['recurring_amount'];
 	}
@@ -102,10 +116,10 @@ function wcs_price_string( $subscription_details ) {
 						$subscription_string = sprintf( __( '%1$s every %2$s', 'woocommerce-subscriptions' ), $recurring_amount_string, $payment_day_of_week );
 					}
 				} else {
-					 // e.g. $5 every 2 weeks on Wednesday
+					// e.g. $5 every 2 weeks on Wednesday
 					if ( ! empty( $subscription_details['initial_amount'] ) ) {
 						// translators: 1$: initial amount, 2$: initial description (e.g. "up front" ), 3$: recurring amount, 4$: interval (e.g. "2nd week"), 5$: day of the week (e.g. "Thursday"); (e.g. "$10 up front, then $20 every 2nd week on Wednesday")
-						$subscription_string = sprintf( __( '%1$s %2$s then %3$s every %4%s on %5$s', 'woocommerce-subscriptions' ), $initial_amount_string, $subscription_details['initial_description'], $recurring_amount_string, wcs_get_subscription_period_strings( $subscription_details['subscription_interval'], $subscription_details['subscription_period'] ), $payment_day_of_week );
+						$subscription_string = sprintf( __( '%1$s %2$s then %3$s every %4$s on %5$s', 'woocommerce-subscriptions' ), $initial_amount_string, $subscription_details['initial_description'], $recurring_amount_string, wcs_get_subscription_period_strings( $subscription_details['subscription_interval'], $subscription_details['subscription_period'] ), $payment_day_of_week );
 					} else {
 						// translators: 1$: recurring amount string, 2$: period, 3$: day of the week (e.g. "$10 every 2nd week on Wednesday")
 						$subscription_string = sprintf( __( '%1$s every %2$s on %3$s', 'woocommerce-subscriptions' ), $recurring_amount_string, wcs_get_subscription_period_strings( $subscription_details['subscription_interval'], $subscription_details['subscription_period'] ), $payment_day_of_week );
@@ -179,10 +193,11 @@ function wcs_price_string( $subscription_details ) {
 		// translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount, 4$: subscription period (e.g. "month" or "3 months")
 		$subscription_string = sprintf( _n( '%1$s %2$s then %3$s / %4$s', '%1$s %2$s then %3$s every %4$s', $subscription_details['subscription_interval'], 'woocommerce-subscriptions' ), $initial_amount_string, $subscription_details['initial_description'], $recurring_amount_string, $subscription_period_string );
 	} elseif ( ! empty( $subscription_details['recurring_amount'] ) || intval( $subscription_details['recurring_amount'] ) === 0 ) {
-		// translators: 1$: recurring amount, 2$: subscription period (e.g. "month" or "3 months") (e.g. "$15 / month" or "$15 every 2nd month")
 		if ( true === $subscription_details['use_per_slash'] ) {
+			// translators: 1$: recurring amount, 2$: subscription period (e.g. "month" or "3 months") (e.g. "$15 / month" or "$15 every 2nd month")
 			$subscription_string = sprintf( _n( '%1$s / %2$s', '%1$s every %2$s', $subscription_details['subscription_interval'], 'woocommerce-subscriptions' ), $recurring_amount_string, $subscription_period_string );
 		} else {
+			// translators: %1$: recurring amount (e.g. "$15"), %2$: subscription period (e.g. "month") (e.g. "$15 every 2nd month")
 			$subscription_string = sprintf( __( '%1$s every %2$s', 'woocommerce-subscriptions' ), $recurring_amount_string, $subscription_period_string );
 		}
 	} else {
@@ -233,7 +248,7 @@ function wcs_get_human_time_diff( $timestamp_gmt ) {
 		$timestamp_site  = wcs_date_to_time( get_date_from_gmt( gmdate( 'Y-m-d H:i:s', $timestamp_gmt ) ) );
 		$date_to_display = date_i18n( wc_date_format(), $timestamp_site ) . ' ' . date_i18n( wc_time_format(), $timestamp_site );
 		// translators: placeholder is a localized date and time (e.g. "February 1, 2018 10:20 PM")
-		$date_to_display = sprintf( _x( '%s', 'wcs_get_human_time_diff', 'woocommerce-subscriptions' ), $date_to_display );
+		$date_to_display = sprintf( _x( '%s', 'wcs_get_human_time_diff', 'woocommerce-subscriptions' ), $date_to_display ); // phpcs:ignore WordPress.WP.I18n.NoEmptyStrings
 	}
 
 	return $date_to_display;

@@ -2,11 +2,11 @@
 /**
  * A class to make it possible to switch between different subscriptions (i.e. upgrade/downgrade a subscription)
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Switcher
- * @category	Class
- * @author		Brent Shepherd
- * @since		1.4
+ * @package WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Switcher
+ * @category Class
+ * @author Brent Shepherd
+ * @since 1.4
  */
 class WC_Subscriptions_Switcher {
 
@@ -114,10 +114,10 @@ class WC_Subscriptions_Switcher {
 		add_filter( 'woocommerce_subscriptions_calculated_total', array( __CLASS__, 'set_force_payment_flag_in_cart' ), 10, 1 );
 
 		// Require payment when switching from a $0 / period subscription to a non-zero subscription to process automatic payments
-		add_filter( 'woocommerce_cart_needs_payment', array( __CLASS__, 'cart_needs_payment' ) , 50, 2 );
+		add_filter( 'woocommerce_cart_needs_payment', array( __CLASS__, 'cart_needs_payment' ), 50, 2 );
 
 		// Require payment when switching from a $0 / period subscription to a non-zero subscription to process automatic payments
-		add_action( 'woocommerce_subscriptions_switch_completed', array( __CLASS__, 'maybe_set_payment_method_after_switch' ) , 10, 1 );
+		add_action( 'woocommerce_subscriptions_switch_completed', array( __CLASS__, 'maybe_set_payment_method_after_switch' ), 10, 1 );
 
 		// Do not reduce product stock when the order item is simply to record a switch
 		add_filter( 'woocommerce_order_item_quantity', array( __CLASS__, 'maybe_do_not_reduce_stock' ), 10, 3 );
@@ -177,7 +177,7 @@ class WC_Subscriptions_Switcher {
 			$line_item    = wcs_get_order_item( $_GET['item'], $subscription );
 
 			// Visiting a switch link for someone elses subscription or if the switch link doesn't contain a valid nonce
-			if ( ! is_object( $subscription ) || empty( $_GET['_wcsnonce'] ) || ! wp_verify_nonce( $_GET['_wcsnonce'], 'wcs_switch_request' ) || empty( $line_item ) || ! self::can_item_be_switched_by_user( $line_item, $subscription )  ) {
+			if ( ! is_object( $subscription ) || empty( $_GET['_wcsnonce'] ) || ! wp_verify_nonce( $_GET['_wcsnonce'], 'wcs_switch_request' ) || empty( $line_item ) || ! self::can_item_be_switched_by_user( $line_item, $subscription ) ) {
 
 				wp_redirect( remove_query_arg( array( 'switch-subscription', 'auto-switch', 'item', '_wcsnonce' ) ) );
 				exit();
@@ -227,7 +227,7 @@ class WC_Subscriptions_Switcher {
 			}
 
 			if ( $removed_item_count > 0 ) {
-				wc_add_notice( _n( 'Your cart contained an invalid subscription switch request. It has been removed.', 'Your cart contained invalid subscription switch requests. They have been removed.', 	$removed_item_count, 'woocommerce-subscriptions' ), 'error' );
+				wc_add_notice( _n( 'Your cart contained an invalid subscription switch request. It has been removed.', 'Your cart contained invalid subscription switch requests. They have been removed.', $removed_item_count, 'woocommerce-subscriptions' ), 'error' );
 
 				wp_redirect( wc_get_cart_url() );
 				exit();
@@ -373,11 +373,11 @@ class WC_Subscriptions_Switcher {
 		array_splice( $settings, 12, 0, array(
 
 			array(
-				'name'     => __( 'Switching', 'woocommerce-subscriptions' ),
-				'type'     => 'title',
+				'name' => __( 'Switching', 'woocommerce-subscriptions' ),
+				'type' => 'title',
 				// translators: placeholders are opening and closing link tags
-				'desc'     => sprintf( __( 'Allow subscribers to switch (upgrade or downgrade) between different subscriptions. %sLearn more%s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'http://docs.woocommerce.com/document/subscriptions/switching-guide/' ) . '">', '</a>' ),
-				'id'       => WC_Subscriptions_Admin::$option_prefix . '_switch_settings',
+				'desc' => sprintf( __( 'Allow subscribers to switch (upgrade or downgrade) between different subscriptions. %1$sLearn more%2$s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'http://docs.woocommerce.com/document/subscriptions/switching-guide/' ) . '">', '</a>' ),
+				'id'   => WC_Subscriptions_Admin::$option_prefix . '_switch_settings',
 			),
 
 			array(
@@ -386,14 +386,14 @@ class WC_Subscriptions_Switcher {
 			),
 
 			array(
-				'name'    => __( 'Prorate Recurring Payment', 'woocommerce-subscriptions' ),
-				'desc'    => __( 'When switching to a subscription with a different recurring payment or billing period, should the price paid for the existing billing period be prorated when switching to the new subscription?', 'woocommerce-subscriptions' ),
-				'tip'     => '',
-				'id'      => WC_Subscriptions_Admin::$option_prefix . '_apportion_recurring_price',
-				'css'     => 'min-width:150px;',
-				'default' => 'no',
-				'type'    => 'select',
-				'options' => array(
+				'name'     => __( 'Prorate Recurring Payment', 'woocommerce-subscriptions' ),
+				'desc'     => __( 'When switching to a subscription with a different recurring payment or billing period, should the price paid for the existing billing period be prorated when switching to the new subscription?', 'woocommerce-subscriptions' ),
+				'tip'      => '',
+				'id'       => WC_Subscriptions_Admin::$option_prefix . '_apportion_recurring_price',
+				'css'      => 'min-width:150px;',
+				'default'  => 'no',
+				'type'     => 'select',
+				'options'  => array(
 					'no'              => _x( 'Never', 'when to allow a setting', 'woocommerce-subscriptions' ),
 					'virtual-upgrade' => _x( 'For Upgrades of Virtual Subscription Products Only', 'when to prorate recurring fee when switching', 'woocommerce-subscriptions' ),
 					'yes-upgrade'     => _x( 'For Upgrades of All Subscription Products', 'when to prorate recurring fee when switching', 'woocommerce-subscriptions' ),
@@ -404,33 +404,33 @@ class WC_Subscriptions_Switcher {
 			),
 
 			array(
-				'name'    => __( 'Prorate Sign up Fee', 'woocommerce-subscriptions' ),
-				'desc'    => __( 'When switching to a subscription with a sign up fee, you can require the customer pay only the gap between the existing subscription\'s sign up fee and the new subscription\'s sign up fee (if any).', 'woocommerce-subscriptions' ),
-				'tip'     => '',
-				'id'      => WC_Subscriptions_Admin::$option_prefix . '_apportion_sign_up_fee',
-				'css'     => 'min-width:150px;',
-				'default' => 'no',
-				'type'    => 'select',
-				'options' => array(
-					'no'                 => _x( 'Never (do not charge a sign up fee)', 'when to prorate signup fee when switching', 'woocommerce-subscriptions' ),
-					'full'               => _x( 'Never (charge the full sign up fee)', 'when to prorate signup fee when switching', 'woocommerce-subscriptions' ),
-					'yes'                => _x( 'Always', 'when to prorate signup fee when switching','woocommerce-subscriptions' ),
+				'name'     => __( 'Prorate Sign up Fee', 'woocommerce-subscriptions' ),
+				'desc'     => __( 'When switching to a subscription with a sign up fee, you can require the customer pay only the gap between the existing subscription\'s sign up fee and the new subscription\'s sign up fee (if any).', 'woocommerce-subscriptions' ),
+				'tip'      => '',
+				'id'       => WC_Subscriptions_Admin::$option_prefix . '_apportion_sign_up_fee',
+				'css'      => 'min-width:150px;',
+				'default'  => 'no',
+				'type'     => 'select',
+				'options'  => array(
+					'no'   => _x( 'Never (do not charge a sign up fee)', 'when to prorate signup fee when switching', 'woocommerce-subscriptions' ),
+					'full' => _x( 'Never (charge the full sign up fee)', 'when to prorate signup fee when switching', 'woocommerce-subscriptions' ),
+					'yes'  => _x( 'Always', 'when to prorate signup fee when switching', 'woocommerce-subscriptions' ),
 				),
 				'desc_tip' => true,
 			),
 
 			array(
-				'name'    => __( 'Prorate Subscription Length', 'woocommerce-subscriptions' ),
-				'desc'    => __( 'When switching to a subscription with a length, you can take into account the payments already completed by the customer when determining how many payments the subscriber needs to make for the new subscription.', 'woocommerce-subscriptions' ),
-				'tip'     => '',
-				'id'      => WC_Subscriptions_Admin::$option_prefix . '_apportion_length',
-				'css'     => 'min-width:150px;',
-				'default' => 'no',
-				'type'    => 'select',
-				'options' => array(
-					'no'                 => _x( 'Never', 'when to allow a setting', 'woocommerce-subscriptions' ),
-					'virtual'            => _x( 'For Virtual Subscription Products Only', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
-					'yes'                => _x( 'For All Subscription Products', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
+				'name'     => __( 'Prorate Subscription Length', 'woocommerce-subscriptions' ),
+				'desc'     => __( 'When switching to a subscription with a length, you can take into account the payments already completed by the customer when determining how many payments the subscriber needs to make for the new subscription.', 'woocommerce-subscriptions' ),
+				'tip'      => '',
+				'id'       => WC_Subscriptions_Admin::$option_prefix . '_apportion_length',
+				'css'      => 'min-width:150px;',
+				'default'  => 'no',
+				'type'     => 'select',
+				'options'  => array(
+					'no'      => _x( 'Never', 'when to allow a setting', 'woocommerce-subscriptions' ),
+					'virtual' => _x( 'For Virtual Subscription Products Only', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
+					'yes'     => _x( 'For All Subscription Products', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
 				),
 				'desc_tip' => true,
 			),
@@ -446,7 +446,10 @@ class WC_Subscriptions_Switcher {
 				'desc_tip' => true,
 			),
 
-			array( 'type' => 'sectionend', 'id' => WC_Subscriptions_Admin::$option_prefix . '_switch_settings' ),
+			array(
+				'type' => 'sectionend',
+				'id'   => WC_Subscriptions_Admin::$option_prefix . '_switch_settings',
+			),
 		) );
 
 		return $settings;
@@ -539,7 +542,7 @@ class WC_Subscriptions_Switcher {
 		$switch_text = get_option( WC_Subscriptions_Admin::$option_prefix . '_switch_button_text', __( 'Upgrade or Downgrade', 'woocommerce-subscriptions' ) );
 		$switch_link = sprintf( '<a href="%s" class="wcs-switch-link button">%s</a>', $switch_url, $switch_text );
 
-		echo wp_kses( apply_filters( 'woocommerce_subscriptions_switch_link', $switch_link, $item_id, $item, $subscription ), array( 'a' => array( 'href' => array(), 'title' => array(), 'class' => array() ) ) );
+		echo wp_kses( apply_filters( 'woocommerce_subscriptions_switch_link', $switch_link, $item_id, $item, $subscription ), array( 'a' => array( 'href' => array(), 'title' => array(), 'class' => array() ) ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 	}
 
 	/**
@@ -588,7 +591,14 @@ class WC_Subscriptions_Switcher {
 	protected static function add_switch_query_args( $subscription_id, $item_id, $permalink, $additional_query_args = array() ) {
 
 		// manually add a nonce because we can't use wp_nonce_url() (it would escape the URL)
-		$query_args = array_merge( $additional_query_args, array( 'switch-subscription' => absint( $subscription_id ), 'item' => absint( $item_id ), '_wcsnonce' => wp_create_nonce( 'wcs_switch_request' ) ) );
+		$query_args = array_merge(
+			$additional_query_args,
+			array(
+				'switch-subscription' => absint( $subscription_id ),
+				'item'                => absint( $item_id ),
+				'_wcsnonce'           => wp_create_nonce( 'wcs_switch_request' ),
+			)
+		);
 		$permalink  = add_query_arg( $query_args, $permalink );
 
 		return apply_filters( 'woocommerce_subscriptions_add_switch_query_args', $permalink, $subscription_id, $item_id );
@@ -1043,7 +1053,8 @@ class WC_Subscriptions_Switcher {
 					$new_fee_items      = array();
 					foreach ( $recurring_cart->get_fees() as $fee_key => $fee ) {
 						$fee_item = new WC_Subscription_Item_Fee_Pending_Switch();
-						$fee_item->set_props( array(
+						$fee_item->set_props(
+							array(
 								'name'       => $fee->name,
 								'tax_status' => $fee->taxable,
 								'amount'     => $fee->amount,
@@ -1105,6 +1116,7 @@ class WC_Subscriptions_Switcher {
 
 				foreach ( $switch_orders as $switch_order_id => $switch_order ) {
 					if ( wcs_get_objects_property( $order, 'id' ) !== $switch_order_id && in_array( $switch_order->get_status(), apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'failed', 'on-hold' ), $switch_order ) ) ) {
+						// translators: %s: order number.
 						$switch_order->update_status( 'cancelled', sprintf( __( 'Switch order cancelled due to a new switch order being created #%s.', 'woocommerce-subscriptions' ), $order->get_order_number() ) );
 					}
 				}
@@ -1480,10 +1492,10 @@ class WC_Subscriptions_Switcher {
 			}
 
 			$cart_item_data['subscription_switch'] = array(
-				'subscription_id'         => $subscription->get_id(),
-				'item_id'                 => absint( $_GET['item'] ),
-				'next_payment_timestamp'  => $next_payment_timestamp,
-				'upgraded_or_downgraded'  => '',
+				'subscription_id'        => $subscription->get_id(),
+				'item_id'                => absint( $_GET['item'] ),
+				'next_payment_timestamp' => $next_payment_timestamp,
+				'upgraded_or_downgraded' => '',
 			);
 
 			return $cart_item_data;
@@ -1809,11 +1821,13 @@ class WC_Subscriptions_Switcher {
 	public static function hidden_order_itemmeta( $hidden_meta_keys ) {
 
 		if ( apply_filters( 'woocommerce_subscriptions_hide_switch_itemmeta', ! defined( 'WCS_DEBUG' ) || true !== WCS_DEBUG ) ) {
-			$hidden_meta_keys = array_merge( $hidden_meta_keys, array(
-				'_switched_subscription_item_id',
-				'_switched_subscription_new_item_id',
-				'_switched_subscription_sign_up_fee_prorated',
-				'_switched_subscription_price_prorated',
+			$hidden_meta_keys = array_merge(
+				$hidden_meta_keys,
+				array(
+					'_switched_subscription_item_id',
+					'_switched_subscription_new_item_id',
+					'_switched_subscription_sign_up_fee_prorated',
+					'_switched_subscription_price_prorated',
 				)
 			);
 		}
@@ -1850,13 +1864,13 @@ class WC_Subscriptions_Switcher {
 		if ( ! empty( $cart_item['subscription_switch'] ) ) {
 
 			switch ( $cart_item['subscription_switch']['upgraded_or_downgraded'] ) {
-				case 'downgraded' :
+				case 'downgraded':
 					$direction = _x( 'Downgrade', 'a switch type', 'woocommerce-subscriptions' );
 					break;
-				case 'upgraded' :
+				case 'upgraded':
 					$direction = _x( 'Upgrade', 'a switch type', 'woocommerce-subscriptions' );
 					break;
-				default :
+				default:
 					$direction = _x( 'Crossgrade', 'a switch type', 'woocommerce-subscriptions' );
 				break;
 			}
@@ -1948,13 +1962,18 @@ class WC_Subscriptions_Switcher {
 
 			if ( ! empty( $switch_data['switches'] ) && is_array( $switch_data['switches'] ) ) {
 				foreach ( $switch_data['switches'] as $order_item_id => $switched_item_data ) {
-
 					$add_subscription_item    = isset( $switched_item_data['add_line_item'] );
 					$remove_subscription_item = isset( $switched_item_data['remove_line_item'] );
 					$switch_order_item        = wcs_get_order_item( $order_item_id, $order );
 
-					if ( ! $add_subscription_item ) {
-						continue;
+					// If we are adding a line item to an existing subscription...
+					if ( $add_subscription_item ) {
+						wcs_update_order_item_type( $switched_item_data['add_line_item'], 'line_item', $subscription->get_id() );
+
+						// Trigger the action now if we're also removing an exising item from the original subscription.
+						if ( $remove_subscription_item ) {
+							do_action( 'woocommerce_subscription_item_switched', $order, $subscription, $switched_item_data['add_line_item'], $switched_item_data['remove_line_item'] );
+						}
 					}
 
 					// Removing an existing subscription item?
@@ -1968,29 +1987,21 @@ class WC_Subscriptions_Switcher {
 						throw new Exception( __( 'The item on the switch order cannot be found.', 'woocommerce-subscriptions' ) );
 					}
 
-					// If we are adding a line item to an existing subscription...
-					wcs_update_order_item_type( $switched_item_data['add_line_item'], 'line_item', $subscription->get_id() );
-
-					if ( $remove_subscription_item ) {
-						do_action( 'woocommerce_subscription_item_switched', $order, $subscription, $switched_item_data['add_line_item'], $switched_item_data['remove_line_item'] );
-					}
-
 					// We don't want to include switch item meta in order item name
 					add_filter( 'woocommerce_subscriptions_hide_switch_itemmeta', '__return_true' );
-					$old_item_name = $remove_subscription_item ? wcs_get_order_item_name( $old_subscription_item, array( 'attributes' => true ) ) : false;
 					$new_item_name = wcs_get_order_item_name( $switch_order_item, array( 'attributes' => true ) );
-					remove_filter( 'woocommerce_subscriptions_hide_switch_itemmeta', '__return_true' );
 
 					if ( $remove_subscription_item ) {
 						wcs_update_order_item_type( $switched_item_data['remove_line_item'], 'line_item_switched', $subscription->get_id() );
-					}
 
-					if ( $remove_subscription_item ) {
 						// translators: 1$: old item, 2$: new item when switching
-						$add_note = sprintf( _x( 'Customer switched from: %1$s to %2$s.', 'used in order notes', 'woocommerce-subscriptions' ), $old_item_name, $new_item_name );
+						$add_note = sprintf( _x( 'Customer switched from: %1$s to %2$s.', 'used in order notes', 'woocommerce-subscriptions' ), wcs_get_order_item_name( $old_subscription_item, array( 'attributes' => true ) ), $new_item_name );
 					} else {
+						// translators: %s: new item name.
 						$add_note = sprintf( _x( 'Customer added %s.', 'used in order notes', 'woocommerce-subscriptions' ), $new_item_name );
 					}
+
+					remove_filter( 'woocommerce_subscriptions_hide_switch_itemmeta', '__return_true' );
 				}
 			}
 

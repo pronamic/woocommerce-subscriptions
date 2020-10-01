@@ -189,7 +189,7 @@ class WCS_Switch_Totals_Calculator {
 
 				$error_notice = __( 'Your cart contained an invalid subscription switch request. It has been removed from your cart.', 'woocommerce-subscriptions' );
 				if ( ! wc_has_notice( $error_notice, 'error' ) ) {
-					wc_add_notice( $error_notice , 'error' );
+					wc_add_notice( $error_notice, 'error' );
 				}
 			}
 		}

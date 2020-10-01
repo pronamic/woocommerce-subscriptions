@@ -4,11 +4,11 @@
  *
  * Mirrors a few functions in the WC_Cart class to handle subscription-specific discounts
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Coupon
- * @category	Class
- * @author		Max Rice
- * @since		1.2
+ * @package WooCommerce Subscriptions
+ * @subpackage WC_Subscriptions_Coupon
+ * @category Class
+ * @author Max Rice
+ * @since 1.2
  */
 class WC_Subscriptions_Coupon {
 
@@ -96,6 +96,7 @@ class WC_Subscriptions_Coupon {
 		add_action( 'plugins_loaded', array( __CLASS__, 'maybe_add_recurring_coupon_hooks' ) );
 
 		add_filter( 'woocommerce_coupon_is_valid_for_product', array( __CLASS__, 'validate_subscription_coupon_for_product' ), 10, 3 );
+		add_filter( 'woocommerce_coupon_get_apply_quantity', array( __CLASS__, 'override_applied_quantity_for_recurring_carts' ), 10, 3 );
 	}
 
 	/**
@@ -143,7 +144,7 @@ class WC_Subscriptions_Coupon {
 			$displaying_initial_cart_totals = did_action( 'woocommerce_review_order_after_cart_contents' ) > did_action( 'woocommerce_review_order_before_order_total' );
 		}
 
-		if ( $displaying_initial_cart_totals && WC_Subscriptions_Cart::all_cart_items_have_free_trial() &&  in_array( wcs_get_coupon_property( $coupon, 'discount_type' ), array( 'recurring_fee', 'recurring_percent' ) ) ) {
+		if ( $displaying_initial_cart_totals && WC_Subscriptions_Cart::all_cart_items_have_free_trial() && in_array( wcs_get_coupon_property( $coupon, 'discount_type' ), array( 'recurring_fee', 'recurring_percent' ) ) ) {
 			$coupon_html .= '<span class="wcs-hidden-coupon" type="hidden"></span>';
 		}
 
@@ -1042,8 +1043,8 @@ class WC_Subscriptions_Coupon {
 			if ( self::get_coupon_limit( $code ) <= $count ) {
 				$subscription->remove_coupon( $code );
 				$subscription->add_order_note( sprintf(
+					/* translators: %1$s is the coupon code, %2$d is the number of payment usages */
 					_n(
-						/* translators: %1$s is the coupon code, %2$d is the number of payment usages */
 						'Limited use coupon "%1$s" removed from subscription. It has been used %2$d time.',
 						'Limited use coupon "%1$s" removed from subscription. It has been used %2$d times.',
 						$count,
@@ -1094,7 +1095,7 @@ class WC_Subscriptions_Coupon {
 	 * @since 1.2
 	 */
 	public static function apply_subscription_discount( $original_price, $cart_item, $cart ) {
-		_deprecated_function( __METHOD__, '2.0.10', 'Have moved to filtering on "woocommerce_coupon_get_discount_amount" to return discount amount. See: '. __CLASS__ .'::get_discount_amount()' );
+		_deprecated_function( __METHOD__, '2.0.10', 'Have moved to filtering on "woocommerce_coupon_get_discount_amount" to return discount amount. See: ' . __CLASS__ . '::get_discount_amount()' );
 
 		if ( ! WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
 			return $original_price;
@@ -1286,12 +1287,86 @@ class WC_Subscriptions_Coupon {
 	}
 
 	/**
+	 * Override the quantity to apply limited coupons to recurring cart items.
+	 *
+	 * Limited coupons can only apply to x number of items. By default that limit applies
+	 * to items in each cart instance. Because recurring carts are separate, the limit applies to
+	 * each recurring cart leading to the limit really being x * number-of-recurring-carts.
+	 *
+	 * This function overrides that by ensuring the limit is accounted for across all recurring carts.
+	 * The items which the coupon applied to in initial cart are the items in recurring carts that the coupon will apply to.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param int       $apply_quantity The item quantity to apply the coupon to.
+	 * @param object    $item The stdClass cart item object. @see WC_Discounts::set_items_from_cart() for an example of object properties.
+	 * @param WC_Coupon $coupon The coupon being applied
+	 *
+	 * @return int The item quantity to apply the coupon to.
+	 */
+	public static function override_applied_quantity_for_recurring_carts( $apply_quantity, $item, $coupon ) {
+		static $recurring_cart_items_priority = array();
+
+		$coupon_code          = $coupon->get_code();
+		$coupon_type          = $coupon->get_discount_type();
+		$limited_use_quantity = $coupon->get_limit_usage_to_x_items();
+
+		if ( null === $limited_use_quantity || ! isset( self::$recurring_coupons[ $coupon_type ] ) ) {
+			return $apply_quantity;
+		}
+
+		if ( 'none' === WC_Subscriptions_Cart::get_calculation_type() ) {
+			return $apply_quantity;
+		}
+
+		// Build a sorted list of recurring items. Used later to find which items we can apply the coupon to. $recurring_cart_items_priority is static so this only happens once.
+		if ( empty( $recurring_cart_items_priority ) ) {
+			$prices = $quantities = array();
+
+			foreach ( WC()->cart->cart_contents as $cart_item_key => $initial_cart_item ) {
+				// Because we're in the recurring cart calculation type (WC_Subscriptions_Cart::get_calculation_type()), get_price() will return the recurring price, not the sign up price.
+				$prices[ $cart_item_key ]['price']        = $initial_cart_item['data']->get_price();
+				$quantities[ $cart_item_key ]['quantity'] = $initial_cart_item['quantity'];
+			}
+
+			// Sort the items by price so we apply coupons to higher priced recurring items first.
+			arsort( $prices );
+			$recurring_cart_items_priority = array_merge_recursive( $prices, $quantities );
+		}
+
+		// Loop over the sorted recurring items to see if we will have enough usages left to apply the coupon to this item.
+		$recurring_coupon_applied_count = 0;
+		foreach ( $recurring_cart_items_priority as $item_key => $price_and_quantity ) {
+			if ( $item_key === $item->key ) {
+				// Find the maximum number of times this coupon could be applied.
+				if ( ( $limited_use_quantity - $recurring_coupon_applied_count ) < $item->quantity ) {
+					$apply_quantity = $limited_use_quantity - $recurring_coupon_applied_count;
+				} else {
+					$apply_quantity = $item->quantity;
+				}
+
+				break;
+			}
+
+			$recurring_coupon_applied_count += $price_and_quantity['quantity'];
+
+			// If we've run out of uses without reaching this item, exit out.
+			if ( $recurring_coupon_applied_count >= $limited_use_quantity ) {
+				$apply_quantity = 0;
+				break;
+			}
+		}
+
+		return $apply_quantity;
+	}
+
+	/**
 	 * Apply sign up fee or recurring fee discount before tax is calculated
 	 *
 	 * @since 1.2
 	 */
 	public static function apply_subscription_discount_before_tax( $original_price, $cart_item, $cart ) {
-		_deprecated_function( __METHOD__, '2.0', __CLASS__ .'::apply_subscription_discount( $original_price, $cart_item, $cart )' );
+		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::apply_subscription_discount( $original_price, $cart_item, $cart )' );
 		return self::apply_subscription_discount( $original_price, $cart_item, $cart );
 	}
 
@@ -1302,6 +1377,6 @@ class WC_Subscriptions_Coupon {
 	 * @version 1.3.6
 	 */
 	public static function apply_subscription_discount_after_tax( $coupon, $cart_item, $price ) {
-		_deprecated_function( __METHOD__, '2.0', 'WooCommerce 2.3 removed after tax discounts. Use ' . __CLASS__ .'::apply_subscription_discount( $original_price, $cart_item, $cart )' );
+		_deprecated_function( __METHOD__, '2.0', 'WooCommerce 2.3 removed after tax discounts. Use ' . __CLASS__ . '::apply_subscription_discount( $original_price, $cart_item, $cart )' );
 	}
 }

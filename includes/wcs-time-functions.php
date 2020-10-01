@@ -4,10 +4,10 @@
  *
  * Functions for time values and ranges
  *
- * @author 		Prospress
- * @category 	Core
- * @package 	WooCommerce Subscriptions/Functions
- * @version     2.0
+ * @author   Prospress
+ * @category Core
+ * @package  WooCommerce Subscriptions/Functions
+ * @version  2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,19 +24,21 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function wcs_get_subscription_period_strings( $number = 1, $period = '' ) {
 
+	// phpcs:disable Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma
 	$translated_periods = apply_filters( 'woocommerce_subscription_periods',
 		array(
 			// translators: placeholder is number of days. (e.g. "Bill this every day / 4 days")
-			'day'   => sprintf( _nx( 'day',   '%s days',   $number, 'Subscription billing period.', 'woocommerce-subscriptions' ), $number ),
+			'day'   => sprintf( _nx( 'day',   '%s days',   $number, 'Subscription billing period.', 'woocommerce-subscriptions' ), $number ), // phpcs:ignore WordPress.WP.I18n.MissingSingularPlaceholder,WordPress.WP.I18n.MismatchedPlaceholders
 			// translators: placeholder is number of weeks. (e.g. "Bill this every week / 4 weeks")
-			'week'  => sprintf( _nx( 'week',  '%s weeks',  $number, 'Subscription billing period.', 'woocommerce-subscriptions' ), $number ),
+			'week'  => sprintf( _nx( 'week',  '%s weeks',  $number, 'Subscription billing period.', 'woocommerce-subscriptions' ), $number ), // phpcs:ignore WordPress.WP.I18n.MissingSingularPlaceholder,WordPress.WP.I18n.MismatchedPlaceholders
 			// translators: placeholder is number of months. (e.g. "Bill this every month / 4 months")
-			'month' => sprintf( _nx( 'month', '%s months', $number, 'Subscription billing period.', 'woocommerce-subscriptions' ), $number ),
+			'month' => sprintf( _nx( 'month', '%s months', $number, 'Subscription billing period.', 'woocommerce-subscriptions' ), $number ), // phpcs:ignore WordPress.WP.I18n.MissingSingularPlaceholder,WordPress.WP.I18n.MismatchedPlaceholders
 			// translators: placeholder is number of years. (e.g. "Bill this every year / 4 years")
-			'year'  => sprintf( _nx( 'year',  '%s years',  $number, 'Subscription billing period.', 'woocommerce-subscriptions' ), $number ),
+			'year'  => sprintf( _nx( 'year',  '%s years',  $number, 'Subscription billing period.', 'woocommerce-subscriptions' ), $number ), // phpcs:ignore WordPress.WP.I18n.MissingSingularPlaceholder,WordPress.WP.I18n.MismatchedPlaceholders
 		),
 		$number
 	);
+	// phpcs:enable
 
 	return ( ! empty( $period ) ) ? $translated_periods[ $period ] : $translated_periods;
 }
@@ -52,9 +54,13 @@ function wcs_get_subscription_trial_period_strings( $number = 1, $period = '' ) 
 
 	$translated_periods = apply_filters( 'woocommerce_subscription_trial_periods',
 		array(
+			// translators: placeholder is a number of days.
 			'day'   => sprintf( _n( '%s day', 'a %s-day', $number, 'woocommerce-subscriptions' ), $number ),
+			// translators: placeholder is a number of weeks.
 			'week'  => sprintf( _n( '%s week', 'a %s-week', $number, 'woocommerce-subscriptions' ), $number ),
+			// translators: placeholder is a number of months.
 			'month' => sprintf( _n( '%s month', 'a %s-month', $number, 'woocommerce-subscriptions' ), $number ),
+			// translators: placeholder is a number of years.
 			'year'  => sprintf( _n( '%s year', 'a %s-year', $number, 'woocommerce-subscriptions' ), $number ),
 		),
 		$number
@@ -172,6 +178,7 @@ function wcs_get_available_time_periods( $form = 'singular' ) {
 
 	$number = ( 'singular' === $form ) ? 1 : 2;
 
+	// phpcs:disable Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma
 	$translated_periods = apply_filters( 'woocommerce_subscription_available_time_periods',
 		array(
 			'day'   => _nx( 'day',   'days',   $number, 'Used in the trial period dropdown. Number is in text field. 0, 2+ will need plural, 1 will need singular.', 'woocommerce-subscriptions' ),
@@ -180,6 +187,7 @@ function wcs_get_available_time_periods( $form = 'singular' ) {
 			'year'  => _nx( 'year',  'years',  $number, 'Used in the trial period dropdown. Number is in text field. 0, 2+ will need plural, 1 will need singular.', 'woocommerce-subscriptions' ),
 		)
 	);
+	// phpcs:enable
 
 	return $translated_periods;
 }
@@ -208,16 +216,17 @@ function wcs_get_subscription_trial_lengths( $subscription_period = '' ) {
 /**
  * Convenience wrapper for adding "{n} {periods}" to a timestamp (e.g. 2 months or 5 days).
  *
- * @param int The number of periods to add to the timestamp
- * @param string One of day, week, month or year.
- * @param int A Unix timestamp to add the time too.
+ * @param int    $number_of_periods  The number of periods to add to the timestamp
+ * @param string $period             One of day, week, month or year.
+ * @param int    $from_timestamp     A Unix timestamp to add the time too.
+ * @param string $timezone_behaviour Optional. If the $from_timestamp parameter should be offset to the site time or not, either 'offset_site_time' or 'no_offset'. Default 'no_offset'.
  * @since 2.0
  */
-function wcs_add_time( $number_of_periods, $period, $from_timestamp ) {
+function wcs_add_time( $number_of_periods, $period, $from_timestamp, $timezone_behaviour = 'no_offset' ) {
 
 	if ( $number_of_periods > 0 ) {
 		if ( 'month' == $period ) {
-			$next_timestamp = wcs_add_months( $from_timestamp, $number_of_periods );
+			$next_timestamp = wcs_add_months( $from_timestamp, $number_of_periods, $timezone_behaviour );
 		} else {
 			$next_timestamp = wcs_strtotime_dark_knight( "+ {$number_of_periods} {$period}", $from_timestamp );
 		}
@@ -238,11 +247,16 @@ function wcs_add_time( $number_of_periods, $period, $from_timestamp ) {
  *
  * What humans usually want is for the date to continue on the last day of the month.
  *
- * @param int $from_timestamp A Unix timestamp to add the months too.
- * @param int $months_to_add The number of months to add to the timestamp.
+ * @param int $from_timestamp        A Unix timestamp to add the months too.
+ * @param int $months_to_add         The number of months to add to the timestamp.
+ * @param string $timezone_behaviour Optional. If the $from_timestamp parameter should be offset to the site time or not, either 'offset_site_time' or 'no_offset'. Default 'no_offset'.
  * @since 2.0
  */
-function wcs_add_months( $from_timestamp, $months_to_add ) {
+function wcs_add_months( $from_timestamp, $months_to_add, $timezone_behaviour = 'no_offset' ) {
+
+	if ( 'offset_site_time' === $timezone_behaviour ) {
+		$from_timestamp += wc_timezone_offset();
+	}
 
 	$first_day_of_month = gmdate( 'Y-m', $from_timestamp ) . '-1';
 	$days_in_next_month = gmdate( 't', wcs_strtotime_dark_knight( "+ {$months_to_add} month", wcs_date_to_time( $first_day_of_month ) ) );
@@ -250,11 +264,15 @@ function wcs_add_months( $from_timestamp, $months_to_add ) {
 	// Payment is on the last day of the month OR number of days in next billing month is less than the the day of this month (i.e. current billing date is 30th January, next billing date can't be 30th February)
 	if ( gmdate( 'd m Y', $from_timestamp ) === gmdate( 't m Y', $from_timestamp ) || gmdate( 'd', $from_timestamp ) > $days_in_next_month ) {
 		for ( $i = 1; $i <= $months_to_add; $i++ ) {
-			$next_month = wcs_add_time( 3, 'days', $from_timestamp ); // Add 3 days to make sure we get to the next month, even when it's the 29th day of a month with 31 days
+			$next_month = wcs_add_time( 3, 'days', $from_timestamp, $timezone_behaviour ); // Add 3 days to make sure we get to the next month, even when it's the 29th day of a month with 31 days
 			$next_timestamp = $from_timestamp = wcs_date_to_time( gmdate( 'Y-m-t H:i:s', $next_month ) ); // NB the "t" to get last day of next month
 		}
 	} else { // Safe to just add a month
 		$next_timestamp = wcs_strtotime_dark_knight( "+ {$months_to_add} month", $from_timestamp );
+	}
+
+	if ( 'offset_site_time' === $timezone_behaviour ) {
+		$next_timestamp -= wc_timezone_offset();
 	}
 
 	return $next_timestamp;
@@ -296,15 +314,15 @@ function wcs_estimate_periods_between( $start_timestamp, $end_timestamp, $unit_o
 
 		switch ( $unit_of_time ) {
 
-			case 'day' :
+			case 'day':
 				$denominator = DAY_IN_SECONDS;
 				break;
 
-			case 'week' :
+			case 'week':
 				$denominator = WEEK_IN_SECONDS;
 				break;
 
-			case 'year' :
+			case 'year':
 				$denominator = YEAR_IN_SECONDS;
 				// we need to adjust this because YEAR_IN_SECONDS assumes a 365 day year. See notes on wcs_number_of_leap_days
 				$seconds_until_timestamp = $seconds_until_timestamp - wcs_number_of_leap_days( $start_timestamp, $end_timestamp ) * DAY_IN_SECONDS;
@@ -346,14 +364,14 @@ function wcs_number_of_leap_days( $start_timestamp, $end_timestamp ) {
 		$first_feb_29 = mktime( 23, 59, 59, 2, 29, reset( $leap_years ) );
 		$last_feb_29 = mktime( 0, 0, 0, 2, 29, end( $leap_years ) );
 
-		$is_first_feb_covered = ( $first_feb_29 >= $start_timestamp ) ? 1: 0;
-		$is_last_feb_covered = ( $last_feb_29 <= $end_timestamp ) ? 1: 0;
+		$is_first_feb_covered = ( $first_feb_29 >= $start_timestamp ) ? 1 : 0;
+		$is_last_feb_covered = ( $last_feb_29 <= $end_timestamp ) ? 1 : 0;
 
 		if ( count( $leap_years ) > 1 ) {
 			// the feb 29s are in different years
 			$total_feb_29s = count( $leap_years ) - 2 + $is_first_feb_covered + $is_last_feb_covered;
 		} else {
-			$total_feb_29s = ( $first_feb_29 >= $start_timestamp && $last_feb_29 <= $end_timestamp ) ? 1: 0;
+			$total_feb_29s = ( $first_feb_29 >= $start_timestamp && $last_feb_29 <= $end_timestamp ) ? 1 : 0;
 		}
 	}
 	date_default_timezone_set( $default_tz );
@@ -418,11 +436,11 @@ function wcs_estimate_period_between( $last_date, $second_date, $interval = 1 ) 
 	);
 
 	// check for different time spans
-	foreach ( array( 'year' => YEAR_IN_SECONDS, 'week' => WEEK_IN_SECONDS, 'day' => DAY_IN_SECONDS ) as $time => $seconds ) {
+	foreach ( array( 'year' => YEAR_IN_SECONDS, 'week' => WEEK_IN_SECONDS, 'day' => DAY_IN_SECONDS ) as $time => $seconds ) { // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 		$possible_periods[ $time ] = array(
 			'intervals'         => floor( $period_in_seconds / $seconds ),
 			'remainder'         => $period_in_seconds % $seconds,
-			'fraction'          => ($period_in_seconds % $seconds) / $seconds,
+			'fraction'          => ( $period_in_seconds % $seconds ) / $seconds,
 			'period'            => $time,
 			'days_in_month'     => $days_in_month,
 			'original_interval' => $interval,
@@ -508,7 +526,7 @@ function wcs_find_full_months_between( $start_timestamp, $end_timestamp, $interv
 	$remainder_in_period += $remainder;
 
 	$time_difference = array(
-		'months' => $number_of_months,
+		'months'    => $number_of_months,
 		'remainder' => $remainder_in_period,
 	);
 
@@ -687,16 +705,16 @@ function wcs_strtotime_dark_knight( $time_string, $from_timestamp = null ) {
 function wcs_get_days_in_cycle( $period, $interval ) {
 
 	switch ( $period ) {
-		case 'day' :
+		case 'day':
 			$days_in_cycle = $interval;
 			break;
-		case 'week' :
+		case 'week':
 			$days_in_cycle = $interval * 7;
 			break;
-		case 'month' :
+		case 'month':
 			$days_in_cycle = $interval * 30.4375; // Average days per month over 4 year period
 			break;
-		case 'year' :
+		case 'year':
 			$days_in_cycle = $interval * 365.25; // Average days per year over 4 year period
 			break;
 	}

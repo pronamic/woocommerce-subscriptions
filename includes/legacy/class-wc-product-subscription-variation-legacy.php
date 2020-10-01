@@ -4,10 +4,10 @@
  *
  * Extends WC_Product_Subscription_Variation to provide compatibility methods when running WooCommerce < 3.0.
  *
- * @class 		WC_Product_Subscription_Variation_Legacy
- * @package		WooCommerce Subscriptions
- * @category	Class
- * @since		2.2.0
+ * @class WC_Product_Subscription_Variation_Legacy
+ * @package WooCommerce Subscriptions
+ * @category Class
+ * @since 2.2.0
  *
  */
 if ( ! defined( 'ABSPATH' ) ) {

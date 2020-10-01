@@ -28,7 +28,12 @@ class WCS_Remove_Item {
 	 */
 	public static function get_remove_url( $subscription_id, $order_item_id ) {
 
-		$remove_link = add_query_arg( array( 'subscription_id' => $subscription_id, 'remove_item' => $order_item_id ) );
+		$remove_link = add_query_arg(
+			array(
+				'subscription_id' => $subscription_id,
+				'remove_item'     => $order_item_id,
+			)
+		);
 		$remove_link = wp_nonce_url( $remove_link, $subscription_id );
 
 		return $remove_link;
@@ -44,7 +49,13 @@ class WCS_Remove_Item {
 	 */
 	public static function get_undo_remove_url( $subscription_id, $order_item_id, $base_url ) {
 
-		$undo_link = add_query_arg( array( 'subscription_id' => $subscription_id, 'undo_remove_item' => $order_item_id ), $base_url );
+		$undo_link = add_query_arg(
+			array(
+				'subscription_id'  => $subscription_id,
+				'undo_remove_item' => $order_item_id,
+			),
+			$base_url
+		);
 		$undo_link = wp_nonce_url( $undo_link, $subscription_id );
 
 		return $undo_link;
@@ -64,7 +75,7 @@ class WCS_Remove_Item {
 			$item_id      = $undo_request ? $_GET['undo_remove_item'] : $_GET['remove_item'];
 
 			if ( false === $subscription ) {
-
+				// translators: %d: subscription ID.
 				wc_add_notice( sprintf( _x( 'Subscription #%d does not exist.', 'hash before subscription ID', 'woocommerce-subscriptions' ), $_GET['subscription_id'] ), 'error' );
 				wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) );
 				exit;
@@ -87,7 +98,7 @@ class WCS_Remove_Item {
 						$subscription = wcs_get_subscription( $subscription->get_id() );
 						$line_items = $subscription->get_items();
 						$line_item  = $line_items[ $item_id ];
-						$_product   = $subscription->get_product_from_item( $line_item );
+						$_product   = $line_item->get_product();
 						$product_id = wcs_get_canonical_product_id( $line_item );
 
 						if ( $_product && $_product->exists() && $_product->is_downloadable() ) {

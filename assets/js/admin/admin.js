@@ -528,15 +528,6 @@ jQuery(document).ready(function($){
 		}
 	});
 
-	$(window).load(function(){
-		if($('[name="contains_subscription"]').length > 0 && $('[name="contains_subscription"]').val()=='true'){
-			// Show the Recurring Order Totals meta box in WC 2.2
-			$('#woocommerce-order-totals').show();
-		} else {
-			$('#woocommerce-order-totals').hide();
-		}
-	});
-
 	// Editing a variable product
 	$('#variable_product_options').on('change','[name^="variable_regular_price"]',function(){
 		var matches = $(this).attr('name').match(/\[(.*?)\]/);

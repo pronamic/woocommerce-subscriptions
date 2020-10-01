@@ -5,10 +5,10 @@
  * The subscription product variation class extends the WC_Product_Variation product class
  * to create subscription product variations.
  *
- * @class 		WC_Product_Subscription
- * @package		WooCommerce Subscriptions
- * @category	Class
- * @since		1.3
+ * @class    WC_Product_Subscription
+ * @package  WooCommerce Subscriptions
+ * @category Class
+ * @since    1.3
  *
  */
 if ( ! defined( 'ABSPATH' ) ) {

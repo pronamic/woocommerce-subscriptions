@@ -4,11 +4,11 @@
  *
  * Generates URL parameters to send to PayPal to create a subscription with PayPal Standard
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	Gateways/PayPal
- * @category	Class
- * @author		Prospress
- * @since		2.0
+ * @package     WooCommerce Subscriptions
+ * @subpackage  Gateways/PayPal
+ * @category    Class
+ * @author      Prospress
+ * @since       2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -148,20 +148,41 @@ class WCS_PayPal_Standard_Request {
 				if ( false === $parent_order ) {
 					// No original order so we need to use the subscriptions values instead
 					$order_number = ltrim( $subscription->get_order_number(), _x( '#', 'hash before the order number. Used as a character to remove from the actual order number', 'woocommerce-subscriptions' ) ) . '-subscription';
-					$order_id_key = array( 'order_id' => $subscription->get_id(), 'order_key' => $subscription->get_order_key() );
+					$order_id_key = array(
+						'order_id'  => $subscription->get_id(),
+						'order_key' => $subscription->get_order_key(),
+					);
 				} else {
 					$order_number = ltrim( $parent_order->get_order_number(), _x( '#', 'hash before the order number. Used as a character to remove from the actual order number', 'woocommerce-subscriptions' ) );
-					$order_id_key = array( 'order_id' => wcs_get_objects_property( $parent_order, 'id' ), 'order_key' => wcs_get_objects_property( $parent_order, 'order_key' ) );
+					$order_id_key = array(
+						'order_id'  => wcs_get_objects_property( $parent_order, 'id' ),
+						'order_key' => wcs_get_objects_property( $parent_order, 'order_key' ),
+					);
 				}
 
 				// Set the invoice details to the original order's invoice but also append a special string and this renewal orders ID so that we can match it up as a failed renewal order payment later
 				$paypal_args['invoice'] = WCS_PayPal::get_option( 'invoice_prefix' ) . $order_number . $suffix;
-				$paypal_args['custom']  = wcs_json_encode( array_merge( $order_id_key, array( 'subscription_id' => $subscription->get_id(), 'subscription_key' => $subscription->get_order_key() ) ) );
+				$paypal_args['custom']  = wcs_json_encode(
+					array_merge(
+						$order_id_key,
+						array(
+							'subscription_id'  => $subscription->get_id(),
+							'subscription_key' => $subscription->get_order_key(),
+						)
+					)
+				);
 
 			} else {
 
 				// Store the subscription ID in the args sent to PayPal so we can access them later
-				$paypal_args['custom'] = wcs_json_encode( array( 'order_id' => wcs_get_objects_property( $order, 'id' ), 'order_key' => wcs_get_objects_property( $order, 'order_key' ), 'subscription_id' => $subscription->get_id(), 'subscription_key' => $subscription->get_order_key() ) );
+				$paypal_args['custom'] = wcs_json_encode(
+					array(
+						'order_id'         => wcs_get_objects_property( $order, 'id' ),
+						'order_key'        => wcs_get_objects_property( $order, 'order_key' ),
+						'subscription_id'  => $subscription->get_id(),
+						'subscription_key' => $subscription->get_order_key(),
+					)
+				);
 			}
 
 			if ( $order_contains_failed_renewal ) {

@@ -4,9 +4,9 @@
  *
  * Functions for determining the current state of the query/page/session.
  *
- * @author 		Prospress
- * @category 	Core
- * @package 	WooCommerce Subscriptions/Functions
+ * @author      Prospress
+ * @category    Core
+ * @package     WooCommerce Subscriptions/Functions
  * @version     2.0.13
  */
 

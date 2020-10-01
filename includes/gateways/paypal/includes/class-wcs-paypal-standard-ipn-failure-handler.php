@@ -4,11 +4,11 @@
  *
  * Introduces a new handler to take care of failing IPN requests
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	Gateways/PayPal
- * @category	Class
- * @author		Prospress
- * @since		2.0.6
+ * @package     WooCommerce Subscriptions
+ * @subpackage  Gateways/PayPal
+ * @category    Class
+ * @author      Prospress
+ * @since       2.0.6
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

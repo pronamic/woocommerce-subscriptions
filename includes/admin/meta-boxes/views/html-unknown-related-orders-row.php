@@ -13,7 +13,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <tr>
 	<td>
-		<?php echo sprintf( esc_html_x( '#%s', 'hash before order number', 'woocommerce-subscriptions' ), esc_html( $order_id ) ); ?>
+		<?php
+		// translators: placeholder is an order ID.
+		echo sprintf( esc_html_x( '#%s', 'hash before order number', 'woocommerce-subscriptions' ), esc_html( $order_id ) );
+		?>
 		<div class="wcs-unknown-order-info-wrapper">
 			<a href="https://docs.woocommerce.com/document/subscriptions/orders/#section-8"><?php echo wcs_help_tip( sprintf( "This %s couldn't be loaded from the database. %s Click to learn more.", $relationship, '</br>' ) ); ?></a>
 		</div>

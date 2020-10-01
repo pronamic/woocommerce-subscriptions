@@ -8,11 +8,11 @@
  * so your payment gateway only needs to work with WooCommerce APIs. You can however call other
  * management functions directly when necessary.
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WC_Subscriptions_Manager
- * @category	Class
- * @author		Brent Shepherd
- * @since		1.0
+ * @package     WooCommerce Subscriptions
+ * @subpackage  WC_Subscriptions_Manager
+ * @category    Class
+ * @author      Brent Shepherd
+ * @since       1.0
  */
 class WC_Subscriptions_Manager {
 
@@ -120,6 +120,7 @@ class WC_Subscriptions_Manager {
 				$renewal_order = wcs_create_renewal_order( $subscription );
 
 				if ( is_wp_error( $renewal_order ) ) {
+					// translators: placeholder is an order note.
 					throw new Exception( sprintf( __( 'Error: Unable to create renewal order with note "%s"', 'woocommerce-subscriptions' ), $order_note ) );
 				}
 			}
@@ -162,6 +163,7 @@ class WC_Subscriptions_Manager {
 		}
 
 		if ( false === $subscription ) {
+			// translators: placeholder is a subscription ID.
 			throw new InvalidArgumentException( sprintf( __( 'Subscription doesn\'t exist in scheduled action: %d', 'woocommerce-subscriptions' ), $subscription_id ) );
 		}
 
@@ -434,8 +436,8 @@ class WC_Subscriptions_Manager {
 	 * @param int|WC_Order $order The order ID or WC_Order object to create the subscription from.
 	 * @param int $product_id The ID of the subscription product on the order, if a variation, it must be the variation's ID.
 	 * @param array $args An array of name => value pairs to customise the details of the subscription, including:
-	 * 			'start_date' A MySQL formatted date/time string on which the subscription should start, in UTC timezone
-	 * 			'expiry_date' A MySQL formatted date/time string on which the subscription should expire, in UTC timezone
+	 *     'start_date' A MySQL formatted date/time string on which the subscription should start, in UTC timezone
+	 *     'expiry_date' A MySQL formatted date/time string on which the subscription should expire, in UTC timezone
 	 * @since 1.1
 	 */
 	public static function create_pending_subscription_for_order( $order, $product_id, $args = array() ) {
@@ -463,7 +465,12 @@ class WC_Subscriptions_Manager {
 		$product = wc_get_product( $product_id );
 
 		// Check if there is already a subscription for this product and order
-		$subscriptions = wcs_get_subscriptions( array( 'order_id' => wcs_get_objects_property( $order, 'id' ), 'product_id' => $product_id ) );
+		$subscriptions = wcs_get_subscriptions(
+			array(
+				'order_id'   => wcs_get_objects_property( $order, 'id' ),
+				'product_id' => $product_id,
+			)
+		);
 
 		if ( ! empty( $subscriptions ) ) {
 
@@ -501,7 +508,10 @@ class WC_Subscriptions_Manager {
 						'subtotal_tax' => 0,
 						'total'        => $product->get_price(),
 						'tax'          => 0,
-						'tax_data'     => array( 'subtotal' => array(), 'total' => array() ),
+						'tax_data'     => array(
+							'subtotal' => array(),
+							'total'    => array(),
+						),
 					),
 				)
 			);
@@ -594,21 +604,21 @@ class WC_Subscriptions_Manager {
 		foreach ( wcs_get_subscriptions_for_order( wcs_get_objects_property( $order, 'id' ), array( 'order_type' => 'parent' ) ) as $subscription_id => $subscription ) {
 
 			switch ( $status ) {
-				case 'cancelled' :
+				case 'cancelled':
 					$subscription->cancel_order();
 					break;
-				case 'active' :
-				case 'expired' :
-				case 'on-hold' :
+				case 'active':
+				case 'expired':
+				case 'on-hold':
 					$subscription->update_status( $status );
 					break;
-				case 'failed' :
+				case 'failed':
 					_deprecated_argument( __METHOD__, '2.0', 'The "failed" status value is deprecated.' );
 					self::failed_subscription_signup( $order->get_user_id(), $subscription_id );
 					break;
-				case 'pending' :
+				case 'pending':
 					_deprecated_argument( __METHOD__, '2.0', 'The "pending" status value is deprecated.' );
-				default :
+				default:
 					self::create_pending_subscription_for_order( $order );
 					break;
 			}
@@ -682,22 +692,22 @@ class WC_Subscriptions_Manager {
 
 			foreach ( $new_subscription_details as $meta_key => $meta_value ) {
 				switch ( $meta_key ) {
-					case 'start_date' :
+					case 'start_date':
 						$subscription->update_dates( array( 'date_created' => $meta_value ) );
 						break;
-					case 'trial_expiry_date' :
+					case 'trial_expiry_date':
 						$subscription->update_dates( array( 'trial_end' => $meta_value ) );
 						break;
-					case 'expiry_date' :
+					case 'expiry_date':
 						$subscription->update_dates( array( 'end' => $meta_value ) );
 						break;
-					case 'failed_payments' :
+					case 'failed_payments':
 						_deprecated_argument( __METHOD__, '2.0', 'The "failed_payments" meta value is deprecated. Create a renewal order with "failed" status instead.' );
 						break;
-					case 'completed_payments' :
+					case 'completed_payments':
 						_deprecated_argument( __METHOD__, '2.0', 'The "completed_payments" meta value is deprecated. Create a renewal order with completed payment instead.' );
 						break;
-					case 'suspension_count' :
+					case 'suspension_count':
 						$subscription->set_suspension_count( $subscription->get_suspension_count() + 1 );
 						break;
 				}
@@ -799,7 +809,7 @@ class WC_Subscriptions_Manager {
 	 */
 	public static function maybe_untrash_subscription( $post_id ) {
 		if ( 'shop_order' == get_post_type( $post_id ) ) {
-			foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'parent', 'subscription_status' => array( 'trash' ) ) ) as $subscription ) {
+			foreach ( wcs_get_subscriptions_for_order( $post_id, array( 'order_type' => 'parent', 'subscription_status' => array( 'trash' ) ) ) as $subscription ) { // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 				wp_untrash_post( $subscription->get_id() );
 			}
 		}
@@ -862,8 +872,8 @@ class WC_Subscriptions_Manager {
 	 */
 	public static function fix_trash_meta_status( $post_id ) {
 
-		if ( 'shop_subscription' == get_post_type( $post_id ) && ! in_array( get_post_meta( $post_id,'_wp_trash_meta_status', true ), array( 'wc-pending', 'wc-expired', 'wc-cancelled' ) ) ) {
-			update_post_meta( $post_id,'_wp_trash_meta_status', 'wc-cancelled' );
+		if ( 'shop_subscription' == get_post_type( $post_id ) && ! in_array( get_post_meta( $post_id, '_wp_trash_meta_status', true ), array( 'wc-pending', 'wc-expired', 'wc-cancelled' ) ) ) {
+			update_post_meta( $post_id, '_wp_trash_meta_status', 'wc-cancelled' );
 		}
 	}
 
@@ -972,17 +982,17 @@ class WC_Subscriptions_Manager {
 			$subscription = wcs_get_subscription_from_key( $subscription_key );
 
 			switch ( $new_status_or_meta ) {
-				case 'new-payment-date' :
+				case 'new-payment-date':
 					$subscription_can_be_changed = $subscription->can_date_be_updated( 'next_payment' );
 					break;
-				case 'active' :
-				case 'on-hold' :
-				case 'cancelled' :
-				case 'expired' :
-				case 'trash' :
-				case 'deleted' :
-				case 'failed' :
-				default :
+				case 'active':
+				case 'on-hold':
+				case 'cancelled':
+				case 'expired':
+				case 'trash':
+				case 'deleted':
+				case 'failed':
+				default:
 					$subscription_can_be_changed = $subscription->can_be_updated_to( $new_status_or_meta );
 					break;
 			}
@@ -1034,26 +1044,26 @@ class WC_Subscriptions_Manager {
 		_deprecated_function( __METHOD__, '2.0', 'wcs_get_subscription_statuses()' );
 
 		switch ( $status ) {
-			case 'active' :
+			case 'active':
 				$status_string = _x( 'Active', 'Subscription status', 'woocommerce-subscriptions' );
 				break;
-			case 'cancelled' :
+			case 'cancelled':
 				$status_string = _x( 'Cancelled', 'Subscription status', 'woocommerce-subscriptions' );
 				break;
-			case 'expired' :
+			case 'expired':
 				$status_string = _x( 'Expired', 'Subscription status', 'woocommerce-subscriptions' );
 				break;
-			case 'pending' :
+			case 'pending':
 				$status_string = _x( 'Pending', 'Subscription status', 'woocommerce-subscriptions' );
 				break;
-			case 'failed' :
+			case 'failed':
 				$status_string = _x( 'Failed', 'Subscription status', 'woocommerce-subscriptions' );
 				break;
-			case 'on-hold' :
-			case 'suspend' : // Backward compatibility
+			case 'on-hold':
+			case 'suspend': // Backward compatibility
 				$status_string = _x( 'On-hold', 'Subscription status', 'woocommerce-subscriptions' );
 				break;
-			default :
+			default:
 				$status_string = apply_filters( 'woocommerce_subscriptions_custom_status_string', ucfirst( $status ), $subscription_key, $user_id );
 		}
 
@@ -1220,7 +1230,7 @@ class WC_Subscriptions_Manager {
 		_deprecated_function( __METHOD__, '2.0', 'WC_Subscription::get_date( "end" )' );
 		$subscription = wcs_get_subscription_from_key( $subscription_key );
 		$expiration_date = ( 'mysql' == $type ) ? $subscription->get_date( 'end' ) : $subscription->get_time( 'end' );
-		return apply_filters( 'woocommerce_subscription_expiration_date' , $expiration_date, $subscription_key, $user_id );
+		return apply_filters( 'woocommerce_subscription_expiration_date', $expiration_date, $subscription_key, $user_id );
 	}
 
 	/**
@@ -1399,7 +1409,7 @@ class WC_Subscriptions_Manager {
 		$subscription = wcs_get_subscription_from_key( $subscription_key );
 		$trial_end    = $subscription->calculate_date( 'trial_end' );
 		$trial_end    = ( 'mysql' == $type ) ? $trial_end : wcs_date_to_time( $trial_end );
-		return apply_filters( 'woocommerce_subscription_calculated_trial_expiration_date' , $trial_end, $subscription_key, $user_id );
+		return apply_filters( 'woocommerce_subscription_calculated_trial_expiration_date', $trial_end, $subscription_key, $user_id );
 	}
 
 	/**
@@ -1743,14 +1753,14 @@ class WC_Subscriptions_Manager {
 	 * Creates a subscription price string from an array of subscription details. For example, ""$5 / month for 12 months".
 	 *
 	 * @param array $subscription_details A set of name => value pairs for the subscription details to include in the string. Available keys:
-	 *		'initial_amount': The upfront payment for the subscription, including sign up fees, as a string from the @see woocommerce_price(). Default empty string (no initial payment)
-	 *		'initial_description': The word after the initial payment amount to describe the amount. Examples include "now" or "initial payment". Defaults to "up front".
-	 *		'recurring_amount': The amount charged per period. Default 0 (no recurring payment).
-	 *		'subscription_interval': How regularly the subscription payments are charged. Default 1, meaning each period e.g. per month.
-	 *		'subscription_period': The temporal period of the subscription. Should be one of {day|week|month|year} as used by @see self::get_subscription_period_strings()
-	 *		'subscription_length': The total number of periods the subscription should continue for. Default 0, meaning continue indefinitely.
-	 *		'trial_length': The total number of periods the subscription trial period should continue for.  Default 0, meaning no trial period.
-	 *		'trial_period': The temporal period for the subscription's trial period. Should be one of {day|week|month|year} as used by @see self::get_subscription_period_strings()
+	 *     'initial_amount': The upfront payment for the subscription, including sign up fees, as a string from the @see woocommerce_price(). Default empty string (no initial payment)
+	 *     'initial_description': The word after the initial payment amount to describe the amount. Examples include "now" or "initial payment". Defaults to "up front".
+	 *     'recurring_amount': The amount charged per period. Default 0 (no recurring payment).
+	 *     'subscription_interval': How regularly the subscription payments are charged. Default 1, meaning each period e.g. per month.
+	 *     'subscription_period': The temporal period of the subscription. Should be one of {day|week|month|year} as used by @see self::get_subscription_period_strings()
+	 *     'subscription_length': The total number of periods the subscription should continue for. Default 0, meaning continue indefinitely.
+	 *     'trial_length': The total number of periods the subscription trial period should continue for.  Default 0, meaning no trial period.
+	 *     'trial_period': The temporal period for the subscription's trial period. Should be one of {day|week|month|year} as used by @see self::get_subscription_period_strings()
 	 * @since 1.2
 	 * @deprecated 2.0
 	 * @return float $proportion A proportion of the total (e.g. 0.5 is half of the total)
@@ -1765,19 +1775,21 @@ class WC_Subscriptions_Manager {
 	 * Copy of the WordPress "touch_time" template function for use with a variety of different times
 	 *
 	 * @param array $args A set of name => value pairs to customise how the function operates. Available keys:
-	 *		'date': (string) the date to display in the selector in MySQL format ('Y-m-d H:i:s'). Required.
-	 *		'tab_index': (int) the tab index for the element. Optional. Default 0.
-	 *		'multiple': (bool) whether there will be multiple instances of the element on the same page (determines whether to include an ID or not). Default false.
-	 *		'echo': (bool) whether to return and print the element or simply return it. Default true.
-	 *		'include_time': (bool) whether to include a specific time for the selector. Default true.
-	 *		'include_year': (bool) whether to include a the year field. Default true.
-	 *		'include_buttons': (bool) whether to include submit buttons on the selector. Default true.
+	 *     'date': (string) the date to display in the selector in MySQL format ('Y-m-d H:i:s'). Required.
+	 *     'tab_index': (int) the tab index for the element. Optional. Default 0.
+	 *     'multiple': (bool) whether there will be multiple instances of the element on the same page (determines whether to include an ID or not). Default false.
+	 *     'echo': (bool) whether to return and print the element or simply return it. Default true.
+	 *     'include_time': (bool) whether to include a specific time for the selector. Default true.
+	 *     'include_year': (bool) whether to include a the year field. Default true.
+	 *     'include_buttons': (bool) whether to include submit buttons on the selector. Default true.
 	 * @since 1.2
 	 */
 	public static function touch_time( $args = array() ) {
 		global $wp_locale;
 
-		$args = wp_parse_args( $args, array(
+		$args = wp_parse_args(
+			$args,
+			array(
 				'date'            => true,
 				'tab_index'       => 0,
 				'multiple'        => false,
@@ -1805,7 +1817,7 @@ class WC_Subscriptions_Manager {
 		}
 		$month_input .= '</select>';
 
-		$day_input  = '<input type="text" ' . ( $args['multiple'] ? '' : 'id="edit-day" ' ) . 'name="edit-day" value="' .  mysql2date( 'd', $args['date'], false ) . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" />';
+		$day_input  = '<input type="text" ' . ( $args['multiple'] ? '' : 'id="edit-day" ' ) . 'name="edit-day" value="' . mysql2date( 'd', $args['date'], false ) . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" />';
 		$year_input = '<input type="text" ' . ( $args['multiple'] ? '' : 'id="edit-year" ' ) . 'name="edit-year" value="' . mysql2date( 'Y', $args['date'], false ) . '" size="4" maxlength="4"' . $tab_index_attribute . ' autocomplete="off" />';
 
 		if ( $args['include_time'] ) {
@@ -1830,27 +1842,27 @@ class WC_Subscriptions_Manager {
 
 		$allowed_html = array(
 			'select' => array(
-				'id' => array(),
-				'name' => array(),
+				'id'       => array(),
+				'name'     => array(),
 				'tabindex' => array(),
 			),
 			'option' => array(
-				'value' => array(),
+				'value'    => array(),
 				'selected' => array(),
 			),
-			'input' => array(
-				'type' => array(),
-				'id' => array(),
-				'name' => array(),
-				'value' => array(),
-				'size' => array(),
-				'tabindex' => array(),
-				'maxlength' => array(),
+			'input'  => array(
+				'type'         => array(),
+				'id'           => array(),
+				'name'         => array(),
+				'value'        => array(),
+				'size'         => array(),
+				'tabindex'     => array(),
+				'maxlength'    => array(),
 				'autocomplete' => array(),
 			),
-			'p' => array(),
-			'a' => array(
-				'href' => array(),
+			'p'      => array(),
+			'a'      => array(
+				'href'  => array(),
 				'title' => array(),
 				'class' => array(),
 			),

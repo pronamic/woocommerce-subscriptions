@@ -212,7 +212,15 @@ class WC_API_Subscriptions extends WC_API_Orders {
 		} catch ( WC_API_Exception $e ) {
 			return new WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ) );
 		} catch ( Exception $e ) {
-			$response = array( 'error', array( 'wcs_api_error_create_subscription' => array( 'message' => $e->getMessage(), 'status' => $e->getCode() ) ) );
+			$response = array(
+				'error',
+				array(
+					'wcs_api_error_create_subscription' => array(
+						'message' => $e->getMessage(),
+						'status'  => $e->getCode(),
+					),
+				),
+			);
 
 			// show the subscription in response if it was still created but errored.
 			if ( ! empty( $subscription ) && ! is_wp_error( $subscription ) ) {

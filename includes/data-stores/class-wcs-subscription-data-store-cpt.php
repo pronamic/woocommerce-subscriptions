@@ -136,7 +136,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 		$props_to_set = $dates_to_set = array();
 
 		foreach ( $this->subscription_meta_keys_to_props as $meta_key => $prop_key ) {
-			if ( 0 === strpos( $prop_key, 'schedule' ) || in_array( $meta_key, $this->subscription_internal_meta_keys )  ) {
+			if ( 0 === strpos( $prop_key, 'schedule' ) || in_array( $meta_key, $this->subscription_internal_meta_keys ) ) {
 
 				$meta_value = get_post_meta( $subscription->get_id(), $meta_key, true );
 

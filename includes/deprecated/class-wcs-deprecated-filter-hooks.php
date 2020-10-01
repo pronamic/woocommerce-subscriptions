@@ -28,17 +28,17 @@ class WCS_Deprecated_Filter_Hooks extends WC_Deprecated_Filter_Hooks {
 	 * @var array
 	 */
 	protected $deprecated_hooks = array(
-		'woocommerce_subscription_get_currency'            => 'woocommerce_get_currency',
-		'woocommerce_subscription_get_discount_total'      => 'woocommerce_order_amount_discount_total',
-		'woocommerce_subscription_get_discount_tax'        => 'woocommerce_order_amount_discount_tax',
-		'woocommerce_subscription_get_shipping_total'      => 'woocommerce_order_amount_shipping_total',
-		'woocommerce_subscription_get_shipping_tax'        => 'woocommerce_order_amount_shipping_tax',
-		'woocommerce_subscription_get_cart_tax'            => 'woocommerce_order_amount_cart_tax',
-		'woocommerce_subscription_get_total'               => 'woocommerce_order_amount_total',
-		'woocommerce_subscription_get_total_tax'           => 'woocommerce_order_amount_total_tax',
-		'woocommerce_subscription_get_total_discount'      => 'woocommerce_order_amount_total_discount',
-		'woocommerce_subscription_get_subtotal'            => 'woocommerce_order_amount_subtotal',
-		'woocommerce_subscription_get_tax_totals'          => 'woocommerce_order_tax_totals',
+		'woocommerce_subscription_get_currency'       => 'woocommerce_get_currency',
+		'woocommerce_subscription_get_discount_total' => 'woocommerce_order_amount_discount_total',
+		'woocommerce_subscription_get_discount_tax'   => 'woocommerce_order_amount_discount_tax',
+		'woocommerce_subscription_get_shipping_total' => 'woocommerce_order_amount_shipping_total',
+		'woocommerce_subscription_get_shipping_tax'   => 'woocommerce_order_amount_shipping_tax',
+		'woocommerce_subscription_get_cart_tax'       => 'woocommerce_order_amount_cart_tax',
+		'woocommerce_subscription_get_total'          => 'woocommerce_order_amount_total',
+		'woocommerce_subscription_get_total_tax'      => 'woocommerce_order_amount_total_tax',
+		'woocommerce_subscription_get_total_discount' => 'woocommerce_order_amount_total_discount',
+		'woocommerce_subscription_get_subtotal'       => 'woocommerce_order_amount_subtotal',
+		'woocommerce_subscription_get_tax_totals'     => 'woocommerce_order_tax_totals',
 	);
 
 	/**

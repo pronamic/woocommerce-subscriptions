@@ -2,11 +2,11 @@
 /**
  * Manage the emails sent as part of the retry process
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	WCS_Retry_Email
- * @category	Class
- * @author		Prospress
- * @since		2.1
+ * @package     WooCommerce Subscriptions
+ * @subpackage  WCS_Retry_Email
+ * @category    Class
+ * @author      Prospress
+ * @since       2.1
  */
 
 class WCS_Retry_Email {

@@ -51,10 +51,13 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal {
 			$switch_order_data = wcs_get_objects_property( $order, 'subscription_switch_data' );
 
 			if ( ! empty( $switch_order_data ) ) {
-				$pay_url = add_query_arg( array(
-					'subscription_switch' => 'true',
-					'_wcsnonce' => wp_create_nonce( 'wcs_switch_request' ),
-				 ), $pay_url );
+				$pay_url = add_query_arg(
+					array(
+						'subscription_switch' => 'true',
+						'_wcsnonce'           => wp_create_nonce( 'wcs_switch_request' ),
+					),
+					$pay_url
+				);
 			}
 		}
 

@@ -6,11 +6,11 @@
  *
  * @link http://docs.woocommerce.com/document/subscriptions/customers-view/#section-5
  *
- * @package		WooCommerce Subscriptions
- * @subpackage	Gateways/PayPal
- * @category	Class
- * @author		Prospress
- * @since		2.0
+ * @package     WooCommerce Subscriptions
+ * @subpackage  Gateways/PayPal
+ * @category    Class
+ * @author      Prospress
+ * @since       2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -33,7 +33,7 @@ class WCS_PayPal_Standard_Change_Payment_Method {
 		// Don't update payment methods immediately when changing to PayPal - wait for the IPN notification
 		add_filter( 'woocommerce_subscriptions_update_payment_via_pay_shortcode', __CLASS__ . '::maybe_dont_update_payment_method', 10, 3 );
 
-		add_filter( 'wcs_gateway_change_payment_button_text', __CLASS__ . '::change_payment_button_text', 10 , 2 );
+		add_filter( 'wcs_gateway_change_payment_button_text', __CLASS__ . '::change_payment_button_text', 10, 2 );
 	}
 
 	/**

@@ -2,10 +2,10 @@
 /**
  * WooCommerce Subscriptions Helper Functions
  *
- * @author 		Prospress
- * @category 	Core
- * @package 	WooCommerce Subscriptions/Functions
- * @version     2.0
+ * @author   Prospress
+ * @category Core
+ * @package  WooCommerce Subscriptions/Functions
+ * @version  2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,19 +17,21 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @param int (optional) A timestamp for a certain date in the site's timezome. If left empty, or 0, it will be set to today's date.
  * @param array $args A set of name => value pairs to customise the input fields
- *		'id_attr': (string) the date to display in the selector in MySQL format ('Y-m-d H:i:s'). Required.
- *		'date': (string) the date to display in the selector in MySQL format ('Y-m-d H:i:s'). Required.
- *		'tab_index': (int) the tab index for the element. Optional. Default 0.
- *		'include_time': (bool) whether to include a specific time for the selector. Default true.
- *		'include_year': (bool) whether to include a the year field. Default true.
- *		'include_buttons': (bool) whether to include submit buttons on the selector. Default true.
+ *    'id_attr': (string) the date to display in the selector in MySQL format ('Y-m-d H:i:s'). Required.
+ *    'date': (string) the date to display in the selector in MySQL format ('Y-m-d H:i:s'). Required.
+ *    'tab_index': (int) the tab index for the element. Optional. Default 0.
+ *    'include_time': (bool) whether to include a specific time for the selector. Default true.
+ *    'include_year': (bool) whether to include a the year field. Default true.
+ *    'include_buttons': (bool) whether to include submit buttons on the selector. Default true.
  * @since 2.0
  */
 function wcs_date_input( $timestamp = 0, $args = array() ) {
 
-	$args = wp_parse_args( $args, array(
-			'name_attr'         => '',
-			'include_time'      => true,
+	$args = wp_parse_args(
+		$args,
+		array(
+			'name_attr'    => '',
+			'include_time' => true,
 		)
 	);
 
@@ -66,7 +68,7 @@ function wcs_get_edit_post_link( $post_id ) {
 		return;
 	}
 
-	return apply_filters( 'get_edit_post_link', admin_url( sprintf( $post_type_object->_edit_link . '&action=edit', $post_id ) ),$post_id, '' );
+	return apply_filters( 'get_edit_post_link', admin_url( sprintf( $post_type_object->_edit_link . '&action=edit', $post_id ) ), $post_id, '' );
 }
 
 /**
@@ -260,8 +262,27 @@ function wcs_is_frontend_request() {
  */
 function wcs_sort_objects( &$objects, $property, $sort_order = 'ascending' ) {
 	if ( 'ascending' !== $sort_order && 'descending' !== $sort_order ) {
-		throw new InvalidArgumentException( sprintf( __( 'Invalid sort order type: %s. The $sort_order argument must be %s or %s.', 'woocommerce-subscriptions' ), $sort_order, '"descending"', '"ascending"' ) );
+		// translators: 1) passed sort order type argument, 2) 'ascending', 3) 'descending'.
+		throw new InvalidArgumentException( sprintf( __( 'Invalid sort order type: %1$s. The $sort_order argument must be %2$s or %3$s.', 'woocommerce-subscriptions' ), $sort_order, '"descending"', '"ascending"' ) );
 	}
 	uasort( $objects, array( new WCS_Object_Sorter( $property ), "{$sort_order}_compare" ) );
 	return $objects;
+}
+
+/**
+ * Has the trial for the Subscription passed? If the Subscription is invalid, will return a WP_Error
+ *
+ * @param int|WC_Subscription $subscription
+ *
+ * @return bool|WP_Error
+ * @since 3.0.6
+ */
+function wcs_trial_has_passed( $subscription ) {
+	$subscription = wcs_get_subscription( $subscription );
+
+	if ( $subscription ) {
+		return apply_filters( 'woocommerce_subscription_trial_has_passed', $subscription->get_time( 'trial_end' ) > 0 && $subscription->get_time( 'trial_end' ) < gmdate( 'U' ), $subscription );
+	} else {
+		return new WP_Error( 'woocommerce_subscription_invalid_subscription', __( 'Invalid Subscription.', 'woocommerce-subscriptions' ) );
+	}
 }

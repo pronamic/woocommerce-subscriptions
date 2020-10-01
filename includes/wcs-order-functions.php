@@ -2,10 +2,10 @@
 /**
  * WooCommerce Subscriptions Order Functions
  *
- * @author 		Prospress
- * @category 	Core
- * @package 	WooCommerce Subscriptions/Functions
- * @version     2.0
+ * @author   Prospress
+ * @category Core
+ * @package  WooCommerce Subscriptions/Functions
+ * @version  2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,15 +17,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @param WC_Order|int $order An instance of a WC_Order object or the ID of an order
  * @param array $args A set of name value pairs to filter the returned value.
- *		'subscriptions_per_page' The number of subscriptions to return. Default set to -1 to return all.
- *		'offset' An optional number of subscription to displace or pass over. Default 0.
- *		'orderby' The field which the subscriptions should be ordered by. Can be 'start_date', 'trial_end_date', 'end_date', 'status' or 'order_id'. Defaults to 'start_date'.
- *		'order' The order of the values returned. Can be 'ASC' or 'DESC'. Defaults to 'DESC'
- *		'customer_id' The user ID of a customer on the site.
- *		'product_id' The post ID of a WC_Product_Subscription, WC_Product_Variable_Subscription or WC_Product_Subscription_Variation object
- *		'order_id' The post ID of a shop_order post/WC_Order object which was used to create the subscription
- *		'subscription_status' Any valid subscription status. Can be 'any', 'active', 'cancelled', 'on-hold', 'expired', 'pending' or 'trash'. Defaults to 'any'.
- *		'order_type' Get subscriptions for the any order type in this array. Can include 'any', 'parent', 'renewal' or 'switch', defaults to parent.
+ *    'subscriptions_per_page' The number of subscriptions to return. Default set to -1 to return all.
+ *    'offset' An optional number of subscription to displace or pass over. Default 0.
+ *    'orderby' The field which the subscriptions should be ordered by. Can be 'start_date', 'trial_end_date', 'end_date', 'status' or 'order_id'. Defaults to 'start_date'.
+ *    'order' The order of the values returned. Can be 'ASC' or 'DESC'. Defaults to 'DESC'
+ *    'customer_id' The user ID of a customer on the site.
+ *    'product_id' The post ID of a WC_Product_Subscription, WC_Product_Variable_Subscription or WC_Product_Subscription_Variation object
+ *    'order_id' The post ID of a shop_order post/WC_Order object which was used to create the subscription
+ *    'subscription_status' Any valid subscription status. Can be 'any', 'active', 'cancelled', 'on-hold', 'expired', 'pending' or 'trash'. Defaults to 'any'.
+ *    'order_type' Get subscriptions for the any order type in this array. Can include 'any', 'parent', 'renewal' or 'switch', defaults to parent.
  * @return WC_Subscription[] Subscription details in post_id => WC_Subscription form.
  * @since  2.0
  */
@@ -41,7 +41,9 @@ function wcs_get_subscriptions_for_order( $order, $args = array() ) {
 		return $subscriptions;
 	}
 
-	$args = wp_parse_args( $args, array(
+	$args = wp_parse_args(
+		$args,
+		array(
 			'subscriptions_per_page' => -1,
 			'order_type'             => array( 'parent', 'switch' ),
 		)
@@ -181,7 +183,8 @@ function wcs_copy_order_meta( $from_order, $to_order, $type = 'subscription' ) {
 			 '_requires_manual_renewal',
 			 '_cancelled_email_sent',
 			 '_trial_period',
-			 '_created_via'
+			 '_created_via',
+			 '_order_stock_reduced'
 		 )",
 		wcs_get_objects_property( $from_order, 'id' )
 	);
@@ -337,13 +340,16 @@ function wcs_get_new_order_title( $type ) {
 
 	$type = wcs_validate_new_order_type( $type );
 
-	$order_date = strftime( _x( '%b %d, %Y @ %I:%M %p', 'Used in subscription post title. "Subscription renewal order - <this>"', 'woocommerce-subscriptions' ) );
+	// translators: placeholders are strftime() strings.
+	$order_date = strftime( _x( '%b %d, %Y @ %I:%M %p', 'Used in subscription post title. "Subscription renewal order - <this>"', 'woocommerce-subscriptions' ) ); // phpcs:ignore WordPress.WP.I18n.UnorderedPlaceholdersText
 
 	switch ( $type ) {
 		case 'renewal_order':
+			// translators: placeholder is a date.
 			$title = sprintf( __( 'Subscription Renewal Order &ndash; %s', 'woocommerce-subscriptions' ), $order_date );
 			break;
 		case 'resubscribe_order':
+			// translators: placeholder is a date.
 			$title = sprintf( __( 'Resubscribe Order &ndash; %s', 'woocommerce-subscriptions' ), $order_date );
 			break;
 		default:
@@ -367,6 +373,7 @@ function wcs_validate_new_order_type( $type ) {
 	}
 
 	if ( ! in_array( $type, apply_filters( 'wcs_new_order_types', array( 'renewal_order', 'resubscribe_order', 'parent' ) ) ) ) {
+		// translators: placeholder is an order type.
 		return new WP_Error( 'order_from_subscription_type', sprintf( __( '"%s" is not a valid new order type.', 'woocommerce-subscriptions' ), $type ) );
 	}
 
@@ -446,7 +453,7 @@ function wcs_order_contains_subscription( $order, $order_type = array( 'parent',
 	} elseif ( ( in_array( 'resubscribe', $order_type ) || $get_all ) && wcs_order_contains_resubscribe( $order ) ) {
 		$contains_subscription = true;
 
-	} elseif ( ( in_array( 'switch', $order_type ) || $get_all )&& wcs_order_contains_switch( $order ) ) {
+	} elseif ( ( in_array( 'switch', $order_type ) || $get_all ) && wcs_order_contains_switch( $order ) ) {
 		$contains_subscription = true;
 
 	}
@@ -771,6 +778,10 @@ function wcs_copy_order_item( $from_item, &$to_item ) {
 	}
 
 	foreach ( $from_item->get_meta_data() as $meta_data ) {
+		if ( '_reduced_stock' === $meta_data->key ) {
+			continue;
+		}
+
 		$to_item->update_meta_data( $meta_data->key, $meta_data->value );
 	}
 

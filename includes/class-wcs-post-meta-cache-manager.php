@@ -195,6 +195,7 @@ class WCS_Post_Meta_Cache_Manager {
 	protected function maybe_update_for_post_change( $update_type, $post_id ) {
 
 		if ( ! in_array( $update_type, array( 'add', 'delete' ) ) ) {
+			// translators: %s: invalid type of update argument.
 			throw new InvalidArgumentException( sprintf( __( 'Invalid update type: %s. Post update types supported are "add" or "delete". Updates are done on post meta directly.', 'woocommerce-subscriptions' ), $update_type ) );
 		}
 
