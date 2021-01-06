@@ -101,7 +101,7 @@ class WCS_Query extends WC_Query {
 	 * @since 2.0
 	 * @param $title
 	 */
-	public function get_endpoint_title( $endpoint ) {
+	public function get_endpoint_title( $endpoint, $action = ''  ) {
 		global $wp;
 
 		switch ( $endpoint ) {
