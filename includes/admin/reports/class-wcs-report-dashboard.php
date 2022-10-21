@@ -39,10 +39,10 @@ class WCS_Report_Dashboard {
 			'no_cache' => false,
 		);
 
-		$args = apply_filters( 'wcs_reports_subscription_dashboard_args', $args );
-		$args = wp_parse_args( $args, $default_args );
-
-		$offset = get_option( 'gmt_offset' );
+		$args         = apply_filters( 'wcs_reports_subscription_dashboard_args', $args );
+		$args         = wp_parse_args( $args, $default_args );
+		$offset       = get_option( 'gmt_offset' );
+		$update_cache = false;
 
 		// Use this once it is merged - wcs_get_gmt_offset_string();
 		// Convert from Decimal format(eg. 11.5) to a suitable format(eg. +11:30) for CONVERT_TZ() of SQL query.
@@ -72,7 +72,7 @@ class WCS_Report_Dashboard {
 		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_signup_query', $query ) );
-			set_transient( strtolower( __CLASS__ ), $cached_results, WEEK_IN_SECONDS );
+			$update_cache = true;
 		}
 
 		$report_data->signup_count = $cached_results[ $query_hash ];
@@ -103,7 +103,7 @@ class WCS_Report_Dashboard {
 		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_signup_revenue_query', $query ) );
-			set_transient( strtolower( __CLASS__ ), $cached_results, HOUR_IN_SECONDS );
+			$update_cache = true;
 		}
 
 		$report_data->signup_revenue = $cached_results[ $query_hash ];
@@ -131,7 +131,7 @@ class WCS_Report_Dashboard {
 		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_renewal_query', $query ) );
-			set_transient( strtolower( __CLASS__ ), $cached_results, HOUR_IN_SECONDS );
+			$update_cache = true;
 		}
 
 		$report_data->renewal_count = $cached_results[ $query_hash ];
@@ -165,7 +165,7 @@ class WCS_Report_Dashboard {
 		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_renewal_revenue_query', $query ) );
-			set_transient( strtolower( __CLASS__ ), $cached_results, HOUR_IN_SECONDS );
+			$update_cache = true;
 		}
 
 		$report_data->renewal_revenue = $cached_results[ $query_hash ];
@@ -188,10 +188,14 @@ class WCS_Report_Dashboard {
 		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_cancellation_query', $query ) );
-			set_transient( strtolower( __CLASS__ ), $cached_results, HOUR_IN_SECONDS );
+			$update_cache = true;
 		}
 
 		$report_data->cancel_count = $cached_results[ $query_hash ];
+
+		if ( $update_cache ) {
+			set_transient( strtolower( __CLASS__ ), $cached_results, HOUR_IN_SECONDS );
+		}
 
 		return $report_data;
 	}
@@ -254,6 +258,15 @@ class WCS_Report_Dashboard {
 	 * @since 2.1
 	 */
 	public static function dashboard_scripts() {
-		wp_enqueue_style( 'wcs-dashboard-report', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/css/dashboard.css', array(), WC_Subscriptions::$version );
+		wp_enqueue_style( 'wcs-dashboard-report', WC_Subscriptions_Plugin::instance()->get_plugin_directory_url( 'assets/css/dashboard.css' ), array(), WC_Subscriptions_Plugin::instance()->get_plugin_version() );
+	}
+
+	/**
+	 * Clears the cached report data.
+	 *
+	 * @since 3.0.10
+	 */
+	public static function clear_cache() {
+		delete_transient( strtolower( __CLASS__ ) );
 	}
 }

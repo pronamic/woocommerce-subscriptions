@@ -107,10 +107,10 @@ class WCS_Webhooks {
 	public static function add_topics_admin_menu( $topics ) {
 
 		$front_end_topics = array(
-			'subscription.created'  => __( ' Subscription Created', 'woocommerce-subscriptions' ),
-			'subscription.updated'  => __( ' Subscription Updated', 'woocommerce-subscriptions' ),
-			'subscription.deleted'  => __( ' Subscription Deleted', 'woocommerce-subscriptions' ),
-			'subscription.switched' => __( ' Subscription Switched', 'woocommerce-subscriptions' ),
+			'subscription.created'  => __( ' Subscription created', 'woocommerce-subscriptions' ),
+			'subscription.updated'  => __( ' Subscription updated', 'woocommerce-subscriptions' ),
+			'subscription.deleted'  => __( ' Subscription deleted', 'woocommerce-subscriptions' ),
+			'subscription.switched' => __( ' Subscription switched', 'woocommerce-subscriptions' ),
 		);
 
 		return array_merge( $topics, $front_end_topics );
@@ -125,27 +125,28 @@ class WCS_Webhooks {
 
 		if ( 'subscription' == $resource && empty( $payload ) && wcs_is_subscription( $resource_id ) ) {
 			$webhook      = new WC_Webhook( $id );
-			$event        = $webhook->get_event();
 			$current_user = get_current_user_id();
 
 			wp_set_current_user( $webhook->get_user_id() );
 
-			$webhook_api_version = ( method_exists( $webhook, 'get_api_version' ) ) ? $webhook->get_api_version() : 'legacy_v3';
-
-			switch ( $webhook_api_version ) {
+			switch ( $webhook->get_api_version() ) {
 				case 'legacy_v3':
 					WC()->api->WC_API_Subscriptions->register_routes( array() );
 					$payload = WC()->api->WC_API_Subscriptions->get_subscription( $resource_id );
 					break;
 				case 'wp_api_v1':
 				case 'wp_api_v2':
-				case 'wp_api_v3':
+					// There is no v2 subscritpion endpoint support so they fall back to v1.
 					$request    = new WP_REST_Request( 'GET' );
-					$controller = new WC_REST_Subscriptions_Controller;
+					$controller = new WC_REST_Subscriptions_v1_Controller();
 
 					$request->set_param( 'id', $resource_id );
 					$result  = $controller->get_item( $request );
 					$payload = isset( $result->data ) ? $result->data : array();
+
+					break;
+				case 'wp_api_v3':
+					$payload = wc()->api->get_endpoint_data( "/wc/v3/subscriptions/{$resource_id}" );
 					break;
 			}
 

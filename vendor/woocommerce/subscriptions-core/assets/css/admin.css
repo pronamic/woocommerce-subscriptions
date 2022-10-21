@@ -1,0 +1,820 @@
+/* Plugin Activation */
+.woocommerce-subscriptions-activated p a.button-primary {
+	display: inline-block;
+}
+.woocommerce-subscriptions-activated a.button-primary:hover {
+	background: #bb77ae;
+	border-color: #aa559a;
+	-webkit-box-shadow: inset 0 1px 0 rgba( 255, 255, 255, 0.25 ),
+		0 1px 0 rgba( 0, 0, 0, 0.15 );
+	box-shadow: inset 0 1px 0 rgba( 255, 255, 255, 0.25 ),
+		0 1px 0 rgba( 0, 0, 0, 0.15 );
+}
+.woocommerce-subscriptions-activated a.button-primary:active,
+.woocommerce-subscriptions-activated a.button-primary:active {
+	background: #aa559a;
+	border-color: #aa559a;
+}
+
+/* Subscriptions Admin Page */
+.post-type-shop_subscription .tablenav input,
+.post-type-shop_subscription .tablenav select {
+	height: 32px;
+}
+.post-type-shop_subscription .tablenav .select2-container {
+	width: 240px !important;
+	font-size: 14px;
+	vertical-align: middle;
+	margin: 1px 6px 4px 1px;
+}
+.post-type-shop_subscription .tablenav .select2-selection--single {
+	height: 32px;
+}
+.post-type-shop_subscription .tablenav .select2-selection__rendered {
+	line-height: 29px;
+}
+.post-type-shop_subscription .tablenav .select2-selection__arrow {
+	height: 30px;
+}
+.post-type-shop_subscription .wp-list-table {
+	margin-top: 1em;
+}
+.post-type-shop_subscription .widefat .column-status,
+.post-type-shop_subscription .widefat .column-order_title {
+	width: 160px;
+	text-align: left;
+}
+/* Product List table */
+table.wp-list-table span.product-type.variable-subscription {
+	background-position: -48px 0;
+}
+
+/* Orders List Table */
+a.close-subscriptions-search {
+	font-size: 1em;
+	padding: 0 0.45em;
+	border-radius: 1.4em;
+	background: #d00;
+	color: #fff;
+	margin: -0.3em 0.6em 0 0;
+}
+.dismiss-subscriptions-search {
+	position: relative;
+}
+.dismiss-subscriptions-search a {
+	padding-bottom: 9px;
+}
+
+/* Edit Product/Subscriptions Page */
+.woocommerce_options_panel ._subscription_price_fields .wrap,
+.woocommerce_options_panel ._subscription_trial_length_field .wrap,
+.woocommerce_options_panel ._subscription_payment_sync_date_day_field .wrap {
+	display: block;
+	width: 50%;
+}
+@media only screen and ( max-width: 1280px ) {
+	.woocommerce_options_panel ._subscription_price_fields .wrap,
+	.woocommerce_options_panel ._subscription_trial_length_field .wrap,
+	.woocommerce_options_panel
+		._subscription_payment_sync_date_day_field
+		.wrap {
+		width: 80%;
+	}
+}
+.woocommerce_options_panel ._subscription_price_fields .wrap input,
+.woocommerce_options_panel ._subscription_price_fields .wrap select {
+	width: 30.75%;
+	margin-right: 3.8%;
+}
+.woocommerce_options_panel ._subscription_trial_length_field .wrap input,
+.woocommerce_options_panel ._subscription_trial_length_field .wrap select,
+.woocommerce_options_panel
+	._subscription_payment_sync_date_day_field
+	.wrap
+	input,
+.woocommerce_options_panel
+	._subscription_payment_sync_date_day_field
+	.wrap
+	select {
+	width: 48%;
+	margin-right: 3.8%;
+}
+.woocommerce_options_panel ._subscription_price_fields .wrap .last,
+.woocommerce_options_panel ._subscription_trial_length_field .wrap .last,
+.woocommerce_options_panel
+	._subscription_payment_sync_date_day_field
+	.wrap
+	.last {
+	margin-right: 0 !important;
+}
+
+.wc-metaboxes-wrapper .wc-metabox table td p._subscription_price_field label,
+.wc-metaboxes-wrapper .wc-metabox table td p._subscription_period_field label,
+.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_period_interval_field
+	label,
+.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_trial_length_field
+	label,
+.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_trial_period_field
+	label,
+.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_payment_sync_field
+	label {
+	display: none;
+}
+
+.wc-metaboxes-wrapper .wc-metabox table td p._subscription_price_field input,
+.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_trial_length_field
+	input,
+.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_payment_sync_field
+	input {
+	width: 5em;
+}
+.woocommerce_options_panel #sale-price-period {
+	margin-right: 1em;
+}
+
+.wc-metaboxes-wrapper .wc-metabox table td ._subscription_trial_period {
+	width: 7.1em;
+}
+
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_price_field {
+	width: 70px !important;
+}
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_length_field,
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_sign_up_fee_field {
+	width: 100% !important;
+}
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_price_field,
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_length_field,
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_sign_up_fee_field,
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_trial_length_field,
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_payment_sync_field {
+	padding: 0 0 0 0 !important;
+	margin: 0;
+}
+.wc-metaboxes-wrapper .wc-metabox table td p._subscription_period_field select,
+.wc-metaboxes-wrapper .wc-metabox table td p._subscription_length_field select {
+	width: auto !important;
+}
+.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_trial_period_field
+	select {
+	width: 88px !important;
+}
+.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_trial_period_field
+	img.help_tip {
+	margin-top: 4px;
+}
+.wc-metaboxes-wrapper .wc-metabox table td p._subscription_period_field span,
+.wc-metaboxes-wrapper .wc-metabox table td p._subscription_length_field span,
+.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_sign_up_fee_field
+	span {
+	padding: 5px 0 0 2px;
+}
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_period_field,
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_length_field,
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_period_interval_field,
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_trial_period_field {
+	padding: 0 0 0 5px !important;
+	margin: 0;
+}
+
+#woocommerce-product-data
+	.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	td
+	p._subscription_trial_period_field
+	select {
+	margin-left: 5px;
+}
+
+.subscription_sync_week_month select.wc_input_subscription_payment_sync {
+	min-width: 180px;
+}
+
+.wc-metaboxes-wrapper
+	.wc-metabox
+	table
+	tr.variable_subscription_sync
+	td
+	select.wc_input_subscription_payment_sync {
+	width: auto !important;
+}
+
+.variable_subscription_sync p._subscription_payment_sync_field {
+	padding-left: 0 !important;
+}
+
+.wcs_hidden_label {
+	display: none !important;
+}
+
+#woocommerce-product-data
+	.woocommerce_variation
+	.wcs-can-not-remove-variation-msg {
+	opacity: 0.5;
+}
+
+/* Variation Pricing Fields with WooCommerce 3.0+ */
+.wc-metaboxes-wrapper .variable_subscription_trial label,
+.wc-metaboxes-wrapper .variable_subscription_pricing label,
+.wc-metaboxes-wrapper .variable_subscription_sync label {
+	display: block;
+}
+.wc-metaboxes-wrapper .wc_input_subscription_trial_period,
+.wc-metaboxes-wrapper .wc_input_subscription_period,
+.wc-metaboxes-wrapper .wc_input_subscription_period_interval,
+.wc-metaboxes-wrapper .wc_input_subscription_length,
+.wc-metaboxes-wrapper .wc_input_subscription_payment_sync_day,
+.wc-metaboxes-wrapper .wc_input_subscription_payment_sync_month {
+	padding: 4px 6px;
+}
+
+.variable_subscription_trial .form-row input[type='text'],
+.variable_subscription_pricing .form-row input[type='text'],
+.variable_subscription_trial .form-row select,
+.variable_subscription_pricing .form-row select {
+	margin: 2px 0 0;
+	padding: 5px;
+}
+
+/* Variation Pricing Fields in WooCommerce 2.3+ */
+#variable_product_options
+	.variable_subscription_pricing_2_3
+	.wc_input_subscription_price,
+#variable_product_options
+	.variable_subscription_pricing_2_3
+	.wc_input_subscription_period_interval {
+	max-width: 33%;
+	float: left;
+}
+.variable_subscription_pricing_2_3 .wc_input_subscription_price {
+	clear: left;
+}
+#variable_product_options
+	.variable_subscription_pricing_2_3
+	.wc_input_subscription_period {
+	max-width: 34%;
+	float: right;
+}
+.variable_subscription_pricing_2_3.variable_subscription_trial p.form-row {
+	margin-bottom: 0;
+}
+#variable_product_options
+	.variable_subscription_pricing_2_3
+	.wc_input_subscription_trial_period,
+#variable_product_options
+	.variable_subscription_pricing_2_3
+	.wc_input_subscription_trial_length {
+	max-width: 50%;
+}
+.variable_subscription_pricing_2_3 .wc_input_subscription_trial_period {
+	float: right;
+}
+.variable_subscription_pricing_2_3 .variable_subscription_length,
+.variable_subscription_pricing_2_3 .variable_subscription_trial_sign_up {
+	clear: both;
+}
+#variable_product_options
+	.variable_subscription_pricing_2_3
+	.wc_input_subscription_payment_sync_day {
+	max-width: 13%;
+	float: right;
+}
+#variable_product_options
+	.variable_subscription_pricing_2_3
+	.wc_input_subscription_payment_sync_month {
+	max-width: 86%;
+}
+@media screen and ( max-width: 1190px ) {
+	#variable_product_options
+		.variable_subscription_pricing_2_3
+		p._subscription_price_field,
+	#variable_product_options
+		.variable_subscription_pricing_2_3
+		p._subscription_length_field {
+		width: 100%;
+	}
+	#variable_product_options
+		.variable_subscription_pricing_2_3
+		p._subscription_price_field {
+		width: 100%;
+		margin-bottom: 0;
+	}
+	#variable_product_options
+		.variable_subscription_pricing_2_3
+		.wc_input_subscription_payment_sync_day {
+		max-width: 20%;
+		float: right;
+	}
+	#variable_product_options
+		.variable_subscription_pricing_2_3
+		.wc_input_subscription_payment_sync_month {
+		max-width: 78%;
+	}
+}
+._subscription_limit_field .description {
+	display: block;
+	clear: both;
+	margin-left: 0;
+}
+
+/* Users Administration Screen */
+.woocommerce_active_subscriber .active-subscriber::before {
+	content: '\f147';
+	display: inline-block;
+	-webkit-font-smoothing: antialiased;
+	font: normal 24px/1 'dashicons';
+	vertical-align: top;
+}
+
+/* Add/Edit Subscription Screen */
+#woocommerce-subscription-data .handlediv,
+#woocommerce-subscription-data h2.hndle,
+#woocommerce-subscription-data h3.hndle,
+#woocommerce-subscription-data .postbox-header {
+	display: none;
+}
+#woocommerce-subscription-data .inside {
+	padding: 0;
+	margin: 0;
+}
+#woocommerce-subscription-schedule strong {
+	display: inline-block;
+}
+#woocommerce-subscription-schedule .date-fields {
+	margin: 1em 0;
+}
+#woocommerce-subscription-schedule p._billing_period_field,
+#woocommerce-subscription-schedule p._billing_interval_field {
+	display: inline-block;
+	padding: 0 0 0 1px;
+	margin: 0.5em 0 0;
+}
+#woocommerce-subscription-schedule p._billing_interval_field {
+	padding-left: 0;
+}
+#woocommerce-subscription-schedule p._billing_interval_field {
+	width: 66%;
+}
+#woocommerce-subscription-schedule p._billing_period_field {
+	width: 30%;
+}
+#woocommerce-subscription-schedule p._billing_interval_field label {
+	display: inline-block;
+	font-weight: bold;
+}
+#woocommerce-subscription-schedule p._billing_period_field label {
+	display: none;
+}
+#woocommerce-subscription-schedule p._billing_interval_field select,
+#woocommerce-subscription-schedule p._billing_period_field select {
+	display: inline-block;
+}
+#woocommerce-subscription-schedule p._billing_interval_field select {
+	width: 58%;
+	margin-left: 5px;
+}
+#woocommerce-subscription-schedule p._billing_period_field select {
+	width: 100%;
+}
+#woocommerce-subscription-schedule .date-fields label,
+#woocommerce-subscription-schedule .wcs-edit-date-action {
+	display: inline-block;
+	font-weight: bold;
+}
+#woocommerce-subscription-schedule
+	.wcs-date-input
+	input[type='text']:first-of-type {
+	width: 8em;
+}
+#woocommerce-subscription-schedule img.ui-datepicker-trigger {
+	float: left;
+	margin: 0.5em 0.1em;
+}
+#woocommerce-subscription-schedule .wcs-date-input,
+#woocommerce-subscription-schedule .billing-schedule-edit {
+	width: 100%;
+}
+#woocommerce-subscription-schedule .wcs-edit-date-action {
+	width: 1.5em;
+	float: right;
+}
+#woocommerce-subscription-schedule .wcs-edit-date,
+#woocommerce-subscription-schedule .wcs-delete-date {
+	text-indent: -9999px;
+	position: relative;
+	height: 1em;
+	width: 1em;
+	display: inline-block;
+	margin: 0 0.5em 0 0;
+}
+#woocommerce-subscription-schedule .wcs-edit-date::before,
+#woocommerce-subscription-schedule .wcs-delete-date::before {
+	font-family: 'WooCommerce';
+	speak: none;
+	font-weight: 400;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+	-webkit-font-smoothing: antialiased;
+	margin: 0;
+	text-indent: 0;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	color: #999;
+}
+#woocommerce-subscription-schedule .wcs-edit-date::before {
+	content: '\e603';
+}
+#woocommerce-subscription-schedule .wcs-edit-date:hover::before {
+	color: #555;
+}
+#woocommerce-subscription-schedule .wcs-delete-date::before {
+	content: '\e013';
+}
+#woocommerce-subscription-schedule .wcs-delete-date:hover::before {
+	color: #a00;
+}
+
+/* Related Orders and Failed Payment Retries Metabox on Edit Subscription/Order Admin Screen */
+#renewal_payment_retries .inside,
+#subscription_renewal_orders .inside {
+	margin: 0;
+	padding: 0;
+}
+
+.woocommerce_subscriptions_related_orders {
+	margin: 0;
+	overflow: auto;
+}
+
+.woocommerce_subscriptions_related_orders table {
+	width: 100%;
+	background: #fff;
+	border-collapse: collapse;
+}
+
+.woocommerce_subscriptions_related_orders table thead th {
+	background: #f8f8f8;
+	padding: 8px;
+	font-size: 11px;
+	text-align: left;
+	color: #555;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.woocommerce_subscriptions_related_orders table thead th:last-child {
+	padding-right: 12px;
+}
+
+.woocommerce_subscriptions_related_orders table thead th:first-child {
+	padding-left: 12px;
+}
+
+.woocommerce_subscriptions_related_orders table thead th:last-of-type,
+.woocommerce_subscriptions_related_orders table td:last-of-type {
+	text-align: right;
+}
+
+.woocommerce_subscriptions_related_orders table tbody th,
+.woocommerce_subscriptions_related_orders table td {
+	padding: 8px;
+	text-align: left;
+	line-height: 26px;
+	vertical-align: top;
+	border-bottom: 1px dotted #ececec;
+}
+
+.woocommerce_subscriptions_related_orders table tbody th:last-child,
+.woocommerce_subscriptions_related_orders table td:last-child {
+	padding-right: 12px;
+}
+
+.woocommerce_subscriptions_related_orders table tbody th:first-child,
+.woocommerce_subscriptions_related_orders table td:first-child {
+	padding-left: 12px;
+}
+
+.woocommerce_subscriptions_related_orders table tbody tr:last-child td {
+	border-bottom: none;
+}
+.wcs-unknown-order-link {
+	vertical-align: middle;
+	font-size: 1.2em;
+}
+.wcs-unknown-order-info-wrapper {
+	display: inline;
+}
+.wcs-unknown-order-info-wrapper .woocommerce-help-tip {
+	color: inherit;
+}
+
+/* WooCommerce Orders admin table */
+table.wp-list-table .column-subscription_relationship {
+	width: 48px;
+	text-align: center;
+}
+
+table.wp-list-table span.normal_order {
+	color: #999;
+}
+
+table.wp-list-table .subscription_head,
+table.wp-list-table .subscription_parent_order,
+table.wp-list-table .subscription_resubscribe_order,
+table.wp-list-table .subscription_renewal_order {
+	display: block;
+	text-indent: -9999px;
+	position: relative;
+	height: 1em;
+	width: 1em;
+	margin: 0 auto;
+}
+
+table.wp-list-table .subscription_head::after,
+table.wp-list-table .subscription_parent_order::after {
+	font-family: 'WooCommerce';
+	content: '\e014';
+}
+
+table.wp-list-table .subscription_resubscribe_order::after {
+	font-family: 'WooCommerce';
+	content: '\e014';
+	color: #999;
+}
+table.wp-list-table .subscription_renewal_order::after {
+	font-family: 'Dashicons';
+	content: '\f321';
+}
+table.wp-list-table .payment_retry::after {
+	font-family: 'WooCommerce';
+	content: '\e012';
+}
+
+table.wp-list-table .subscription_head::after,
+table.wp-list-table .subscription_parent_order::after,
+table.wp-list-table .subscription_resubscribe_order::after,
+table.wp-list-table .subscription_renewal_order::after {
+	font-weight: 400;
+	margin: 0;
+	text-indent: 0;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	line-height: 16px;
+	top: 0;
+	speak: none;
+	font-variant: normal;
+	text-transform: none;
+	-webkit-font-smoothing: antialiased;
+	left: 0;
+}
+
+@media only screen and ( max-width: 782px ) {
+	table.wp-list-table .subscription_parent_order,
+	table.wp-list-table .subscription_resubscribe_order,
+	table.wp-list-table .subscription_renewal_order {
+		margin: 0;
+	}
+	table.wp-list-table .column-subscription_relationship {
+		text-align: inherit;
+	}
+	#variable_product_options select {
+		height: auto;
+		line-height: 2;
+	}
+}
+
+/* WooCommerce Payment Methods Settings page */
+.payment-method-features-info {
+	font-size: 1.4em;
+	display: inline-block;
+	text-indent: -9999px;
+	position: relative;
+	height: 1em;
+	width: 1em;
+}
+
+.payment-method-features-info::before {
+	font-family: 'WooCommerce';
+	speak: none;
+	font-weight: 400;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+	margin: 0;
+	text-indent: 0;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	content: '\e018';
+	color: #a46497;
+}
+
+table.wc_gateways .renewals .tips {
+	margin: 0 0.2em;
+	display: inline-block;
+}
+
+/* Hide irrelevant sections on Edit Subscription screen */
+body.post-type-shop_subscription
+	.order_actions
+	#actions
+	optgroup[label='Resend order emails'],
+body.post-type-shop_subscription .add-items .description.tips,
+body.post-type-shop_subscription .add-items .button.refund-items {
+	display: none;
+}
+@media only screen and ( max-width: 782px ) {
+	#woocommerce-subscription-schedule
+		.wcs-date-input
+		input[type='text']:first-of-type {
+		width: 45%;
+	}
+	#woocommerce-subscription-schedule
+		.wcs-date-input
+		input[type='text']:not( :first-of-type ) {
+		width: 19%;
+	}
+
+	.post-type-shop_subscription .wp-list-table .column-status {
+		display: none;
+		text-align: left;
+		padding-bottom: 0;
+	}
+
+	.post-type-shop_subscription .wp-list-table .column-status mark {
+		margin: 0;
+	}
+
+	.post-type-shop_subscription .wp-list-table .column-status::before {
+		display: none !important;
+	}
+
+	.post-type-shop_subscription .wp-list-table .column-orders {
+		text-align: left !important;
+	}
+}
+span.product-type.variable-subscription::before {
+	content: '\e003' !important;
+}
+
+/* Settings Page */
+.wcs_setting_switching_options {
+	margin-top: 6px;
+}
+.wcs_setting_switching_options label {
+	display: block;
+	width: 400px;
+	margin-bottom: 1em;
+}
+
+/* Reports Page */
+.woocommerce-reports-wide .postbox .chart-legend li a {
+	text-decoration: none;
+}
+.woocommerce-reports-wide
+	.postbox
+	.chart-legend
+	li
+	a
+	.woocommerce-subscriptions-count::after {
+	margin-left: 1.5%;
+	font-size: 60%;
+	font-weight: normal;
+	font-family: 'dashicons';
+	content: '\f504';
+}
+.subscription-status.status-active {
+	background: #c6e1c6;
+	color: #5b841b;
+}
+.subscription-status.status-expired {
+	background: #bd94af;
+	color: #724663;
+}
+.subscription-status.status-pending-cancel {
+	background: #bfbfbf;
+	color: #737373;
+}
+#wcs_order_price_lock {
+	display: inline-block;
+	padding-right: 4px;
+	margin-top: 3px;
+}
+#wcs_order_price_lock > label {
+	font-size: 12px;
+	vertical-align: initial;
+}
+#wcs_order_price_lock > .woocommerce-help-tip {
+	margin: 0 8px 0 2px;
+}

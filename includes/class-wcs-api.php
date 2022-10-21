@@ -15,9 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WCS_API {
 
 	public static function init() {
-		add_filter( 'woocommerce_api_classes', __CLASS__ . '::includes' );
-
-		add_action( 'rest_api_init', __CLASS__ . '::register_routes', 15 );
+		add_filter( 'woocommerce_api_classes', array( __CLASS__, 'includes' ) );
+		add_action( 'rest_api_init', array( __CLASS__, 'register_routes' ), 15 );
+		add_action( 'rest_api_init', array( __CLASS__, 'register_route_overrides' ), 15 );
 	}
 
 	/**
@@ -44,16 +44,47 @@ class WCS_API {
 	 * @since 2.1
 	 */
 	public static function register_routes() {
-		global $wp_version;
 
-		if ( version_compare( $wp_version, 4.4, '<' ) || WC_Subscriptions::is_woocommerce_pre( '2.6' ) ) {
+		if ( ! self::is_wp_compatible() ) {
 			return;
 		}
 
-		foreach ( array( 'WC_REST_Subscriptions_Controller', 'WC_REST_Subscription_Notes_Controller' ) as $api_class ) {
-			$controller = new $api_class();
+		$endpoint_classes = array(
+			// V1
+			'WC_REST_Subscriptions_V1_Controller',
+			'WC_REST_Subscription_Notes_V1_Controller',
+			// V3 (latest)
+			'WC_REST_Subscriptions_Controller',
+			'WC_REST_Subscription_notes_Controller',
+		);
+
+		foreach ( $endpoint_classes as $class ) {
+			$controller = new $class();
 			$controller->register_routes();
 		}
 	}
 
+	/**
+	 * Register classes which override base endpoints.
+	 *
+	 * @since 3.1.0
+	 */
+	public static function register_route_overrides() {
+		if ( ! self::is_wp_compatible() ) {
+			return;
+		}
+
+		WC_REST_Subscription_System_Status_Manager::init();
+	}
+
+	/**
+	 * Determines if a WP version compatible with REST API requests.
+	 *
+	 * @since 3.1.0
+	 * @return boolean
+	 */
+	protected static function is_wp_compatible() {
+		global $wp_version;
+		return version_compare( $wp_version, '4.4', '>=' );
+	}
 }

@@ -96,17 +96,15 @@ class WCS_Admin_Reports {
 	 * @since 1.5
 	 */
 	public static function reports_scripts() {
-		global $wp_query, $post;
-
-		$suffix       = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-
-		$screen       = get_current_screen();
-		$wc_screen_id = sanitize_title( __( 'WooCommerce', 'woocommerce-subscriptions' ) );
+		$suffix         = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+		$screen         = get_current_screen();
+		$wc_screen_id   = sanitize_title( __( 'WooCommerce', 'woocommerce-subscriptions' ) );
+		$version        = WC_Subscriptions_Plugin::instance()->get_plugin_version();
 
 		// Reports Subscriptions Pages
 		if ( in_array( $screen->id, apply_filters( 'woocommerce_reports_screen_ids', array( $wc_screen_id . '_page_wc-reports', 'toplevel_page_wc-reports', 'dashboard' ) ) ) && isset( $_GET['tab'] ) && 'subscriptions' == $_GET['tab'] ) {
 
-			wp_enqueue_script( 'wcs-reports', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/admin/reports.js', array( 'jquery', 'jquery-ui-datepicker', 'wc-reports', 'accounting' ), WC_Subscriptions::$version );
+			wp_enqueue_script( 'wcs-reports', WC_Subscriptions_Plugin::instance()->get_plugin_directory_url( 'assets/js/admin/reports.js' ), array( 'jquery', 'jquery-ui-datepicker', 'wc-reports', 'accounting' ), $version );
 
 			// Add currency localisation params for axis label
 			wp_localize_script( 'wcs-reports', 'wcs_reports', array(
@@ -117,12 +115,12 @@ class WCS_Admin_Reports {
 				'currency_format'              => esc_js( str_replace( array( '%1$s', '%2$s' ), array( '%s', '%v' ), get_woocommerce_price_format() ) ), // For accounting JS
 			) );
 
-			wp_enqueue_script( 'flot-order', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/admin/jquery.flot.orderBars' . $suffix . '.js', array( 'jquery', 'flot' ), WC_Subscriptions::$version );
-			wp_enqueue_script( 'flot-axis-labels', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/admin/jquery.flot.axislabels' . $suffix . '.js', array( 'jquery', 'flot' ), WC_Subscriptions::$version );
+			wp_enqueue_script( 'flot-order', WC_Subscriptions_Plugin::instance()->get_plugin_directory_url( 'assets/js/admin/jquery.flot.orderBars' ) . $suffix . '.js', array( 'jquery', 'flot' ), $version );
+			wp_enqueue_script( 'flot-axis-labels', WC_Subscriptions_Plugin::instance()->get_plugin_directory_url( 'assets/js/admin/jquery.flot.axislabels' ) . $suffix . '.js', array( 'jquery', 'flot' ), $version );
 
 			// Add tracks script if tracking is enabled.
 			if ( 'yes' === get_option( 'woocommerce_allow_tracking', 'no' ) ) {
-				wp_enqueue_script( 'wcs-tracks', plugin_dir_url( WC_Subscriptions::$plugin_file ) . 'assets/js/admin/tracks.js', array( 'jquery' ), WC_Subscriptions::$version, true );
+				wp_enqueue_script( 'wcs-tracks', WC_Subscriptions_Plugin::instance()->get_plugin_directory_url( 'assets/js/admin/tracks.js' ), array( 'jquery' ), $version, true );
 			}
 		}
 	}
@@ -174,7 +172,7 @@ class WCS_Admin_Reports {
 			$properties = array(
 				'orders_count'          => array_sum( (array) wp_count_posts( 'shop_order' ) ),
 				'subscriptions_count'   => array_sum( (array) wp_count_posts( 'shop_subscription' ) ),
-				'subscriptions_version' => WC_Subscriptions::$version,
+				'subscriptions_version' => WC_Subscriptions_Plugin::instance()->get_plugin_version(),
 			);
 
 			if ( in_array( $name, array( 'subscription-events-by-date', 'upcoming-recurring-revenue', 'subscription-payment-retry' ), true ) ) {

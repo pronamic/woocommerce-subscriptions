@@ -1,23 +1,16 @@
 <?php
 /**
- * REST API subscription notes controller
+ * REST API Subscription notes controller.
  *
- * Handles requests to the /subscription/<id>/notes endpoint.
+ * Handles requests to the /subscriptions/<id>/notes endpoint.
  *
- * @author   Prospress
- * @since    2.1
+ * @package WooCommerce Subscriptions\Rest Api
+ * @since   3.1.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-/**
- * REST API Subscription Notes controller class.
- *
- * @package WooCommerce_Subscriptions/API
- * @extends WC_REST_Order_Notes_Controller
- */
-class WC_REST_Subscription_Notes_Controller extends WC_REST_Order_Notes_V1_Controller {
+defined( 'ABSPATH' ) || exit;
+
+class WC_REST_Subscription_notes_Controller extends WC_REST_Order_Notes_Controller {
 
 	/**
 	 * Route base.
@@ -33,4 +26,18 @@ class WC_REST_Subscription_Notes_Controller extends WC_REST_Order_Notes_V1_Contr
 	 */
 	protected $post_type = 'shop_subscription';
 
+	/**
+	 * Prepare links for the request.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param WP_Comment $note
+	 * @return array Links for the given order note.
+	 */
+	protected function prepare_links( $note ) {
+		$links       = parent::prepare_links( $note );
+		$links['up'] = array( 'href' => rest_url( sprintf( '/%s/subscriptions/%d', $this->namespace, (int) $note->comment_post_ID ) ) );
+
+		return $links;
+	}
 }

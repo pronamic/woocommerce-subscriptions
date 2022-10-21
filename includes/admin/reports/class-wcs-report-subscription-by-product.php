@@ -304,7 +304,7 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 						}
 					}
 				);
-				jQuery('.chart-placeholder.variation_breakdown_chart').resize();
+				jQuery('.chart-placeholder.variation_breakdown_chart').trigger( 'resize' );
 				jQuery.plot(
 					jQuery('.chart-placeholder.product_breakdown_chart'),
 					[
@@ -346,9 +346,18 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 						}
 					}
 				);
-				jQuery('.chart-placeholder.product_breakdown_chart').resize();
+				jQuery('.chart-placeholder.product_breakdown_chart').trigger( 'resize' );
 			});
 		</script>
 		<?php
+	}
+
+	/**
+	 * Clears the cached report data.
+	 *
+	 * @since 3.0.10
+	 */
+	public static function clear_cache() {
+		delete_transient( strtolower( __CLASS__ ) );
 	}
 }

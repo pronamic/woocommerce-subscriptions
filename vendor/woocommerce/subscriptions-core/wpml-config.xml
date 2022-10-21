@@ -1,0 +1,53 @@
+<wpml-config>
+	<admin-texts>
+		<key name="woocommerce_myaccount_subscriptions_endpoint" />
+		<key name="woocommerce_myaccount_view_subscription_endpoint" />
+		<key name="woocommerce_subscriptions_add_to_cart_button_text" />
+		<key name="woocommerce_subscriptions_order_button_text" />
+		<key name="woocommerce_subscriptions_switch_button_text" />
+		<key name="woocommerce_new_renewal_order_settings">
+			<key name="subject" />
+			<key name="heading" />
+		</key>
+		<key name="woocommerce_customer_completed_renewal_order_settings">
+			<key name="subject" />
+			<key name="heading" />
+		</key>
+		<key name="woocommerce_customer_completed_switch_order_settings">
+			<key name="subject" />
+			<key name="heading" />
+		</key>
+		<key name="woocommerce_customer_renewal_invoice_settings">
+			<key name="subject" />
+			<key name="heading" />
+		</key>
+		<key name="woocommerce_cancelled_subscription_settings">
+			<key name="subject" />
+			<key name="heading" />
+		</key>
+		<key name="woocommerce_expired_subscription_settings">
+			<key name="subject" />
+			<key name="heading" />
+		</key>
+		<key name="woocommerce_suspended_subscription_settings">
+			<key name="subject" />
+			<key name="heading" />
+		</key>
+		<key name="woocommerce_customer_payment_retry_settings">
+			<key name="subject" />
+			<key name="heading" />
+		</key>
+		<key name="woocommerce_payment_retry_settings">
+			<key name="subject" />
+			<key name="heading" />
+		</key>
+		<key name="woocommerce_new_renewal_order_settings">
+			<key name="subject" />
+			<key name="heading" />
+		</key>
+		<key name="woocommerce_new_renewal_order_settings">
+			<key name="subject" />
+			<key name="heading" />
+		</key>
+	</admin-texts>
+</wpml-config>

@@ -1,4 +1,4 @@
-jQuery(function($) {
+jQuery( function( $ ) {
 
 	$.extend({
 		wcs_format_money: function(value,decimal_precision) {

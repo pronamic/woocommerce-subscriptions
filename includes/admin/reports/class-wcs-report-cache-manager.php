@@ -80,7 +80,7 @@ class WCS_Report_Cache_Manager {
 	public function __construct() {
 
 		// Use the old hooks
-		if ( WC_Subscriptions::is_woocommerce_pre( '3.0' ) ) {
+		if ( wcs_is_woocommerce_pre( '3.0' ) ) {
 
 			$hooks = array(
 				'woocommerce_order_add_product'  => 'woocommerce_new_order_item',
@@ -218,12 +218,11 @@ class WCS_Report_Cache_Manager {
 
 		// Some report classes extend WP_List_Table which has a constructor using methods not available on WP-Cron (and unable to be loaded with a __doing_it_wrong() notice), so they have a static get_data() method and do not need to be instantiated
 		if ( $reflector->isStatic() ) {
-
+			call_user_func( array( $report_class, 'clear_cache' ) );
 			call_user_func( array( $report_class, 'get_data' ), array( 'no_cache' => true ) );
-
 		} else {
-
 			$report = new $report_class();
+			$report->clear_cache();
 
 			// Classes with a non-static get_data() method can be displayed for different time series, so we need to update the cache for each of those ranges
 			foreach ( array( 'year', 'last_month', 'month', '7day' ) as $range ) {

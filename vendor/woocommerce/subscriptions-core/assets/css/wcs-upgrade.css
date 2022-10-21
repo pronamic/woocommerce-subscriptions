@@ -1,0 +1,50 @@
+body {
+	margin-top: 100px;
+	padding-bottom: 2em;
+}
+.help_tip .tooltip {
+	display: none;
+}
+.help_tip:hover .tooltip {
+	display: block;
+}
+.tooltip {
+	position: absolute;
+	width: 480px;
+	height: 270px;
+	line-height: 1.5em;
+	padding: 10px;
+	font-size: 14px;
+	text-align: left;
+	color: rgb( 18, 18, 18 );
+	background: rgb( 249, 249, 249 );
+	border: 4px solid rgb( 249, 249, 249 );
+	border-radius: 5px;
+	text-shadow: none;
+	box-shadow: rgba( 0, 0, 0, 0.2 ) 0 0 4px 1px;
+	margin-top: -332px;
+	margin-left: 100px;
+}
+.tooltip::after {
+	content: '';
+	position: absolute;
+	width: 0;
+	height: 0;
+	border-width: 14px;
+	border-style: solid;
+	border-color: #f9f9f9 transparent transparent transparent;
+	top: 292px;
+	left: 366px;
+}
+#update-messages,
+#update-complete,
+#update-error {
+	display: none;
+}
+.log-notice {
+	color: #a0a0a0;
+}
+p.log-notice {
+	font-size: 0.8em;
+	color: #a0a0a0;
+}

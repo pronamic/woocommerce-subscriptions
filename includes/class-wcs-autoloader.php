@@ -1,23 +1,14 @@
 <?php
-
-// Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	die();
-}
-
 /**
  * WooCommerce Subscriptions Autoloader.
  *
- * @class WCS_Autoloader
+ * @package WC_Subscriptions
  */
-class WCS_Autoloader {
 
-	/**
-	 * The base path for autoloading.
-	 *
-	 * @var string
-	 */
-	protected $base_path = '';
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
+
+class WCS_Autoloader extends WCS_Core_Autoloader {
 
 	/**
 	 * Whether to use the legacy API classes.
@@ -27,244 +18,171 @@ class WCS_Autoloader {
 	protected $legacy_api = false;
 
 	/**
-	 * WCS_Autoloader constructor.
+	 * The classes the Subscriptions plugin has ownership of.
 	 *
-	 * @param string $base_path
+	 * Note: needs to be lowercase.
+	 *
+	 * @var array
 	 */
-	public function __construct( $base_path ) {
-		$this->base_path = untrailingslashit( $base_path );
-	}
+	private $classes = array(
+		'wc_subscriptions_plugin'                   => true,
+		'wc_subscriptions_switcher'                 => true,
+		'wcs_cart_switch'                           => true,
+		'wcs_switch_totals_calculator'              => true,
+		'wcs_switch_cart_item'                      => true,
+		'wcs_add_cart_item'                         => true,
+		'wc_order_item_pending_switch'              => true,
+		'wcs_manual_renewal_manager'                => true,
+		'wcs_customer_suspension_manager'           => true,
+		'wcs_drip_downloads_manager'                => true,
+		'wcs_zero_initial_payment_checkout_manager' => true,
+		'wcs_meta_box_payment_retries'              => true,
+		'wcs_limited_recurring_coupon_manager'      => true,
+		'wcs_call_to_action_button_text_manager'    => true,
+		'wcs_subscriber_role_manager'               => true,
+		'wc_subscriptions_payment_gateways'         => true,
+		'wcs_api'                                   => true,
+		'wcs_webhooks'                              => true,
+		'wcs_auth'                                  => true,
+		'wcs_upgrade_notice_manager'                => true,
+	);
 
 	/**
-	 * Destructor.
+	 * The substrings of the classes that the Subscriptions plugin has ownership of.
+	 *
+	 * @var array
 	 */
-	public function __destruct() {
-		$this->unregister();
-	}
+	private $class_substrings = array(
+		'wc_reports',
+		'report',
+		'retry',
+		'early_renewal',
+		'rest_subscription',
+		'wc_api_subscriptions',
+	);
 
 	/**
-	 * Register the autoloader.
+	 * Gets the class's base path.
 	 *
-	 * @author Jeremy Pry
-	 */
-	public function register() {
-		spl_autoload_register( array( $this, 'autoload' ) );
-	}
-
-	/**
-	 * Unregister the autoloader.
-	 */
-	public function unregister() {
-		spl_autoload_unregister( array( $this, 'autoload' ) );
-	}
-
-	/**
-	 * Autoload a class.
+	 * If the a class is one the plugin is responsible for, we return the plugin's path. Otherwise we let the library handle it.
 	 *
-	 * @author Jeremy Pry
-	 *
-	 * @param string $class The class name to autoload.
+	 * @since 4.0.0
+	 * @return string
 	 */
-	public function autoload( $class ) {
-		$class = strtolower( $class );
-
-		if ( ! $this->should_autoload( $class ) ) {
-			return;
+	public function get_class_base_path( $class ) {
+		if ( $this->is_plugin_class( $class ) ) {
+			return dirname( WC_Subscriptions::$plugin_file );
 		}
 
-		$full_path = $this->base_path . $this->get_relative_class_path( $class ) . $this->get_file_name( $class );
-		if ( is_readable( $full_path ) ) {
-			require_once( $full_path );
-		}
-	}
-
-	/**
-	 * Determine whether we should autoload a given class.
-	 *
-	 * @author Jeremy Pry
-	 *
-	 * @param string $class The class name.
-	 *
-	 * @return bool
-	 */
-	protected function should_autoload( $class ) {
-		// We're not using namespaces, so if the class has namespace separators, skip.
-		if ( false !== strpos( $class, '\\' ) ) {
-			return false;
-		}
-
-		// There are some legacy classes without WCS or Subscription in the name.
-		static $legacy = array(
-			'wc_order_item_pending_switch'         => 1,
-			'wc_report_retention_rate'             => 1,
-			'wc_report_upcoming_recurring_revenue' => 1,
-		);
-		if ( isset( $legacy[ $class ] ) ) {
-			return true;
-		}
-
-		return false !== strpos( $class, 'wcs_' ) || 0 === strpos( $class, 'wc_subscription' ) || ( false !== strpos( $class, 'wc_' ) && false !== strpos( $class, 'subscription' ) );
-	}
-
-	/**
-	 * Convert the class name into an appropriate file name.
-	 *
-	 * @author Jeremy Pry
-	 *
-	 * @param string $class The class name.
-	 *
-	 * @return string The file name.
-	 */
-	protected function get_file_name( $class ) {
-		$file_prefix = 'class-';
-
-		if ( $this->is_class_abstract( $class ) ) {
-			$file_prefix = 'abstract-';
-		} elseif ( $this->is_class_interface( $class ) ) {
-			$file_prefix = 'interface-';
-		}
-
-		return $file_prefix . str_replace( '_', '-', $class ) . '.php';
-	}
-
-	/**
-	 * Determine if the class is one of our abstract classes.
-	 *
-	 * @author Jeremy Pry
-	 *
-	 * @param string $class The class name.
-	 *
-	 * @return bool
-	 */
-	protected function is_class_abstract( $class ) {
-		static $abstracts = array(
-			'wcs_background_repairer'      => true,
-			'wcs_background_updater'       => true,
-			'wcs_background_upgrader'      => true,
-			'wcs_cache_manager'            => true,
-			'wcs_debug_tool'               => true,
-			'wcs_debug_tool_cache_updater' => true,
-			'wcs_dynamic_hook_deprecator'  => true,
-			'wcs_hook_deprecator'          => true,
-			'wcs_retry_store'              => true,
-			'wcs_scheduler'                => true,
-			'wcs_sv_api_base'              => true,
-			'wcs_customer_store'           => true,
-			'wcs_related_order_store'      => true,
-			'wcs_migrator'                 => true,
-			'wcs_table_maker'              => true,
-		);
-
-		return isset( $abstracts[ $class ] );
-	}
-
-	/**
-	 * Determine if the class is one of our class interfaces.
-	 *
-	 * @param string $class The class name.
-
-	 * @return bool
-	 */
-	protected function is_class_interface( $class ) {
-		static $interfaces = array(
-			'wcs_cache_updater' => true,
-		);
-
-		return isset( $interfaces[ $class ] );
-	}
-
-	/**
-	 * Determine if the class is one of our data stores.
-	 *
-	 * @param string $class The class name.
-
-	 * @return bool
-	 */
-	protected function is_class_data_store( $class ) {
-		static $data_stores = array(
-			'wcs_related_order_store_cached_cpt'  => true,
-			'wcs_related_order_store_cpt'         => true,
-			'wcs_customer_store_cached_cpt'       => true,
-			'wcs_customer_store_cpt'              => true,
-			'wcs_product_variable_data_store_cpt' => true,
-			'wcs_subscription_data_store_cpt'     => true,
-		);
-
-		return isset( $data_stores[ $class ] );
+		return parent::get_class_base_path( $class );
 	}
 
 	/**
 	 * Get the relative path for the class location.
 	 *
-	 * This handles all of the special class locations and exceptions.
-	 *
-	 * @author Jeremy Pry
-	 *
 	 * @param string $class The class name.
-	 *
 	 * @return string The relative path (from the plugin root) to the class file.
 	 */
 	protected function get_relative_class_path( $class ) {
-		$path     = '/includes';
-		$is_admin = ( false !== strpos( $class, 'admin' ) );
+		if ( ! $this->is_plugin_class( $class ) ) {
+			return parent::get_relative_class_path( $class );
+		}
 
-		if ( $this->is_class_abstract( $class ) ) {
-			if ( 'wcs_sv_api_base' === $class ) {
-				$path .= '/gateways/paypal/includes/abstracts';
-			} else {
-				$path .= '/abstracts';
-			}
-		} elseif ( $this->is_class_interface( $class ) ) {
-			$path .= '/interfaces';
-		} elseif ( false !== strpos( $class, 'paypal' ) ) {
-			$path .= '/gateways/paypal';
-			if ( 'wcs_paypal' === $class ) {
-				$path .= '';
-			} elseif ( 'wcs_repair_suspended_paypal_subscriptions' === $class ) {
-				// Deliberately avoid concatenation for this class, using the base path.
-				$path = '/includes/upgrades';
-			} elseif ( $is_admin ) {
-				$path .= '/includes/admin';
-			} elseif ( 'wc_paypal_standard_subscriptions' === $class ) {
-				$path .= '/includes/deprecated';
-			} else {
-				$path .= '/includes';
-			}
-		} elseif ( 0 === strpos( $class, 'wcs_retry' ) && 'wcs_retry_manager' !== $class ) {
-			$path .= '/payment-retry';
-		} elseif ( $is_admin && 'wcs_change_payment_method_admin' !== $class ) {
-			$path .= '/admin';
-		} elseif ( false !== strpos( $class, 'meta_box' ) ) {
-			$path .= '/admin/meta-boxes';
+		$path = '/includes';
+
+		if ( stripos( $class, 'switch' ) !== false || 'wcs_add_cart_item' === $class ) {
+			$path .= '/switching';
 		} elseif ( false !== strpos( $class, 'wc_report' ) ) {
 			$path .= '/admin/reports/deprecated';
-		} elseif ( false !== strpos( $class, 'report' ) ) {
+		} elseif ( false !== strpos( $class, 'wcs_report' ) ) {
 			$path .= '/admin/reports';
-		} elseif ( false !== strpos( $class, 'debug_tool' ) ) {
-			$path .= '/admin/debug-tools';
-		} elseif ( false !== strpos( $class, 'rest' ) ) {
-			$path .= $this->legacy_api ? '/api/legacy' : '/api';
-		} elseif ( false !== strpos( $class, 'api' ) && 'wcs_api' !== $class ) {
-			$path .= '/api/legacy';
-		} elseif ( $this->is_class_data_store( $class ) ) {
-			$path .= '/data-stores';
-		} elseif ( false !== strpos( $class, 'deprecat' ) ) {
-			$path .= '/deprecated';
-		} elseif ( false !== strpos( $class, 'email' ) && 'wc_subscriptions_email' !== $class ) {
-			$path .= '/emails';
-		} elseif ( false !== strpos( $class, 'gateway' ) && 'wc_subscriptions_change_payment_gateway' !== $class ) {
-			$path .= '/gateways';
-		} elseif ( false !== strpos( $class, 'legacy' ) || 'wcs_array_property_post_meta_black_magic' === $class ) {
-			$path .= '/legacy';
-		} elseif ( false !== strpos( $class, 'privacy' ) ) {
-			$path .= '/privacy';
-		} elseif ( false !== strpos( $class, 'upgrade' ) || false !== strpos( $class, 'repair' ) ) {
-			$path .= '/upgrades';
+		} elseif ( false !== strpos( $class, 'retry' ) || false !== strpos( $class, 'retries' ) ) {
+			$path .= $this->get_payment_retry_class_relative_path( $class );
+		} elseif ( false !== strpos( $class, 'admin' ) ) {
+			$path .= '/admin';
 		} elseif ( false !== strpos( $class, 'early' ) ) {
 			$path .= '/early-renewal';
+		} elseif ( false !== strpos( $class, 'gateways' ) ) {
+			$path .= '/gateways';
+		} elseif ( false !== strpos( $class, 'rest' ) ) {
+			$path .= $this->legacy_api ? '/api/legacy' : $this->get_rest_api_directory( $class );
+		} elseif ( false !== strpos( $class, 'api' ) && 'wcs_api' !== $class ) {
+			$path .= '/api/legacy';
 		}
 
 		return trailingslashit( $path );
+	}
+
+	/**
+	 * Determine whether we should autoload a given class.
+	 *
+	 * @param string $class The class name.
+	 * @return bool
+	 */
+	protected function should_autoload( $class ) {
+		static $legacy = array(
+			'wc_order_item_pending_switch'         => 1,
+			'wc_report_retention_rate'             => 1,
+			'wc_report_upcoming_recurring_revenue' => 1,
+		);
+
+		return isset( $legacy[ $class ] ) ? true : parent::should_autoload( $class );
+
+	}
+
+	/**
+	 * Is the given class found in the Subscriptions plugin
+	 *
+	 * @since 4.0.0
+	 * @param string $class
+	 * @return bool
+	 */
+	private function is_plugin_class( $class ) {
+		if ( isset( $this->classes[ $class ] ) ) {
+			return true;
+		}
+
+		foreach ( $this->class_substrings as $substring ) {
+			if ( false !== stripos( $class, $substring ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Gets a retry class's relative path.
+	 *
+	 * @param string $class The retry class being loaded.
+	 * @return string The relative path to the retry class.
+	 */
+	private function get_payment_retry_class_relative_path( $class ) {
+		$relative_path = '/payment-retry';
+
+		if ( false !== strpos( $class, 'admin' ) || false !== strpos( $class, 'meta_box' ) ) {
+			$relative_path .= '/admin';
+		} elseif ( false !== strpos( $class, 'email' ) ) {
+			$relative_path .= '/emails';
+		} elseif ( false !== strpos( $class, 'store' ) ) {
+			$relative_path .= '/data-stores';
+		}
+
+		return $relative_path;
+	}
+
+	/**
+	 * Determine if the class is one of our abstract classes.
+	 *
+	 * @param string $class The class name.
+	 * @return bool
+	 */
+	protected function is_class_abstract( $class ) {
+		static $abstracts = array(
+			'wcs_retry_store' => true,
+		);
+
+		return isset( $abstracts[ $class ] ) || parent::is_class_abstract( $class );
 	}
 
 	/**
@@ -280,5 +198,24 @@ class WCS_Autoloader {
 		$this->legacy_api = (bool) $use_legacy_api;
 
 		return $this;
+	}
+
+	/**
+	 * Gets the correct subdirectory for a version of the a REST API class.
+	 *
+	 * @param string $class The rest API class name.
+	 * @return string The subdirectory for a rest API class.
+	 */
+	protected function get_rest_api_directory( $class ) {
+		$directory = '/api';
+
+		// Check for an API version in the class name.
+		preg_match( '/v\d/', $class, $matches );
+
+		if ( ! empty( $matches ) ) {
+			$directory .= "/{$matches[0]}";
+		}
+
+		return $directory;
 	}
 }

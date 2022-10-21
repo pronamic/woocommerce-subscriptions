@@ -166,7 +166,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	 * @return WP_Error|WP_REST_Response $response
 	 */
 	public function get_subscription_orders( $request ) {
-		$id = (int) $request['id'];
+		$id = absint( $request['id'] );
 
 		if ( empty( $id ) || ! wcs_is_subscription( $id ) ) {
 			return new WP_Error( 'woocommerce_rest_invalid_shop_subscription_id', __( 'Invalid subscription id.', 'woocommerce-subscriptions' ), array( 'status' => 404 ) );

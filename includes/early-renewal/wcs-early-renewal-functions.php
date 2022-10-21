@@ -96,32 +96,6 @@ function wcs_can_user_renew_early( $subscription, $user_id = 0 ) {
 }
 
 /**
- * Check if a given order is a subscription renewal order.
- *
- * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
- * @since 2.3.0
- * @return bool True if the order contains an early renewal, otherwise false.
- */
-function wcs_order_contains_early_renewal( $order ) {
-
-	if ( ! is_object( $order ) ) {
-		$order = wc_get_order( $order );
-	}
-
-	$subscription_id  = absint( wcs_get_objects_property( $order, 'subscription_renewal_early' ) );
-	$is_early_renewal = wcs_is_order( $order ) && $subscription_id > 0;
-
-	/**
-	 * Allow third-parties to filter whether this order contains the early renewal flag.
-	 *
-	 * @since 2.3.0
-	 * @param bool     $is_renewal True if early renewal meta was found on the order, otherwise false.
-	 * @param WC_Order $order The WC_Order object.
-	 */
-	return apply_filters( 'woocommerce_subscriptions_is_early_renewal_order', $is_early_renewal, $order );
-}
-
-/**
  * Returns a URL for early renewal of a subscription.
  *
  * @param  int|WC_Subscription $subscription WC_Subscription ID, or instance of a WC_Subscription object.

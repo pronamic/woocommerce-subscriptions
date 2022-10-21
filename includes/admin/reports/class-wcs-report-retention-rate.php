@@ -129,7 +129,7 @@ class WCS_Report_Retention_Rate extends WC_Admin_Report {
 	 * @return null
 	 */
 	public function output_report() {
-		include( plugin_dir_path( WC_Subscriptions::$plugin_file ) . '/includes/admin/views/html-report-by-period.php' );
+		include( WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'includes/admin/views/html-report-by-period.php' ) );
 	}
 
 	/**
@@ -172,7 +172,7 @@ class WCS_Report_Retention_Rate extends WC_Admin_Report {
 			var main_chart;
 
 			jQuery(function(){
-				var subscription_lifespans = jQuery.parseJSON( '<?php echo json_encode( $data_to_plot ); ?>' ),
+				var subscription_lifespans = JSON.parse( '<?php echo json_encode( $data_to_plot ); ?>' ),
 					unended_subscriptions  = <?php echo esc_js( $this->report_data->unended_subscriptions ); ?>;
 
 				var drawGraph = function( highlight ) {
@@ -232,7 +232,7 @@ class WCS_Report_Retention_Rate extends WC_Admin_Report {
 						}
 					);
 
-					jQuery('.chart-placeholder').resize();
+					jQuery('.chart-placeholder').trigger( 'resize' );
 				}
 
 				drawGraph();

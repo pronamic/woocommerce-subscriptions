@@ -103,7 +103,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 					),
 				),
 				'group_by'     => $this->group_by_query,
-				'order_status' => '',
+				'order_status' => array(),
 				'order_by'     => 'post_date ASC',
 				'query_type'   => 'get_results',
 				'filter_range' => true,
@@ -467,7 +467,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 			set_transient( strtolower( get_class( $this ) ), $cached_results, WEEK_IN_SECONDS );
 
 			// Remove this class from the list of classes WC updates on shutdown. Introduced in WC 3.7
-			if ( ! WC_Subscriptions::is_woocommerce_pre( '3.7' ) ) {
+			if ( ! wcs_is_woocommerce_pre( '3.7' ) ) {
 				unset( WC_Admin_Report::$transients_to_update[ strtolower( get_class( $this ) ) ] );
 			}
 		}
@@ -832,7 +832,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 			var main_chart;
 
 			jQuery(function(){
-				var order_data = jQuery.parseJSON( '<?php echo json_encode( $chart_data ); ?>' );
+				var order_data = JSON.parse( '<?php echo json_encode( $chart_data ); ?>' );
 				var drawGraph = function( highlight ) {
 					var series = [
 						{
@@ -1107,12 +1107,12 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 						}
 					);
 
-					jQuery('.chart-placeholder').resize();
+					jQuery('.chart-placeholder').trigger( 'resize' );
 				}
 
 				drawGraph();
 
-				jQuery('.highlight_series').hover(
+				jQuery('.highlight_series').on( 'hover',
 					function() {
 						drawGraph( jQuery(this).data('series') );
 					},
@@ -1204,5 +1204,14 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		}
 
 		return $prepared_data;
+	}
+
+	/**
+	 * Clears the cached report data.
+	 *
+	 * @since 3.0.10
+	 */
+	public function clear_cache() {
+		delete_transient( strtolower( get_class( $this ) ) );
 	}
 }

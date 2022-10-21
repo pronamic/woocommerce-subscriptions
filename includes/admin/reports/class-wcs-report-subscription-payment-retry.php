@@ -239,7 +239,7 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 			var main_chart;
 
 			jQuery(function(){
-				var chart_data = jQuery.parseJSON( '<?php echo json_encode( $chart_data ); ?>' );
+				var chart_data = JSON.parse( '<?php echo json_encode( $chart_data ); ?>' );
 
 				var drawGraph = function( highlight ) {
 					var series = [
@@ -378,12 +378,12 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 						}
 					);
 
-					jQuery('.chart-placeholder').resize();
+					jQuery('.chart-placeholder').trigger( 'resize' );
 				}
 
 				drawGraph();
 
-				jQuery('.highlight_series').hover(
+				jQuery('.highlight_series').on( 'hover',
 					function() {
 						drawGraph( jQuery(this).data('series') );
 					},
