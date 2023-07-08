@@ -3,7 +3,7 @@
  * WooCommerce Subscriptions User Change Status Handler Class
  *
  * @author      Prospress
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,7 +21,7 @@ class WCS_User_Change_Status_Handler {
 	 * Checks if the current request is by a user to change the status of their subscription, and if it is,
 	 * validate the request and proceed to change to the subscription.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_change_users_subscription() {
 
@@ -42,7 +42,7 @@ class WCS_User_Change_Status_Handler {
 	/**
 	 * Change the status of a subscription and show a notice to the user if there was an issue.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function change_users_subscription( $subscription, $new_status ) {
 		$subscription = ( ! is_object( $subscription ) ) ? wcs_get_subscription( $subscription ) : $subscription;
@@ -87,7 +87,7 @@ class WCS_User_Change_Status_Handler {
 	/**
 	 * Validates a user change status change request.
 	 *
-	 * @since 2.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.0
 	 *
 	 * @param int             $user_id The ID of the user performing the request.
 	 * @param WC_Subscription $subscription The Subscription to update.

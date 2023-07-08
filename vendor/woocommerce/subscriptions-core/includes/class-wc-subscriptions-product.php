@@ -8,7 +8,7 @@
  * @subpackage WC_Subscriptions_Product
  * @category   Class
  * @author     Brent Shepherd
- * @since      1.0
+ * @since      1.0.0 - Migrated from WooCommerce Subscriptions v1.0
  */
 class WC_Subscriptions_Product {
 
@@ -28,7 +28,7 @@ class WC_Subscriptions_Product {
 	/**
 	 * Set up the class, including it's hooks & filters, when the file is loaded.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 **/
 	public static function init() {
 
@@ -94,7 +94,7 @@ class WC_Subscriptions_Product {
 	 * When the received arg is a product object, make sure it is passed into the filter intact in order to retain any properties added on the fly.
 	 *
 	 * @param int|WC_Product $product Either a product object or product's post ID.
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function is_subscription( $product ) {
 
@@ -118,7 +118,7 @@ class WC_Subscriptions_Product {
 	 * Output subscription string as the price html for grouped products and make sure that
 	 * sign-up fees are taken into account for price.
 	 *
-	 * @since 1.3.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.4
 	 */
 	public static function get_grouped_price_html( $price, $grouped_product ) {
 
@@ -180,7 +180,7 @@ class WC_Subscriptions_Product {
 	/**
 	 * Output subscription string in Gravity Form fields.
 	 *
-	 * @since 1.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.1
 	 */
 	public static function get_gravity_form_prices( $price, $product ) {
 
@@ -210,7 +210,7 @@ class WC_Subscriptions_Product {
 	 *    'subscription_length' => true to include subscription's length (default) or false to exclude it
 	 *    'sign_up_fee'         => true to include subscription's sign up fee (default) or false to exclude it
 	 *    'price'               => string a price to short-circuit the price calculations and use in a string for the product
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_price_string( $product, $include = array() ) {
 		global $wp_locale;
@@ -410,7 +410,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return string The price charged per period for the subscription, or an empty string if the product is not a subscription.
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_price( $product ) {
 		$product = self::maybe_get_product_instance( $product );
@@ -437,7 +437,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return string
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public static function get_regular_price( $product, $context = 'view' ) {
 
@@ -455,7 +455,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return string
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public static function get_sale_price( $product, $context = 'view' ) {
 
@@ -473,7 +473,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return string A string representation of the period, either Day, Week, Month or Year, or an empty string if product is not a subscription.
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_period( $product ) {
 		return apply_filters( 'woocommerce_subscriptions_product_period', self::get_meta_data( $product, 'subscription_period', '' ), self::maybe_get_product_instance( $product ) );
@@ -484,7 +484,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return int An integer representing the subscription interval, or 1 if the product is not a subscription or there is no interval
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_interval( $product ) {
 		return apply_filters( 'woocommerce_subscriptions_product_period_interval', self::get_meta_data( $product, 'subscription_period_interval', 1, 'use_default_value' ), self::maybe_get_product_instance( $product ) );
@@ -495,7 +495,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return int An integer representing the length of the subscription, or 0 if the product is not a subscription or the subscription continues for perpetuity
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_length( $product ) {
 		return apply_filters( 'woocommerce_subscriptions_product_length', self::get_meta_data( $product, 'subscription_length', 0, 'use_default_value' ), self::maybe_get_product_instance( $product ) );
@@ -506,7 +506,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return int An integer representing the length of the subscription trial, or 0 if the product is not a subscription or there is no trial
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_trial_length( $product ) {
 		return apply_filters( 'woocommerce_subscriptions_product_trial_length', self::get_meta_data( $product, 'subscription_trial_length', 0, 'use_default_value' ), self::maybe_get_product_instance( $product ) );
@@ -517,7 +517,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return string A string representation of the period, either Day, Week, Month or Year, or an empty string if product is not a subscription or there is no trial
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_trial_period( $product ) {
 		return apply_filters( 'woocommerce_subscriptions_product_trial_period', self::get_meta_data( $product, 'subscription_trial_period', '' ), self::maybe_get_product_instance( $product ) );
@@ -528,7 +528,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return int|string The value of the sign-up fee, or 0 if the product is not a subscription or the subscription has no sign-up fee
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_sign_up_fee( $product ) {
 		return apply_filters( 'woocommerce_subscriptions_product_sign_up_fee', self::get_meta_data( $product, 'subscription_sign_up_fee', 0, 'use_default_value' ), self::maybe_get_product_instance( $product ) );
@@ -542,7 +542,7 @@ class WC_Subscriptions_Product {
 	 * @param mixed $from_date A MySQL formatted date/time string from which to calculate the expiration date, or empty (default), which will use today's date/time.
 	 * @param string $type The return format for the date, either 'mysql', or 'timezone'. Default 'mysql'.
 	 * @param string $timezone The timezone for the returned date, either 'site' for the site's timezone, or 'gmt'. Default, 'site'.
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_first_renewal_payment_date( $product, $from_date = '', $timezone = 'gmt' ) {
 
@@ -565,7 +565,7 @@ class WC_Subscriptions_Product {
 	 * @param mixed $from_date A MySQL formatted date/time string from which to calculate the expiration date, or empty (default), which will use today's date/time.
 	 * @param string $type The return format for the date, either 'mysql', or 'timezone'. Default 'mysql'.
 	 * @param string $timezone The timezone for the returned date, either 'site' for the site's timezone, or 'gmt'. Default, 'site'.
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_first_renewal_payment_time( $product, $from_date = '', $timezone = 'gmt' ) {
 
@@ -614,7 +614,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param int|WC_Product $product The product instance or product/post ID of a subscription product.
 	 * @param mixed $from_date A MySQL formatted date/time string from which to calculate the expiration date, or empty (default), which will use today's date/time.
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_expiration_date( $product, $from_date = '' ) {
 
@@ -648,7 +648,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param int|WC_Product $product The product instance or product/post ID of a subscription product.
 	 * @param mixed $from_date A MySQL formatted date/time string from which to calculate the expiration date (in UTC timezone), or empty (default), which will use today's date/time (in UTC timezone).
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_trial_expiration_date( $product, $from_date = '' ) {
 
@@ -677,7 +677,7 @@ class WC_Subscriptions_Product {
 	 * WC_Product_Variation class).
 	 *
 	 * @return string $classname The name of the WC_Product_* class which should be instantiated to create an instance of this product.
-	 * @since 1.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3
 	 */
 	public static function set_subscription_variation_class( $classname, $product_type, $post_type, $product_id ) {
 
@@ -702,7 +702,7 @@ class WC_Subscriptions_Product {
 	 * Ensures a price is displayed for subscription variation where WC would normally ignore it (i.e. when prices are equal).
 	 *
 	 * @return array $variation_details Set of name/value pairs representing the subscription.
-	 * @since 1.3.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.6
 	 */
 	public static function maybe_set_variations_price_html( $variation_details, $variable_product, $variation ) {
 
@@ -719,7 +719,7 @@ class WC_Subscriptions_Product {
 	 * Those with appropriate capabilities can still trash the product, but they will not be able to permanently
 	 * delete the product if it is associated with an order (i.e. been purchased).
 	 *
-	 * @since 1.4.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.9
 	 */
 	public static function user_can_not_delete_subscription( $allcaps, $caps, $args ) {
 		global $wpdb;
@@ -754,7 +754,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @return array $actions Array of actions that can be performed on the post.
 	 * @return array $post Array of post values for the current product (or post object if it is not a product).
-	 * @since 1.4.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.9
 	 */
 	public static function subscription_row_actions( $actions, $post ) {
 		global $the_product;
@@ -782,7 +782,7 @@ class WC_Subscriptions_Product {
 	 * deletion (or get any more detailed information about which item can't be deleted and why).
 	 *
 	 * @return array $actions Array of actions that can be performed on the post.
-	 * @since 1.4.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.9
 	 */
 	public static function subscription_bulk_actions( $actions ) {
 
@@ -796,7 +796,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return bool True if the product requires only one time shipping, false otherwise.
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public static function needs_one_time_shipping( $product ) {
 		$product   = self::maybe_get_product_instance( $product );
@@ -814,7 +814,7 @@ class WC_Subscriptions_Product {
 	 * purged from the trash. We want to make sure Subscriptions products are not automatically purged (but still want
 	 * to keep a record of when the product was trashed).
 	 *
-	 * @since 1.4.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.9
 	 */
 	public static function prevent_scheduled_deletion() {
 		global $wpdb;
@@ -838,7 +838,7 @@ class WC_Subscriptions_Product {
 	 * request will either terminate or in the case of bulk deleting, the variation's ID will be removed
 	 * from the $_POST.
 	 *
-	 * @since 1.4.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.9
 	 */
 	public static function remove_variations() {
 
@@ -884,7 +884,7 @@ class WC_Subscriptions_Product {
 	 * @param array $data An array of data relating to the bulk edit action. $data['value'] represents the new value for the meta.
 	 * @param int $variable_product_id The post ID of the parent variable product.
 	 * @param array $variation_ids An array of post IDs for the variable prodcut's variations.
-	 * @since 1.5.29
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.29
 	 */
 	public static function bulk_edit_variations( $bulk_action, $data, $variable_product_id, $variation_ids ) {
 		if ( 'delete_all_no_subscriptions' === $bulk_action && isset( $data['allowed'] ) && 'true' == $data['allowed'] ) {
@@ -959,7 +959,7 @@ class WC_Subscriptions_Product {
 	 * @param int     $loop            Position of the variation inside the variations loop.
 	 * @param array   $variation_data  Array of variation data.
 	 * @param WP_Post $variation       The variation's WP post.
-	 * @since 2.2.17
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.17
 	 */
 	public static function add_variation_removal_flag( $loop, $variation_data, $variation ) {
 
@@ -983,7 +983,7 @@ class WC_Subscriptions_Product {
 	 * Processes an AJAX request to check if a product has a variation which is either sync'd or has a trial.
 	 * Once at least one variation with a trial or sync date is found, this will terminate and return true, otherwise false.
 	 *
-	 * @since 2.0.18
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.18
 	 */
 	public static function check_product_variations_for_syncd_or_trial() {
 
@@ -1024,7 +1024,7 @@ class WC_Subscriptions_Product {
 	 * This function, triggered after saving variations or triggering the trial length bulk action, ensures one time shipping settings
 	 * are updated after determining if one time shipping is still available to the product.
 	 *
-	 * @since 2.0.18
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.18
 	 */
 	public static function maybe_update_one_time_shipping_on_variation_edits() {
 
@@ -1048,7 +1048,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param mixed $product A WC_Product object or product ID
 	 * @return WC_Product
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	private static function maybe_get_product_instance( $product ) {
 
@@ -1067,7 +1067,7 @@ class WC_Subscriptions_Product {
 	 * @param mixed $default_value The value to return if the meta doesn't exist or isn't set
 	 * @param string $empty_handling (optional) How empty values should be handled -- can be 'use_default_value' or 'allow_empty'. Defaults to 'allow_empty' returning the empty value.
 	 * @return mixed
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public static function get_meta_data( $product, $meta_key, $default_value, $empty_handling = 'allow_empty' ) {
 
@@ -1101,7 +1101,7 @@ class WC_Subscriptions_Product {
 	 * sync variable product min/max prices with WC 3.0
 	 *
 	 * @param WC_Product_Variable $product
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public static function variable_subscription_product_sync( $product ) {
 
@@ -1150,7 +1150,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param WC_Product The product object to get parents from.
 	 * @return array Parent IDs
-	 * @since 2.2.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.4
 	 */
 	public static function get_parent_ids( $product ) {
 		global $wpdb;
@@ -1177,7 +1177,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param WC_Product The product object to get parents from.
 	 * @return array The product's grouped parent IDs.
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public static function get_visible_grouped_parent_product_ids( $product ) {
 		$parent_product_ids = self::get_parent_ids( $product );
@@ -1197,7 +1197,7 @@ class WC_Subscriptions_Product {
 	/**
 	 * Gets the add to cart text for subscription products.
 	 *
-	 * @since 3.0.7
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.7
 	 * @return string The add to cart text.
 	 */
 	public static function get_add_to_cart_text() {
@@ -1207,7 +1207,7 @@ class WC_Subscriptions_Product {
 	/**
 	 * Validates an ajax request to delete a subscription variation.
 	 *
-	 * @since 3.x.x
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.x.x
 	 */
 	public static function validate_variation_deletion() {
 		check_admin_referer( 'wc_subscriptions_admin', 'nonce' );
@@ -1225,8 +1225,8 @@ class WC_Subscriptions_Product {
 	/**
 	 * Override the WooCommerce "Add to cart" text with "Sign up now".
 	 *
-	 * @since 1.0
-	 * @deprecated 3.0.7
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.7
 	 */
 	public static function add_to_cart_text( $button_text, $product_type = '' ) {
 		_deprecated_function( __METHOD__, '3.0.7', 'WC_Subscriptions_Product::get_add_to_cart_text' );
@@ -1243,7 +1243,7 @@ class WC_Subscriptions_Product {
 	 * If a product is being marked as not purchasable because it is limited and the customer has a subscription,
 	 * but the current request is to resubscribe to the subscription, then mark it as purchasable.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 * @return bool
 	 */
 	public static function is_purchasable( $is_purchasable, $product ) {

@@ -7,7 +7,7 @@
  * @author      Prospress
  * @category    Core
  * @package     WooCommerce Subscriptions/Functions
- * @version     2.0.13
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v2.0.13
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -258,7 +258,7 @@ class WCS_Report_Dashboard {
 	 * @since 2.1
 	 */
 	public static function dashboard_scripts() {
-		wp_enqueue_style( 'wcs-dashboard-report', WC_Subscriptions_Plugin::instance()->get_plugin_directory_url( 'assets/css/dashboard.css' ), array(), WC_Subscriptions_Plugin::instance()->get_plugin_version() );
+		wp_enqueue_style( 'wcs-dashboard-report', WC_Subscriptions_Plugin::instance()->get_plugin_directory_url( 'assets/css/dashboard.css' ), array(), WC_Subscriptions_Plugin::instance()->get_library_version() );
 	}
 
 	/**

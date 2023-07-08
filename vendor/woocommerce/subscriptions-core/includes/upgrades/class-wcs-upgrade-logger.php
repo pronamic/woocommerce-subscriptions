@@ -5,7 +5,7 @@
  * @author      Prospress
  * @category    Admin
  * @package     WooCommerce Subscriptions/Admin/Upgrades
- * @version     2.0
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -67,7 +67,7 @@ class WCS_Upgrade_Logger {
 	/**
 	 * Log more information during upgrade: Information about environment and active plugins
 	 *
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function add_more_info() {
 		global $wp_version;

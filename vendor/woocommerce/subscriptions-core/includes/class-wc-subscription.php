@@ -6,7 +6,7 @@
  * from WC_Order that don't exist in WC_Abstract_Order (which would seem the more appropriate choice)
  *
  * @class    WC_Subscription
- * @version  2.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  * @package  WooCommerce Subscriptions/Classes
  * @category Class
  * @author   Brent Shepherd
@@ -93,11 +93,14 @@ class WC_Subscription extends WC_Order {
 	);
 
 	/**
-	 * Initialize the subscription object.
+	 * Initializes a specific subscription if the ID is passed, otherwise a new and empty instance of a subscription.
 	 *
-	 * @param int|WC_Subscription $subscription
+	 * This class should NOT be instantiated, instead the functions wcs_create_subscription() and wcs_get_subscription()
+	 * should be used.
+	 *
+	 * @param int|WC_Subscription $subscription Subscription to read.
 	 */
-	public function __construct( $subscription ) {
+	public function __construct( $subscription = 0 ) {
 
 		// Add subscription date types as extra subscription data.
 		foreach ( wcs_get_subscription_date_types() as $date_type => $date_name ) {
@@ -253,7 +256,7 @@ class WC_Subscription extends WC_Order {
 	 * @param string $subscription_key A subscription key of the form created by @see self::get_subscription_key()
 	 * @param int $user_id The ID of the user who owns the subscriptions. Although this parameter is optional, if you have the User ID you should pass it to improve performance.
 	 * @return bool True if the subscription has an unpaid renewal order, false if the subscription has no unpaid renewal orders.
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function needs_payment() {
 
@@ -295,7 +298,7 @@ class WC_Subscription extends WC_Order {
 	 *    'subscription_cancellation'
 	 *    'subscription_date_changes'
 	 *    'subscription_amount_changes'
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function payment_method_supports( $payment_gateway_feature ) {
 
@@ -631,28 +634,32 @@ class WC_Subscription extends WC_Order {
 	}
 
 	/**
-	 * Overrides the WC Order get_status function for draft and auto-draft statuses for a subscription
-	 * so that it will return a pending status instead of draft / auto-draft.
+	 * Sets the subscription status.
 	 *
-	 * @since 2.0
-	 * @return string Status
+	 * Overrides the WC Order set_status() function to handle 'draft' and 'auto-draft' statuses for a subscription.
+	 *
+	 * 'draft' and 'auto-draft' statuses are WP statuses applied to the post when a subscription is created via admin. When
+	 * a subscription is being read from the database, and the status is set to the post's 'draft' or 'auto-draft' status, the
+	 * subscription status is treated as the default status - 'pending'.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param string $new_status The new status.
+	 * @param string $note       Optional. The note to add to the subscription.
+	 * @param bool   $manual     Optional. Is the status change triggered manually? Default is false.
 	 */
-	public function get_status( $context = 'view' ) {
-
-		if ( in_array( get_post_status( $this->get_id() ), array( 'draft', 'auto-draft' ) ) ) {
-			$this->post_status = 'wc-pending';
-			$status = apply_filters( 'woocommerce_order_get_status', 'pending', $this );
-		} else {
-			$status = parent::get_status();
+	public function set_status( $new_status, $note = '', $manual_update = false ) {
+		if ( ! $this->object_read && in_array( $new_status, [ 'draft', 'auto-draft' ], true ) ) {
+			$new_status = apply_filters( 'woocommerce_default_subscription_status', 'pending' );
 		}
 
-		return $status;
+		return parent::set_status( $new_status, $note, $manual_update );
 	}
 
 	/**
 	 * Get valid order status keys
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return array details of change
 	 */
 	public function get_valid_statuses() {
@@ -664,7 +671,7 @@ class WC_Subscription extends WC_Order {
 	 * it stores it with the prefix. This makes it hard to use the same filters / status names in both WC's methods AND WP's
 	 * get_posts functions. This function bridges that gap and returns the prefixed versions of completed statuses.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 * @return array By default: wc-processing and wc-completed
 	 */
 	public function get_paid_order_statuses() {
@@ -695,7 +702,7 @@ class WC_Subscription extends WC_Order {
 	 * @param  string       $payment_type Type of count (completed|refunded|net). Optional. Default completed.
 	 * @param  string|array $order_types Type of order relation(s) to count. Optional. Default array(parent,renewal).
 	 * @return integer Count.
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public function get_payment_count( $payment_type = 'completed', $order_types = '' ) {
 
@@ -785,7 +792,7 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * Failed orders are the number of orders that have wc-failed as the status
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_failed_payment_count() {
 
@@ -807,7 +814,7 @@ class WC_Subscription extends WC_Order {
 	 * otherwise it will be the sum of the sign up fee and price per period.
 	 *
 	 * @return float The total initial amount charged when the subscription product in the order was first purchased, if any.
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_total_initial_payment() {
 		$initial_total = ( $parent_order = $this->get_parent() ) ? $parent_order->get_total() : 0;
@@ -818,7 +825,7 @@ class WC_Subscription extends WC_Order {
 	 * Get billing period.
 	 *
 	 * @return string
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function get_billing_period( $context = 'view' ) {
 		return $this->get_prop( 'billing_period', $context );
@@ -828,7 +835,7 @@ class WC_Subscription extends WC_Order {
 	 * Get billing interval.
 	 *
 	 * @return string
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function get_billing_interval( $context = 'view' ) {
 		return $this->get_prop( 'billing_interval', $context );
@@ -838,7 +845,7 @@ class WC_Subscription extends WC_Order {
 	 * Get trial period.
 	 *
 	 * @return string
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function get_trial_period( $context = 'view' ) {
 		return $this->get_prop( 'trial_period', $context );
@@ -848,7 +855,7 @@ class WC_Subscription extends WC_Order {
 	 * Get suspension count.
 	 *
 	 * @return int
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function get_suspension_count( $context = 'view' ) {
 		return $this->get_prop( 'suspension_count', $context );
@@ -859,7 +866,7 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * @access public
 	 * @return bool
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function get_requires_manual_renewal( $context = 'view' ) {
 		return $this->get_prop( 'requires_manual_renewal', $context );
@@ -868,7 +875,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Get the switch data.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string
 	 */
 	public function get_switch_data( $context = 'view' ) {
@@ -889,7 +896,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Set billing period.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param string $value
 	 */
 	public function set_billing_period( $value ) {
@@ -899,7 +906,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Set billing interval.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param int $value
 	 */
 	public function set_billing_interval( $value ) {
@@ -910,7 +917,7 @@ class WC_Subscription extends WC_Order {
 	 * Set trial period.
 	 *
 	 * @param string $value
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function set_trial_period( $value ) {
 		$this->set_prop( 'trial_period', $value );
@@ -919,7 +926,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Set suspension count.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param int $value
 	 */
 	public function set_suspension_count( $value ) {
@@ -927,10 +934,25 @@ class WC_Subscription extends WC_Order {
 	}
 
 	/**
+	 * Set schedule start date.
+	 *
+	 * This function should not be used. It only exists to support setting the start date on subscription creation without
+	 * having to call update_dates() which results in a save.
+	 *
+	 * The more aptly named set_schedule_start() cannot exist because then WC core thinks the _schedule_start meta is an
+	 * internal meta key and throws errors.
+	 *
+	 * @param string $schedule_start
+	 */
+	public function set_start_date( $schedule_start ) {
+		$this->set_prop( 'schedule_start', $schedule_start );
+	}
+
+	/**
 	 * Set parent order ID. We don't use WC_Abstract_Order::set_parent_id() because we want to allow false
 	 * parent IDs, like 0.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param int $value
 	 */
 	public function set_parent_id( $value ) {
@@ -945,7 +967,7 @@ class WC_Subscription extends WC_Order {
 	 * (which means it doesn't require manual renewal), but we want to consistently use it via get/set as a boolean,
 	 * for sanity's sake.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param bool $value
 	 */
 	public function set_requires_manual_renewal( $value ) {
@@ -964,7 +986,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Set the switch data on the subscription.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function set_switch_data( $value ) {
 		$this->set_prop( 'switch_data', $value );
@@ -973,7 +995,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Set the flag about whether the cancelled email has been sent or not.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function set_cancelled_email_sent( $value ) {
 		$this->set_prop( 'cancelled_email_sent', $value );
@@ -1130,7 +1152,7 @@ class WC_Subscription extends WC_Order {
 	 * Get a certain date type for the most recent order on the subscription with that date type,
 	 * or the last order, if the order type is specified as 'last'.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param string $date_type Any valid WC 3.0 date property, including 'date_paid', 'date_completed', 'date_created', or 'date_modified'
 	 * @param string $order_type The type of orders to return, can be 'last', 'parent', 'switch', 'renewal' or 'any'. Default 'any'. Use 'last' to only check the last order.
 	 * @return WC_DateTime|NULL object if the date is set or null if there is no date.
@@ -1159,7 +1181,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Set a certain date type for the last order on the subscription.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param string $date_type One of 'date_paid', 'date_completed', 'date_modified', or 'date_created'.
 	 */
 	protected function set_last_order_date( $date_type, $date = null ) {
@@ -1505,7 +1527,7 @@ class WC_Subscription extends WC_Order {
 	 * Sometimes it's necessary to only save changes to date properties, for example, when you
 	 * don't want status transitions to be triggered by a full object @see $this->save().
 	 *
-	 * @since 2.2.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.6
 	 */
 	public function save_dates() {
 		if ( $this->data_store && $this->get_id() ) {
@@ -1769,7 +1791,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * When a payment fails, either for the original purchase or a renewal payment, this function processes it.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function payment_failed( $new_status = 'on-hold' ) {
 
@@ -1806,7 +1828,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Get order refunds
 	 *
-	 * @since 2.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2
 	 * @return array
 	 */
 	public function get_refunds() {
@@ -1816,7 +1838,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Get amount already refunded
 	 *
-	 * @since 2.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2
 	 * @return int|float
 	 */
 	public function get_total_refunded() {
@@ -1877,7 +1899,7 @@ class WC_Subscription extends WC_Order {
 	 * Extracting the query from get_related_orders and get_last_order so it can be moved in a cached
 	 * value.
 	 *
-	 * @deprecated 2.3.0 Moved to WCS_Subscription_Data_Store_CPT::get_related_order_ids() to separate cache logic from subscription instances and to avoid confusion from the misnomer on this method's name - it gets renewal orders, not related orders - and its ambiguity - it runs a query and returns order IDs, it does not return a SQL query string or order objects.
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0, Moved to WCS_Subscription_Data_Store_CPT::get_related_order_ids() to separate cache logic from subscription instances and to avoid confusion from the misnomer on this method's name - it gets renewal orders, not related orders - and its ambiguity - it runs a query and returns order IDs, it does not return a SQL query string or order objects.
 	 * @return array
 	 */
 	public function get_related_orders_query( $subscription_id ) {
@@ -1890,7 +1912,7 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * @param string $return_fields The columns to return, either 'all' or 'ids'
 	 * @param array|string $order_types Can include 'any', 'parent', 'renewal', 'resubscribe' and/or 'switch'. Custom types possible via the 'woocommerce_subscription_related_orders' filter. Defaults to array( 'parent', 'renewal', 'switch' ).
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 * @return array
 	 */
 	public function get_related_orders( $return_fields = 'ids', $order_types = array( 'parent', 'renewal', 'switch' ) ) {
@@ -1929,7 +1951,7 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * @param string $order_type Can include 'any', 'parent', 'renewal', 'resubscribe' and/or 'switch'. Defaults to 'any'.
 	 * @return array List of related order IDs.
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	protected function get_related_order_ids( $order_type = 'any' ) {
 
@@ -1956,7 +1978,7 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * @param string $return_fields The columns to return, either 'all' or 'ids'
 	 * @param array $order_types Can include any combination of 'parent', 'renewal', 'switch' or 'any' which will return the latest renewal order of any type. Defaults to 'parent' and 'renewal'.
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_last_order( $return_fields = 'ids', $order_types = array( 'parent', 'renewal' ) ) {
 
@@ -1999,7 +2021,7 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * @param string $context The context the payment method is being displayed in. Can be 'admin' or 'customer'. Default 'admin'.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_payment_method_to_display( $context = 'admin' ) {
 
@@ -2037,7 +2059,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Save new payment method for a subscription
 	 *
-	 * @since 2.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.0
 	 *
 	 * @throws InvalidArgumentException An exception is thrown via @see WC_Subscription::set_payment_method_meta() if the payment meta passed is invalid.
 	 * @param WC_Payment_Gateway|string $payment_method
@@ -2092,7 +2114,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Save payment method meta data for the Subscription
 	 *
-	 * @since 2.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.0
 	 *
 	 * @throws InvalidArgumentException An exception if the payment meta variable isn't an array.
 	 *
@@ -2115,7 +2137,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Now uses the URL /my-account/view-subscription/{post-id} when viewing a subscription from the My Account Page.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_view_order_url() {
 		$view_subscription_url = wc_get_endpoint_url( 'view-subscription', $this->get_id(), wc_get_page_permalink( 'myaccount' ) );
@@ -2163,7 +2185,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Check if the subscription has a payment gateway.
 	 *
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 * @return bool
 	 */
 	public function has_payment_gateway() {
@@ -2174,7 +2196,7 @@ class WC_Subscription extends WC_Order {
 	 * The total sign-up fee for the subscription if any.
 	 *
 	 * @return int
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_sign_up_fee() {
 
@@ -2200,7 +2222,7 @@ class WC_Subscription extends WC_Order {
 	 * @param array|int Either an order item (in the array format returned by self::get_items()) or the ID of an order item.
 	 * @param  string $tax_inclusive_or_exclusive Whether or not to adjust sign up fee if prices inc tax - ensures that the sign up fee paid amount includes the paid tax if inc
 	 * @return bool
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_items_sign_up_fee( $line_item, $tax_inclusive_or_exclusive = 'exclusive_of_tax' ) {
 
@@ -2269,7 +2291,7 @@ class WC_Subscription extends WC_Order {
 	 *  Determine if the subscription is for one payment only.
 	 *
 	 * @return bool whether the subscription is for only one payment
-	 * @since 2.0.17
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.17
 	 */
 	public function is_one_payment() {
 
@@ -2455,7 +2477,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Add a product line item to the subscription.
 	 *
-	 * @since 2.1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.4
 	 * @param WC_Product product
 	 * @param int line item quantity.
 	 * @param array args
@@ -2477,7 +2499,7 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * The allowed dates includes both subscription date dates, and date types for related orders, like 'last_order_date_created'.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return array
 	 */
 	protected function get_valid_date_types() {
@@ -2505,7 +2527,7 @@ class WC_Subscription extends WC_Order {
 	 * Generates a URL to add or change the subscription's payment method from the my account page.
 	 *
 	 * @return string
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public function get_change_payment_method_url() {
 		$change_payment_method_url = wc_get_endpoint_url( 'subscription-payment-method', $this->get_id(), wc_get_page_permalink( 'myaccount' ) );
@@ -2514,7 +2536,7 @@ class WC_Subscription extends WC_Order {
 
 	/* Get the subscription's payment method meta.
 	 *
-	 * @since 2.4.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.3
 	 * @return array The subscription's payment meta in the format returned by the woocommerce_subscription_payment_meta filter.
 	 */
 	public function get_payment_method_meta() {
@@ -2538,7 +2560,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Avoid running the expensive get_date_paid() query on related orders.
 	 *
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	public function maybe_set_date_paid() {
 		return null;
@@ -2547,7 +2569,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Avoid running the expensive get_date_completed() query on related orders.
 	 *
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	protected function maybe_set_date_completed() {
 		return null;
@@ -2596,7 +2618,7 @@ class WC_Subscription extends WC_Order {
 	 * Update the internal tally of suspensions on this subscription since the last payment.
 	 *
 	 * @return int The count of suspensions
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function update_suspension_count( $new_count ) {
 		wcs_deprecated_function( __METHOD__, '2.2.0', __CLASS__ . '::set_suspension_count(), because WooCommerce 3.0+ now uses setters' );
@@ -2629,8 +2651,8 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * For backward compatibility we have to use the date created here, see: https://github.com/Prospress/woocommerce-subscriptions/issues/1943
 	 *
-	 * @deprecated 2.2.0
-	 * @since 2.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function get_last_payment_date() {
 		wcs_deprecated_function( __METHOD__, '2.2.0', __CLASS__ . '::get_date( "last_order_date_created" )' );
@@ -2640,7 +2662,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Updated both the _paid_date and post date GMT with the WooCommerce < 3.0 date storage structures.
 	 *
-	 * @deprecated 2.2.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param string $datetime A MySQL formatted date/time string in GMT/UTC timezone.
 	 */
 	protected function update_last_payment_date( $datetime ) {
@@ -2668,7 +2690,7 @@ class WC_Subscription extends WC_Order {
 	 * subscription was created as a result of a purchase from the front end rather than
 	 * manually by the store manager).
 	 *
-	 * @deprecated 2.6.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public function get_completed_payment_count() {
 		wcs_deprecated_function( __METHOD__, '2.6.0', __CLASS__ . '::get_payment_count()' );
@@ -2684,7 +2706,7 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * @return int
 	 *
-	 * @deprecated 2.6.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	protected function apply_deprecated_completed_payment_count_filter( $count ) {
 		$deprecated_filter_hook = 'woocommerce_subscription_payment_completed_count';

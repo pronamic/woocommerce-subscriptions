@@ -11,7 +11,7 @@
  * @author   Prospress
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin/Upgrades
- * @version  2.3.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  */
 
 // Exit if accessed directly.
@@ -26,7 +26,7 @@ class WCS_Repair_Suspended_PayPal_Subscriptions extends WCS_Background_Upgrader 
 	 *
 	 * @param WC_Logger_Interface $logger The WC Logger instance.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function __construct( WC_Logger_Interface $logger ) {
 		$this->scheduled_hook = 'wcs_repair_subscriptions_suspended_paypal_not_woocommerce';
@@ -65,7 +65,7 @@ class WCS_Repair_Suspended_PayPal_Subscriptions extends WCS_Background_Upgrader 
 	/**
 	 * Get a list of subscriptions to repair.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 * @return array A list of subscription ids which may need to be repaired.
 	 */
 	protected function get_items_to_update() {

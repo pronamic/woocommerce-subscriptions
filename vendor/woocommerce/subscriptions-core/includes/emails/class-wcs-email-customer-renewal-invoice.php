@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * An email sent to the customer via admin.
  *
  * @class WCS_Email_Customer_Renewal_Invoice
- * @version 1.4
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
  * @package WooCommerce_Subscriptions/Includes/Emails
  * @author Prospress
  * @extends WC_Email_Customer_Invoice
@@ -60,7 +60,7 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 	 * Get the default e-mail subject.
 	 *
 	 * @param bool $paid Whether the order has been paid or not.
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_subject( $paid = false ) {
@@ -71,7 +71,7 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 	 * Get the default e-mail heading.
 	 *
 	 * @param bool $paid Whether the order has been paid or not.
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_heading( $paid = false ) {

@@ -5,8 +5,8 @@
  * @author     Prospress
  * @category   Admin
  * @package    WooCommerce Subscriptions/Admin/Upgrades
- * @version    2.4.0
- * @deprecated 2.5.0
+ * @version    1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
+ * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,7 +19,7 @@ class WCS_Upgrade_Subscription_Post_Author extends WCS_Background_Upgrader {
 	 * Constructor
 	 *
 	 * @param WC_Logger $logger The WC_Logger instance.
-	 * @since 2.4.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
 	 */
 	public function __construct( WC_Logger $logger ) {
 		wcs_deprecated_function( __METHOD__, '2.5.0' );
@@ -32,7 +32,7 @@ class WCS_Upgrade_Subscription_Post_Author extends WCS_Background_Upgrader {
 	/**
 	 * Update a subscription, setting its post_author to its customer ID.
 	 *
-	 * @since 2.4.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
 	 */
 	protected function update_item( $subscription_id ) {
 		global $wpdb;
@@ -69,7 +69,7 @@ class WCS_Upgrade_Subscription_Post_Author extends WCS_Background_Upgrader {
 	/**
 	 * Get a batch of subscriptions which need to be updated.
 	 *
-	 * @since 2.4.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
 	 * @return array A list of subscription ids which need to be updated.
 	 */
 	protected function get_items_to_update() {
@@ -142,7 +142,7 @@ class WCS_Upgrade_Subscription_Post_Author extends WCS_Background_Upgrader {
 	/**
 	 * Hooks into WC's 3.5 update routine to add the subscription post type to the list of post types affected by this update.
 	 *
-	 * @since 2.4.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
 	 */
 	public static function hook_into_wc_350_update() {
 		add_filter( 'woocommerce_update_350_order_customer_id_post_types', array( __CLASS__, 'add_post_type_to_wc_350_update' ) );
@@ -154,7 +154,7 @@ class WCS_Upgrade_Subscription_Post_Author extends WCS_Background_Upgrader {
 	 *
 	 * @param  array $post_types
 	 * @return array
-	 * @since  2.4.0
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
 	 */
 	public static function add_post_type_to_wc_350_update( $post_types = array() ) {
 		if ( ! in_array( 'shop_subscription', $post_types ) ) {

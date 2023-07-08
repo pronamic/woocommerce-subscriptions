@@ -24,7 +24,7 @@ class WCS_Retry_Admin {
 		add_filter( 'woocommerce_subscription_settings', array( $this, 'add_settings' ) );
 
 		if ( WCS_Retry_Manager::is_retry_enabled() ) {
-			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 50 );
+			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 50, 2 );
 
 			add_filter( 'wcs_display_date_type', array( $this, 'maybe_hide_date_type' ), 10, 3 );
 
@@ -37,13 +37,26 @@ class WCS_Retry_Admin {
 
 	/**
 	 * Add a meta box to the Edit Order screen to display the retries relating to that order
+	 *
+	 * @param string           $post_type Optional. Post type. Default empty.
+	 * @param WC_Order|WP_Post $order     Optional. The Order object. Default null. If null, the global $post is used.
 	 */
-	public function add_meta_boxes() {
-		global $current_screen, $post_ID;
+	public function add_meta_boxes( $post_type = '', $order = null ) {
+		/**
+		 * Get the order parameter into a consistent type.
+		 *
+		 * For backwards compatibility, if the order parameter isn't provided, use the global $post_id.
+		 * On CPT stores, the order param will be a WP Post object.
+		 */
+		if ( is_null( $order ) || is_a( $order, 'WP_Post' ) ) {
+			global $post_ID;
+			$order_id = $order ? $order->ID : $post_ID;
+			$order    = wc_get_order( $order_id );
+		}
 
-		// Only display the meta box if an order relates to a subscription
-		if ( 'shop_order' === get_post_type( $post_ID ) && wcs_order_contains_renewal( $post_ID ) && WCS_Retry_Manager::store()->get_retry_count_for_order( $post_ID ) > 0 ) {
-			add_meta_box( 'renewal_payment_retries', __( 'Automatic Failed Payment Retries', 'woocommerce-subscriptions' ), 'WCS_Meta_Box_Payment_Retries::output', 'shop_order', 'normal', 'low' );
+		// Only display the meta box if an order relates to a subscription and there are retries for that order.
+		if ( wcs_is_order( $order ) && wcs_order_contains_renewal( $order ) && WCS_Retry_Manager::store()->get_retry_count_for_order( $order->get_id() ) > 0 ) {
+			add_meta_box( 'renewal_payment_retries', __( 'Automatic Failed Payment Retries', 'woocommerce-subscriptions' ), 'WCS_Meta_Box_Payment_Retries::output', wcs_get_page_screen_id( 'shop_order' ), 'normal', 'low' );
 		}
 	}
 

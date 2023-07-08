@@ -36,7 +36,7 @@ class WC_Subscriptions_Payment_Gateways extends WC_Subscriptions_Core_Payment_Ga
 			return $available_gateways;
 		}
 
-		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
+		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( absint( $_GET['order_id'] ) ) ) ) {
 			return $available_gateways;
 		}
 

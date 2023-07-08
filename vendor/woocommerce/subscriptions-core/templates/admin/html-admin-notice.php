@@ -2,7 +2,7 @@
 /**
  * The template for displaying an admin notice.
  *
- * @version 2.3.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  * @var WCS_Admin_Notice $notice
  */
 if ( ! defined( 'ABSPATH' ) ) {

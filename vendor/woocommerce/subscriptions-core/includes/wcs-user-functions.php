@@ -5,7 +5,7 @@
  * @author Prospress
  * @category Core
  * @package WooCommerce Subscriptions/Functions
- * @version     2.0
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Give a user the Subscription's default subscriber role
  *
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_make_user_active( $user_id ) {
 	wcs_update_users_role( $user_id, 'default_subscriber_role' );
@@ -24,7 +24,7 @@ function wcs_make_user_active( $user_id ) {
 /**
  * Give a user the Subscription's default subscriber's inactive role
  *
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_make_user_inactive( $user_id ) {
 	wcs_update_users_role( $user_id, 'default_inactive_role' );
@@ -33,7 +33,7 @@ function wcs_make_user_inactive( $user_id ) {
 /**
  * Give a user the Subscription's default subscriber's inactive role if they do not have an active subscription
  *
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_maybe_make_user_inactive( $user_id ) {
 	if ( ! wcs_user_has_subscription( $user_id, '', 'active' ) ) {
@@ -45,7 +45,7 @@ function wcs_maybe_make_user_inactive( $user_id ) {
  * Wrapper for wcs_maybe_make_user_inactive() that accepts a subscription instead of a user ID.
  * Handy for hooks that pass a subscription object.
  *
- * @since 2.2.9
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
  * @param WC_Subscription|WC_Order
  */
 function wcs_maybe_make_user_inactive_for( $subscription ) {
@@ -63,7 +63,7 @@ add_action( 'woocommerce_subscription_status_expired', 'wcs_maybe_make_user_inac
  * @param int $user_id The ID of a user
  * @param string $role_new The special name assigned to the role by Subscriptions, one of 'default_subscriber_role', 'default_inactive_role' or 'default_cancelled_role'
  * @return WP_User The user with the new role.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_update_users_role( $user_id, $role_new ) {
 
@@ -126,7 +126,7 @@ function wcs_get_new_user_role_names( $role_new ) {
  * @param int $user_id (optional) The ID of a user in the store. If left empty, the current user's ID will be used.
  * @param int $product_id (optional) The ID of a product in the store. If left empty, the function will see if the user has any subscription.
  * @param mixed $status (optional) A valid subscription status string or array. If left empty, the function will see if the user has a subscription of any status.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  *
  * @return bool
  */
@@ -165,7 +165,7 @@ function wcs_user_has_subscription( $user_id = 0, $product_id = '', $status = 'a
  * Gets all the active and inactive subscriptions for a user, as specified by $user_id
  *
  * @param int $user_id (optional) The id of the user whose subscriptions you want. Defaults to the currently logged in user.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  *
  * @return WC_Subscription[]
  */
@@ -241,7 +241,7 @@ function wcs_get_cached_user_subscription_ids( $user_id = 0 ) {
  * @param int $subscription_id A subscription's post ID
  * @param string $status A subscription's post ID
  * @param string $current_status A subscription's current status
- * @since 1.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
  */
 function wcs_get_users_change_status_link( $subscription_id, $status, $current_status = '' ) {
 
@@ -270,7 +270,7 @@ function wcs_get_users_change_status_link( $subscription_id, $status, $current_s
  * By default, a store manager can put all subscriptions on hold, while other users can only suspend their own subscriptions.
  *
  * @param int|WC_Subscription $subscription An instance of a WC_Snbscription object or ID representing a 'shop_subscription' post
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_can_user_put_subscription_on_hold( $subscription, $user = '' ) {
 	$user_can_suspend = false;
@@ -291,7 +291,7 @@ function wcs_can_user_put_subscription_on_hold( $subscription, $user = '' ) {
 /**
  * Retrieve available actions that a user can perform on the subscription
  *
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  *
  * @param WC_Subscription $subscription The subscription.
  * @param int             $user_id      The user.
@@ -416,7 +416,7 @@ add_filter( 'user_has_cap', 'wcs_user_has_capability', 15, 3 );
 /**
  * Grants shop managers the capability to edit subscribers.
  *
- * @since 3.0.4
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.4
  * @param array $roles The user roles shop managers can edit.
  * @return array The list of roles editable by shop managers.
  */
@@ -430,7 +430,7 @@ add_filter( 'woocommerce_shop_manager_editable_roles', 'wcs_grant_shop_manager_e
 /**
  * Gets the subscriber role.
  *
- * @since 4.0.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  *
  * @return string The role to apply to subscribers.
  */
@@ -445,7 +445,7 @@ function wcs_get_subscriber_role() {
 /**
  * Gets the inactive subscriber role.
  *
- * @since 4.0.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  *
  * @return string The role to apply to inactive subscribers.
  */

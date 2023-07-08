@@ -4,7 +4,7 @@
  *
  * @author  Brent Shepherd / Chuck Mac
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 3.0.4
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.4
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

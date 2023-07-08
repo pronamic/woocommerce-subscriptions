@@ -65,7 +65,7 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal {
 			}
 		}
 
-		return $pay_url;
+		return $pay_url; // nosemgrep: audit.php.wp.security.xss.query-arg -- False positive. $pay_url is escaped in the template and escaping URLs should be done at the point of output or usage.
 	}
 
 	/**
@@ -81,7 +81,7 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal {
 		if ( isset( $_GET['pay_for_order'] ) && isset( $_GET['key'] ) && isset( $wp->query_vars['order-pay'] ) && isset( $_GET['subscription_switch'] ) ) {
 
 			// Pay for existing order
-			$order_key = $_GET['key'];
+			$order_key = sanitize_text_field( wp_unslash( $_GET['key'] ) );
 			$order_id  = ( isset( $wp->query_vars['order-pay'] ) ) ? $wp->query_vars['order-pay'] : absint( $_GET['order_id'] );
 			$order     = wc_get_order( $wp->query_vars['order-pay'] );
 

@@ -3,7 +3,7 @@
  * Subscriptions Core Payment Gateways
  * Hooks into the WooCommerce payment gateways class to add subscription specific functionality.
  *
- * @since 4.0.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  */
 class WC_Subscriptions_Core_Payment_Gateways {
 
@@ -17,7 +17,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function init() {
 		self::$is_displaying_mini_cart = false;
@@ -41,7 +41,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Instantiate our custom PayPal class
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function init_paypal() {
 		WCS_PayPal::init();
@@ -50,7 +50,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Returns a payment gateway object by gateway's ID, or false if it could not find the gateway.
 	 *
-	 * @since 1.2.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2.4
 	 */
 	public static function get_payment_gateway( $gateway_id ) {
 		$found_gateway = false;
@@ -69,7 +69,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Only display the gateways which subscriptions-core supports
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @param array $available_gateways
 	 * @return array
 	 */
@@ -146,7 +146,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Helper function to check if at least one payment gateway on the site supports a certain subscription feature.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function one_gateway_supports( $supports_flag ) {
 
@@ -169,7 +169,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Improve message displayed on checkout when a subscription is in the cart but not gateways support subscriptions.
 	 *
-	 * @since 1.5.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.2
 	 */
 	public static function no_available_payment_methods_message( $no_gateways_message ) {
 		if ( WC_Subscriptions_Cart::cart_contains_subscription() && ! wcs_is_manual_renewal_enabled() ) {
@@ -187,7 +187,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Fire a gateway specific whenever a subscription's status is changed.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function trigger_gateway_status_updated_hook( $subscription, $new_status ) {
 
@@ -222,7 +222,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Display a list of each gateway supported features in a tooltip
 	 *
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function payment_gateways_support_tooltip( $status_html, $gateway ) {
 
@@ -289,7 +289,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Returns whether the subscription has an available payment gateway that's supported by subscriptions-core.
 	 *
-	 * @since 1.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0.0
 	 * @param WC_Subscription $subscription Subscription to check if the gateway is available.
 	 * @return bool
 	 */
@@ -358,7 +358,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Fire a gateway specific hook for when a subscription is activated.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function trigger_gateway_activated_subscription_hook( $user_id, $subscription_key ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::trigger_gateway_status_updated_hook()' );
@@ -368,7 +368,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Fire a gateway specific hook for when a subscription is activated.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function trigger_gateway_reactivated_subscription_hook( $user_id, $subscription_key ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::trigger_gateway_status_updated_hook()' );
@@ -378,7 +378,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Fire a gateway specific hook for when a subscription is on-hold.
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function trigger_gateway_subscription_put_on_hold_hook( $user_id, $subscription_key ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::trigger_gateway_status_updated_hook()' );
@@ -388,7 +388,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Fire a gateway specific when a subscription is cancelled.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function trigger_gateway_cancelled_subscription_hook( $user_id, $subscription_key ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::trigger_gateway_status_updated_hook()' );
@@ -398,7 +398,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	/**
 	 * Fire a gateway specific hook when a subscription expires.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function trigger_gateway_subscription_expired_hook( $user_id, $subscription_key ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::trigger_gateway_status_updated_hook()' );

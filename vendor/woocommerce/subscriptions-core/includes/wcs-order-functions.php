@@ -5,7 +5,7 @@
  * @author   Prospress
  * @category Core
  * @package  WooCommerce Subscriptions/Functions
- * @version  2.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *    'subscription_status' Any valid subscription status. Can be 'any', 'active', 'cancelled', 'on-hold', 'expired', 'pending' or 'trash'. Defaults to 'any'.
  *    'order_type' Get subscriptions for the any order type in this array. Can include 'any', 'parent', 'renewal' or 'switch', defaults to parent.
  * @return WC_Subscription[] Subscription details in post_id => WC_Subscription form.
- * @since  2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscriptions_for_order( $order, $args = array() ) {
 
@@ -59,10 +59,11 @@ function wcs_get_subscriptions_for_order( $order, $args = array() ) {
 	if ( $get_all || in_array( 'parent', $args['order_type'] ) ) {
 
 		$get_subscriptions_args = array_merge( $args, array(
-			'order_id' => wcs_get_objects_property( $order, 'id' ),
+			'order_id' => $order->get_id(),
 		) );
 
 		$subscriptions = wcs_get_subscriptions( $get_subscriptions_args );
+
 	}
 
 	$all_relation_types = WCS_Related_Order_Store::instance()->get_relation_types();
@@ -83,66 +84,59 @@ function wcs_get_subscriptions_for_order( $order, $args = array() ) {
 }
 
 /**
- * Copy the billing, shipping or all addresses from one order to another (including custom order types, like the
- * WC_Subscription order type).
+ * Copy the billing, shipping or all addresses from one order or subscription to another.
  *
- * @param WC_Order $to_order The WC_Order object to copy the address to.
- * @param WC_Order $from_order The WC_Order object to copy the address from.
- * @param string $address_type The address type to copy, can be 'shipping', 'billing' or 'all'
+ * @since 2.0.0
+ *
+ * @param WC_Order $to_order     The WC_Order object to copy the address to.
+ * @param WC_Order $from_order   The WC_Order object to copy the address from.
+ * @param string   $address_type The address type to copy, can be 'shipping', 'billing' or 'all'. Optional. Default is "all".
+ *
  * @return WC_Order The WC_Order object with the new address set.
- * @since  2.0
  */
 function wcs_copy_order_address( $from_order, $to_order, $address_type = 'all' ) {
 
-	if ( in_array( $address_type, array( 'shipping', 'all' ) ) ) {
-		$to_order->set_address( array(
-			'first_name' => wcs_get_objects_property( $from_order, 'shipping_first_name' ),
-			'last_name'  => wcs_get_objects_property( $from_order, 'shipping_last_name' ),
-			'company'    => wcs_get_objects_property( $from_order, 'shipping_company' ),
-			'address_1'  => wcs_get_objects_property( $from_order, 'shipping_address_1' ),
-			'address_2'  => wcs_get_objects_property( $from_order, 'shipping_address_2' ),
-			'city'       => wcs_get_objects_property( $from_order, 'shipping_city' ),
-			'state'      => wcs_get_objects_property( $from_order, 'shipping_state' ),
-			'postcode'   => wcs_get_objects_property( $from_order, 'shipping_postcode' ),
-			'country'    => wcs_get_objects_property( $from_order, 'shipping_country' ),
-		), 'shipping' );
+	if ( 'all' === $address_type || 'shipping' === $address_type ) {
+		$to_order->set_shipping_first_name( $from_order->get_shipping_first_name() );
+		$to_order->set_shipping_last_name( $from_order->get_shipping_last_name() );
+		$to_order->set_shipping_company( $from_order->get_shipping_company() );
+		$to_order->set_shipping_address_1( $from_order->get_shipping_address_1() );
+		$to_order->set_shipping_address_2( $from_order->get_shipping_address_2() );
+		$to_order->set_shipping_city( $from_order->get_shipping_city() );
+		$to_order->set_shipping_state( $from_order->get_shipping_state() );
+		$to_order->set_shipping_postcode( $from_order->get_shipping_postcode() );
+		$to_order->set_shipping_country( $from_order->get_shipping_country() );
 	}
 
-	if ( in_array( $address_type, array( 'billing', 'all' ) ) ) {
-		$to_order->set_address( array(
-			'first_name' => wcs_get_objects_property( $from_order, 'billing_first_name' ),
-			'last_name'  => wcs_get_objects_property( $from_order, 'billing_last_name' ),
-			'company'    => wcs_get_objects_property( $from_order, 'billing_company' ),
-			'address_1'  => wcs_get_objects_property( $from_order, 'billing_address_1' ),
-			'address_2'  => wcs_get_objects_property( $from_order, 'billing_address_2' ),
-			'city'       => wcs_get_objects_property( $from_order, 'billing_city' ),
-			'state'      => wcs_get_objects_property( $from_order, 'billing_state' ),
-			'postcode'   => wcs_get_objects_property( $from_order, 'billing_postcode' ),
-			'country'    => wcs_get_objects_property( $from_order, 'billing_country' ),
-			'email'      => wcs_get_objects_property( $from_order, 'billing_email' ),
-			'phone'      => wcs_get_objects_property( $from_order, 'billing_phone' ),
-		), 'billing' );
+	if ( 'all' === $address_type || 'billing' === $address_type ) {
+		$to_order->set_billing_first_name( $from_order->get_billing_first_name() );
+		$to_order->set_billing_last_name( $from_order->get_billing_last_name() );
+		$to_order->set_billing_company( $from_order->get_billing_company() );
+		$to_order->set_billing_address_1( $from_order->get_billing_address_1() );
+		$to_order->set_billing_address_2( $from_order->get_billing_address_2() );
+		$to_order->set_billing_city( $from_order->get_billing_city() );
+		$to_order->set_billing_state( $from_order->get_billing_state() );
+		$to_order->set_billing_postcode( $from_order->get_billing_postcode() );
+		$to_order->set_billing_country( $from_order->get_billing_country() );
+		$to_order->set_billing_email( $from_order->get_billing_email() );
+		$to_order->set_billing_phone( $from_order->get_billing_phone() );
 	}
+
+	$to_order->save();
 
 	return apply_filters( 'woocommerce_subscriptions_copy_order_address', $to_order, $from_order, $address_type );
 }
 
 /**
- * Utility function to copy order meta between two orders. Originally intended to copy meta between
- * first order and subscription object, then between subscription and renewal orders.
+ * Copies order meta between two order objects (orders or subscriptions).
  *
- * The hooks used here in those cases are
- * - wcs_subscription_meta_query
- * - wcs_subscription_meta
- * - wcs_renewal_order_meta_query
- * - wcs_renewal_order_meta
+ * Intended to copy meta between first order and subscription object, then between subscription and renewal orders.
  *
- * @param  WC_Order $from_order Order to copy meta from
- * @param  WC_Order $to_order   Order to copy meta to
- * @param  string $type type of copy
+ * @param WC_Order $from_order Order|Subscription to copy meta from.
+ * @param WC_Order $to_order   Order|Subscription to copy meta to.
+ * @param string   $type       The type of copy. Can be 'subscription' or 'renewal'. Optional. Default is 'subscription'.
  */
 function wcs_copy_order_meta( $from_order, $to_order, $type = 'subscription' ) {
-	global $wpdb;
 
 	if ( ! is_a( $from_order, 'WC_Abstract_Order' ) || ! is_a( $to_order, 'WC_Abstract_Order' ) ) {
 		throw new InvalidArgumentException( _x( 'Invalid data. Orders expected aren\'t orders.', 'In wcs_copy_order_meta error message. Refers to origin and target order objects.', 'woocommerce-subscriptions' ) );
@@ -156,58 +150,7 @@ function wcs_copy_order_meta( $from_order, $to_order, $type = 'subscription' ) {
 		$type = 'copy_order';
 	}
 
-	$meta_query = $wpdb->prepare(
-		"SELECT `meta_key`, `meta_value`
-		 FROM {$wpdb->postmeta}
-		 WHERE `post_id` = %d
-		 AND `meta_key` NOT LIKE '_schedule_%%'
-		 AND `meta_key` NOT IN (
-			 '_paid_date',
-			 '_date_paid',
-			 '_completed_date',
-			 '_date_completed',
-			 '_edit_last',
-			 '_subscription_switch_data',
-			 '_order_key',
-			 '_edit_lock',
-			 '_wc_points_earned',
-			 '_transaction_id',
-			 '_billing_interval',
-			 '_billing_period',
-			 '_subscription_resubscribe',
-			 '_subscription_renewal',
-			 '_subscription_switch',
-			 '_payment_method',
-			 '_payment_method_title',
-			 '_suspension_count',
-			 '_requires_manual_renewal',
-			 '_cancelled_email_sent',
-			 '_trial_period',
-			 '_created_via',
-			 '_order_stock_reduced'
-		 )",
-		wcs_get_objects_property( $from_order, 'id' )
-	);
-
-	if ( in_array( $type, array( 'renewal_order', 'parent' ) ) ) {
-		$meta_query .= " AND `meta_key` NOT LIKE '_download_permissions_granted' ";
-	}
-
-	// Allow extensions to add/remove order meta
-	$meta_query = apply_filters( 'wcs_' . $type . '_meta_query', $meta_query, $to_order, $from_order );
-	$meta       = $wpdb->get_results( $meta_query, 'ARRAY_A' );
-	$meta       = apply_filters( 'wcs_' . $type . '_meta', $meta, $to_order, $from_order );
-
-	// Pre WC 3.0 we need to save each meta individually, post 3.0 we can save the object once
-	$save = wcs_is_woocommerce_pre( '3.0' ) ? 'save' : 'set_prop_only';
-
-	foreach ( $meta as $meta_item ) {
-		wcs_set_objects_property( $to_order, $meta_item['meta_key'], maybe_unserialize( $meta_item['meta_value'] ), $save, '', 'omit_key_prefix' );
-	}
-
-	if ( is_callable( array( $to_order, 'save' ) ) ) {
-		$to_order->save();
-	}
+	WC_Subscriptions_Data_Copier::copy( $from_order, $to_order, $type );
 }
 
 /**
@@ -271,7 +214,17 @@ function wcs_create_order_from_subscription( $subscription, $type ) {
 		// If we got here, the subscription was created without problems
 		$transaction->commit();
 
-		return apply_filters( 'wcs_new_order_created', $new_order, $subscription, $type );
+		/**
+		 * Filters the new order created from the subscription.
+		 *
+		 * Fetches a fresh instance of the order because the current order instance has an empty line item cache generated before we had copied the line items.
+		 * Fetching a new instance will ensure the line items are available via $new_order->get_items().
+		 *
+		 * @param WC_Order        $new_order    The new order created from the subscription.
+		 * @param WC_Subscription $subscription The subscription the order was created from.
+		 * @param string          $type         The type of order being created. Either 'renewal_order' or 'resubscribe_order'.
+		 */
+		return apply_filters( 'wcs_new_order_created', wc_get_order( $new_order->get_id() ), $subscription, $type );
 
 	} catch ( Exception $e ) {
 		// There was an error adding the subscription
@@ -380,7 +333,7 @@ function wcs_get_order_address( $order, $address_type = 'shipping' ) {
  * @param mixed $order A WC_Order object or the ID of the order which the subscription was purchased in.
  * @param array|string $order_type Can include 'parent', 'renewal', 'resubscribe' and/or 'switch'. Defaults to 'parent', 'resubscribe' and 'switch' orders.
  * @return bool True if the order contains a subscription that belongs to any of the given order types, otherwise false.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_order_contains_subscription( $order, $order_type = array( 'parent', 'resubscribe', 'switch' ) ) {
 
@@ -391,26 +344,91 @@ function wcs_order_contains_subscription( $order, $order_type = array( 'parent',
 
 	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
 		$order = wc_get_order( $order );
+
+		if ( ! $order ) {
+			return false;
+		}
 	}
 
 	$contains_subscription = false;
-	$get_all               = in_array( 'any', $order_type );
+	$get_all               = in_array( 'any', $order_type, true );
 
-	if ( ( in_array( 'parent', $order_type ) || $get_all ) && count( wcs_get_subscriptions_for_order( wcs_get_objects_property( $order, 'id' ), array( 'order_type' => 'parent' ) ) ) > 0 ) {
+	if ( ( in_array( 'parent', $order_type, true ) || $get_all ) && count( wcs_get_subscriptions_for_order( $order->get_id(), array( 'order_type' => 'parent' ) ) ) > 0 ) {
 		$contains_subscription = true;
 
-	} elseif ( ( in_array( 'renewal', $order_type ) || $get_all ) && wcs_order_contains_renewal( $order ) ) {
+	} elseif ( ( in_array( 'renewal', $order_type, true ) || $get_all ) && wcs_order_contains_renewal( $order ) ) {
 		$contains_subscription = true;
 
-	} elseif ( ( in_array( 'resubscribe', $order_type ) || $get_all ) && wcs_order_contains_resubscribe( $order ) ) {
+	} elseif ( ( in_array( 'resubscribe', $order_type, true ) || $get_all ) && wcs_order_contains_resubscribe( $order ) ) {
 		$contains_subscription = true;
 
-	} elseif ( ( in_array( 'switch', $order_type ) || $get_all ) && wcs_order_contains_switch( $order ) ) {
+	} elseif ( ( in_array( 'switch', $order_type, true ) || $get_all ) && wcs_order_contains_switch( $order ) ) {
 		$contains_subscription = true;
 
 	}
 
 	return $contains_subscription;
+}
+
+/**
+ * Fetches Orders and Subscriptions using wc_get_orders() with a built-in handler for the meta_query arg.
+ *
+ * This function is a replacement for the get_posts() function to help aid with transitioning over to using wc_get_orders.
+ * Args and usage: https://github.com/woocommerce/woocommerce/wiki/wc_get_orders-and-WC_Order_Query
+ *
+ * @since 5.0.0
+ *
+ * @param array $args Accepts the same arguments as wc_get_orders().
+ * @return array An array of WC_Order or WC_Subscription objects or IDs based on the args.
+ */
+function wcs_get_orders_with_meta_query( $args ) {
+	$is_hpos_in_use = wcs_is_custom_order_tables_usage_enabled();
+
+	// In CPT datastores, we have to hook into the orders query to insert any meta query args.
+	if ( ! $is_hpos_in_use ) {
+		$meta = $args['meta_query'] ?? [];
+		unset( $args['meta_query'] );
+
+		$handle_meta = function ( $query, $query_vars ) use ( $meta ) {
+			if ( [] === $meta ) {
+				return $query;
+			}
+
+			if ( ! isset( $query['meta_query'] ) ) {
+				$query['meta_query'] = $meta; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			} else {
+				$query['meta_query'] = array_merge( $query['meta_query'], $meta ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			}
+
+			return $query;
+		};
+
+		add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', $handle_meta, 10, 2 );
+	}
+
+	/**
+	 * Map the 'any' status to wcs_get_subscription_statuses() in HPOS environments.
+	 *
+	 * In HPOS environments, the 'any' status now maps to wc_get_order_statuses() statuses. Whereas, in
+	 * WP Post architecture 'any' meant any status except for ‘inherit’, ‘trash’ and ‘auto-draft’.
+	 *
+	 * If we're querying for subscriptions, we need to map 'any' to be all valid subscription statuses otherwise it would just search for order statuses.
+	 */
+	if ( isset( $args['status'], $args['type'] ) &&
+		[ 'any' ] === (array) $args['status'] &&
+		'shop_subscription' === $args['type'] &&
+		$is_hpos_in_use
+	) {
+		$args['status'] = array_keys( wcs_get_subscription_statuses() );
+	}
+
+	$results = wc_get_orders( $args );
+
+	if ( ! $is_hpos_in_use ) {
+		remove_filter( 'woocommerce_order_data_store_cpt_get_orders_query', $handle_meta, 10 );
+	}
+
+	return $results;
 }
 
 /**
@@ -420,7 +438,7 @@ function wcs_order_contains_subscription( $order, $order_type = array( 'parent',
  * @param string $return_fields The columns to return, either 'all' or 'ids'
  * @param array|string $order_type Can include 'any', 'parent', 'renewal', 'resubscribe' and/or 'switch'. Defaults to 'parent'.
  * @return array The orders that relate to a subscription, if any. Will contain either as just IDs or WC_Order objects depending on $return_fields value.
- * @since 2.1
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
  */
 function wcs_get_subscription_orders( $return_fields = 'ids', $order_type = 'parent' ) {
 	global $wpdb;
@@ -473,19 +491,24 @@ function wcs_get_subscription_orders( $return_fields = 'ids', $order_type = 'par
 		}
 
 		if ( count( $meta_query ) > 1 ) {
-			$order_ids = array_merge( $order_ids, get_posts( array(
-				'posts_per_page' => -1,
-				'post_type'      => 'shop_order',
-				'post_status'    => 'any',
-				'fields'         => 'ids',
-				'orderby'        => 'ID',
-				'order'          => 'DESC',
-				'meta_query'     => $meta_query,
-			) ) );
+			$order_ids = array_merge(
+				$order_ids,
+				wcs_get_orders_with_meta_query(
+					[
+						'limit'      => -1,
+						'type'       => 'shop_order',
+						'status'     => 'any',
+						'return'     => 'ids',
+						'orderby'    => 'ID',
+						'order'      => 'DESC',
+						'meta_query' => $meta_query, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					]
+				)
+			);
 		}
 	}
 
-	if ( 'all' == $return_fields ) {
+	if ( 'all' === $return_fields ) {
 		foreach ( $order_ids as $order_id ) {
 			$orders[ $order_id ] = wc_get_order( $order_id );
 		}
@@ -509,7 +532,7 @@ function wcs_get_subscription_orders( $return_fields = 'ids', $order_type = 'par
  *
  * @return WC_Order_Item|array The order item object or an empty array if the item doesn't exist.
  *
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_order_item( $item_id, $order ) {
 
@@ -539,7 +562,7 @@ function wcs_get_order_item( $item_id, $order ) {
  * @param int $item_id The ID of an order item
  * @param string $new_type The new type to set as the 'order_item_type' value on the order item.
  * @param int $order_or_subscription_id The order or subscription ID the line item belongs to - optional. Deletes the order item cache if provided.
- * @since 2.2.12
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.12
  */
 function wcs_update_order_item_type( $item_id, $new_type, $order_or_subscription_id = 0 ) {
 	wc_update_order_item( $item_id, array( 'order_item_type' => $new_type ) );
@@ -556,7 +579,7 @@ function wcs_update_order_item_type( $item_id, $new_type, $order_or_subscription
  *
  * @param array
  * @return WC_Order_Item_Meta
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_order_item_meta( $item, $product = null ) {
 	if ( false === wcs_is_woocommerce_pre( '3.0' ) ) {
@@ -569,7 +592,7 @@ function wcs_get_order_item_meta( $item, $product = null ) {
  * Create a string representing an order item's name and optionally include attributes.
  *
  * @param array $order_item An order item.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_order_item_name( $order_item, $include = array() ) {
 
@@ -684,7 +707,7 @@ function wcs_get_line_item_name( $line_item ) {
 /**
  * Display item meta data in a version compatible way.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param  WC_Item $item
  * @param  WC_Order $order
  * @return void
@@ -700,7 +723,7 @@ function wcs_display_item_meta( $item, $order ) {
 /**
  * Display item download links in a version compatible way.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param  WC_Item $item
  * @param  WC_Order $order
  * @return void
@@ -718,7 +741,7 @@ function wcs_display_item_downloads( $item, $order ) {
 /**
  * Copy the order item data and meta data from one item to another.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param  WC_Order_Item $from_item The order item to copy data from
  * @param  WC_Order_Item $to_item The order item to copy data to
  */
@@ -805,7 +828,7 @@ function wcs_copy_order_item( $from_item, &$to_item ) {
 /**
  * Checks an order to see if it contains a manual subscription.
  *
- * @since 2.4.3
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.3
  * @param WC_Order|int $order The WC_Order object or ID to get related subscriptions from.
  * @param string|array $order_type The order relationship type(s). Can be single string or an array of order types. Optional. Default is 'any'.
  * @return bool
@@ -827,7 +850,7 @@ function wcs_order_contains_manual_subscription( $order, $order_type = 'any' ) {
 /**
  * Copy payment method from a subscription to an order.
  *
- * @since 2.4.3
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.3
  * @param WC_Subscription $subscription
  * @param WC_Order $order
  */
@@ -854,7 +877,7 @@ function wcs_copy_payment_method_to_order( $subscription, $order ) {
  * @param WC_Order $order
  *
  * @return int
- * @since 2.5.3
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
  */
 function wcs_minutes_since_order_created( $order ) {
 	$now             = new WC_DateTime( 'now', $order->get_date_created()->getTimezone() );
@@ -869,7 +892,7 @@ function wcs_minutes_since_order_created( $order ) {
  * @param WC_Order $order
  *
  * @return int
- * @since 2.5.3
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
  */
 function wcs_seconds_since_order_created( $order ) {
 	return time() - $order->get_date_created()->getTimestamp();
@@ -878,7 +901,7 @@ function wcs_seconds_since_order_created( $order ) {
 /**
  * Finds a corresponding subscription line item on an order.
  *
- * @since 2.6.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  *
  * @param WC_Abstract_Order $order         The order object to look for the item in.
  * @param WC_Order_Item $subscription_item The line item on the the subscription to find on the order.
@@ -915,7 +938,7 @@ function wcs_find_matching_line_item( $order, $subscription_item, $match_type = 
 /**
  * Checks if an order contains a product.
  *
- * @since 2.6.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  *
  * @param WC_Order $order     An order object
  * @param WC_Product $product A product object
@@ -940,7 +963,7 @@ function wcs_order_contains_product( $order, $product ) {
  * Check if a given order is a subscription renewal order.
  *
  * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
- * @since 2.3.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  * @return bool True if the order contains an early renewal, otherwise false.
  */
 function wcs_order_contains_early_renewal( $order ) {
@@ -955,7 +978,7 @@ function wcs_order_contains_early_renewal( $order ) {
 	/**
 	 * Allow third-parties to filter whether this order contains the early renewal flag.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 * @param bool     $is_renewal True if early renewal meta was found on the order, otherwise false.
 	 * @param WC_Order $order The WC_Order object.
 	 */

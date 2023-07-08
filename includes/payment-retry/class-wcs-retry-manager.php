@@ -56,9 +56,6 @@ class WCS_Retry_Manager {
 
 			add_filter( 'woocommerce_subscription_dates', __CLASS__ . '::add_retry_date_type' );
 
-			add_action( 'delete_post', __CLASS__ . '::maybe_cancel_retry_for_order' );
-			add_action( 'wp_trash_post', __CLASS__ . '::maybe_cancel_retry_for_order' );
-
 			add_action( 'woocommerce_subscription_status_updated', __CLASS__ . '::maybe_cancel_retry', 0, 3 );
 
 			add_action( 'woocommerce_subscriptions_retry_status_updated', __CLASS__ . '::maybe_delete_payment_retry_date', 0, 2 );
@@ -74,10 +71,33 @@ class WCS_Retry_Manager {
 
 			add_action( 'woocommerce_subscriptions_before_upgrade', __CLASS__ . '::upgrade', 11, 2 );
 
+			// Attach hooks that depend on WooCommerce being loaded.
+			add_action( 'woocommerce_loaded', array( __CLASS__, 'attach_wc_dependant_hooks' ) );
+
 			if ( ! self::$table_maker ) {
 				self::$table_maker = new WCS_Retry_Table_Maker();
 				add_action( 'init', array( self::$table_maker, 'register_tables' ), 0 );
 			}
+		}
+	}
+
+	/**
+	 * Attaches hooks that depend on WooCommerce being loaded.
+	 *
+	 * We need to use different hooks on stores that have HPOS enabled but to check if this feature
+	 * is enabled, we must wait for WooCommerce to be loaded first.
+	 *
+	 * @since 4.8.0
+	 */
+	public static function attach_wc_dependant_hooks() {
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			// Ensure scheduled retries are deleted when a renewal order is deleted or trashed.
+			add_action( 'woocommerce_before_trash_order', __CLASS__ . '::maybe_cancel_retry_for_order' );
+			add_action( 'woocommerce_before_delete_order', __CLASS__ . '::maybe_cancel_retry_for_order' );
+		} else {
+			// Ensure scheduled retries are deleted when a renewal order is deleted or trashed.
+			add_action( 'delete_post', __CLASS__ . '::maybe_cancel_retry_for_order' );
+			add_action( 'wp_trash_post', __CLASS__ . '::maybe_cancel_retry_for_order' );
 		}
 	}
 
@@ -154,20 +174,20 @@ class WCS_Retry_Manager {
 	/**
 	 * When a (renewal) order is trashed or deleted, make sure its retries are also trashed/deleted.
 	 *
-	 * @param int $post_id
+	 * @param int $order_id
 	 */
-	public static function maybe_cancel_retry_for_order( $post_id ) {
+	public static function maybe_cancel_retry_for_order( $order_id ) {
 
-		if ( 'shop_order' == get_post_type( $post_id ) ) {
+		if ( 'shop_order' === WC_Data_Store::load( 'order' )->get_order_type( $order_id ) ) {
 
-			$last_retry = self::store()->get_last_retry_for_order( $post_id );
+			$last_retry = self::store()->get_last_retry_for_order( $order_id );
 
 			// Make sure the last retry is cancelled first so that it is unscheduled via self::maybe_delete_payment_retry_date()
 			if ( null !== $last_retry && 'cancelled' !== $last_retry->get_status() ) {
 				$last_retry->update_status( 'cancelled' );
 			}
 
-			foreach ( self::store()->get_retry_ids_for_order( $post_id ) as $retry_id ) {
+			foreach ( self::store()->get_retry_ids_for_order( $order_id ) as $retry_id ) {
 				self::store()->delete_retry( $retry_id );
 			}
 		}

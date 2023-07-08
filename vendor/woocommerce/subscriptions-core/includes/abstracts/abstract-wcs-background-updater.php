@@ -8,8 +8,8 @@
  * @author   Prospress
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin
- * @version  2.3
- * @since    2.3
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.3
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.3
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

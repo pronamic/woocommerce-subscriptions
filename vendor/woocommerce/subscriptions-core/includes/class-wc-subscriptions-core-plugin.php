@@ -3,7 +3,7 @@
  * WooCommerce Subscriptions setup
  *
  * @package WooCommerce Subscriptions
- * @since   4.0.0
+ * @since   1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -13,11 +13,10 @@ require_once dirname( __FILE__ ) . '/class-wcs-core-autoloader.php';
 class WC_Subscriptions_Core_Plugin {
 
 	/**
-	 * The plugin version core is based off.
-	 *
+	 * The version of subscriptions-core library.
 	 * @var string
 	 */
-	protected $plugin_version = '3.1.6';
+	protected $library_version = '5.8.0'; // WRCS: DEFINED_VERSION.
 
 	/**
 	 * The subscription scheduler instance.
@@ -58,6 +57,9 @@ class WC_Subscriptions_Core_Plugin {
 			$this->autoloader->register();
 		}
 
+		// Load the Order Tables/Data Store Controller class early.
+		new WCS_Orders_Table_Data_Store_Controller();
+
 		$this->define_constants();
 		$this->includes();
 		$this->init();
@@ -70,7 +72,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Gets the Subscriptions Core instance.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @return WC_Subscriptions_Core_Plugin
 	 */
 	public static function instance() {
@@ -206,7 +208,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Attaches the hooks to init/setup the plugin.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public function init_hooks() {
 		register_deactivation_hook( $this->get_plugin_file(), array( $this, 'deactivate_plugin' ) );
@@ -234,7 +236,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Gets the subscriptions core directory.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @param string $path Optional. The path to append.
 	 * @return string
 	 */
@@ -245,7 +247,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Gets the subscriptions core directory url.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @param string $path Optional. The path to append.
 	 * @return string
 	 */
@@ -256,10 +258,20 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Gets the plugin's version
 	 *
-	 * @since 4.0.0
+	 * @deprecated 5.0.0 This function is no longer recommended for version detection. Use get_library_version() instead.
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public function get_plugin_version() {
-		return $this->plugin_version;
+		return $this->library_version;
+	}
+
+	/**
+	 * Gets the subscription-core library version.
+	 *
+	 * @since 5.0.0
+	 */
+	public function get_library_version() {
+		return $this->library_version;
 	}
 
 	/**
@@ -301,7 +313,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Gets the core Payment Gateways handler class
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @return string
 	 */
 	public function get_gateways_handler_class() {
@@ -311,7 +323,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Registers Subscriptions order types.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public function register_order_types() {
 		$subscriptions_exist = $this->cache->cache_and_get( 'wcs_do_subscriptions_exist', 'wcs_do_subscriptions_exist' );
@@ -382,7 +394,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Registers data stores.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @return string[]
 	 */
 	public function add_data_stores( $data_stores ) {
@@ -400,7 +412,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Registers our custom post statuses, used for subscription statuses.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public function register_post_statuses() {
 		$subscription_statuses = wcs_get_subscription_statuses();
@@ -438,7 +450,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Runs the required processes when the plugin is deactivated.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public function deactivate_plugin() {
 		delete_option( WC_Subscriptions_Admin::$option_prefix . '_is_active' );
@@ -449,7 +461,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Runs the required process on plugin activation.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public function activate_plugin() {
 		$is_active = get_option( WC_Subscriptions_Admin::$option_prefix . '_is_active', false );
@@ -492,7 +504,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Registers plugin translation files.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public function load_plugin_textdomain() {
 		$plugin_rel_path = apply_filters( 'woocommerce_subscriptions_translation_file_rel_path', $this->get_subscriptions_core_directory() . '/languages' );
@@ -504,7 +516,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Adds the settings, docs and support links to the plugin screen.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param string[] $links The plugin's links displayed on the plugin screen.
 	 * @return string[]
@@ -522,7 +534,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Displays an upgrade notice for stores upgrading to 2.0.0.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param array $plugin_data Information about the plugin.
 	 * @param array $r response from the server about the new version.
@@ -545,7 +557,7 @@ class WC_Subscriptions_Core_Plugin {
 	/**
 	 * Sets up the Blocks integration class.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public function setup_blocks_integration() {
 		/**
@@ -572,7 +584,7 @@ class WC_Subscriptions_Core_Plugin {
 	 * Renewals use a lot more memory on WordPress multisite (10-15mb instead of 0.1-1mb) so
 	 * we need to reduce the number of renewals run in each request.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param int $batch_size The default Action Scheduler batch size.
 	 * @return int

@@ -6,7 +6,7 @@
  * @subpackage WCS_Hook_Deprecator
  * @category   Class
  * @author     Prospress
- * @since      2.0
+ * @since      1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 class WCS_Dynamic_Action_Deprecator extends WCS_Dynamic_Hook_Deprecator {
@@ -38,7 +38,7 @@ class WCS_Dynamic_Action_Deprecator extends WCS_Dynamic_Hook_Deprecator {
 	 * We need to use the special 'all' hook here because we don't actually know the full hook names
 	 * in advance, just their prefix.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function __construct() {
 		parent::__construct();
@@ -47,7 +47,7 @@ class WCS_Dynamic_Action_Deprecator extends WCS_Dynamic_Hook_Deprecator {
 	/**
 	 * Display a notice if functions are hooked to the old filter and apply the old filters args
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function trigger_hook( $old_hook, $new_callback_args ) {
 

@@ -6,7 +6,7 @@
  *
  * @author  Prospress
  * @package WooCommerce_Subscription/Templates
- * @version 2.6.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,14 +18,14 @@ wc_print_notices();
 /**
  * Gets subscription details table template
  * @param WC_Subscription $subscription A subscription object
- * @since 2.2.19
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
  */
 do_action( 'woocommerce_subscription_details_table', $subscription );
 
 /**
  * Gets subscription totals table template
  * @param WC_Subscription $subscription A subscription object
- * @since 2.2.19
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
  */
 do_action( 'woocommerce_subscription_totals_table', $subscription );
 

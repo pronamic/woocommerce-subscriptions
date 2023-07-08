@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * An email sent to the admin when a subscription is expired.
  *
  * @class WCS_Email_On_Hold_Subscription
- * @version 2.1
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
  * @package WooCommerce_Subscriptions/Classes/Emails
  * @author Prospress
  * @extends WC_Email
@@ -48,7 +48,7 @@ class WCS_Email_On_Hold_Subscription extends WC_Email {
 	/**
 	 * Get the default e-mail subject.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_subject() {
@@ -58,7 +58,7 @@ class WCS_Email_On_Hold_Subscription extends WC_Email {
 	/**
 	 * Get the default e-mail heading.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_heading() {

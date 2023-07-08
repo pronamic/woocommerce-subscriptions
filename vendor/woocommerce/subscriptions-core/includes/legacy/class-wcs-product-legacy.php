@@ -8,14 +8,14 @@
  * @package WooCommerce Subscriptions
  * @subpackage WCS_Product_Legacy
  * @category Class
- * @since 2.2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  */
 class WCS_Product_Legacy {
 
 	/**
 	 * Set up the class, including it's hooks & filters, when the file is loaded.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 **/
 	public static function init() {
 
@@ -27,7 +27,7 @@ class WCS_Product_Legacy {
 	 * Use legacy classes for WC < 3.0
 	 *
 	 * @return string $classname The name of the WC_Product_* class which should be instantiated to create an instance of this product.
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public static function set_product_class( $classname, $product_type, $post_type, $product_id ) {
 

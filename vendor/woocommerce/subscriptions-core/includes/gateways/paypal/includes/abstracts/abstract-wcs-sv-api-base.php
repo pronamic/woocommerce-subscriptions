@@ -25,7 +25,7 @@
  * @author    SkyVerge
  * @copyright Copyright (c) 2013-2015, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
- * @version 2.2.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -38,7 +38,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * This class provides a standardized framework for constructing an API wrapper
  * to external services. It is designed to be extremely flexible.
  *
- * @version 2.2.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  */
 abstract class WCS_SV_API_Base {
 
@@ -86,7 +86,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Perform the request and return the parsed response
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param object $request class instance which implements \SV_WC_API_Request
 	 * @throws Exception
 	 * @return object class instance which implements \SV_WC_API_Response
@@ -129,7 +129,7 @@ abstract class WCS_SV_API_Base {
 	 * and provide their own transport mechanism if needed, e.g. a custom
 	 * cURL implementation
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param string $request_uri
 	 * @param string $request_args
 	 * @return array|WP_Error
@@ -142,7 +142,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Handle and parse the response
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param array|WP_Error $response response data
 	 * @throws Exception network issues, timeouts, API errors, etc
 	 * @return object request class instance that implements SV_WC_API_Request
@@ -192,7 +192,7 @@ abstract class WCS_SV_API_Base {
 	 * an exception, as it will be included in the broadcast_request() method
 	 * which is typically used to log requests.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	protected function do_pre_parse_response_validation() {
 		// stub method
@@ -210,7 +210,7 @@ abstract class WCS_SV_API_Base {
 	 *
 	 * Note: Response body sanitization is handled automatically
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	protected function do_post_parse_response_validation() {
 		// stub method
@@ -220,7 +220,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Return the parsed response object for the request
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param string $raw_response_body
 	 * @return object response class instance which implements SV_WC_API_Request
 	 */
@@ -236,7 +236,7 @@ abstract class WCS_SV_API_Base {
 	 * Alert other actors that a request has been performed. This is primarily used
 	 * for request logging.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	protected function broadcast_request() {
 
@@ -263,7 +263,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Reset the API response members to their
 	 *
-	 * @since 1.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0.0
 	 */
 	protected function reset_response() {
 
@@ -282,7 +282,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Get the request URI
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string
 	 */
 	protected function get_request_uri() {
@@ -297,7 +297,7 @@ abstract class WCS_SV_API_Base {
 		 * this method, which means this filter may be invoked prior to the overridden
 		 * method.
 		 *
-		 * @since 4.1.0
+		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.1.0
 		 * @param string $uri current request URI
 		 * @param \WCS_SV_API_Base class instance
 		 */
@@ -308,7 +308,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Get the request arguments in the format required by wp_remote_request()
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return mixed|void
 	 */
 	protected function get_request_args() {
@@ -333,7 +333,7 @@ abstract class WCS_SV_API_Base {
 		 * child classes can override this method, which means this filter may
 		 * not be invoked, or may be invoked prior to the overridden method
 		 *
-		 * @since 2.2.0
+		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 		 * @param array $args request arguments
 		 * @param \WCS_SV_API_Base class instance
 		 */
@@ -344,7 +344,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Get the request method, POST by default
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string
 	 */
 	protected function get_request_method() {
@@ -356,7 +356,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Get the request HTTP version, 1.1 by default
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string
 	 */
 	protected function get_request_http_version() {
@@ -368,7 +368,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Get the request headers
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return array
 	 */
 	protected function get_request_headers() {
@@ -385,7 +385,7 @@ abstract class WCS_SV_API_Base {
 	 * Child classes that implement any custom authorization headers should
 	 * override this method to perform sanitization.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return array
 	 */
 	protected function get_sanitized_request_headers() {
@@ -405,7 +405,7 @@ abstract class WCS_SV_API_Base {
 	 *
 	 * Dasherized-Plugin-Name/Plugin-Version (WooCommerce/WC-Version; WordPress/WP-Version)
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string
 	 */
 	protected function get_request_user_agent() {
@@ -417,7 +417,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Get the request duration in seconds, rounded to the 5th decimal place
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string
 	 */
 	protected function get_request_duration() {
@@ -431,7 +431,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Get the response handler class name
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string
 	 */
 	protected function get_response_handler() {
@@ -442,7 +442,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Get the response code
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string
 	 */
 	protected function get_response_code() {
@@ -453,7 +453,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Get the response message
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string
 	 */
 	protected function get_response_message() {
@@ -464,7 +464,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Get the response headers
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return array
 	 */
 	protected function get_response_headers() {
@@ -475,7 +475,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Get the raw response body, prior to any parsing or sanitization
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string
 	 */
 	protected function get_raw_response_body() {
@@ -487,7 +487,7 @@ abstract class WCS_SV_API_Base {
 	 * Get the sanitized response body, provided by the response class
 	 * to_string_safe() method
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string|null
 	 */
 	protected function get_sanitized_response_body() {
@@ -501,7 +501,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Returns the most recent request object
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @see \SV_WC_API_Request
 	 * @return object the most recent request object
 	 */
@@ -513,7 +513,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Returns the most recent response object
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @see \SV_WC_API_Response
 	 * @return object the most recent response object
 	 */
@@ -526,7 +526,7 @@ abstract class WCS_SV_API_Base {
 	 * Get the ID for the API, used primarily to namespace the action name
 	 * for broadcasting requests
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return string
 	 */
 	protected function get_api_id() {
@@ -543,7 +543,7 @@ abstract class WCS_SV_API_Base {
 	 * to build the request. The returned SV_WC_API_Request should be passed
 	 * to self::perform_request() by your concrete API methods
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param array $args optional request arguments
 	 * @return SV_WC_API_Request
 	 */
@@ -558,7 +558,7 @@ abstract class WCS_SV_API_Base {
 	 * This is used for defining the plugin ID used in filter names, as well
 	 * as the plugin name used for the default user agent.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return SV_WC_Plugin
 	 */
 	abstract protected function get_plugin();
@@ -570,7 +570,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Set a header request
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param string $name header name
 	 * @param string $value header value
 	 * @return string
@@ -597,7 +597,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Set the Content-Type request header
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param string $content_type
 	 */
 	protected function set_request_content_type_header( $content_type ) {
@@ -608,7 +608,7 @@ abstract class WCS_SV_API_Base {
 	/**
 	 * Set the Accept request header
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param string $type the request accept type
 	 */
 	protected function set_request_accept_header( $type ) {
@@ -622,7 +622,7 @@ abstract class WCS_SV_API_Base {
 	 *
 	 * Note the class should implement SV_WC_API
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param string $handler handle class name
 	 * @return array
 	 */

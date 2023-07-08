@@ -5,7 +5,7 @@
  * @author      Prospress
  * @category    Admin
  * @package     WooCommerce Subscriptions/Admin/Upgrades
- * @version     2.1
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v2.1
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,7 +19,7 @@ class WCS_Upgrade_2_1 {
 	 * date for those subscriptions still in the pending cancellation state, and therefore
 	 * where it is possible to determine the cancellation date.
 	 *
-	 * @since 2.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 */
 	public static function set_cancelled_dates() {
 		global $wpdb;

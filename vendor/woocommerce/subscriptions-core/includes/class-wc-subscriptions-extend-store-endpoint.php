@@ -6,7 +6,7 @@
  * for each subscription item
  *
  * @package WooCommerce Subscriptions
- * @since   WCBLOCKS-DEV
+ * @since   1.0.0 - Migrated from WooCommerce Subscriptions
  */
 
 use Automattic\WooCommerce\Blocks\Package;
@@ -46,7 +46,7 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 	/**
 	 * Bootstraps the class and hooks required data.
 	 *
-	 * @since WCBLOCKS-DEV
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions
 	 */
 	public static function init() {
 		self::$schema             = class_exists( 'Automattic\WooCommerce\StoreApi\StoreApi' ) ? Automattic\WooCommerce\StoreApi\StoreApi::container()->get( Automattic\WooCommerce\StoreApi\SchemaController::class ) : Package::container()->get( Automattic\WooCommerce\Blocks\StoreApi\SchemaController::class );

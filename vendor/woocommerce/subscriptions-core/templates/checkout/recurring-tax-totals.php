@@ -4,7 +4,7 @@
  *
  * @author  WooCommerce
  * @package WooCommerce Subscriptions/Templates
- * @version 3.1.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -14,7 +14,7 @@ foreach ( $recurring_carts as $recurring_cart_key => $recurring_cart ) {
 	/**
 	 * Allow third-parties to filter the tax displayed.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 * @param string The recurring cart's total tax price string.
 	 * @param WC_Cart $recurring_cart The recurring cart.
 	 */

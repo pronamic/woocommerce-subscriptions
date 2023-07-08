@@ -7,7 +7,7 @@
  * @author      Prospress
  * @category    Admin
  * @package     WooCommerce Subscriptions/Admin/Upgrades
- * @version     1.4.0
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v1.4.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -167,7 +167,7 @@ class WCS_Upgrade_1_4 {
 	 * Needs to be a separate function so that it can use a static variable (and therefore avoid calling get_option() thousands
 	 * of times when iterating over thousands of users).
 	 *
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function is_user_upgraded( $user_id ) {
 

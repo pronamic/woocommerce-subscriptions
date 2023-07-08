@@ -4,11 +4,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Subscription Data Store: Stored in CPT.
+ * Subscription Data Store: Stored in CPT (posts table).
  *
  * Extends WC_Order_Data_Store_CPT to make sure subscription related meta data is read/updated.
  *
- * @version  2.2.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @category Class
  * @author   Prospress
  */
@@ -21,7 +21,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 * the $internal_meta_keys property from WC_Order_Data_Store_CPT because we want its value
 	 * too, so instead we create our own and merge it into $internal_meta_keys in __construct.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @var array
 	 */
 	protected $subscription_internal_meta_keys = array(
@@ -39,7 +39,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 *
 	 * Used to read/update props on the subscription.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @var array
 	 */
 	protected $subscription_meta_keys_to_props = array(
@@ -91,10 +91,27 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 * Create a new subscription in the database.
 	 *
 	 * @param WC_Subscription $subscription
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function create( &$subscription ) {
+
+		$subscription_status = $subscription->get_status( 'edit' );
+
+		if ( ! $subscription_status ) {
+			$subscription->set_status( 'wc' . apply_filters( 'woocommerce_default_subscription_status', 'pending' ) );
+		}
+
+		/**
+		 * This function is called on the `woocommerce_new_order_data` filter.
+		 * We hook into this function, calling our own filter `woocommerce_new_subscription_data` to allow overriding the default subscription data.
+		 */
+		$new_subscription_data = function ( $args ) {
+			return apply_filters( 'woocommerce_new_subscription_data', $args );
+		};
+		add_filter( 'woocommerce_new_order_data', $new_subscription_data );
 		parent::create( $subscription );
+		remove_filter( 'woocommerce_new_order_data', $new_subscription_data );
+
 		do_action( 'woocommerce_new_subscription', $subscription->get_id() );
 	}
 
@@ -103,7 +120,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 *
 	 * Ignore meta data that we don't want accessible on the object via meta APIs.
 	 *
-	 * @since  2.3.0
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 * @param  WC_Data $object
 	 * @return array
 	 */
@@ -126,7 +143,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 *
 	 * @param WC_Subscription $subscription
 	 * @param object $post_object
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	protected function read_order_data( &$subscription, $post_object ) {
 
@@ -178,7 +195,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 * Update subscription in the database.
 	 *
 	 * @param WC_Subscription $subscription
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function update( &$subscription ) {
 
@@ -186,16 +203,16 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 		Abstract_WC_Order_Data_Store_CPT::update( $subscription );
 
 		// We used to call parent::update() above, which triggered this hook, so we trigger it manually here for backward compatibilty (and to improve compatibility with 3rd party code which may run validation or additional operations on it which should also be applied to a subscription)
-		do_action( 'woocommerce_update_order', $subscription->get_id() );
+		do_action( 'woocommerce_update_order', $subscription->get_id(), $subscription );
 
-		do_action( 'woocommerce_update_subscription', $subscription->get_id() );
+		do_action( 'woocommerce_update_subscription', $subscription->get_id(), $subscription );
 	}
 
 	/**
 	 * Update post meta for a subscription based on it's settings in the WC_Subscription class.
 	 *
 	 * @param WC_Subscription $subscription
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	protected function update_post_meta( &$subscription ) {
 
@@ -219,11 +236,31 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	}
 
 	/**
+	 * Get the subscription's post title
+	 */
+	protected function get_post_title() {
+		// @codingStandardsIgnoreStart
+		/* translators: %s: Order date */
+		return sprintf( __( 'Subscription &ndash; %s', 'woocommerce-subscriptions' ), ( new DateTime( 'now' ) )->format( _x( 'M d, Y @ h:i A', 'Order date parsed by DateTime::format', 'woocommerce-subscriptions' ) ) );
+		// @codingStandardsIgnoreEnd
+	}
+
+	/**
+	 * Excerpt for post.
+	 *
+	 * @param  \WC_Subscription $order Subscription object.
+	 * @return string
+	 */
+	protected function get_post_excerpt( $order ) {
+		return $order->get_customer_note();
+	}
+
+	/**
 	 * Get amount refunded for all related orders.
 	 *
 	 * @param WC_Subscription $subscription
 	 * @return string
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function get_total_refunded( $subscription ) {
 
@@ -241,7 +278,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 *
 	 * @param WC_Subscription $subscription
 	 * @return float
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function get_total_tax_refunded( $subscription ) {
 
@@ -259,7 +296,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 *
 	 * @param WC_Subscription $subscription
 	 * @return float
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function get_total_shipping_refunded( $subscription ) {
 
@@ -277,7 +314,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 *
 	 * @param  string $type
 	 * @return int
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function get_order_count( $status ) {
 		global $wpdb;
@@ -290,7 +327,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 * @see    wc_get_orders()
 	 * @param  array $args
 	 * @return array of orders
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	public function get_orders( $args = array() ) {
 
@@ -335,19 +372,14 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 *
 	 * @param WC_Subscription $subscription
 	 * @return array The date properties saved to the database in the format: array( $prop_name => DateTime Object )
-	 * @since 2.2.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.6
 	 */
 	public function save_dates( $subscription ) {
-		$saved_dates    = array();
+		$dates_to_save  = [];
 		$changes        = $subscription->get_changes();
-		$date_meta_keys = array(
-			'_schedule_trial_end',
-			'_schedule_next_payment',
-			'_schedule_cancelled',
-			'_schedule_end',
-			'_schedule_payment_retry',
-			'_schedule_start',
-		);
+		$date_meta_keys = [
+			'_schedule_payment_retry' => 'schedule_payment_retry', // This is the only date potentially missing from wcs_get_subscription_date_types().
+		];
 
 		// Add any custom date types to the date meta keys we need to save.
 		foreach ( wcs_get_subscription_date_types() as $date_type => $date_name ) {
@@ -355,43 +387,77 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 				continue;
 			}
 
-			$date_meta_key = wcs_get_date_meta_key( $date_type );
-
-			if ( ! in_array( $date_meta_key, $date_meta_keys ) ) {
-				$date_meta_keys[] = $date_meta_key;
-			}
+			$date_meta_keys[ wcs_get_date_meta_key( $date_type ) ] = wcs_maybe_prefix_key( $date_type, 'schedule_' );
 		}
 
-		$date_meta_keys_to_props = array_intersect_key( $this->subscription_meta_keys_to_props, array_flip( $date_meta_keys ) );
+		// Get the date meta keys we need to save.
+		$date_meta_keys_to_props = array_intersect_key( $this->subscription_meta_keys_to_props, $date_meta_keys );
 
-		// Save the changes to scheduled dates
-		foreach ( $this->get_props_to_update( $subscription, $date_meta_keys_to_props ) as $meta_key => $prop ) {
-			update_post_meta( $subscription->get_id(), $meta_key, $subscription->get_date( $prop ) );
-			$saved_dates[ $prop ] = wcs_get_datetime_from( $subscription->get_time( $prop ) );
+		// Save the changes to scheduled dates.
+		foreach ( $this->get_props_to_update( $subscription, $date_meta_keys_to_props ) as $prop ) {
+			$dates_to_save[] = $prop;
 		}
 
-		$post_data = array();
-
-		// Save any changes to the created date
+		// Save any changes to the created date.
 		if ( isset( $changes['date_created'] ) ) {
-			$post_data['post_date']      = gmdate( 'Y-m-d H:i:s', $subscription->get_date_created( 'edit' )->getOffsetTimestamp() );
-			$post_data['post_date_gmt']  = gmdate( 'Y-m-d H:i:s', $subscription->get_date_created( 'edit' )->getTimestamp() );
-			$saved_dates['date_created'] = $subscription->get_date_created();
+			$dates_to_save[] = 'date_created';
 		}
 
-		// Save any changes to the modified date
+		// Save any changes to the modified date.
 		if ( isset( $changes['date_modified'] ) ) {
+			$dates_to_save[] = 'date_modified';
+		}
+
+		return $this->write_dates_to_database( $subscription, $dates_to_save );
+	}
+
+	/**
+	 * Writes subscription dates to the database.
+	 *
+	 * @param WC_Subscription $subscription  The subscription to write date changes for.
+	 * @param array           $dates_to_save The dates to write to the database.
+	 *
+	 * @return WC_DateTime[] The date properties saved to the database in the format: array( $prop_name => WC_DateTime Object )
+	 */
+	public function write_dates_to_database( $subscription, $dates_to_save ) {
+		// Flip the dates for easier access and removal.
+		$dates_to_save = array_flip( $dates_to_save );
+		$dates_saved   = [];
+		$post_data     = [];
+
+		if ( isset( $dates_to_save['date_created'] ) ) {
+			$post_data['post_date']     = gmdate( 'Y-m-d H:i:s', $subscription->get_date_created( 'edit' )->getOffsetTimestamp() );
+			$post_data['post_date_gmt'] = gmdate( 'Y-m-d H:i:s', $subscription->get_date_created( 'edit' )->getTimestamp() );
+
+			// Mark the created date as saved.
+			$dates_saved['date_created'] = $subscription->get_date_created();
+			unset( $dates_to_save['date_created'] );
+		}
+
+		if ( isset( $dates_to_save['date_modified'] ) ) {
 			$post_data['post_modified']     = gmdate( 'Y-m-d H:i:s', $subscription->get_date_modified( 'edit' )->getOffsetTimestamp() );
 			$post_data['post_modified_gmt'] = gmdate( 'Y-m-d H:i:s', $subscription->get_date_modified( 'edit' )->getTimestamp() );
-			$saved_dates['date_modified']   = $subscription->get_date_modified();
+
+			// Mark the modified date as saved.
+			$dates_saved['date_modified'] = $subscription->get_date_modified();
+			unset( $dates_to_save['date_modified'] );
 		}
 
+		// Write the dates stored on in post data.
 		if ( ! empty( $post_data ) ) {
 			$post_data['ID'] = $subscription->get_id();
 			wp_update_post( $post_data );
 		}
 
-		return $saved_dates;
+		// Write the remaining dates to meta.
+		foreach ( $dates_to_save as $date_prop => $index ) {
+			$date_type = wcs_normalise_date_type_key( $date_prop );
+
+			update_post_meta( $subscription->get_id(), wcs_get_date_meta_key( $date_type ), $subscription->get_date( $date_type ) );
+			$dates_saved[ $date_prop ] = wcs_get_datetime_from( $subscription->get_time( $date_type ) );
+		}
+
+		return $dates_saved;
 	}
 
 	/**
@@ -441,7 +507,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 *
 	 * @param string $term Term to search
 	 * @return array of subscription ids
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function search_subscriptions( $term ) {
 		global $wpdb;
@@ -500,7 +566,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	/**
 	 * Get the user IDs for customers who have a subscription.
 	 *
-	 * @since 3.4.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.4.3
 	 * @return array The user IDs.
 	 */
 	public function get_subscription_customer_ids() {
@@ -511,5 +577,27 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 			FROM {$wpdb->postmeta} AS subscription_meta INNER JOIN {$wpdb->posts} AS posts ON subscription_meta.post_id = posts.ID
 			WHERE subscription_meta.meta_key = '_customer_user' AND posts.post_type = 'shop_subscription'"
 		);
+	}
+
+	/**
+	 * Deletes all rows in the postmeta table with the given meta key.
+	 *
+	 * @param string $meta_key The meta key to delete.
+	 */
+	public function delete_all_metadata_by_key( $meta_key ) {
+		// Set variables to define ambiguous parameters of delete_metadata()
+		$id         = null; // All IDs.
+		$meta_value = null; // Delete any values.
+		$delete_all = true;
+		delete_metadata( 'post', $id, $meta_key, $meta_value, $delete_all );
+	}
+
+	/**
+	 * Count subscriptions by status.
+	 *
+	 * @return array
+	 */
+	public function get_subscriptions_count_by_status() {
+		return (array) wp_count_posts( 'shop_subscription' );
 	}
 }

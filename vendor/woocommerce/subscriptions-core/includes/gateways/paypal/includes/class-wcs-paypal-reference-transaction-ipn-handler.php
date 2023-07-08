@@ -10,7 +10,7 @@
  * @subpackage  Gateways/PayPal
  * @category    Class
  * @author      Prospress
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -88,7 +88,7 @@ class WCS_PayPal_Reference_Transaction_IPN_Handler extends WCS_PayPal_Standard_I
 	 * Find all subscription with a given billing agreement ID and cancel them because that billing agreement has been
 	 * cancelled at PayPal, and therefore, no future payments can be charged.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function cancel_subscriptions( $billing_agreement_id ) {
 		$note = esc_html__( 'Billing agreement cancelled at PayPal.', 'woocommerce-subscriptions' );
@@ -111,7 +111,7 @@ class WCS_PayPal_Reference_Transaction_IPN_Handler extends WCS_PayPal_Standard_I
 	/**
 	 * Removes a billing agreement from all subscriptions.
 	 *
-	 * @since 2.5.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.4
 	 * @param string $billing_agreement_id The billing agreement to remove.
 	 */
 	protected function remove_billing_agreement_from_subscriptions( $billing_agreement_id ) {

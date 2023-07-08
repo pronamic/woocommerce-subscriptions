@@ -9,7 +9,7 @@
  * @package     WooCommerce Subscriptions
  * @subpackage  Gateways/PayPal
  * @category    Class
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,7 +23,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Billing_Agreement extends WC
 	 * Get the billing agreement ID which is returned after a successful CreateBillingAgreement API call
 	 *
 	 * @return string|null
-	 * @since 2.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.0
 	 */
 	public function get_billing_agreement_id() {
 		return $this->get_parameter( 'BILLINGAGREEMENTID' );

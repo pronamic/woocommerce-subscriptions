@@ -7,13 +7,13 @@
  * @author Prospress
  * @category Core
  * @package WooCommerce Subscriptions/Functions
- * @version     2.2.0
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  */
 
 /**
  * For a given product, and optionally price/qty, work out the sign-up with tax included, based on store settings.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param  WC_Product $product
  * @param  array $args
  * @return float
@@ -37,7 +37,7 @@ function wcs_get_price_including_tax( $product, $args = array() ) {
 /**
  * For a given product, and optionally price/qty, work out the sign-up fee with tax excluded, based on store settings.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param  WC_Product $product
  * @param  array $args
  * @return float
@@ -61,7 +61,7 @@ function wcs_get_price_excluding_tax( $product, $args = array() ) {
 /**
  * Returns a 'from' prefix if you want to show where prices start at.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @return string
  */
 function wcs_get_price_html_from_text( $product = '' ) {
@@ -78,7 +78,7 @@ function wcs_get_price_html_from_text( $product = '' ) {
 /**
  * Get an array of the prices, used to help determine min/max values.
  *
- * @since 2.2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  */
 function wcs_get_variation_prices( $variation, $variable_product ) {
 
@@ -95,7 +95,7 @@ function wcs_get_variation_prices( $variation, $variable_product ) {
  *
  * @param array $child_variation_ids the IDs of product variation children ids
  * @return array Array containing the min and max variation prices and billing data
- * @since 2.2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  */
 function wcs_get_min_max_variation_data( $variable_product, $child_variation_ids = array() ) {
 
@@ -146,7 +146,7 @@ function wcs_get_min_max_variation_data( $variable_product, $child_variation_ids
  *
  * @param array $child_variation_ids the IDs of product variation children ids
  * @return array
- * @since 2.2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  */
 function wcs_calculate_min_max_variations( $variations_data ) {
 

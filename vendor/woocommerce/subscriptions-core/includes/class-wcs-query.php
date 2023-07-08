@@ -2,7 +2,7 @@
 /**
  * WooCommerce Subscriptions Query Handler
  *
- * @version 2.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  * @author  Prospress
  */
 class WCS_Query extends WC_Query {
@@ -48,7 +48,7 @@ class WCS_Query extends WC_Query {
 	/**
 	 * Init query vars by loading options.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function init_query_vars() {
 		$this->query_vars = array(
@@ -89,7 +89,7 @@ class WCS_Query extends WC_Query {
 	 * @param string $endpoint
 	 * @return string
 	 *
-	 * @since 3.0.10
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.10
 	 */
 	public function change_my_account_endpoint_title( $title, $endpoint ) {
 		global $wp;
@@ -146,7 +146,7 @@ class WCS_Query extends WC_Query {
 	/**
 	 * Changes the URL for the subscriptions endpoint when there's only one user subscription.
 	 *
-	 * @since 2.2.17
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.17
 	 * @param string $url
 	 * @param string $endpoint
 	 * @return string
@@ -224,7 +224,7 @@ class WCS_Query extends WC_Query {
 	 * Redirect to order-pay flow for Subscription Payment Method endpoint.
 	 *
 	 * @param WP_Query $query WordPress query object
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public function maybe_redirect_payment_methods( $query ) {
 
@@ -259,7 +259,7 @@ class WCS_Query extends WC_Query {
 	 * Reset the woocommerce_myaccount_view_subscriptions_endpoint option name to woocommerce_myaccount_view_subscription_endpoint
 	 *
 	 * @return mixed Value set for the option
-	 * @since 2.2.18
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.18
 	 */
 	private function get_view_subscription_endpoint() {
 		$value = get_option( 'woocommerce_myaccount_view_subscriptions_endpoint', null );
@@ -342,7 +342,7 @@ class WCS_Query extends WC_Query {
 	 *
 	 * @param  array $query_vars
 	 * @return array
-	 * @since  2.3.0
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function add_wcs_query_vars( $query_vars ) {
 		return array_merge( $query_vars, $this->query_vars );
@@ -355,7 +355,7 @@ class WCS_Query extends WC_Query {
 	 * @param string $endpoint The endpoint/label we're filtering.
 	 *
 	 * @return array
-	 * @since 2.5.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.6
 	 */
 	public function maybe_add_active_class( $classes, $endpoint ) {
 		if ( ! isset( $classes['is-active'] ) && 'subscriptions' === $endpoint && wcs_is_view_subscription_page() ) {
@@ -374,7 +374,7 @@ class WCS_Query extends WC_Query {
 	 * @param  array $crumbs already assembled breadcrumb data
 	 * @return array $crumbs if we're on a view-subscription page, then augmented breadcrumb data
 	 *
-	 * @deprecated 3.0.10
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.10
 	 */
 	public function add_breadcrumb( $crumbs ) {
 		_deprecated_function( __METHOD__, '3.0.10' );

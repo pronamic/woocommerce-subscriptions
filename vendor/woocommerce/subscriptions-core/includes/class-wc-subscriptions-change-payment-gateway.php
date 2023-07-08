@@ -6,7 +6,7 @@
  * @subpackage WC_Subscriptions_Change_Payment_Gateway
  * @category Class
  * @author Brent Shepherd
- * @since 1.4
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
  */
 class WC_Subscriptions_Change_Payment_Gateway {
 
@@ -22,7 +22,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function init() {
 
@@ -78,7 +78,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * Set a flag to indicate that the current request is for changing payment. Better than requiring other extensions
 	 * to check the $_GET global as it allows for the flag to be overridden.
 	 *
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function set_change_payment_method_flag() {
 		if ( isset( $_GET['change_payment_method'] ) ) {
@@ -91,7 +91,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *
 	 * This is particularly important for those occasions when the new payment method caused and error or failure.
 	 *
-	 * @since 2.3.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.6
 	 */
 	public static function store_pay_shortcode_messages() {
 		self::$notices = wc_get_notices();
@@ -100,9 +100,8 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	/**
 	 * Store messages ore errors added by other plugins.
 	 *
-	 * @since 1.4
-	 * @since 2.3.6 Deprecated in favor of the method with proper spelling.
-	 * @deprecated
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
+	 * @deprecated  1.0.0 - Migrated from WooCommerce Subscriptions v2.3.6, Deprecated in favor of the method with proper spelling.
 	 */
 	public static function store_pay_shortcode_mesages() {
 		wcs_deprecated_function( __METHOD__, '2.3.6', __CLASS__ . '::store_pay_shortcode_messages' );
@@ -112,7 +111,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	/**
 	 * If requesting a payment method change, replace the woocommerce_pay_shortcode() with a change payment form.
 	 *
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function maybe_replace_pay_shortcode() {
 		global $wp;
@@ -148,7 +147,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			 * Action that allows payment methods to modify the subscription object so, for example,
 			 * if the new payment method still hasn't been set, they can set it temporarily (without saving).
 			 *
-			 * @since 2.4.0
+			 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
 			 *
 			 * @param WC_Subscription $subscription
 			 */
@@ -214,7 +213,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *
 	 * Will display a customer facing notice if the request is invalid.
 	 *
-	 * @since 3.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.0
 	 *
 	 * @param WC_Subscription $subscription
 	 * @return bool Whether the request is valid or not.
@@ -247,7 +246,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *
 	 * @param array $all_actions The $subscription_key => $actions array with all actions that will be displayed for a subscription on the "My Subscriptions" table
 	 * @param array $subscriptions All of a given users subscriptions that will be displayed on the "My Subscriptions" table
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function change_payment_method_button( $actions, $subscription ) {
 
@@ -275,7 +274,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *
 	 * @access public
 	 * @return void
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function change_payment_method_via_pay_shortcode() {
 
@@ -332,7 +331,12 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			// Process payment for the new method (with a $0 order total)
 			if ( wc_notice_count( 'error' ) == 0 ) {
 
-				$result = $available_gateways[ $new_payment_method ]->process_payment( $subscription->get_id() );
+				try {
+					$result = $available_gateways[ $new_payment_method ]->process_payment( $subscription->get_id() );
+				} catch ( Exception $e ) {
+					wc_add_notice( $e->getMessage(), 'error' );
+					return;
+				}
 
 				if ( 'success' == $result['result'] && wc_get_page_permalink( 'myaccount' ) == $result['redirect'] ) {
 					$result['redirect'] = $subscription->get_view_order_url();
@@ -343,6 +347,14 @@ class WC_Subscriptions_Change_Payment_Gateway {
 				if ( 'success' != $result['result'] ) {
 					return;
 				}
+
+				/**
+				 * After processing the payment result, make sure we get a new instance of the subscription.
+				 *
+				 * Because process_payment() is sent an ID, all subscription meta changes would occur on a different instance on the subscription.
+				 * We need a new instance to ensure we have the latest changes when processing the update all subscription payment method request below.
+				 */
+				$subscription = wcs_get_subscription( $subscription->get_id() );
 
 				$subscription->set_requires_manual_renewal( false );
 				$subscription->save();
@@ -365,7 +377,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 
 				// Redirect to success/confirmation/payment page
 				wc_add_notice( $notice );
-				wp_redirect( $result['redirect'] );
+				wp_safe_redirect( $result['redirect'] );
 				exit;
 			}
 		}
@@ -379,7 +391,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * @param  WC_Subscription $subscription An instance of a WC_Subscription object.
 	 * @param  string $new_payment_method The ID of the new payment method.
 	 * @return bool Were other subscriptions updated.
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function update_all_payment_methods_from_subscription( $subscription, $new_payment_method ) {
 
@@ -432,7 +444,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * @param  WC_Payment_Gateway $gateway The payment gateway to check.
 	 * @param  WC_Subscription $subscription An instance of a WC_Subscription object.
 	 * @return bool Gateway supports updating all current subscriptions.
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function can_update_all_subscription_payment_methods( $gateway, $subscription ) {
 
@@ -456,7 +468,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *
 	 * @param  WC_Subscription $subscription An instance of a WC_Subscription object.
 	 * @return bool Subscription will update all current subscriptions.
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function will_subscription_update_all_payment_methods( $subscription ) {
 		if ( ! wcs_is_subscription( $subscription ) ) {
@@ -472,7 +484,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * @param WC_Subscription $subscription An instance of a WC_Subscription object.
 	 * @param string $new_payment_method The ID of the new payment method.
 	 * @param array  $new_payment_method_meta The meta for the new payment method. Optional. Default false.
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function update_payment_method( $subscription, $new_payment_method, $new_payment_method_meta = false ) {
 
@@ -550,7 +562,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * when requesting to change the payment method.
 	 *
 	 * @param array $available_gateways The payment gateways which are currently being allowed.
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function get_available_payment_gateways( $available_gateways ) {
 		$is_change_payment_method_request = isset( $_GET['change_payment_method'] );
@@ -589,7 +601,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	/**
 	 * Make sure certain totals are set to 0 when the request is to change the payment method without charging anything.
 	 *
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function maybe_zero_total( $total, $subscription ) {
 		global $wp;
@@ -607,7 +619,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	/**
 	 * Redirect back to the "My Account" page instead of the "Thank You" page after changing the payment method.
 	 *
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function get_return_url( $return_url ) {
 
@@ -626,7 +638,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *
 	 * @param WC_Order $renewal_order The order which recorded the successful payment (to make up for the failed automatic payment).
 	 * @param WC_Order $original_order The original order in which the subscription was purchased.
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function change_failing_payment_method( $renewal_order, $subscription ) {
 
@@ -655,7 +667,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * @param bool            $subscription_can_be_changed Flag of whether the subscription can be changed.
 	 * @param WC_Subscription $subscription The subscription to check.
 	 * @return bool Flag indicating whether the subscription payment method can be updated.
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function can_subscription_be_updated_to_new_payment_method( $subscription_can_be_changed, $subscription ) {
 
@@ -693,7 +705,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *
 	 * @param  string $title
 	 * @return string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function change_payment_method_page_title( $title ) {
 
@@ -717,7 +729,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *
 	 * @param  array $crumbs
 	 * @return array
-	 * @since 2.4.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.2
 	 */
 	public static function change_payment_method_breadcrumb( $crumbs ) {
 
@@ -752,7 +764,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	/**
 	 * Get the Change Payment Method page title (also used for the page breadcrumb)
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @param WC_Subscription $subscription
 	 * @return string
 	 */
@@ -774,7 +786,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * @param bool $needs_payment
 	 * @param WC_Subscription $subscription
 	 * @return bool
-	 * @since 2.0.7
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.7
 	 */
 	public static function maybe_override_needs_payment( $needs_payment ) {
 
@@ -790,7 +802,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *
 	 * @param string $content The default HTML page content.
 	 * @return string $content.
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function maybe_request_log_in( $content ) {
 		global $wp;
@@ -822,8 +834,8 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * Update the recurring payment method on a subscription order.
 	 *
 	 * @param array $available_gateways The payment gateways which are currently being allowed.
-	 * @since 1.4
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function update_recurring_payment_method( $subscription_key, $order, $new_payment_method ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::update_payment_method()' );
@@ -835,8 +847,8 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *
 	 * Deprecated as we now operate on a WC_Subscription object instead of the parent order, so we don't need to hack around date changes.
 	 *
-	 * @since 1.4
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function store_original_order_dates( $new_order_status, $subscription_id ) {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -847,8 +859,8 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *
 	 * Deprecated as we now operate on a WC_Subscription object instead of the parent order, so we don't need to hack around date changes.
 	 *
-	 * @since 1.4
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function restore_original_order_dates( $order_id ) {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -870,7 +882,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 *    'order'                      WC_Order The order which recorded the successful payment (to make up for the failed automatic payment).
 	 *    'payment_gateway'            WC_Payment_Gateway The subscription's recurring payment gateway
 	 *    'order_uses_manual_payments' bool A boolean flag indicating whether the subscription requires manual renewal payment.
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function can_subscription_be_changed_to( $subscription_can_be_changed, $new_status_or_meta, $args ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::can_subscription_be_updated_to_new_payment_method()' );

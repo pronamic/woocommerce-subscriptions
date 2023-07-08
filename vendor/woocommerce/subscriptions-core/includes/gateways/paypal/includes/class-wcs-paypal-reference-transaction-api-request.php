@@ -9,7 +9,7 @@
  * @package     WooCommerce Subscriptions
  * @subpackage  Gateways/PayPal
  * @category    Class
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -31,7 +31,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * @param string $api_password the API password
 	 * @param string $api_signature the API signature
 	 * @param string $api_version the API version
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function __construct( $api_username, $api_password, $api_signature, $api_version ) {
 
@@ -63,7 +63,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 *     @type string 'cancel_url'            (Required) URL to which the buyer is returned if the buyer does not approve the use of PayPal to pay you.
 	 *     @type string 'custom'                (Optional) A free-form field for up to 256 single-byte alphanumeric characters
 	 * }
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function set_express_checkout( $args ) {
 
@@ -132,7 +132,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * @link https://developer.paypal.com/docs/classic/express-checkout/integration-guide/ECGettingStarted/#id084RN060BPF
 	 * @link https://developer.paypal.com/webapps/developer/docs/classic/api/merchant/DoExpressCheckoutPayment_API_Operation_NVP/
 	 *
-	 * @since 2.0.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
 	 * @param string $token PayPal Express Checkout token returned by SetExpressCheckout operation
 	 * @param WC_Order $order order object
 	 * @param string $type
@@ -159,7 +159,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * @link https://developer.paypal.com/webapps/developer/docs/classic/api/merchant/GetExpressCheckoutDetails_API_Operation_NVP/
 	 *
 	 * @param string $token token from SetExpressCheckout response
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_express_checkout_details( $token ) {
 
@@ -174,7 +174,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * @link https://developer.paypal.com/docs/classic/api/merchant/CreateBillingAgreement_API_Operation_NVP/
 	 *
 	 * @param string $token token from SetExpressCheckout response
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function create_billing_agreement( $token ) {
 
@@ -195,7 +195,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 *     @type string 'payment_action'       How you want to obtain payment. It is one of the following values: 'Authorization' - this payment is a basic authorization subject to settlement with PayPal Authorization and Capture; or 'Sale' - This is a final sale for which you are requesting payment.
 	 *     @type string 'return_fraud_filters' (Optional) Flag to indicate whether you want the results returned by Fraud Management Filters. By default, you do not receive this information.
 	 * }
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function do_reference_transaction( $reference_id, $order, $args = array() ) {
 
@@ -232,7 +232,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	/**
 	 * Set up the payment details for a DoExpressCheckoutPayment or DoReferenceTransaction request
 	 *
-	 * @since 2.0.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
 	 * @param WC_Order $order order object
 	 * @param string $type the type of transaction for the payment
 	 * @param bool $use_deprecated_params whether to use deprecated PayPal NVP parameters (required for DoReferenceTransaction API calls)
@@ -402,7 +402,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * Although the PayPal Standard API provides no facility for cancelling a subscription, the PayPal
 	 * Express Checkout NVP API can be used.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function manage_recurring_payments_profile_status( $profile_id, $new_status, $order = null ) {
 
@@ -424,7 +424,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 *
 	 * @param string $key
 	 * @param string|int $value
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private function add_parameter( $key, $value ) {
 		$this->parameters[ $key ] = $value;
@@ -434,7 +434,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * Add multiple parameters
 	 *
 	 * @param array $params
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private function add_parameters( array $params ) {
 		foreach ( $params as $key => $value ) {
@@ -451,7 +451,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * + `DoCapture` - captures a previously authorized transaction
 	 *
 	 * @param string $method
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private function set_method( $method ) {
 		$this->add_parameter( 'METHOD', $method );
@@ -462,7 +462,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * for convenience and readability
 	 *
 	 * @param array $params
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private function add_payment_parameters( array $params ) {
 		foreach ( $params as $key => $value ) {
@@ -476,7 +476,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 *
 	 * @param array $params
 	 * @param int $item_count current item count
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private function add_line_item_parameters( array $params, $item_count, $use_deprecated_params = false ) {
 		foreach ( $params as $key => $value ) {
@@ -498,7 +498,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * @param array $item cart or order item
 	 * @param \WC_Product $product product data
 	 * @return string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private function get_item_description( $item, $product ) {
 
@@ -545,7 +545,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 *
 	 * @see SV_WC_Payment_Gateway_API_Request::to_string()
 	 * @return string the request query string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function to_string() {
 		return http_build_query( $this->get_parameters(), '', '&' );
@@ -557,7 +557,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 *
 	 * @see SV_WC_Payment_Gateway_API_Request::to_string_safe()
 	 * @return string the pretty-printed request array string representation, safe for logging
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function to_string_safe() {
 
@@ -581,7 +581,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 *
 	 * @throws \Exception invalid amount
 	 * @return array request parameters
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_parameters() {
 		/**
@@ -624,7 +624,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * method (POST)
 	 *
 	 * @return null
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_method() { }
 
@@ -633,7 +633,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * vary per request
 	 *
 	 * @return string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_path() {
 		return '';
@@ -645,7 +645,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * to rounding issues), so line items are skipped and the order is sent as
 	 * a single item
 	 *
-	 * @since 2.0.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
 	 * @param WC_Order $order Optional. The WC_Order object. Default null.
 	 * @return bool true if line items should be skipped, false otherwise
 	 */
@@ -673,7 +673,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 		/**
 		 * Filter whether line items should be skipped or not
 		 *
-		 * @since 3.3.0
+		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.3.0
 		 * @param bool $skip_line_items True if line items should be skipped, false otherwise
 		 * @param WC_Order/null $order The WC_Order object or null.
 		 */
@@ -683,7 +683,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	/**
 	 * Round a float
 	 *
-	 * @since 2.0.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
 	 * @param float $number
 	 * @param int $precision Optional. The number of decimal digits to round to.
 	 */
@@ -694,7 +694,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	/**
 	 * Format prices.
 	 *
-	 * @since 2.2.12
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.12
 	 * @param float|int $price
 	 * @param int $decimals Optional. The number of decimal points.
 	 * @return string

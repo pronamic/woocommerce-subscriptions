@@ -8,7 +8,7 @@
  * @package  WooCommerce Subscriptions
  * @category Class
  * @author   Automattic
- * @since    3.0.6
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v3.0.6
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -18,7 +18,7 @@ class WCS_Initial_Cart_Stock_Manager extends WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 3.0.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.6
 	 */
 	public static function attach_callbacks() {
 		parent::attach_callbacks();
@@ -31,7 +31,7 @@ class WCS_Initial_Cart_Stock_Manager extends WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Gets the parent order from the cart.
 	 *
-	 * @since 3.0.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.6
 	 * @return WC_Order|bool Parent order obtained from the cart contents or false if the cart doesn't contain a parent order which has handled stock.
 	 */
 	protected static function get_order_from_cart() {
@@ -56,7 +56,7 @@ class WCS_Initial_Cart_Stock_Manager extends WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Gets the parent order from order-pay query vars.
 	 *
-	 * @since 3.0.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.6
 	 * @return WC_Order|bool Parent order obtained from query vars or false if not set or if no handling is required.
 	 */
 	protected static function get_order_from_query_vars() {
@@ -77,7 +77,7 @@ class WCS_Initial_Cart_Stock_Manager extends WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Checks if an order has already reduced stock.
 	 *
-	 * @since 3.0.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.6
 	 * @param WC_Order $order
 	 * @return bool Whether the order has reduced stock.
 	 */

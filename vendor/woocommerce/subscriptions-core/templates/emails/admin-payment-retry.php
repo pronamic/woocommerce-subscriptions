@@ -7,7 +7,7 @@
  *
  * @author  Prospress
  * @package WooCommerce_Subscriptions/Templates/Emails/Plain
- * @version 2.6.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -27,7 +27,7 @@ do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 
 /**
  * @hooked WC_Emails::order_details() Shows the order details table.
- * @since 2.5.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
  */
 do_action( 'woocommerce_email_order_details', $order, $sent_to_admin, $plain_text, $email );
 

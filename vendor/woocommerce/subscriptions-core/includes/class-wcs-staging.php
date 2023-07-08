@@ -4,7 +4,7 @@
  *
  * @package WooCommerce Subscriptions
  * @author  Prospress
- * @since   2.3.0
+ * @since   1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  */
 class WCS_Staging {
 
@@ -23,7 +23,7 @@ class WCS_Staging {
 	 * Add an order note to a renewal order to record when it was created under staging site conditions.
 	 *
 	 * @param int $renewal_order_id The renewal order ID.
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public static function maybe_record_staging_site_renewal( $renewal_order_id ) {
 
@@ -48,7 +48,7 @@ class WCS_Staging {
 	 * Add a badge to the Subscriptions submenu when a site is operating under a staging site lock.
 	 *
 	 * @param array $subscription_order_type_data The WC_Subscription register order type data.
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public static function maybe_add_menu_badge( $subscription_order_type_data ) {
 
@@ -62,7 +62,7 @@ class WCS_Staging {
 	/**
 	 * Handles admin requests to redisplay the staging site admin notice.
 	 *
-	 * @since 2.5.5
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.5
 	 */
 	public static function maybe_reset_admin_notice() {
 		if ( isset( $_REQUEST['wcs_display_staging_notice'] ) && is_admin() && current_user_can( 'manage_options' ) ) {
@@ -75,7 +75,7 @@ class WCS_Staging {
 	 * Displays a note under the edit subscription payment method field to explain why the subscription is set to Manual Renewal.
 	 *
 	 * @param WC_Subscription $subscription
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function maybe_add_payment_method_note( $subscription ) {
 		if ( wcs_is_subscription( $subscription ) && WCS_Staging::is_duplicate_site() && $subscription->has_payment_gateway() && ! $subscription->get_requires_manual_renewal() ) {
@@ -91,7 +91,7 @@ class WCS_Staging {
 	 *
 	 * @param WC_Subscription $subscription
 	 * @return string HTML content for a tooltip.
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function get_payment_method_tooltip( $subscription ) {
 		// translators: placeholder is a payment method title.
@@ -101,7 +101,7 @@ class WCS_Staging {
 	/**
 	 * Displays a notice when Subscriptions is being run on a different site, like a staging or testing site.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function handle_site_change_notice() {
 
@@ -166,7 +166,7 @@ class WCS_Staging {
 	 * We don't use a hash because keeping the URL in the value allows for viewing and editing the URL
 	 * directly in the database.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @return string The duplicate lock key.
 	 */
 	public static function get_duplicate_site_lock_key() {
@@ -174,7 +174,12 @@ class WCS_Staging {
 		$scheme   = parse_url( $site_url, PHP_URL_SCHEME ) . '://';
 		$site_url = str_replace( $scheme, '', $site_url );
 
-		return $scheme . substr_replace( $site_url, '_[wc_subscriptions_siteurl]_', strlen( $site_url ) / 2, 0 );
+		return $scheme . substr_replace(
+			$site_url,
+			'_[wc_subscriptions_siteurl]_',
+			intval( strlen( $site_url ) / 2 ),
+			0
+		);
 	}
 
 	/**
@@ -184,7 +189,7 @@ class WCS_Staging {
 	 *
 	 * @see self::get_duplicate_site_lock_key() which generates the key.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function set_duplicate_site_url_lock() {
 		update_option( 'wc_subscriptions_siteurl', self::get_duplicate_site_lock_key() );
@@ -196,7 +201,7 @@ class WCS_Staging {
 	 * Checks if the WordPress site URL is the same as the URL subscriptions considers
 	 * the live URL (@see self::set_duplicate_site_url_lock()).
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @return bool Whether the site is a duplicate URL or not.
 	 */
 	public static function is_duplicate_site() {
@@ -232,7 +237,7 @@ class WCS_Staging {
 	 *
 	 * This URL is set by @see WCS_Staging::set_duplicate_site_url_lock(). This function removes the obfuscation to get a raw URL.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param int|null    $blog_id The blog to get the URL for. Optional. Default is null. Used for multisites only.
 	 * @param string      $path    The URL path to append. Optional. Default is ''.
@@ -265,7 +270,7 @@ class WCS_Staging {
 	 * WordPress - This is typically the URL the current site is accessable via.
 	 * Subscriptions is the URL Subscritpions considers to be the URL to process live payments on. It may differ to the WP URL if the site has moved.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param string $source The URL source to get. Optional. Takes values 'current_wp_site' or 'subscriptions_install'. Default is 'current_wp_site' - the URL WP considers to be the site's.
 	 * @return string The URL.

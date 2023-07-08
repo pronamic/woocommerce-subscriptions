@@ -15,7 +15,7 @@
  *
  * @package WooCommerce Subscriptions
  * @category Class
- * @since 2.2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  *
  */
 if ( ! defined( 'ABSPATH' ) ) {

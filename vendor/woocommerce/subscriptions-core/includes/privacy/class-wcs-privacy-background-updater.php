@@ -5,7 +5,7 @@
  * @author   Prospress
  * @category Class
  * @package  WooCommerce Subscriptions\Privacy
- * @version  2.2.20
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -41,7 +41,7 @@ class WCS_Privacy_Background_Updater {
 	/**
 	 * Schedule ended subscription anonymization, if it's not already scheduled.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 */
 	public function schedule_ended_subscription_anonymization() {
 		if ( false === as_next_scheduled_action( $this->ended_subscription_anonymization_hook ) ) {
@@ -52,7 +52,7 @@ class WCS_Privacy_Background_Updater {
 	/**
 	 * Unschedule the ended subscription anonymization hook.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 */
 	protected function unschedule_ended_subscription_anonymization() {
 		as_unschedule_action( $this->ended_subscription_anonymization_hook );
@@ -61,7 +61,7 @@ class WCS_Privacy_Background_Updater {
 	/**
 	 * Schedule subscription related order anonymization, if it's not already scheduled.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param int The subscription ID.
 	 */
 	protected function schedule_subscription_orders_anonymization( $subscription_id ) {
@@ -75,7 +75,7 @@ class WCS_Privacy_Background_Updater {
 	/**
 	 * Unschedule a specific subscription's related order anonymization hook.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param int The subscription ID.
 	 */
 	protected function unschedule_subscription_orders_anonymization( $subscription_id ) {
@@ -85,7 +85,7 @@ class WCS_Privacy_Background_Updater {
 	/**
 	 * Schedule a specific order's anonymization action.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param int The order ID.
 	 */
 	protected function schedule_order_anonymization( $order_id ) {
@@ -95,7 +95,7 @@ class WCS_Privacy_Background_Updater {
 	/**
 	 * Check if an order has a scheduled anonymization action.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param int The order ID.
 	 * @return bool Wether the order has a scheduled anonymization action.
 	 */
@@ -106,7 +106,7 @@ class WCS_Privacy_Background_Updater {
 	/**
 	 * Anonymize old ended subscriptions.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 */
 	public function anonymize_ended_subscriptions() {
 		$option = wc_parse_relative_date_option( get_option( 'woocommerce_anonymize_ended_subscriptions' ) );
@@ -156,7 +156,7 @@ class WCS_Privacy_Background_Updater {
 	/**
 	 * Schedule related order anonymization events for a specific subscription.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 */
 	public function schedule_subscription_orders_anonymization_events( $subscription_id ) {
 		$subscription = wcs_get_subscription( $subscription_id );
@@ -210,7 +210,7 @@ class WCS_Privacy_Background_Updater {
 	 * Anonymize an order.
 	 *
 	 * @param int The ID of the order to be anonymized.
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 */
 	public function anonymize_order( $order_id ) {
 		$order = wc_get_order( $order_id );

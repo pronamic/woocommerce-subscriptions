@@ -2,7 +2,7 @@
 /**
  * Simple class to generate the HTML for a Select2 element in a WC version compatible way.
  *
- * @since    2.2
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.2
  * @category Class
  * @author   Prospress
  * @package  WooCommerce Subscriptions
@@ -26,7 +26,7 @@ class WCS_Select2 {
 	 * Constructor.
 	 *
 	 * @param array $attributes The attributes that make up the Select2 element
-	 * @since 2.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2
 	 */
 	public function __construct( array $attributes ) {
 		$this->attributes = array_merge( $this->default_attributes, $attributes );
@@ -36,7 +36,7 @@ class WCS_Select2 {
 	 * Render a select2 element given an array of attributes.
 	 *
 	 * @param array $attributes Select2 attributes
-	 * @since 2.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2
 	 */
 	public static function render( array $attributes ) {
 		$select2 = new self( $attributes );
@@ -48,7 +48,7 @@ class WCS_Select2 {
 	 *
 	 * @param string $property
 	 * @return string class, name, id or data-$property;
-	 * @since 2.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2
 	 */
 	protected function get_property_name( $property ) {
 		$data_properties = wcs_is_woocommerce_pre( '3.0' ) ? array( 'placeholder', 'selected', 'allow_clear' ) : array( 'placeholder', 'allow_clear' );
@@ -61,7 +61,7 @@ class WCS_Select2 {
 	 *
 	 * @param $attributes List of HTML attributes with values
 	 * @return string
-	 * @since 2.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2
 	 */
 	protected function attributes_to_html( array $attributes ) {
 
@@ -81,7 +81,7 @@ class WCS_Select2 {
 	/**
 	 * Prints the HTML to show the Select2 field.
 	 *
-	 * @since 2.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2
 	 */
 	public function print_html() {
 		$allowed_attributes = array_map( array( $this, 'get_property_name' ), array_keys( $this->attributes ) );
@@ -101,7 +101,7 @@ class WCS_Select2 {
 	 * Returns the HTML needed to show the Select2 field
 	 *
 	 * @return string
-	 * @since 2.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2
 	 */
 	public function get_html() {
 		$html = "\n<!--select2 -->\n";

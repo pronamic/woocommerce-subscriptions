@@ -7,7 +7,7 @@
  * @author   Prospress
  * @category Class
  * @package  WooCommerce Subscriptions
- * @since    2.6.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 
 class WC_Subscription_Item_Fee_Pending_Switch extends WC_Order_Item_Fee {
@@ -16,7 +16,7 @@ class WC_Subscription_Item_Fee_Pending_Switch extends WC_Order_Item_Fee {
 	 * Get item type.
 	 *
 	 * @return string
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public function get_type() {
 		return 'fee_pending_switch';

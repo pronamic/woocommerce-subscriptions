@@ -2,7 +2,7 @@
 /**
  * Outputs a subscription variation's pricing fields for WooCommerce 2.3+
  *
- * @version 2.2.12
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.12
  *
  * @var int $loop
  * @var WP_POST $variation

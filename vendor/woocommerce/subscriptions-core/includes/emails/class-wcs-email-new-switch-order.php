@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * An email sent to the admin when a customer switches their subscription.
  *
  * @class WCS_Email_New_Switch_Order
- * @version 1.5
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v1.5
  * @extends WC_Email_New_Order
  */
 class WCS_Email_New_Switch_Order extends WC_Email_New_Order {
@@ -46,7 +46,7 @@ class WCS_Email_New_Switch_Order extends WC_Email_New_Order {
 	/**
 	 * Get the default e-mail subject.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_subject() {
@@ -56,7 +56,7 @@ class WCS_Email_New_Switch_Order extends WC_Email_New_Order {
 	/**
 	 * Get the default e-mail heading.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_heading() {

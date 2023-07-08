@@ -2,7 +2,7 @@
 /**
  * Failed Scheduled Action Manager for subscription events
  *
- * @version   2.2.19
+ * @version   1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
  * @package   WooCommerce Subscriptions
  * @category  Class
  * @author    Prospress
@@ -39,7 +39,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 	 *
 	 * @param WC_Logger_Interface $logger The WC Logger instance.
 	 *
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	public function __construct( WC_Logger_Interface $logger ) {
 		$this->logger = $logger;
@@ -48,7 +48,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 	/**
 	 * Attach callbacks.
 	 *
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	public function init() {
 		add_action( 'action_scheduler_failed_action', array( $this, 'log_action_scheduler_failure' ), 10, 2 );
@@ -61,7 +61,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 	 * Log a message to the failed-scheduled-actions log.
 	 *
 	 * @param string $message the message to be written to the log.
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	protected function log( $message ) {
 		$this->logger->add( 'failed-scheduled-actions', $message );
@@ -72,7 +72,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 	 *
 	 * @param int                 $action_id The ID of the action which failed.
 	 * @param int|Exception|array $error The number of seconds an action timeouts out after or the exception/error that caused the error/shutdown.
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	public function log_action_scheduler_failure( $action_id, $error ) {
 		$action = $this->get_action( $action_id );
@@ -111,7 +111,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 	/**
 	 * Display an admin notice when a scheduled action failure has occurred.
 	 *
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	public function maybe_show_admin_notice() {
 
@@ -139,7 +139,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 			}
 
 			if ( $id ) {
-				$subject = '<a href="' . get_edit_post_link( $id ) . '">#' . $id . '</a>';
+				$subject = '<a href="' . wcs_get_edit_post_link( $id ) . '">#' . $id . '</a>';
 			} else {
 				$subject = 'unknown';
 			}
@@ -171,7 +171,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 	/**
 	 * Handle requests to disable the failed scheduled actions admin notice.
 	 *
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	protected function maybe_disable_admin_notice() {
 		if ( isset( $_GET['_wcsnonce'] ) && wp_verify_nonce( $_GET['_wcsnonce'], 'wcs_scheduled_action_timeout_error_notice' ) && isset( $_GET['wcs_scheduled_action_timeout_error_notice'] ) ) {
@@ -184,7 +184,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 	 *
 	 * @param string $hook the scheduled action hook
 	 * @return string
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	protected function get_action_hook_label( $hook ) {
 		return str_replace( array( 'woocommerce_scheduled_', '_' ), array( '', ' ' ), $hook );
@@ -195,7 +195,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 	 *
 	 * @param mixed $args the scheduled action args
 	 * @return string
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	protected function get_action_args_string( $args ) {
 		$args_string = $separator = '';
@@ -215,7 +215,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 	 *
 	 * @param int $action_id the scheduled action ID
 	 * @return ActionScheduler_Action
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	protected function get_action( $action_id ) {
 		$store = ActionScheduler_Store::instance();

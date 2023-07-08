@@ -11,19 +11,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Cache is based on the current blog in case of a multisite environment.
  *
- * @version  2.3.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  * @category Class
- * @author   Prospress
  */
 class WCS_Customer_Store_Cached_CPT extends WCS_Customer_Store_CPT implements WCS_Cache_Updater {
 
 	/**
-	 * Keep cache up-to-date with changes to our meta data via WordPress post meta APIs
-	 * by using a post meta cache manager.
+	 * Keep the cache up-to-date with changes to our meta data via WordPress post meta APIs
+	 * or WC CRUD APIs by using a data cache manager.
 	 *
-	 * @var WCS_Post_Meta_Cache_Manager_Many_To_One
+	 * @var WCS_Post_Meta_Cache_Manager_Many_To_One|WCS_Object_Data_Cache_Manager_Many_To_One Depending on the HPOS environment.
 	 */
-	protected $post_meta_cache_manager;
+	protected $object_data_cache_manager;
 
 	/**
 	 * Meta key used to store all of a customer's subscription IDs in their user meta.
@@ -33,10 +32,35 @@ class WCS_Customer_Store_Cached_CPT extends WCS_Customer_Store_CPT implements WC
 	const _CACHE_META_KEY = '_wcs_subscription_ids_cache';
 
 	/**
+	 * Gets the legacy protected variables for backwards compatibility.
+	 *
+	 * Throws a deprecated warning if accessing the now deprecated variables.
+	 *
+	 * @param string $name The variable name.
+	 * @return WCS_Post_Meta_Cache_Manager_Many_To_One|WCS_Object_Data_Cache_Manager_Many_To_One Depending on the HPOS environment.
+	 */
+	public function __get( $name ) {
+		if ( 'post_meta_cache_manager' !== $name ) {
+			return;
+		}
+
+		$old         = get_class( $this ) . '::post_meta_cache_manager';
+		$replacement = get_class( $this ) . '::object_data_cache_manager';
+
+		wcs_doing_it_wrong( $old, "$old has been deprecated, use $replacement instead.", '5.2.0' );
+
+		return $this->object_data_cache_manager;
+	}
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->post_meta_cache_manager = new WCS_Post_Meta_Cache_Manager_Many_To_One( 'shop_subscription', array( $this->get_meta_key() ) );
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			$this->object_data_cache_manager = new WCS_Object_Data_Cache_Manager_Many_To_One( 'subscription', array( $this->get_data_key() ) );
+		} else {
+			$this->object_data_cache_manager = new WCS_Post_Meta_Cache_Manager_Many_To_One( 'shop_subscription', array( $this->get_data_key() ) );
+		}
 	}
 
 	/**
@@ -44,7 +68,7 @@ class WCS_Customer_Store_Cached_CPT extends WCS_Customer_Store_CPT implements WC
 	 */
 	protected function init() {
 
-		$this->post_meta_cache_manager->init();
+		$this->object_data_cache_manager->init();
 
 		// When a user is first added, make sure the subscription cache is empty because it can not have any data yet, and we want to avoid running the query needlessly
 		add_filter( 'user_register', array( $this, 'set_empty_cache' ) );
@@ -205,15 +229,15 @@ class WCS_Customer_Store_Cached_CPT extends WCS_Customer_Store_CPT implements WC
 	/**
 	 * If there is a change to a subscription's post meta key, update the user meta cache.
 	 *
-	 * @param string $update_type The type of update to check. Can be 'add', 'update' or 'delete'.
-	 * @param int $subscription_id The subscription's post ID where the customer is being changed.
-	 * @param string $meta_key The post meta key being changed.
-	 * @param mixed $user_id The meta value, which will be subscriber's user ID when $meta_key is '_customer_user'.
-	 * @param mixed $old_user_id The previous value stored in the database for the subscription's '_customer_user'. Optional.
+	 * @param string $update_type      The type of update to check. Can be 'add', 'update' or 'delete'.
+	 * @param int    $subscription_id  The subscription's ID where the customer is being changed.
+	 * @param string $updated_data_key The object's data key being changed. Can be a post meta key or a property name.
+	 * @param mixed  $user_id          The new value stored in the database for the subscription's customer. This could be any type of value but is a user ID when the customer is being changed.
+	 * @param mixed  $old_user_id      The previous value stored in the database for the subscription's customer ID. Optional.
 	 */
-	public function maybe_update_for_post_meta_change( $update_type, $subscription_id, $meta_key, $user_id, $old_user_id = '' ) {
+	public function maybe_update_for_post_meta_change( $update_type, $subscription_id, $updated_data_key, $user_id, $old_user_id = '' ) {
 
-		if ( $this->get_meta_key() !== $meta_key ) {
+		if ( $this->get_data_key() !== $updated_data_key ) {
 			return;
 		}
 
@@ -301,7 +325,7 @@ class WCS_Customer_Store_Cached_CPT extends WCS_Customer_Store_CPT implements WC
 	 *
 	 * On multi-site installations, the current site ID is appended.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 * @return string
 	 */
 	public function get_cache_meta_key() {

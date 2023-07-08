@@ -36,8 +36,6 @@ class WCS_Core_Autoloader {
 
 	/**
 	 * Register the autoloader.
-	 *
-	 * @author Jeremy Pry
 	 */
 	public function register() {
 		spl_autoload_register( array( $this, 'autoload' ) );
@@ -53,8 +51,6 @@ class WCS_Core_Autoloader {
 	/**
 	 * Autoload a class.
 	 *
-	 * @author Jeremy Pry
-	 *
 	 * @param string $class The class name to autoload.
 	 */
 	public function autoload( $class ) {
@@ -67,14 +63,14 @@ class WCS_Core_Autoloader {
 		$full_path = $this->get_class_base_path( $class ) . $this->get_relative_class_path( $class ) . $this->get_file_name( $class );
 
 		if ( is_readable( $full_path ) ) {
-			require_once( $full_path );
+			require_once $full_path; // nosemgrep: audit.php.lang.security.file.inclusion-arg -- This is a safe file inclusion, since the autoloader is only used for classes in the includes dir.
 		}
 	}
 
 	/**
 	 * Gets the base path for a given class.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @return string
 	 */
 	public function get_class_base_path( $class ) {
@@ -83,8 +79,6 @@ class WCS_Core_Autoloader {
 
 	/**
 	 * Determine whether we should autoload a given class.
-	 *
-	 * @author Jeremy Pry
 	 *
 	 * @param string $class The class name.
 	 *
@@ -101,8 +95,6 @@ class WCS_Core_Autoloader {
 
 	/**
 	 * Convert the class name into an appropriate file name.
-	 *
-	 * @author Jeremy Pry
 	 *
 	 * @param string $class The class name.
 	 *
@@ -122,8 +114,6 @@ class WCS_Core_Autoloader {
 
 	/**
 	 * Determine if the class is one of our abstract classes.
-	 *
-	 * @author Jeremy Pry
 	 *
 	 * @param string $class The class name.
 	 *
@@ -175,12 +165,14 @@ class WCS_Core_Autoloader {
 	 */
 	protected function is_class_data_store( $class ) {
 		static $data_stores = array(
-			'wcs_related_order_store_cached_cpt'  => true,
-			'wcs_related_order_store_cpt'         => true,
-			'wcs_customer_store_cached_cpt'       => true,
-			'wcs_customer_store_cpt'              => true,
-			'wcs_product_variable_data_store_cpt' => true,
-			'wcs_subscription_data_store_cpt'     => true,
+			'wcs_orders_table_subscription_data_store' => true,
+			'wcs_orders_table_data_store_controller'   => true,
+			'wcs_related_order_store_cached_cpt'       => true,
+			'wcs_related_order_store_cpt'              => true,
+			'wcs_customer_store_cached_cpt'            => true,
+			'wcs_customer_store_cpt'                   => true,
+			'wcs_product_variable_data_store_cpt'      => true,
+			'wcs_subscription_data_store_cpt'          => true,
 		);
 
 		return isset( $data_stores[ $class ] );
@@ -190,8 +182,6 @@ class WCS_Core_Autoloader {
 	 * Get the relative path for the class location.
 	 *
 	 * This handles all of the special class locations and exceptions.
-	 *
-	 * @author Jeremy Pry
 	 *
 	 * @param string $class The class name.
 	 *

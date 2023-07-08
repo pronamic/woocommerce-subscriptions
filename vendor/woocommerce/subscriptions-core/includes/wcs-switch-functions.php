@@ -5,7 +5,7 @@
  * @author Prospress
  * @category Core
  * @package WooCommerce Subscriptions/Functions
- * @version     2.0
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Check if a given order was to switch a subscription
  *
  * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_order_contains_switch( $order ) {
 
@@ -47,7 +47,7 @@ function wcs_order_contains_switch( $order ) {
  *
  * @param int|WC_Order $order_id The post_id of a shop_order post or an instance of a WC_Order object
  * @return array Subscription details in post_id => WC_Subscription form.
- * @since  2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscriptions_for_switch_order( $order ) {
 	return wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'switch' ) );
@@ -58,7 +58,7 @@ function wcs_get_subscriptions_for_switch_order( $order ) {
  *
  * @param int|WC_Subscription $subscription_id The post_id of a shop_subscription post or an instance of a WC_Subscription object
  * @return array Order details in post_id => WC_Order form.
- * @since  2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_switch_orders_for_subscription( $subscription_id ) {
 	$subscription = wcs_get_subscription( $subscription_id );
@@ -70,7 +70,7 @@ function wcs_get_switch_orders_for_subscription( $subscription_id ) {
  *
  * @param int|WC_Product $product A WC_Product object or the ID of a product to check
  * @return bool
- * @since  2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_is_product_switchable_type( $product ) {
 
@@ -117,7 +117,7 @@ function wcs_is_product_switchable_type( $product ) {
 /**
  * Check if the cart includes any items which are to switch an existing subscription's contents.
  *
- * @since 4.0.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  * @param string $item_action Types of items to include ("any", "switch", or "add").
  * @return bool|array Returns cart items that modify subscription contents, or false if no such items exist.
  */
@@ -128,7 +128,7 @@ function wcs_cart_contains_switches( $item_action = 'any' ) {
 /**
  * Gets the switch direction of a cart item.
  *
- * @since 4.0.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  * @param array $cart_item Cart item object.
  * @return string|null Cart item subscription switch direction or null.
  */

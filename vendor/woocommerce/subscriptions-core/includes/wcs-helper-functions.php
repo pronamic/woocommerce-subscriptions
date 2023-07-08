@@ -5,7 +5,7 @@
  * @author   Prospress
  * @category Core
  * @package  WooCommerce Subscriptions/Functions
- * @version  2.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *    'include_time': (bool) whether to include a specific time for the selector. Default true.
  *    'include_year': (bool) whether to include a the year field. Default true.
  *    'include_buttons': (bool) whether to include submit buttons on the selector. Default true.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_date_input( $timestamp = 0, $args = array() ) {
 
@@ -59,7 +59,7 @@ function wcs_date_input( $timestamp = 0, $args = array() ) {
  * Get the edit post link without checking if the user can edit that post or not.
  *
  * @param int $post_id
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_edit_post_link( $post_id ) {
 	$object = wc_get_order( $post_id ); // works for both WC Order and WC Subscription objects.
@@ -81,7 +81,7 @@ function wcs_get_edit_post_link( $post_id ) {
  *
  * @param string $string string to make ASCII
  * @return string|null ASCII string or null if error occurred
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_str_to_ascii( $string ) {
 
@@ -166,7 +166,7 @@ function wcs_get_rounding_precision() {
  *
  * @param string
  * @param string
- * @since 2.2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @return string
  */
 function wcs_maybe_prefix_key( $key, $prefix = '_' ) {
@@ -178,7 +178,7 @@ function wcs_maybe_prefix_key( $key, $prefix = '_' ) {
  *
  * @param string $key
  * @param string $prefix
- * @since 2.2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @return string
  */
 function wcs_maybe_unprefix_key( $key, $prefix = '_' ) {
@@ -188,7 +188,7 @@ function wcs_maybe_unprefix_key( $key, $prefix = '_' ) {
 /**
  * Find the name of the function which called the function which called this function.
  *
- * @since 2.2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @return string
  */
 function wcs_get_calling_function_name() {
@@ -227,7 +227,7 @@ function wcs_get_transient_even_if_expired( $transient_key ) {
  *
  * @param  string $version Version string (eg 1.0.1).
  * @return string          The minor release version string (eg 1.0).
- * @since 2.3.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  */
 function wcs_get_minor_version_string( $version ) {
 	$version_parts = array_pad( array_map( 'intval', explode( '.', $version ) ), 2, 0 );
@@ -240,7 +240,7 @@ function wcs_get_minor_version_string( $version ) {
  *
  * The logic in this function is based off WooCommerce::is_request( 'frontend' ).
  *
- * @since 2.5.7
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.7
  *
  * @return bool True if it's a frontend request, false otherwise.
  */
@@ -251,7 +251,7 @@ function wcs_is_frontend_request() {
 /**
  * Sorts an array of objects by a given property in a given order.
  *
- * @since 2.6.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  *
  * @param array  $objects    An array of objects to sort.
  * @param string $property   The property to sort by.
@@ -275,7 +275,7 @@ function wcs_sort_objects( &$objects, $property, $sort_order = 'ascending' ) {
  * @param int|WC_Subscription $subscription
  *
  * @return bool|WP_Error
- * @since 3.0.6
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.6
  */
 function wcs_trial_has_passed( $subscription ) {
 	$subscription = wcs_get_subscription( $subscription );
@@ -293,7 +293,7 @@ function wcs_trial_has_passed( $subscription ) {
  * This function behaves similar to PHP's array_filter(), except instead of a callback it uses a filter.
  * This allows third-parties via WP filter callbacks to filter the array.
  *
- * @since 3.1.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
  *
  * @param string $filter   The WP filter to apply to each element.
  * @param array  $array    The array of items to check.
@@ -310,4 +310,42 @@ function wcs_apply_array_filter( $filter, $array, $property = '' ) {
 	}
 
 	return $array;
+}
+
+/**
+ * Compares an order's billing address and shipping address and returns true if they are the same.
+ *
+ * @since 5.3.0
+ *
+ * @see woocommerce_ship_to_different_address_checked
+ *
+ * @param  WC_Order $order
+ * @return bool     True if the order's billing address and shipping address are the same, false otherwise.
+ */
+function wcs_compare_order_billing_shipping_address( $order ) {
+	$billing_address  = $order->get_address( 'billing' );
+	$shipping_address = $order->get_address( 'shipping' );
+
+	// Remove extraneous fields from each address when comparing
+	if ( isset( $billing_address['email'] ) ) {
+		unset( $billing_address['email'] );
+	}
+
+	if ( isset( $billing_address['phone'] ) ) {
+		unset( $billing_address['phone'] );
+	}
+
+	if ( isset( $shipping_address['email'] ) ) {
+		unset( $shipping_address['email'] );
+	}
+
+	if ( isset( $shipping_address['phone'] ) ) {
+		unset( $shipping_address['phone'] );
+	}
+
+	// Compare the two addresses using array equality operator.
+	// phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison -- using `==` is suitable here to ignore the order of array keys.
+	$addresses_are_equal = $shipping_address == $billing_address;
+
+	return $addresses_are_equal;
 }

@@ -5,7 +5,7 @@
  * @author   Prospress
  * @category Class
  * @package  WooCommerce Subscriptions\Privacy
- * @version  2.2.20
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -51,7 +51,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 		parent::init();
 		self::$background_process->init();
 
-		add_filter( 'woocommerce_subscription_bulk_actions', array( __CLASS__, 'add_remove_personal_data_bulk_action' ) );
+		add_filter( 'woocommerce_subscription_bulk_actions', array( __CLASS__, 'add_privacy_bulk_action' ) );
 		add_action( 'load-edit.php', array( __CLASS__, 'process_bulk_action' ) );
 		add_action( 'woocommerce_remove_subscription_personal_data', array( 'WCS_Privacy_Erasers', 'remove_subscription_personal_data' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'bulk_admin_notices' ) );
@@ -71,12 +71,14 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 		add_filter( 'woocommerce_delete_inactive_account_roles', array( __CLASS__, 'flag_subscription_user_exclusion_from_query' ), 1000 );
 		add_action( 'pre_get_users', array( __CLASS__, 'maybe_exclude_subscription_customers' ) );
 		add_filter( 'woocommerce_account_settings', array( __CLASS__, 'add_inactive_user_retention_note' ) );
+
+		add_action( 'handle_bulk_actions-woocommerce_page_wc-orders--shop_subscription', [ __CLASS__, 'handle_privacy_bulk_actions' ], 10, 3 );
 	}
 
 	/**
 	 * Spawn events for subscription cleanup.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 */
 	public function queue_cleanup_personal_data() {
 		self::$background_process->schedule_ended_subscription_anonymization();
@@ -85,7 +87,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Add privacy policy content for the privacy policy page.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 */
 	public function get_privacy_message() {
 		return '' .
@@ -100,48 +102,37 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 	}
 
 	/**
-	 * Add the option to remove personal data from subscription via a bulk action.
+	 * Adds the option to remove personal data from subscription via a bulk action.
 	 *
-	 * @since 2.2.20
+	 * @since 5.2.0
+	 *
 	 * @param array $bulk_actions Subscription bulk actions.
+	 *
+	 * @return array
 	 */
-	public static function add_remove_personal_data_bulk_action( $bulk_actions ) {
-		$bulk_actions['remove_personal_data'] = __( 'Cancel and remove personal data', 'woocommerce-subscriptions' );
+	public static function add_privacy_bulk_action( $bulk_actions ) {
+		$bulk_actions['wcs_remove_personal_data'] = __( 'Cancel and remove personal data', 'woocommerce-subscriptions' );
 		return $bulk_actions;
 	}
 
 	/**
-	 * Process the request to delete personal data from subscriptions via admin bulk action.
+	 * Handles the Remove Personal Data bulk action requests for Subscriptions.
 	 *
-	 * @since 2.2.20
+	 * @param string $redirect_url     The default URL to redirect to after handling the bulk action request.
+	 * @param string $action           The action to take against the list of subscriptions.
+	 * @param array  $subscription_ids The list of subscription to run the action against.
 	 */
-	public static function process_bulk_action() {
-
-		// We only want to deal with shop_subscription bulk actions.
-		if ( ! isset( $_REQUEST['post_type'] ) || 'shop_subscription' !== $_REQUEST['post_type'] || ! isset( $_REQUEST['post'] ) ) {
+	public static function handle_privacy_bulk_actions( $redirect_url, $action, $subscription_ids ) {
+		if ( 'wcs_remove_personal_data' !== $action ) {
 			return;
 		}
 
-		$action = '';
-
-		if ( isset( $_REQUEST['action'] ) && -1 != $_REQUEST['action'] ) {
-			$action = $_REQUEST['action'];
-		} else if ( isset( $_REQUEST['action2'] ) && -1 != $_REQUEST['action2'] ) {
-			$action = $_REQUEST['action2'];
-		}
-
-		if ( 'remove_personal_data' !== $action ) {
-			return;
-		}
-
-		$subscription_ids = array_map( 'absint', (array) $_REQUEST['post'] );
-		$changed          = 0;
-		$sendback_args    = array(
-			'post_type'   => 'shop_subscription',
-			'bulk_action' => 'remove_personal_data',
+		$changed       = 0;
+		$sendback_args = [
+			'bulk_action' => 'wcs_remove_personal_data',
 			'ids'         => join( ',', $subscription_ids ),
 			'error_count' => 0,
-		);
+		];
 
 		foreach ( $subscription_ids as $subscription_id ) {
 			$subscription = wcs_get_subscription( $subscription_id );
@@ -153,21 +144,64 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 		}
 
 		$sendback_args['changed'] = $changed;
-		$sendback = add_query_arg( $sendback_args, wp_get_referer() ? wp_get_referer() : '' );
+		$sendback                 = add_query_arg( $sendback_args, $redirect_url );
 
 		wp_safe_redirect( esc_url_raw( $sendback ) );
 		exit();
 	}
 
 	/**
+	 * Process the request to delete personal data from subscriptions via admin bulk action.
+	 *
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
+	 */
+	public static function process_bulk_action() {
+		/**
+		 * We only want to deal with shop_subscription bulk actions.
+		 *
+		 * Note: The nonce checks are ignored below as we are validating the request before returning.
+		 */
+		if ( ! isset( $_REQUEST['post_type'] ) || 'shop_subscription' !== $_REQUEST['post_type'] || ! isset( $_REQUEST['post'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+
+		check_admin_referer( 'bulk-posts' );
+
+		$action = '';
+
+		if ( isset( $_REQUEST['action'] ) && -1 !== $_REQUEST['action'] ) {
+			$action = wc_clean( wp_unslash( $_REQUEST['action'] ) );
+		} elseif ( isset( $_REQUEST['action2'] ) && -1 !== $_REQUEST['action2'] ) {
+			$action = wc_clean( wp_unslash( $_REQUEST['action2'] ) );
+		}
+
+		$subscription_ids  = array_map( 'absint', (array) $_REQUEST['post'] );
+		$base_redirect_url = wp_get_referer() ? wp_get_referer() : '';
+
+		self::handle_privacy_bulk_actions( $base_redirect_url, $action, $subscription_ids );
+	}
+
+	/**
 	 * Add admin notice after processing personal data removal bulk action.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 */
 	public static function bulk_admin_notices() {
-		global $post_type, $pagenow;
+		// Nonce verification is not required here because we're just displaying an admin notice after a verified request was made.
+		if ( ! isset( $_REQUEST['bulk_action'] ) || ! 'wcs_remove_personal_data' === wc_clean( wp_unslash( $_REQUEST['bulk_action'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
 
-		if ( 'edit.php' !== $pagenow || 'shop_subscription' !== $post_type || ! isset( $_REQUEST['bulk_action'] ) || 'remove_personal_data' !== wc_clean( $_REQUEST['bulk_action'] ) ) {
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			$current_screen             = get_current_screen();
+			$is_subscription_list_table = $current_screen && wcs_get_page_screen_id( 'shop_subscription' ) === $current_screen->id;
+		} else {
+			global $post_type, $pagenow;
+			$is_subscription_list_table = 'edit.php' === $pagenow && 'shop_subscription' === $post_type;
+		}
+
+		// Bail out if not on shop subscription list page.
+		if ( ! $is_subscription_list_table ) {
 			return;
 		}
 
@@ -180,7 +214,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Add a note to WC Personal Data Retention settings explaining that subscription orders aren't affected.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param array $settings WooCommerce Account and Privacy settings.
 	 * @return array Account and Privacy settings.
 	 */
@@ -203,7 +237,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Add admin setting to turn subscription data removal when processing erasure requests on or off.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param array $settings WooCommerce Account and Privacy settings.
 	 * @return array Account and Privacy settings.
 	 */
@@ -247,7 +281,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Remove subscription related order types from the order anonymization query.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param  array $query_args @see wc_get_orders() args.
 	 * @return array The args used to get orders to anonymize.
 	 */
@@ -267,7 +301,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Add a note to the inactive user data retention setting noting that users with a subscription are excluded.
 	 *
-	 * @since 2.3.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.4
 	 * @param array $settings WooCommerce Account and Privacy settings.
 	 * @return array Account and Privacy settings.
 	 */
@@ -285,7 +319,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Set a flag to record inactive user account deletion.
 	 *
-	 * @since 2.3.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.4
 	 * @param  array $user_roles The user roles included in the inactive user query.
 	 * @return array
 	 */
@@ -297,7 +331,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Exclude customers who have subscriptions from the inactive user cleanup query.
 	 *
-	 * @since 2.3.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.4
 	 * @param WP_User_Query $user_query
 	 */
 	public static function maybe_exclude_subscription_customers( $user_query ) {
@@ -311,5 +345,20 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 		) );
 
 		self::$doing_user_inactivity_query = false;
+	}
+
+	/* Deprecated Functions */
+
+	/**
+	 * Add the option to remove personal data from subscription via a bulk action.
+	 *
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
+	 * @param array $bulk_actions Subscription bulk actions.
+	 */
+	public static function add_remove_personal_data_bulk_action( $bulk_actions ) {
+		wcs_deprecated_function( __METHOD__, 'subscriptions-core 5.2.0', 'WCS_Privacy_Exporters::add_privacy_bulk_action' );
+		$bulk_actions['remove_personal_data'] = __( 'Cancel and remove personal data', 'woocommerce-subscriptions' );
+
+		return $bulk_actions;
 	}
 }

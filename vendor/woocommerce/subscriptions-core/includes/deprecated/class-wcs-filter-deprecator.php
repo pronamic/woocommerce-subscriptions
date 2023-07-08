@@ -11,7 +11,7 @@
  * @subpackage WCS_Hook_Deprecator
  * @category   Class
  * @author     Prospress
- * @since      2.0
+ * @since      1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 class WCS_Filter_Deprecator extends WCS_Hook_Deprecator {
@@ -69,7 +69,7 @@ class WCS_Filter_Deprecator extends WCS_Hook_Deprecator {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function __construct() {
 		parent::__construct();
@@ -78,7 +78,7 @@ class WCS_Filter_Deprecator extends WCS_Hook_Deprecator {
 	/**
 	 * Trigger the old filter with the original callback parameters and make sure the return value is passed on (when possible).
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function trigger_hook( $old_hook, $new_callback_args ) {
 

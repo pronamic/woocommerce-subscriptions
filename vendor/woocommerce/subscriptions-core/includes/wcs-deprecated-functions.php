@@ -9,7 +9,7 @@
  * @author   Prospress
  * @category Core
  * @package  WooCommerce Subscriptions/Functions
- * @version  2.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Wrapper for wc_doing_it_wrong.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param  string $function
  * @param  string $version
  * @param  string $replacement
@@ -44,7 +44,7 @@ function wcs_doing_it_wrong( $function, $message, $version ) {
  * Wrapper for wcs_deprecated_function to improve handling of ajax requests, even when
  * WooCommerce 3.0's wcs_deprecated_function method is not available.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param  string $function
  * @param  string $version
  * @param  string $replacement
@@ -69,7 +69,7 @@ function wcs_deprecated_function( $function, $version, $replacement = null ) {
 /**
  * Reimplement similar logic to wc_deprecated_argument() without the first parameter confusion.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param  string $argument
  * @param  string $version
  * @param  string $message
@@ -99,7 +99,7 @@ function wcs_deprecated_argument( $function, $version, $message = null ) {
  *
  * @param WC_Subscription $subscription An instance of WC_Subscription
  * @return string $subscription_key A subscription key in the deprecated form previously created by @see self::get_subscription_key()
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_old_subscription_key( WC_Subscription $subscription ) {
 
@@ -118,7 +118,7 @@ function wcs_get_old_subscription_key( WC_Subscription $subscription ) {
  *
  * @param string $subscription_key A subscription key in the deprecated form created by @see WC_Subscriptions_Manager::get_subscription_key()
  * @return int|null The post ID for the subscription if it can be found (i.e. an order exists) or null if no order exists for the subscription.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscription_id_from_key( $subscription_key ) {
 	global $wpdb;
@@ -165,7 +165,7 @@ function wcs_get_subscription_id_from_key( $subscription_key ) {
  *
  * @param string $subscription_key A subscription key in the deprecated form created by @see self::get_subscription_key()
  * @return WC_Subscription|null The subscription object if it can be found (i.e. an order exists) or null if no order exists for the subscription (i.e. it was manually created).
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscription_from_key( $subscription_key ) {
 
@@ -188,7 +188,7 @@ function wcs_get_subscription_from_key( $subscription_key ) {
  *
  * @param WC_Subscription $subscription An instance of WC_Subscription
  * @return array Subscription details
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscription_in_deprecated_structure( WC_Subscription $subscription ) {
 
@@ -262,7 +262,7 @@ function wcs_get_subscription_in_deprecated_structure( WC_Subscription $subscrip
  * Wrapper for wc_deprecated_hook to improve handling of ajax requests, even when
  * WooCommerce 3.3.0's wc_deprecated_hook method is not available.
  *
- * @since 2.6.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  * @param string $hook        The hook that was used.
  * @param string $version     The version that deprecated the hook.
  * @param string $replacement The hook that should have been used.

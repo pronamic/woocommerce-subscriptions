@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * WCS Variable Product Data Store: Stored in CPT.
  *
- * @version  2.3.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  * @author   Prospress
  */
 class WCS_Product_Variable_Data_Store_CPT extends WC_Product_Variable_Data_Store_CPT {

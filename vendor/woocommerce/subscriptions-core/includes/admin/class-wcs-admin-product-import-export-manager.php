@@ -6,7 +6,7 @@
  *
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin
- * @version  3.0.13
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v3.0.13
  */
 
 defined( 'ABSPATH' ) || exit;

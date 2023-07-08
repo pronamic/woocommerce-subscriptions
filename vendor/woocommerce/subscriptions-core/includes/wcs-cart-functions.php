@@ -8,7 +8,7 @@
  * @author Prospress
  * @category Core
  * @package WooCommerce Subscriptions/Functions
- * @version     2.0
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -62,7 +62,7 @@ function wcs_cart_totals_shipping_html() {
 			foreach ( $recurring_cart->get_shipping_packages() as $recurring_cart_package_key => $recurring_cart_package ) {
 				$package_index = isset( $recurring_cart_package['package_index'] ) ? $recurring_cart_package['package_index'] : 0;
 				$product_names = array();
-				$package       = WC_Subscriptions_Cart::get_calculated_shipping_for_package( $recurring_cart_package );
+				$package       = WC()->shipping->calculate_shipping_for_package( $recurring_cart_package );
 
 				if ( $show_package_details ) {
 					foreach ( $package['contents'] as $item_id => $values ) {
@@ -442,7 +442,7 @@ function wcs_get_cart_item_name( $cart_item, $include = array() ) {
 /**
  * Allows protected products to be renewed.
  *
- * @since 2.4.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
  */
 function wcs_allow_protected_products_to_renew() {
 	remove_filter( 'woocommerce_add_to_cart_validation', 'wc_protected_product_add_to_cart' );
@@ -451,7 +451,7 @@ function wcs_allow_protected_products_to_renew() {
 /**
  * Restores protected products from being added to the cart.
  * @see   wcs_allow_protected_products_to_renew
- * @since 2.4.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
  */
 function wcs_disallow_protected_product_add_to_cart_validation() {
 	add_filter( 'woocommerce_add_to_cart_validation', 'wc_protected_product_add_to_cart', 10, 2 );
@@ -460,7 +460,7 @@ function wcs_disallow_protected_product_add_to_cart_validation() {
 /**
  * Gets all the cart items linked to a given subscription order type.
  *
- * @since 3.1.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
  *
  * @param string $order_type The order type to get cart items for. Can be 'parent', 'renewal', 'resubscribe', 'switch'.
  * @return array[] An array of cart items which are linked to an order or subscription by the order type relationship.

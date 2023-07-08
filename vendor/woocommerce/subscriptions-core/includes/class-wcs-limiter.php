@@ -4,7 +4,7 @@
  *
  * @package WooCommerce Subscriptions
  * @category Class
- * @since 2.1
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
  */
 class WCS_Limiter {
 
@@ -32,7 +32,7 @@ class WCS_Limiter {
 	/**
 	 * Adds limit options to 'Edit Product' screen.
 	 *
-	 * @since 2.1 Moved from WC_Subscriptions_Admin
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1, Moved from WC_Subscriptions_Admin
 	 */
 	public static function admin_edit_product_fields() {
 		global $post;
@@ -61,7 +61,7 @@ class WCS_Limiter {
 	/**
 	 * Canonical is_purchasable method to be called by product classes.
 	 *
-	 * @since 2.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 * @param bool $purchasable Whether the product is purchasable as determined by parent class
 	 * @param mixed $product The product in question to be checked if it is purchasable.
 	 *
@@ -102,7 +102,7 @@ class WCS_Limiter {
 	/**
 	 * If a product is limited and the customer already has a subscription, mark it as not purchasable.
 	 *
-	 * @since 2.1 Moved from WC_Subscriptions_Product
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1, Moved from WC_Subscriptions_Product
 	 * @return bool
 	 */
 	public static function is_purchasable_product( $is_purchasable, $product ) {
@@ -131,7 +131,7 @@ class WCS_Limiter {
 	 * If a product is being marked as not purchasable because it is limited and the customer has a subscription,
 	 * but the current request is to switch the subscription, then mark it as purchasable.
 	 *
-	 * @since 2.1 Moved from WC_Subscriptions_Switcher::is_purchasable
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1, Moved from WC_Subscriptions_Switcher::is_purchasable
 	 * @return bool
 	 */
 	public static function is_purchasable_switch( $is_purchasable, $product ) {
@@ -192,7 +192,7 @@ class WCS_Limiter {
 	/**
 	 * Determines whether a product is purchasable based on whether the cart is to resubscribe or renew.
 	 *
-	 * @since 2.1 Combines WCS_Cart_Renewal::is_purchasable and WCS_Cart_Resubscribe::is_purchasable
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1, Combines WCS_Cart_Renewal::is_purchasable and WCS_Cart_Resubscribe::is_purchasable
 	 * @return bool
 	 */
 	public static function is_purchasable_renewal( $is_purchasable, $product ) {
@@ -227,7 +227,7 @@ class WCS_Limiter {
 	/**
 	 * Check if the current session has an order awaiting payment for a subscription to a specific product line item.
 	 *
-	 * @since 2.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.0
 	 * @param int $product_id The product to look for a subscription awaiting payment.
 	 * @return bool
 	 **/
@@ -280,7 +280,7 @@ class WCS_Limiter {
 	 *
 	 * This function will return no statuses if the order contains non purchasable or limited products.
 	 *
-	 * @since 3.0.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.2
 	 *
 	 * @param array $statuses The order statuses that enable the order again button.
 	 * @return array $statuses An empty array if the order contains limited products, otherwise the default statuses are returned.

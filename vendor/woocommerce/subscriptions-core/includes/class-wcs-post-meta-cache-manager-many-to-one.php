@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * only one cache should exist for the meta value. This differs to WCS_Post_Meta_Cache_Manager
  * which allows multiple caches for the same meta value i.e. a many-to-many relationship.
  *
- * @version  2.3.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  * @category Class
  * @author   Prospress
  */

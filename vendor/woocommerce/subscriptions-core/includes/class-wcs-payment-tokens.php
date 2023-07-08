@@ -7,7 +7,7 @@
  * @package  WooCommerce Subscriptions
  * @category Class
  * @author   Prospress
- * @since    2.5.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -78,7 +78,7 @@ class WCS_Payment_Tokens extends WC_Payment_Tokens {
 	 * @param WC_Subscription $subscription The subscription to update.
 	 * @param string $gateway_id The target gateway ID.
 	 * @return bool|array Payment meta data. False if no meta is found.
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function get_subscription_payment_meta( $subscription, $gateway_id ) {
 		$payment_method_meta = apply_filters( 'woocommerce_subscription_payment_meta', array(), $subscription );
@@ -95,35 +95,32 @@ class WCS_Payment_Tokens extends WC_Payment_Tokens {
 	 *
 	 * @param  WC_Payment_Token $payment_token Payment token object.
 	 * @return array subscription posts
-	 * @since  2.5.0
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function get_subscriptions_from_token( $payment_token ) {
 		$user_subscriptions     = array();
 		$users_subscription_ids = WCS_Customer_Store::instance()->get_users_subscription_ids( $payment_token->get_user_id() );
 
 		if ( ! empty( $users_subscription_ids ) ) {
-			$meta_query = array(
-				array(
-					'key'   => '_payment_method',
-					'value' => $payment_token->get_gateway_id(),
-				),
-				array(
-					'key'   => '_requires_manual_renewal',
-					'value' => 'false',
-				),
-				array(
-					'value' => $payment_token->get_token(),
-				),
+			$subscription_ids = wcs_get_orders_with_meta_query(
+				[
+					'type'           => 'shop_subscription',
+					'status'         => [ 'wc-pending', 'wc-active', 'wc-on-hold' ],
+					'payment_method' => $payment_token->get_gateway_id(),
+					'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+						[
+							'key'   => '_requires_manual_renewal',
+							'value' => 'false',
+						],
+						[
+							'value' => $payment_token->get_token(),
+						],
+					],
+					'limit'          => -1,
+					'return'         => 'ids',
+					'post__in'       => $users_subscription_ids,
+				]
 			);
-
-			$subscription_ids = get_posts( array(
-				'post_type'      => 'shop_subscription',
-				'post_status'    => array( 'wc-pending', 'wc-active', 'wc-on-hold' ),
-				'meta_query'     => $meta_query,
-				'posts_per_page' => -1,
-				'fields'         => 'ids',
-				'post__in'       => $users_subscription_ids,
-			) );
 
 			if ( has_filter( 'woocommerce_subscriptions_by_payment_token' ) ) {
 				wcs_deprecated_function( 'The "woocommerce_subscriptions_by_payment_token" hook should no longer be used. It previously filtered post objects and in moving to CRUD and Subscription APIs the "woocommerce_subscriptions_by_payment_token"', '2.5.0', 'woocommerce_subscriptions_from_payment_token' );
@@ -146,7 +143,7 @@ class WCS_Payment_Tokens extends WC_Payment_Tokens {
 	 * @param  int (optional) The customer id - defaults to the current user.
 	 * @param  string (optional) Gateway ID for getting tokens for a specific gateway.
 	 * @return array of WC_Payment_Token objects.
-	 * @since  2.2.7
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
 	public static function get_customer_tokens( $customer_id = '', $gateway_id = '' ) {
 		if ( '' === $customer_id ) {
@@ -165,7 +162,7 @@ class WCS_Payment_Tokens extends WC_Payment_Tokens {
 	 *
 	 * @param  WC_Payment_Token $token The token to find an alternative for.
 	 * @return WC_Payment_Token The customer's alternative token.
-	 * @since  2.2.7
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
 	public static function get_customers_alternative_token( $token ) {
 		$payment_tokens    = self::get_customer_tokens( $token->get_user_id(), $token->get_gateway_id() );
@@ -194,7 +191,7 @@ class WCS_Payment_Tokens extends WC_Payment_Tokens {
 	 *
 	 * @param  WC_Payment_Token $token Payment token object.
 	 * @return bool
-	 * @since  2.2.7
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
 	public static function customer_has_alternative_token( $token ) {
 		return self::get_customers_alternative_token( $token ) !== null;

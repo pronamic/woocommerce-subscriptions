@@ -1,4 +1,150 @@
 *** WooCommerce Subscriptions Changelog ***
+
+2023-07-05 - version 5.2.0
+* Fix: Resolved an issue that prevented the selected Shipping Method from being saved when switching an assembled Product Bundle.
+* Fix: When HPOS is enabled, permanently deleting a subscription related order wasn't updating the related orders cache properly.
+* Fix: Added logic to check if the recurring cart array is present before displaying the recurring totals section in the cart.
+* Dev: Updated subscriptions-core to 5.8.0
+
+2023-06-05 - version 5.1.3
+* Fix: Resolved an issue with customers being redirected to an incorrect Pay for Order URL after login.
+* Dev: Updated subscriptions-core to 5.7.2
+
+2023-05-11 - version 5.1.2
+* Fix: Resolve errors for third-party code using the URLs returned from WC_Subscriptions_Admin::add_subscription_url() and WCS_Cart_Renewal::get_checkout_payment_url() because they were erroneously escaped. #4526
+* Dev: Enable third-party code to alter the delete payment token URL returned from flag_subscription_payment_token_deletions. #4526
+* Dev: Update subscriptions-core to 5.7.1. #4526
+
+2023-05-05 - version 5.1.1
+* Fix: Error when third-party extensions use the `woocommerce_subscriptions_add_switch_query_args` filter. #4522
+
+2023-05-04 - version 5.1.0
+* Fix: Correctly determine subscription free shipping eligibility when the initial payment cart isn't eligible. Fixes erroneous "Invalid recurring shipping method" errors on checkout. #4513
+* Fix: Fatal error from third-party extensions using the `woocommerce_update_order` expecting the second parameter. #4519
+* Dev: Fixed precision loss notice that occurs when running PHP 8.1. #4513
+* Dev: Fix phpcs and semgrep warnings to improve code quality. #4513 #4514
+* Dev: Use `wp_safe_redirect()` when processing a payment method change request. #4513
+* Dev: Update subscriptions-core to 5.7.0. #4519
+* Dev: Pass the subscription object as the second parameter to `woocommerce_update_subscription` hook (and `woocommerce_update_order` for backwards compatibility). #4519
+* Dev: Return a response from the WC_Subscription::set_status() function in line with the parent WC_Order::set_status() function. #4519
+* Dev: Add the 'wcs_recurring_shipping_package_rates_match_standard_rates' filter to enable third-parties to override whether the subscription packages match during checkout validation. #4519
+
+2023-03-31 - version 5.0.1
+* Fix: WooCommerce dependency check was erroneously failing on stores with other plugins including a woocommerce.php file. #4497
+
+2023-03-10 - version 5.0.0
+* Fix: When a customer changes their address during a subscription switch, don't save their new address in the postmeta table when HPOS is enabled. #4489
+* Fix: When HPOS is enabled, changing your address while paying for a renewal order will update the address on the subscription. #4491
+* Fix: Prevent admin error notices being shown for the "subscription trial end" event that was caused by no callbacks being attached to this scheduled action. #4491
+* Fix: Prevent fatal error when copying the `_shipping_address` meta data where the value is not an array. #4495
+* Update: Use the WC installed version to determine if Subscription dependencies are met rather than the database version.
+* Dev: Update subscriptions-core to 5.5.0. #4491
+
+2023-02-22 - version 4.9.1
+* Fix: Revert minimum required version of WooCommerce to 6.5 due to fatal errors on some sites.
+
+2023-02-22 - version 4.9.0
+* Add: Declare WooCommerce Subscriptions compatible with High-Performance Order Storage.
+* Dev: Update subscriptions-core to 5.4.0.
+* Dev: Remove the recurring shipping method cache that caused bugs for third-party plugins like Conditional Shipping and Payments.
+* Dev: Bump minimum required version of WooCommerce to 7.0.
+
+2023-02-01 - version 4.8.1
+* Fix: Fatal error when loading the Edit Subscription page with custom admin billing or shipping fields.
+* Dev: Update subscriptions-core to 5.3.1.
+
+2023-01-30 - version 4.8.0
+* Add: Highlight subscriptions with overdue payment in list view with red icon & tooltip.
+* Add: New wcs_set_order_address() helper function to set an array of address fields on an order or subscription.
+* Update: Admin subscription reports are disabled on stores that have opted into HPOS without data syncing enabled.
+* Fix: Shipping address correctly set when resubscribing or switching subscriptions that contain different billing and shipping addresses.
+* Fix: When processing customer requests to update all their subscription payment methods, ensure the updated subscription is used to fetch the new payment meta, not and old instance.
+* Fix: Catch exceptions when changing payment method associated with a subscription to avoid fatal errors.
+* Fix: Show the payment retries metabox for renewal orders that have retry attempts on stores that have HPOS enabled.
+* Fix: Scheduled retry actions are now cancelled when trashing/deleting a renewal order on stores that have HPOS enabled.
+* Fix: On HPOS stores, return the correct count per subscription status from the `/system_status` WC API endpoint.
+* Fix: Refactor `WC_Subscriptions_Switcher::process_checkout()` to support stores with HPOS enabled.
+* Fix: Refactor `WC_REST_Subscriptions_V1_Controller::get_subscription_orders()` to support stores with HPOS enabled.
+* Fix: Edit, add, and list Subscription admin pages now work when HPOS is enabled.
+* Fix: Fixed issues where multiple subscription purchases wouldn't appear on the My Account > Subscriptions screen, on HPOS environments.
+* Fix: Refactor `WCS_Meta_Box_Subscription_Data::save` to support HPOS stores, fixing a PHP warning notice when updating an order via the Edit Order screen.
+* Fix: Set the `download_permissions_granted` value when purchasing a downloadable subscription product when HPOS is enabled.
+* Fix: When a customer changes their address on their account or subscription, make sure the new address is saved when HPOS is enabled.
+* Fix: Removed the potential for an infinite loop when getting a subscription's related orders while the subscription is being loaded.
+* Fix: Refactor `WC_Subscriptions_Renewal_Order` and `WC_Subscriptions_Tracker` classes to support HPOS stores.
+* Fix: "Subscriptions by Payment Gateway" in WooCommerce → Status now shows the correct values when HPOS is enabled.
+* Fix: Check whether the order actually exists before accessing order properties in wcs_order_contains_subscription().
+* Fix: When a subscription's parent order is trashed or deleted, make sure the related subscription is also trashed or deleted on stores with HPOS enabled.
+* Fix: When a subscription is trashed or deleted, make sure it is cancelled first on stores with HPOS enabled.
+* Fix: Merge any custom meta_query args passed to wcs_get_orders_with_meta_query() to avoid overriding WC core args that map onto meta_query.
+* Fix: Prevent erroneously resyncing a subscription every time it is loaded from the database on HPOS environments.
+* Fix: On HPOS environments, ensure subscription related order caches are updated when relationship order meta (eg `_subscription_renewal` or `_subscription_switch`) is updated.
+* Fix: On HPOS environments, update related orders cache when subscription is trashed, deleted, or restored / untrashed.
+* Fix: Replace code using wp_count_posts(), get_post_type(), get_posts and wp_delete_post() with equivalent WC Data Store functions to support stores that have HPOS enabled.
+* Dev: Add subscriptions-core library version to the WooCommerce system status report.
+* Dev: Introduced a WCS_Object_Data_Cache_Manager and WCS_Object_Data_Cache_Manager_Many_To_One class as HPOS equivalents of the WCS_Post_Meta_Cache_Manager classes.
+* Dev: Introduced a new `untrash_order()` in the `WCS_Orders_Table_Subscription_Data_Store` class to fix untrashing subscriptions on stores that have HPOS enabled.
+* Dev: Moved the trash, untrash & delete related `add_actions()` in the `WC_Subscriptions_Manager` class to be added on the `woocommerce_loaded` action.
+* Dev: Fix phpcs violations in the `WC_Subscriptions_Tracker` and `WCS_Admin_System_Status` classes to improve code quality.
+* Dev: Deprecate the `WC_Subscriptions_Switcher::update_shipping_methods()` function.
+* Dev: Fix phpcs violations in the `WC_REST_Subscription_System_Status_Manager` class to improve code quality.
+* Dev: Remove deprecated `strptime` function in favour of `DateTime::createFromFormat`.
+* Dev: Update subscriptions-core to 5.3.0.
+* Dev: Bump minimum required version of WooCommerce to 6.5.
+
+2022-12-06 - version 4.7.0
+* Add: New wcs_get_orders_with_meta_query() helper function to query for orders and subscriptions.
+* Add: New WCS_Orders_Table_Subscription_Data_Store class to support subscriptions stored in High-Performance Order Storage (HPOS).
+* Add: New WCS_Orders_Table_Data_Store_Controller class to load the proper subscriptions data store when the store has HPOS enabled.
+* Add: New data copier class to copy data to subscriptions and related orders in place of direct database queries in prepraration for HPOS support.
+* Fix: Set payment tokens when copying data between orders and subscriptions in a CRUD compatible way. Fixes PHP notices during renewal order process.
+* Fix: Infinite loop that can occur with `WCS_Orders_Table_Subscription_Data_Store::read_multiple()` on HPOS-enabled stores.
+* Fix: On HPOS stores, when querying for subscriptions with wcs_get_orders_with_meta_query() with status 'any', ensure that wc_get_orders() queries for subscription statuses.
+* Fix: On HPOS stores, when saving a subscription make sure subscription properties (ie `_requires_manual_renewal`) are saved to the database.
+* Fix: On HPOS stores, when a subscription is loaded from the database, make sure all core subscription properties are read directly from meta.
+* Fix: When viewing My Account > Subscriptions, fix an issue where no subscriptions were listed when HPOS is enabled.
+* Fix: On HPOS stores, ensure payment tokens are copied from the subscription to the renewal order.
+* Fix: Refactor `WCS_Meta_Box_Schedule::save` to support HPOS stores, fixing a PHP warning notice when updating an order via the Edit Order screen.
+* Fix: Return a fresh instance of the renewal order after creating it. Fixes caching issues on HPOS sites where the returned order has no line items.
+* Fix: Processing a manual renewal order with HPOS and data syncing enabled correctly saves the related order cache metadata on the subscription and prevents the post and order meta data getting out of sync.
+* Fix: Use supported CRUD apis to determine if subscriptions are present on store (`wcs_do_subscriptions_exist`)
+* Fix: With HPOS and data syncing enabled, updating the status of a pending manual renewal order to a paid status correctly activates the related subscription.
+* Fix: Switch orders not appearing in related orders table on edit subscription screen when HPOS is active.
+* Fix: On HPOS stores, make sure the links in the related-orders table redirect to the new Edit Order URL.
+* Fix: When saving sync meta data on a new subscription, use 'woocommerce_new_subscription' instead of 'save_post'. This is to prevent errors when purchasing a subscription on stores that have HPOS enabled.
+* Fix: When WooCommerce is network activated on multisites, don't show the "WooCommerce Subscriptions is inactive".
+* Update: Improve maybe_add_subscription_meta() and subscription_contains_synced_product() inside our WC_Subscriptions_Synchroniser class to use CRUD methods.
+* Update: Refactor the `wcs_is_subscription` helper function to support HPOS.
+* Update: Refactor our Related Orders data store classes (WCS_Related_Order_Store_Cached_CPT and WCS_Related_Order_Store_CPT) to use CRUD methods to support subscriptions and orders stored in HPOS.
+* Update: Display related orders table when viewing the new "Edit Order" page (HPOS enabled stores).
+* Update: Replace instances of `get_posts()` across codebase with new wcs_get_orders_with_meta_query() function.
+* Update: The subscription creation function `wcs_create_subscription` has been updated to use WooCommerce CRUD methods in preparation for supporting High Performance Order Storage (HPOS).
+* Update: Improve wcs_copy_order_address() to use modern APIs for setting address fields.
+* Dev: Removed the deprecated "wcs_subscriptions_for_{$relation_type}_order" dynamic hook used to filter the list of related subscriptions for the given relation type. The following hooks have been removed with no alternative:
+        wcs_subscriptions_for_renewal_order
+        wcs_subscriptions_for_switch_order
+        wcs_subscriptions_for_resubscribe_order
+* Dev: Introduce a WC_Subscription::set_status() function to handle subscriptions set with a draft or auto-draft status. Replaces the need for the overriding WC_Subscription::get_status() which has been deleted.
+* Dev: Manual renewal orders created with HPOS and data syncing enabled are properly linked to the subscription by its `_subscription_renewal` meta and backfilled to posts table.
+* Dev: Update subscriptions-core to 5.1.0
+* Dev: Replace use of deprecated hook `wcs_renewal_order_meta_query` with `wc_subscriptions_renewal_order_data` in `WC_Subscriptions_Switcher`.
+* Dev: Usage of \WC_Subscriptions_Core_Plugin::get_plugin_version() is no longer recommended for version detection. \WC_Subscriptions_Core_Plugin::get_library_version() should be used instead.
+* Dev: Code that was tagged with a version and moved from WooCommerce Subscriptions now explicitly mentions this and shows the correct subscriptions-core and WC Subscriptions versions.
+* Dev: Refactor the saving of subscription dates in the subscription datastore to separate fetching changes and saving. Enables backfilling subscription dates when HPOS syncing is enabled.
+* Dev: Replace the use of the deprecated wcs_renewal_order_meta hook with wc_subscription_renewal_order_data in the WCS_Related_Order_Store_Cached_CPT class.
+* Dev: wcs_get_objects_property and wcs_set_objects_property have been marked as deprecated. Getters/Setters should be used on the objects instead.
+* Dev: Deprecated the "wcs_{type}_meta_query" dynamic hook used to alter the database query used to fetch the meta data to copy between subscriptions and renewal orders. There is no direct replacement. Third-parties should use the "wc_subscriptions_{type}_data" or "wc_subscriptions_object_data" hooks instead.
+* Dev: Deprecated the "wcs_{type}_meta" dynamic hook used to filter data copied to subscriptions and renewal orders. Third-parties should use wc_subscriptions_{type}_data instead.
+        wcs_subscription_meta      -> wc_subscriptions_subscription_data
+        wcs_parent_meta            -> wc_subscriptions_parent_data
+        wcs_resubscribe_order_meta -> wc_subscriptions_resubscribe_order_data
+        wcs_renewal_order_meta     -> wc_subscriptions_renewal_order_data
+* Dev: woocommerce_new_subscription_data hook will only work with CPT datastore and so has been deprecated.
+* Dev: i18n usage of strftime has been deprecated for subscription titles. Date is now formatted using woocommerce standard date formatting.
+* Dev: Removes the legacy `woo-includes/` directory.
+* Dev: Updated internal version references to the version of subscriptions-core.
+* Dev: Bump minimum required version of WooCommerce to 6.0.
+
 2022-10-11 - version 4.6.0
 * Add: Declare incompatibility with WooCommerce High-Performance Order Storage (HPOS).
 * Fix: Move One Time Shipping metabox fields to use the woocommerce_product_options_shipping_product_data hook introduced in WC 6.0.

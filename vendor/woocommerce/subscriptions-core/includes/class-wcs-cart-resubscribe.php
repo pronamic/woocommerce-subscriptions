@@ -10,7 +10,7 @@
  * @subpackage WCS_Cart_Resubscribe
  * @category Class
  * @author Prospress
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
@@ -21,7 +21,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function __construct() {
 
@@ -55,7 +55,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	 * Checks if the current request is by a user to resubcribe to a subscription, and if it is setup a
 	 * subscription resubcribe process via the cart for the product/variation/s that are being renewed.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function maybe_setup_cart() {
 		global $wp;
@@ -142,7 +142,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	 * When creating an order at checkout, if the checkout is to resubscribe to an expired or cancelled
 	 * subscription, make sure we record that on the order and new subscription.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function maybe_record_resubscribe( $new_subscription, $order, $recurring_cart ) {
 
@@ -158,7 +158,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	/**
 	 * Restore renewal flag when cart is reset and modify Product object with renewal order related info
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_cart_item_from_session( $cart_item_session_data, $cart_item, $key ) {
 		if ( isset( $cart_item[ $this->cart_item_key ]['subscription_id'] ) ) {
@@ -186,7 +186,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	 * If a product is being marked as not purchasable because it is limited and the customer has a subscription,
 	 * but the current request is to resubscribe to the subscription, then mark it as purchasable.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 * @return bool
 	 */
 	public function is_purchasable( $is_purchasable, $product ) {
@@ -201,7 +201,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	 * @see wcs_cart_contains_resubscribe()
 	 * @param WC_Cart $cart The cart object to search in.
 	 * @return bool | Array The cart item containing the renewal, else false.
-	 * @since  2.0.10
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0.10
 	 */
 	protected function cart_contains( $cart = '' ) {
 		return wcs_cart_contains_resubscribe( $cart );
@@ -212,7 +212,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	 *
 	 * @param Array The resubscribe cart item.
 	 * @return WC_Subscription | The subscription object.
-	 * @since  2.0.13
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0.13
 	 */
 	protected function get_order( $cart_item = '' ) {
 		$subscription = false;
@@ -231,7 +231,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	/**
 	 * Make sure that a resubscribe item's cart key is based on the end of the pre-paid term if the user already has a subscription that is pending-cancel, not the date calculated for the product.
 	 *
-	 * @since 2.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 */
 	public function get_recurring_cart_key( $cart_key, $cart_item ) {
 		$subscription = $this->get_order( $cart_item );
@@ -248,7 +248,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	 * Make sure when displaying the next payment date for a subscription, the date takes into
 	 * account the end of the pre-paid term if the user is resubscribing to a subscription that is pending-cancel.
 	 *
-	 * @since 2.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 */
 	public function recurring_cart_next_payment_date( $first_renewal_date, $cart ) {
 		foreach ( $cart->get_cart() as $cart_item ) {
@@ -266,7 +266,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	/**
 	 * Make sure resubscribe cart item price doesn't include any recurring amount by setting a free trial.
 	 *
-	 * @since 2.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 * @param mixed $total This parameter is unused. Its sole purpose is for returning an unchanged variable while setting the mock trial when hooked onto filters. Optional.
 	 * @return mixed $total The unchanged $total parameter.
 	 */
@@ -287,7 +287,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	/**
 	 * Remove mock free trials from resubscribe cart items.
 	 *
-	 * @since 2.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 * @param mixed $total This parameter is unused. Its sole purpose is for returning an unchanged variable while unsetting the mock trial when hooked onto filters. Optional.
 	 * @return mixed $total The unchanged $total parameter.
 	 */
@@ -308,7 +308,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	/**
 	 * When the user resubscribes to a subscription that is pending-cancel, cancel the existing subscription.
 	 *
-	 * @since 2.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 */
 	public function maybe_cancel_existing_subscription( $order_id, $old_order_status, $new_order_status ) {
 		if ( wcs_order_contains_subscription( $order_id ) && wcs_order_contains_resubscribe( $order_id ) ) {
@@ -327,7 +327,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	/**
 	 * Overrides the place order button text on the checkout when the cart contains only resubscribe requests.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 *
 	 * @param string $place_order_text The place order button text.
 	 * @return string The place order button text. 'Resubscribe' if the cart contains only resubscribe requests, otherwise the default.
@@ -344,7 +344,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	/**
 	 * Determines if the customer is resubscribe prior to the subscription being cancelled.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 *
 	 * @param WC_Subscription $subscription
 	 * @return bool

@@ -2,7 +2,7 @@
 /**
  * API for creating and displaying an admin notice.
  *
- * @since    2.3.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  * @category Class
  * @author   Prospress
  */
@@ -69,7 +69,7 @@ class WCS_Admin_Notice {
 	 * @param string $type The notice type. Can be notice, notice-info, updated, error or a custom notice type.
 	 * @param array  $attributes The container div's attributes. Optional.
 	 * @param string $dismiss_url The URL used to dismiss the notice. Optional.
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function __construct( $type, array $attributes = array(), $dismiss_url = '' ) {
 		$this->type        = $type;
@@ -82,7 +82,7 @@ class WCS_Admin_Notice {
 	 *
 	 * Will print the notice if called during the 'admin_notices' action. Otherwise will attach a callback and display the notice when the 'admin_notices' is triggered.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function display() {
 		if ( 'admin_notices' !== current_filter() ) {
@@ -104,7 +104,7 @@ class WCS_Admin_Notice {
 	/**
 	 * Whether the admin notice is dismissible.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 * @return boolean
 	 */
 	public function is_dismissible() {
@@ -114,7 +114,7 @@ class WCS_Admin_Notice {
 	/**
 	 * Whether the admin notice has a heading or not.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 * @return boolean
 	 */
 	public function has_heading() {
@@ -124,7 +124,7 @@ class WCS_Admin_Notice {
 	/**
 	 * Whether the admin notice has actions or not.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 * @return boolean
 	 */
 	public function has_actions() {
@@ -136,7 +136,7 @@ class WCS_Admin_Notice {
 	/**
 	 * Print the notice's heading.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function print_heading() {
 		echo esc_html( $this->heading );
@@ -147,7 +147,7 @@ class WCS_Admin_Notice {
 	 *
 	 * Will wrap simple notices in paragraph elements (<p></p>) for correct styling and print HTML notices unchanged.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function print_content() {
 		switch ( $this->content_type ) {
@@ -168,7 +168,7 @@ class WCS_Admin_Notice {
 	 *
 	 * Turns the attributes array into 'id="id" class="class class class"' strings.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function print_attributes() {
 		$attributes            = $this->attributes;
@@ -188,7 +188,7 @@ class WCS_Admin_Notice {
 	/**
 	 * Print the notice's dismiss URL.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function print_dismiss_url() {
 		echo esc_attr( $this->dismiss_url );
@@ -199,7 +199,7 @@ class WCS_Admin_Notice {
 	/**
 	 * Get the notice's actions.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 * @return array
 	 */
 	public function get_actions() {
@@ -231,7 +231,7 @@ class WCS_Admin_Notice {
 	/**
 	 * Set the notice's content to a string containing HTML elements.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 * @param string $template_name Template name.
 	 * @param string $template_path Template path.
 	 * @param array  $args          Arguments. (default: array).
@@ -248,7 +248,7 @@ class WCS_Admin_Notice {
 	/**
 	 * Set actions the user can make in response to this notice.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 * @param array $actions The actions the user can make. Example format:
 	 * array(
 	 *    array(
@@ -265,7 +265,7 @@ class WCS_Admin_Notice {
 	/**
 	 * Set notice's heading. If set this will appear at the top of the notice wrapped in a h2 element.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 * @param string $heading The notice heading.
 	 */
 	public function set_heading( $heading ) {

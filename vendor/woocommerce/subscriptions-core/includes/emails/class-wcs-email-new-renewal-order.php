@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * An email sent to the admin when a new order is received/paid for.
  *
  * @class WCS_Email_New_Renewal_Order
- * @version 1.4
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
  * @extends WC_Email_New_Order
  */
 class WCS_Email_New_Renewal_Order extends WC_Email_New_Order {
@@ -54,7 +54,7 @@ class WCS_Email_New_Renewal_Order extends WC_Email_New_Order {
 	/**
 	 * Get the default e-mail subject.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_subject() {
@@ -64,7 +64,7 @@ class WCS_Email_New_Renewal_Order extends WC_Email_New_Order {
 	/**
 	 * Get the default e-mail heading.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_heading() {

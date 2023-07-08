@@ -8,7 +8,7 @@
  * @class    WC_Product_Subscription
  * @package  WooCommerce Subscriptions
  * @category Class
- * @since    1.3
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v1.3
  *
  */
 if ( ! defined( 'ABSPATH' ) ) {

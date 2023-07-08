@@ -5,7 +5,7 @@
  * @author      Prospress
  * @category    Admin
  * @package     WooCommerce Subscriptions/Admin/Upgrades
- * @version     2.0
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -41,7 +41,7 @@ class WCS_Upgrade_2_0 {
 	/**
 	 * Migrate subscriptions out of order item meta and into post/post meta tables for their own post type.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function upgrade_subscriptions( $batch_size ) {
 		global $wpdb;
@@ -193,7 +193,7 @@ class WCS_Upgrade_2_0 {
 	 *
 	 * @param int $batch_size The number of subscriptions to return.
 	 * @return array Subscription details in the v1.5 structure of 'order_item_id' => array()
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function get_subscriptions( $batch_size ) {
 		global $wpdb;
@@ -246,7 +246,7 @@ class WCS_Upgrade_2_0 {
 	 * @param int $order_item_id ID of the subscription item on the original order
 	 * @param array $order_item An array of order item data in the form returned by WC_Abstract_Order::get_items()
 	 * @return int Subscription $item_id The order item id of the new line item added to the subscription.
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function add_product( $new_subscription, $order_item_id, $order_item ) {
 		global $wpdb;
@@ -328,7 +328,7 @@ class WCS_Upgrade_2_0 {
 	 * @param int $new_order_item_id ID of the line item on the new subscription post type
 	 * @param int $old_order_item_id ID of the line item on the original order that in v1.5 represented the subscription
 	 * @param array $order_item The line item on the original order that in v1.5 represented the subscription
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function add_line_tax_data( $new_order_item_id, $old_order_item_id, $order_item ) {
 
@@ -415,7 +415,7 @@ class WCS_Upgrade_2_0 {
 	 * Deprecate order item meta data stored on the original order that used to make up the subscription by prefixing it with with '_wcs_migrated'
 	 *
 	 * @param int $order_item_id ID of the subscription item on the original order
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function deprecate_item_meta( $order_item_id ) {
 		global $wpdb;
@@ -438,7 +438,7 @@ class WCS_Upgrade_2_0 {
 	 * @param WC_Subscription $subscription A subscription object
 	 * @param int $subscription_item_id ID of the product line item on the subscription
 	 * @param WC_Order $original_order The original order that was created to purchase the subscription
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function migrate_download_permissions( $subscription, $subscription_item_id, $order ) {
 		global $wpdb;
@@ -467,7 +467,7 @@ class WCS_Upgrade_2_0 {
 	/**
 	 * Migrate the trial expiration, next payment and expiration/end dates to a new subscription.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function migrate_dates( $new_subscription, $old_subscription ) {
 		global $wpdb;
@@ -583,7 +583,7 @@ class WCS_Upgrade_2_0 {
 	 * @param int $subscription_id The ID of a 'shop_subscription' post type
 	 * @param WC_Order $order The original order used to purchase a subscription
 	 * @return null
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function migrate_post_meta( $subscription_id, $order ) {
 		global $wpdb;
@@ -680,7 +680,7 @@ class WCS_Upgrade_2_0 {
 	 * @param int $subscription_id The ID of a 'shop_subscription' post type
 	 * @param WC_Order $order The original order used to purchase a subscription
 	 * @return null
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function deprecate_post_meta( $order_id ) {
 		global $wpdb;
@@ -723,7 +723,7 @@ class WCS_Upgrade_2_0 {
 	 * @param int $subscription_id The ID of a 'shop_subscription' post type
 	 * @param WC_Order $order The original order used to purchase a subscription
 	 * @return null
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function migrate_order_notes( $subscription_id, $order_id ) {
 		global $wpdb;
@@ -750,7 +750,7 @@ class WCS_Upgrade_2_0 {
 	 * @param int $subscription_id The ID of a 'shop_subscription' post type
 	 * @param WC_Order $order The original order used to purchase a subscription
 	 * @return null
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function migrate_order_items( $subscription_id, $order_id ) {
 		global $wpdb;
@@ -783,7 +783,7 @@ class WCS_Upgrade_2_0 {
 	 * @param WC_Subscription $subscription An instance of a 'shop_subscription' post type
 	 * @param int $order_id The ID of a 'shop_order' which created this susbcription
 	 * @return null
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function migrate_renewal_orders( $subscription, $order_id ) {
 		global $wpdb;
@@ -829,7 +829,7 @@ class WCS_Upgrade_2_0 {
 	 * @param WC_Subscription $new_subscription An instance of a 'shop_subscription' post type
 	 * @param WC_Order $resubscribe_order An instance of a 'shop_order' post type which created this subscription
 	 * @return null
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function migrate_resubscribe_orders( $new_subscription, $resubscribe_order ) {
 		global $wpdb;
@@ -870,7 +870,7 @@ class WCS_Upgrade_2_0 {
 	 * @param WC_Order $switch_order The original order used to purchase the subscription
 	 * @param int $subscription_item_id The order item ID of the item added to the subscription by self::add_product()
 	 * @return null
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function migrate_switch_meta( $new_subscription, $switch_order, $subscription_item_id ) {
 		global $wpdb;

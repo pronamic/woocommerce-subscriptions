@@ -5,7 +5,7 @@
  * @author   Prospress
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin/Upgrades
- * @version  2.4.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
  */
 
 // Exit if accessed directly.
@@ -20,7 +20,7 @@ class WCS_Repair_Start_Date_Metadata extends WCS_Background_Upgrader {
 	 *
 	 * @param WC_Logger_Interface $logger The WC_Logger instance.
 	 *
-	 * @since 2.4.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
 	 */
 	public function __construct( WC_Logger_Interface $logger ) {
 		$this->scheduled_hook = 'wcs_add_start_date_metadata';
@@ -31,7 +31,7 @@ class WCS_Repair_Start_Date_Metadata extends WCS_Background_Upgrader {
 	/**
 	 * Update a subscription, saving its start date as metadata.
 	 *
-	 * @since 2.4.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
 	 */
 	protected function update_item( $subscription_id ) {
 		try {
@@ -53,7 +53,7 @@ class WCS_Repair_Start_Date_Metadata extends WCS_Background_Upgrader {
 	/**
 	 * Get a batch of subscriptions to repair.
 	 *
-	 * @since 2.4.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
 	 * @return array A list of subscription ids which may need to be repaired.
 	 */
 	protected function get_items_to_update() {

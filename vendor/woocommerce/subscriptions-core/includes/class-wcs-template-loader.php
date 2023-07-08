@@ -2,7 +2,7 @@
 /**
  * WC Subscriptions Template Loader
  *
- * @version 2.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  * @author  Prospress
  */
 class WCS_Template_Loader {
@@ -96,7 +96,7 @@ class WCS_Template_Loader {
 	 * Get the view subscription template.
 	 *
 	 * @param int $subscription_id Subscription ID.
-	 * @since 2.0.17
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.17
 	 */
 	public static function get_view_subscription_template( $subscription_id ) {
 		$subscription = wcs_get_subscription( absint( $subscription_id ) );
@@ -113,7 +113,7 @@ class WCS_Template_Loader {
 	 * Get the subscription details template, which is part of the view subscription page.
 	 *
 	 * @param WC_Subscription $subscription Subscription object
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	public static function get_subscription_details_template( $subscription ) {
 		wc_get_template( 'myaccount/subscription-details.php', array( 'subscription' => $subscription ), '', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory( 'templates/' ) );
@@ -123,7 +123,7 @@ class WCS_Template_Loader {
 	 * Get the subscription totals template, which is part of the view subscription page.
 	 *
 	 * @param WC_Subscription $subscription Subscription object
-	 * @since 2.2.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	public static function get_subscription_totals_template( $subscription ) {
 		wc_get_template( 'myaccount/subscription-totals.php', array( 'subscription' => $subscription ), '', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory( 'templates/' ) );
@@ -133,7 +133,7 @@ class WCS_Template_Loader {
 	 * Get the order downloads template, which is part of the view subscription page.
 	 *
 	 * @param WC_Subscription $subscription Subscription object
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function get_order_downloads_template( $subscription ) {
 		if ( $subscription->has_downloadable_item() && $subscription->is_download_permitted() ) {
@@ -150,7 +150,7 @@ class WCS_Template_Loader {
 	/**
 	 * Gets the subscription totals table.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param WC_Subscription $subscription     The subscription to print the totals table for.
 	 * @param bool  $include_item_removal_links Whether the remove line item links should be included.
@@ -184,7 +184,7 @@ class WCS_Template_Loader {
 	/**
 	 * Gets the subscription receipt template content.
 	 *
-	 * @since 3.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.0
 	 *
 	 * @param WC_Subscription $subscription The subscription to display the receipt for.
 	 */
@@ -195,7 +195,7 @@ class WCS_Template_Loader {
 	/**
 	 * Gets the recurring totals subtotal rows content.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 *
 	 * @param array $recurring_carts The recurring carts.
 	 */
@@ -207,7 +207,7 @@ class WCS_Template_Loader {
 	/**
 	 * Gets the recurring totals coupon rows content.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 *
 	 * @param array $recurring_carts The recurring carts.
 	 */
@@ -220,7 +220,7 @@ class WCS_Template_Loader {
 	/**
 	 * Gets the recurring totals shipping rows content.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
 	public static function get_recurring_cart_shipping() {
 		if ( WC()->cart->show_shipping() && WC_Subscriptions_Cart::cart_contains_subscriptions_needing_shipping() ) {
@@ -231,7 +231,7 @@ class WCS_Template_Loader {
 	/**
 	 * Gets the recurring totals fee rows content.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 *
 	 * @param array $recurring_carts The recurring carts.
 	 */
@@ -244,7 +244,7 @@ class WCS_Template_Loader {
 	/**
 	 * Gets the recurring totals tax rows content.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 *
 	 * @param array $recurring_carts The recurring carts.
 	 */
@@ -268,7 +268,7 @@ class WCS_Template_Loader {
 	/**
 	 * Gets the recurring subscription total rows content.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 *
 	 * @param array $recurring_carts The recurring carts.
 	 */
@@ -281,7 +281,7 @@ class WCS_Template_Loader {
 	/**
 	 * Loads the my-subscriptions.php template on the My Account page.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @param int $current_page The My Account Subscriptions page.
 	 */
 	public static function get_my_subscriptions( $current_page = 1 ) {
@@ -310,7 +310,7 @@ class WCS_Template_Loader {
 	 * Use the same cart template for subscription as that which is used for simple products. Reduce code duplication
 	 * and is made possible by the friendly actions & filters found through WC.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function get_subscription_add_to_cart() {
 		wc_get_template( 'single-product/add-to-cart/subscription.php', array(), '', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory( 'templates/' ) );
@@ -321,7 +321,7 @@ class WCS_Template_Loader {
 	 *
 	 * Use a very similar cart template as that of a variable product with added functionality.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function get_variable_subscription_add_to_cart() {
 		global $product;
@@ -351,7 +351,7 @@ class WCS_Template_Loader {
 	 * Variable subscription products will be handled automatically because they identify as "variable" in response to is_type() method calls,
 	 * which OPC uses.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function get_opc_subscription_add_to_cart() {
 		global $product;

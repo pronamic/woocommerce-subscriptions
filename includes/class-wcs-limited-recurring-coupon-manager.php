@@ -64,7 +64,7 @@ class WCS_Limited_Recurring_Coupon_Manager {
 	 */
 	public static function save_coupon_fields( $id ) {
 		// Check the nonce (again).
-		if ( empty( $_POST['woocommerce_meta_nonce'] ) || ! wp_verify_nonce( $_POST['woocommerce_meta_nonce'], 'woocommerce_save_data' ) ) {
+		if ( empty( $_POST['woocommerce_meta_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['woocommerce_meta_nonce'] ) ), 'woocommerce_save_data' ) ) {
 			return;
 		}
 
@@ -345,7 +345,7 @@ class WCS_Limited_Recurring_Coupon_Manager {
 		$change_payment     = isset( $_GET['change_payment_method'] ) ? wc_clean( $_GET['change_payment_method'] ) : 0;
 		$has_limited_coupon = false;
 
-		if ( $change_payment && isset( $_GET['_wpnonce'] ) && wp_verify_nonce( $_GET['_wpnonce'] ) ) {
+		if ( $change_payment && isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) ) ) {
 			$subscription       = wcs_get_subscription( $change_payment );
 			$has_limited_coupon = self::order_has_limited_recurring_coupon( $subscription );
 		}

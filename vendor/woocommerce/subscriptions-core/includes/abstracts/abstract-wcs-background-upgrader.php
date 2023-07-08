@@ -7,7 +7,7 @@
  * @author   Prospress
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin/Upgrades
- * @since    2.3
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.3
  */
 
 // Exit if accessed directly
@@ -33,7 +33,7 @@ abstract class WCS_Background_Upgrader extends WCS_Background_Updater {
 	 * Schedule the @see $this->scheduled_hook action to start repairing subscriptions in
 	 * @see $this->time_limit seconds (60 seconds by default).
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function schedule_repair() {
 		$this->schedule_background_update();
@@ -43,7 +43,7 @@ abstract class WCS_Background_Upgrader extends WCS_Background_Updater {
 	 * Add a message to the wcs-upgrade-subscriptions-paypal-suspended log
 	 *
 	 * @param string $message The message to be logged
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	protected function log( $message ) {
 		$this->logger->add( $this->log_handle, $message );

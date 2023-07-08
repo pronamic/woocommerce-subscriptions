@@ -5,14 +5,14 @@
  * @package  WooCommerce Subscriptions
  * @category Class
  * @author   Prospress
- * @since    2.2.7
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
  */
 class WCS_My_Account_Payment_Methods {
 
 	/**
 	 * Initialize filters and hooks for class.
 	 *
-	 * @since 2.2.7
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
 	public static function init() {
 		// Only hook class functions if the payment token object exists
@@ -35,7 +35,7 @@ class WCS_My_Account_Payment_Methods {
 	 * @param  array data about the token including a list of actions which can be triggered by the customer from their my account page
 	 * @param  WC_Payment_Token payment token object
 	 * @return array payment token data
-	 * @since  2.2.7
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
 	public static function flag_subscription_payment_token_deletions( $payment_token_data, $payment_token ) {
 
@@ -59,7 +59,7 @@ class WCS_My_Account_Payment_Methods {
 					 *
 					 * Gateways can use this filter to make their own checks to allow deletion.
 					 *
-					 * @since 3.1.0
+					 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 					 *
 					 * @param bool Whether the delete button should be shown for tokens linked to a subscription. true - show, false - not shown (default).
 					 * @param WC_Payment_Token The payment token in question.
@@ -84,7 +84,7 @@ class WCS_My_Account_Payment_Methods {
 			}
 		}
 
-		return $payment_token_data;
+		return $payment_token_data; // nosemgrep: audit.php.wp.security.xss.query-arg -- False positive. This URL is escaped in the WC template when the token links are outputted.
 	}
 
 	/**
@@ -94,7 +94,7 @@ class WCS_My_Account_Payment_Methods {
 	 *
 	 * @param int $deleted_token_id The deleted token id.
 	 * @param WC_Payment_Token $deleted_token The deleted token object.
-	 * @since 2.2.7
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
 	public static function maybe_update_subscriptions_payment_meta( $deleted_token_id, $deleted_token ) {
 		if ( ! isset( $_GET['delete_subscription_token'] ) || empty( $_GET['wcs_nonce'] ) || ! wp_verify_nonce( $_GET['wcs_nonce'], 'delete_subscription_token_' . $_GET['delete_subscription_token'] ) ) {
@@ -142,11 +142,11 @@ class WCS_My_Account_Payment_Methods {
 	/**
 	 * Get a WC_Payment_Token label. eg Visa ending in 1234
 	 *
-	 * @deprecated 2.7.2
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.7.2
 	 *
 	 * @param  WC_Payment_Token payment token object
 	 * @return string WC_Payment_Token label
-	 * @since  2.2.7
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
 	public static function get_token_label( $token ) {
 		wcs_deprecated_function( __METHOD__, '2.7.2', '$token->get_display_name()' );
@@ -158,7 +158,7 @@ class WCS_My_Account_Payment_Methods {
 	 *
 	 * @param int $default_token_id The default token id.
 	 * @param WC_Payment_Token $default_token The default token object.
-	 * @since 2.3.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.3
 	 */
 	public static function display_default_payment_token_change_notice( $default_token_id, $default_token ) {
 		global $wp;
@@ -202,7 +202,7 @@ class WCS_My_Account_Payment_Methods {
 	/**
 	 * Update the customer's subscription tokens if they opted to from their My Account page.
 	 *
-	 * @since 2.3.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.3
 	 */
 	public static function update_subscription_tokens() {
 		if ( ! isset( $_GET['update-subscription-tokens'], $_GET['token-id'], $_GET['_wcsnonce'] ) || ! wp_verify_nonce( $_GET['_wcsnonce'], 'wcs-update-subscription-tokens' ) ) {
@@ -238,7 +238,7 @@ class WCS_My_Account_Payment_Methods {
 	/**
 	 * Enqueues the frontend scripts for the My account > Payment methods page.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
 	public static function enqueue_frontend_scripts() {
 		if ( 'payment-methods' !== WC()->query->get_current_endpoint() ) {
@@ -261,7 +261,7 @@ class WCS_My_Account_Payment_Methods {
 			),
 		);
 
-		wp_enqueue_script( 'wc-subscriptions-payment-methods', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'assets/js/frontend/payment-methods.js' ), array( 'jquery' ), WC_Subscriptions_Core_Plugin::instance()->get_plugin_version(), true );
+		wp_enqueue_script( 'wc-subscriptions-payment-methods', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'assets/js/frontend/payment-methods.js' ), array( 'jquery' ), WC_Subscriptions_Core_Plugin::instance()->get_library_version(), true );
 		wp_localize_script( 'wc-subscriptions-payment-methods', 'wcs_payment_methods', $script_params );
 	}
 
@@ -271,7 +271,7 @@ class WCS_My_Account_Payment_Methods {
 	 * @see self::enqueue_frontend_scripts()                  For the error message content.
 	 * @see self::flag_subscription_payment_token_deletions() For the determination of when a token cannot be deleted.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
 	public static function print_deleting_notices() {
 		// The notice is hidden on load, and only shown when a token delete request is made.
@@ -284,8 +284,8 @@ class WCS_My_Account_Payment_Methods {
 	 * Get subscriptions by a WC_Payment_Token. All automatic subscriptions with the token's payment method,
 	 * customer id and token value stored in post meta will be returned.
 	 *
-	 * @since  2.2.7
-	 * @deprecated 2.5.0
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function get_subscriptions_by_token( $payment_token ) {
 		_deprecated_function( __METHOD__, '2.5.0', 'WCS_Payment_Tokens::get_subscriptions_from_token()' );
@@ -295,8 +295,8 @@ class WCS_My_Account_Payment_Methods {
 	/**
 	 * Get a list of customer payment tokens. Caches results to avoid multiple database queries per request
 	 *
-	 * @since  2.2.7
-	 * @deprecated 2.5.0
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function get_customer_tokens( $gateway_id = '', $customer_id = '' ) {
 		_deprecated_function( __METHOD__, '2.5.0', 'WCS_Payment_Tokens::get_customer_tokens()' );
@@ -306,8 +306,8 @@ class WCS_My_Account_Payment_Methods {
 	/**
 	 * Get the customer's alternative token.
 	 *
-	 * @since  2.2.7
-	 * @deprecated 2.5.0
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function get_customers_alternative_token( $token ) {
 		_deprecated_function( __METHOD__, '2.5.0', 'WCS_Payment_Tokens::get_customers_alternative_token()' );
@@ -317,8 +317,8 @@ class WCS_My_Account_Payment_Methods {
 	/**
 	 * Determine if the customer has an alternative token.
 	 *
-	 * @since  2.2.7
-	 * @deprecated 2.5.0
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function customer_has_alternative_token( $token ) {
 		_deprecated_function( __METHOD__, '2.5.0', 'WCS_Payment_Tokens::customer_has_alternative_token()' );

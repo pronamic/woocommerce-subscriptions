@@ -7,8 +7,7 @@
  * @package    WooCommerce Subscriptions
  * @subpackage WC_Subscriptions_Admin
  * @category   Class
- * @author     Prospress
- * @since      2.3.0
+ * @since      1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  */
 class WCS_Admin_System_Status {
 
@@ -20,7 +19,7 @@ class WCS_Admin_System_Status {
 	/**
 	 * Attach callbacks
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public static function init() {
 		add_filter( 'woocommerce_system_status_report', array( __CLASS__, 'render_system_status_items' ) );
@@ -29,21 +28,25 @@ class WCS_Admin_System_Status {
 	/**
 	 * Renders the Subscription information in the WC status page
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public static function render_system_status_items() {
 
-		$store_data = $subscriptions_data = $subscriptions_by_payment_gateway_data = $payment_gateway_data = array();
+		$store_data                            = [];
+		$subscriptions_data                    = [];
+		$subscriptions_by_payment_gateway_data = [];
+		$payment_gateway_data                  = [];
 
 		self::set_debug_mode( $subscriptions_data );
 		self::set_staging_mode( $subscriptions_data );
 		self::set_live_site_url( $subscriptions_data );
+		self::set_library_version( $subscriptions_data );
 		self::set_theme_overrides( $subscriptions_data );
 		self::set_subscription_statuses( $subscriptions_data );
 		self::set_woocommerce_account_data( $subscriptions_data );
 
 		// Subscriptions by Payment Gateway
-		self::set_subscriptions_by_payment_gateway( $subscriptions_by_payment_gateway );
+		self::set_subscriptions_by_payment_gateway( $subscriptions_by_payment_gateway_data );
 
 		// Payment gateway features
 		self::set_subscriptions_payment_gateway_support( $payment_gateway_data );
@@ -65,7 +68,7 @@ class WCS_Admin_System_Status {
 			array(
 				'title'   => __( 'Subscriptions by Payment Gateway', 'woocommerce-subscriptions' ),
 				'tooltip' => __( 'This section shows information about Subscription payment methods.', 'woocommerce-subscriptions' ),
-				'data'    => $subscriptions_by_payment_gateway,
+				'data'    => $subscriptions_by_payment_gateway_data,
 			),
 			array(
 				'title'   => __( 'Payment Gateway Support', 'woocommerce-subscriptions' ),
@@ -79,7 +82,7 @@ class WCS_Admin_System_Status {
 			$section_tooltip = $section['tooltip'];
 			$debug_data      = $section['data'];
 
-			include( WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory( 'templates/admin/status.php' ) );
+			include WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory( 'templates/admin/status.php' );
 		}
 	}
 
@@ -125,6 +128,19 @@ class WCS_Admin_System_Status {
 	}
 
 	/**
+	 * @param array $debug_data
+	 */
+	private static function set_library_version( &$debug_data ) {
+		$debug_data['wcs_subs_core_version'] = array(
+			'name'      => _x( 'Subscriptions-core Library Version', 'Subscriptions-core Version, Label on WooCommerce -> System Status page', 'woocommerce-subscriptions' ),
+			'label'     => 'Subscriptions-core Library Version',
+			'note'      => WC_Subscriptions_Core_Plugin::instance()->get_library_version(),
+			'mark'      => '',
+			'mark_icon' => '',
+		);
+	}
+
+	/**
 	 * List any Subscriptions template overrides.
 	 */
 	private static function set_theme_overrides( &$debug_data ) {
@@ -151,7 +167,6 @@ class WCS_Admin_System_Status {
 	/**
 	 * Determine which of our files have been overridden by the theme.
 	 *
-	 * @author Jeremy Pry
 	 * @return array Theme override data.
 	 */
 	private static function get_theme_overrides() {
@@ -163,7 +178,7 @@ class WCS_Admin_System_Status {
 		$templates        = WC_Admin_Status::scan_template_files( $wcs_template_dir );
 
 		foreach ( $templates as $file ) {
-			$theme_file = $is_outdated = false;
+			$theme_file = false;
 			$locations  = array(
 				get_stylesheet_directory() . "/{$file}",
 				get_stylesheet_directory() . "/{$wc_template_path}{$file}",
@@ -185,7 +200,7 @@ class WCS_Admin_System_Status {
 				$overridden_template_output = sprintf( '<code>%s</code>', esc_html( str_replace( $theme_root, '', $theme_file ) ) );
 
 				if ( $core_version && ( empty( $theme_version ) || version_compare( $theme_version, $core_version, '<' ) ) ) {
-					$outdated = true;
+					$outdated                    = true;
 					$overridden_template_output .= sprintf(
 						/* translators: %1$s is the file version, %2$s is the core version */
 						esc_html__( 'version %1$s is out of date. The core version is %2$s', 'woocommerce-subscriptions' ),
@@ -247,7 +262,7 @@ class WCS_Admin_System_Status {
 
 		foreach ( $woocommerce_account_subscriptions as $subscription ) {
 			if ( isset( $subscription['product_id'] ) && self::WCS_PRODUCT_ID === $subscription['product_id'] ) {
-				$has_active_product_key = in_array( $site_id, $subscription['connections'] );
+				$has_active_product_key = in_array( $site_id, $subscription['connections'], false ); // phpcs:ignore WordPress.PHP.StrictInArray.FoundNonStrictFalse -- In case the value from $subscription['connections'] is a string.
 				break;
 			}
 		}
@@ -268,9 +283,11 @@ class WCS_Admin_System_Status {
 
 		foreach ( self::get_subscriptions_by_gateway() as $payment_method => $status_counts ) {
 			if ( isset( $gateways[ $payment_method ] ) ) {
-				$payment_method_name = $payment_method_label = $gateways[ $payment_method ]->method_title;
+				$payment_method_name  = $gateways[ $payment_method ]->method_title;
+				$payment_method_label = $gateways[ $payment_method ]->method_title;
 			} else {
-				$payment_method_label = $payment_method = 'other';
+				$payment_method_label = 'other';
+				$payment_method       = 'other';
 				$payment_method_name  = _x( 'Other', 'label for the system status page', 'woocommerce-subscriptions' );
 			}
 
@@ -344,34 +361,64 @@ class WCS_Admin_System_Status {
 	/**
 	 * Gets the store's subscription broken down by payment gateway and status.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 * @return array The subscription gateway and status data array( 'gateway_id' => array( 'status' => count ) );
 	 */
 	public static function get_subscriptions_by_gateway() {
 		global $wpdb;
-		$subscription_gatway_data = array();
+		$subscription_gateway_data = [];
+		$is_hpos_in_use            = wcs_is_custom_order_tables_usage_enabled();
+		$order_status_column_name  = $is_hpos_in_use ? 'status' : 'post_status';
 
-		$results = $wpdb->get_results( "
-			SELECT COUNT(subscriptions.ID) as count, post_meta.meta_value as payment_method, subscriptions.post_status
-			FROM $wpdb->posts as subscriptions RIGHT JOIN $wpdb->postmeta as post_meta ON post_meta.post_id = subscriptions.ID
-			WHERE subscriptions.post_type = 'shop_subscription' && post_meta.meta_key = '_payment_method'
-			GROUP BY post_meta.meta_value, subscriptions.post_status", ARRAY_A );
-
-		foreach ( $results as $result ) {
-			$subscription_gatway_data[ $result['payment_method'] ][ $result['post_status'] ] = $result['count'];
+		// Conduct a different query for HPOS and non-HPOS stores.
+		if ( $is_hpos_in_use ) {
+			// With HPOS enabled, `payment_method` is a column in the `wc_orders` table.
+			$results = $wpdb->get_results(
+				"SELECT
+					COUNT(subscriptions.id) as count,
+					subscriptions.payment_method,
+					subscriptions.status
+				FROM {$wpdb->prefix}wc_orders as subscriptions
+				WHERE subscriptions.type = 'shop_subscription'
+				GROUP BY subscriptions.payment_method, subscriptions.status",
+				ARRAY_A
+			);
+		} else {
+			// With HPOS disabled, `_payment_method` is a column in the `postmeta` table.
+			$results = $wpdb->get_results(
+				"SELECT
+					COUNT(subscriptions.ID) as count,
+					post_meta.meta_value as payment_method,
+					subscriptions.post_status
+				FROM {$wpdb->prefix}posts as subscriptions
+				RIGHT JOIN {$wpdb->prefix}postmeta as post_meta ON post_meta.post_id = subscriptions.ID
+				WHERE
+					subscriptions.post_type = 'shop_subscription'
+					&& post_meta.meta_key = '_payment_method'
+				GROUP BY post_meta.meta_value, subscriptions.post_status",
+				ARRAY_A
+			);
 		}
 
-		return $subscription_gatway_data;
+		foreach ( $results as $result ) {
+			// Ignore any results that don't have a payment method.
+			if ( empty( $result['payment_method'] ) ) {
+				continue;
+			}
+			$subscription_gateway_data[ $result['payment_method'] ][ $result[ $order_status_column_name ] ] = $result['count'];
+		}
+
+		return $subscription_gateway_data;
 	}
 
 	/**
 	 * Gets the store's subscriptions by status.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 * @return array
 	 */
 	public static function get_subscription_statuses() {
-		$subscriptions_by_status        = (array) wp_count_posts( 'shop_subscription' );
+		$subscriptions_by_status        = WC_Data_Store::load( 'subscription' )->get_subscriptions_count_by_status();
 		$subscriptions_by_status_output = array();
 
 		foreach ( $subscriptions_by_status as $status => $count ) {

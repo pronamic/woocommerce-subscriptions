@@ -2,7 +2,7 @@
 /**
  * The template for displaying an admin notice to report fatal errors which ocurred while processing PayPal IPNs.
  *
- * @version 2.4.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
  * @var string $last_ipn_error
  */
 

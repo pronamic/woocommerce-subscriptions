@@ -60,7 +60,7 @@ class WC_REST_Subscriptions_V1_Controller extends WC_REST_Orders_V1_Controller {
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
-		register_rest_route( $this->namespace, '/' . $this->rest_base . '/statuses', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base . '/statuses', array( // nosemgrep: audit.php.wp.security.rest-route.permission-callback.return-true  -- /subscriptions/statuses is a public endpoint and doesn't need any permission checks.
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_statuses' ),
@@ -301,16 +301,14 @@ class WC_REST_Subscriptions_V1_Controller extends WC_REST_Orders_V1_Controller {
 		$orders = array();
 
 		foreach ( $subscription_orders as $order_id ) {
-			$post = get_post( $order_id );
-
 			// Validate that the order can be loaded before trying to generate a response object for it.
 			$order = wc_get_order( $order_id );
 
-			if ( ! $order || ! wc_rest_check_post_permissions( $this->post_type, 'read', $post->ID ) ) {
+			if ( ! $order || ! wc_rest_check_post_permissions( $this->post_type, 'read', $order_id ) ) {
 				continue;
 			}
 
-			$response = $this->prepare_item_for_response( $post, $request );
+			$response = $this->prepare_item_for_response( $order, $request );
 
 			foreach ( array( 'parent', 'renewal', 'switch' ) as $order_type ) {
 				if ( wcs_order_contains_subscription( $order_id, $order_type ) ) {

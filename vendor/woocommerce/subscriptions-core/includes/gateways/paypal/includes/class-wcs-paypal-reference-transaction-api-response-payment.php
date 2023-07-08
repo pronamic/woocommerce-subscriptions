@@ -11,7 +11,7 @@
  * @package     WooCommerce Subscriptions
  * @subpackage  Gateways/PayPal
  * @category    Class
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -42,7 +42,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 *
 	 * @see WC_PayPal_Express_API_Response::__construct()
 	 * @param string $response the raw URL-encoded response string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function __construct( $response ) {
 
@@ -59,7 +59,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * Checks if the transaction was successful
 	 *
 	 * @return bool true if approved, false otherwise
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function transaction_approved() {
 
@@ -74,7 +74,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * @link https://developer.paypal.com/docs/classic/api/merchant/DoExpressCheckoutPayment_API_Operation_NVP/#id105CAM003Y4__id116RI0UF0YK
 	 *
 	 * @return bool true if the transaction was held, false otherwise
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function transaction_held() {
 
@@ -88,7 +88,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * @link https://developer.paypal.com/docs/classic/api/merchant/DoExpressCheckoutPayment_API_Operation_NVP/#id105CAM003Y4__id116RI0UF0YK
 	 *
 	 * @return string status code
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_status_code() {
 
@@ -102,7 +102,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * PayPal provides additional info only for Pending or Completed-Funds-Held transactions.
 	 *
 	 * @return string status message
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_status_message() {
 
@@ -135,7 +135,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * Gets the response transaction id, or null if there is no transaction id associated with this transaction.
 	 *
 	 * @return string transaction id
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_transaction_id() {
 
@@ -147,7 +147,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * Return true if the response has a payment type other than `none`
 	 *
 	 * @return bool
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function has_payment_type() {
 
@@ -158,7 +158,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	/**
 	 * Get the PayPal payment type, either `none`, `echeck`, or `instant`
 	 *
-	 * @since 2.0.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
 	 * @return string
 	 */
 	public function get_payment_type() {
@@ -171,7 +171,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * Gets payment status
 	 *
 	 * @return string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private function get_payment_status() {
 
@@ -183,7 +183,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * Gets the pending reason
 	 *
 	 * @return string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private function get_pending_reason() {
 
@@ -198,7 +198,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * PayPal Express does not return an authorization code
 	 *
 	 * @return string credit card authorization code
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_authorization_code() {
 		return false;
@@ -209,7 +209,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * Returns the result of the AVS check
 	 *
 	 * @return string result of the AVS check, if any
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_avs_result() {
 
@@ -232,7 +232,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * Returns the result of the CSC check
 	 *
 	 * @return string result of CSC check
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_csc_result() {
 
@@ -255,7 +255,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * Returns true if the CSC check was successful
 	 *
 	 * @return boolean true if the CSC check was successful
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function csc_match() {
 
@@ -278,7 +278,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 *   @type string $id filter ID, integer from 1-17
 	 *   @type string name filter name, short description for filter
 	 * }
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private function get_fraud_filters() {
 
@@ -318,7 +318,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * A wrapper around @see WCS_PayPal_Reference_Transaction_API_Response::has_parameter()
 	 * that prepends the @see self::get_payment_parameter_prefix().
 	 *
-	 * @since 2.0.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
 	 * @param string $name parameter name
 	 * @return bool
 	 */
@@ -333,7 +333,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * A wrapper around @see WCS_PayPal_Reference_Transaction_API_Response::get_parameter()
 	 * that prepends the @see self::get_payment_parameter_prefix().
 	 *
-	 * @since 2.0.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
 	 * @param string $name parameter name
 	 * @return string|null
 	 */
@@ -347,7 +347,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Payment extends WCS_PayPal_R
 	 * parameters. Parallels payments are not used, so the numeric portion of
 	 * the prefix is always '0'
 	 *
-	 * @since 2.0.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
 	 * @return string
 	 */
 	protected function get_payment_parameter_prefix() {

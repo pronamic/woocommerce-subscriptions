@@ -7,7 +7,7 @@
  * @package  WooCommerce Subscriptions
  * @category Class
  * @author   Prospress
- * @since    2.6.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -17,7 +17,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function attach_callbacks() {
 		add_action( 'wcs_before_renewal_setup_cart_subscription', array( get_called_class(), 'maybe_adjust_stock_cart' ), 10, 2 );
@@ -31,7 +31,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	 *
 	 * Hooked onto 'wcs_before_renewal_setup_cart_subscription'.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param WC_Subscription $subscription The subscription object. This param is unused. It is the first parameter of the hook.
 	 * @param WC_Order $order               The renewal order object.
@@ -43,7 +43,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Attaches filters that allow manual renewal carts to pass checkout validity checks for an otherwise out of stock product.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function maybe_adjust_stock_checkout() {
 		$renewal_order = static::get_order_from_cart();
@@ -61,7 +61,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Attaches stock override filters for out of stock renewal products.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 * @param WC_Order $order Renewal order.
 	 */
 	protected static function maybe_attach_stock_filters( $order ) {
@@ -94,7 +94,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Adjusts the stock status of a product that is an out-of-stock renewal.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param bool $is_in_stock   Whether the product is in stock or not
 	 * @param WC_Product $product The product which stock is being checked
@@ -113,7 +113,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Adjusts whether backorders are allowed so out-of-stock renewal item products bypass stock validation.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param bool $backorders_allowed  If the product has backorders enabled.
 	 * @param int $product_id           The product ID.
@@ -132,7 +132,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Removes the filters that adjust stock on out of stock renewals items.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function remove_filters() {
 		remove_filter( 'woocommerce_product_is_in_stock', array( get_called_class(), 'adjust_is_in_stock' ) );
@@ -142,7 +142,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Determines if the cart contains a renewal order with a specific product.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 * @param WC_Product $product The product object to look for.
 	 * @return bool               Whether the cart contains a renewal order to the given product.
 	 */
@@ -164,7 +164,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Gets the renewal order from the cart.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 * @return WC_Order|bool Renewal order obtained from the cart contents or false if the cart doesn't contain a renewal order.
 	 */
 	protected static function get_order_from_cart() {
@@ -181,7 +181,7 @@ class WCS_Renewal_Cart_Stock_Manager {
 	/**
 	 * Gets the renewal order from order-pay query vars.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 * @return WC_Order|bool Renewal order obtained from query vars or false if not set.
 	 */
 	protected static function get_order_from_query_vars() {

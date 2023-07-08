@@ -2,7 +2,7 @@
 /**
  * The template for displaying a modal.
  *
- * @version 2.6.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  * @var WCS_Modal $modal
  */
 if ( ! defined( 'ABSPATH' ) ) {

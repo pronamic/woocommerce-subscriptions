@@ -15,7 +15,7 @@
  * @package     WooCommerce Subscriptions
  * @subpackage  Gateways/PayPal
  * @category    Class
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -44,7 +44,7 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	 * @param string $api_username the API username
 	 * @param string $api_password the API password
 	 * @param string $api_signature the API signature
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function __construct( $gateway_id, $api_environment, $api_username, $api_password, $api_signature ) {
 
@@ -68,7 +68,7 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	 * @param array $paypal_args
 	 * @param WC_Order $order
 	 * @return array
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_paypal_args( $paypal_args, $order ) {
 
@@ -103,7 +103,7 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	 * @link https://developer.paypal.com/docs/classic/api/errorcodes/#id09C3G0PJ0N9__id5e8c50e9-4f1b-462a-8586-399b63b07f1a
 	 *
 	 * @return bool
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function are_reference_transactions_enabled() {
 
@@ -145,7 +145,7 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	 * @param array $args @see WCS_PayPal_Reference_Transaction_API_Request::set_express_checkout() for details
 	 * @throws Exception network timeouts, etc
 	 * @return WCS_PayPal_Reference_Transaction_API_Response_Checkout response object
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function set_express_checkout( $args ) {
 
@@ -166,7 +166,7 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	 *
 	 * @param string $token token from SetExpressCheckout response
 	 * @return WCS_PayPal_Reference_Transaction_API_Response_Billing_Agreement response object
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function create_billing_agreement( $token ) {
 
@@ -185,7 +185,7 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	 * @param string $token Token from set_express_checkout response
 	 * @return WC_PayPal_Reference_Transaction_API_Checkout_Response response object
 	 * @throws Exception network timeouts, etc
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_express_checkout_details( $token ) {
 
@@ -205,7 +205,7 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	 * @param WC_Order $order order object
 	 * @param array $args
 	 * @return WCS_PayPal_Reference_Transaction_API_Response_Payment refund response
-	 * @since 2.0.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
 	 */
 	public function do_express_checkout( $token, $order, $args ) {
 
@@ -227,7 +227,7 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	 * @param WC_Order $order order object
 	 * @return SV_WC_Payment_Gateway_API_Response refund response
 	 * @throws SV_WC_Payment_Gateway_Exception network timeouts, etc
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function do_reference_transaction( $reference_id, $order, $args ) {
 
@@ -245,7 +245,7 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	/**
 	 * Change the status of a subscription for a given order/profile ID
 	 *
-	 * @since 2.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.0
 	 * @see SV_WC_Payment_Gateway_API::refund()
 	 * @param WC_Order $order order object
 	 * @return SV_WC_Payment_Gateway_API_Response refund response
@@ -267,14 +267,23 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	/** Helper methods ******************************************************/
 
 	/**
-	 * Get the wc-api URL to redirect to
+	 * Get the wc-api URL to redirect to.
 	 *
-	 * @param string $action checkout action, either `set_express_checkout or `get_express_checkout_details`
-	 * @return string URL
-	 * @since 2.0
+	 * @param string $action checkout action, either `set_express_checkout or `get_express_checkout_details`.
+	 *
+	 * @return string URL The URL. Note: this URL is escaped.
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_callback_url( $action ) {
-		return add_query_arg( 'action', $action, WC()->api_request_url( 'wcs_paypal' ) );
+		return esc_url(
+			add_query_arg(
+				'action',
+				$action,
+				WC()->api_request_url( 'wcs_paypal' )
+			),
+			null,
+			'db'
+		);
 	}
 
 	/**
@@ -283,7 +292,7 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	 * @see \WCS_SV_API_Base::get_new_request()
 	 * @param array $args
 	 * @return WC_PayPal_Reference_Transaction_API_Request API request object
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function get_new_request( $args = array() ) {
 		return new WCS_PayPal_Reference_Transaction_API_Request( $this->api_username, $this->api_password, $this->api_signature, self::VERSION );
@@ -294,7 +303,7 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	 *
 	 * @see \WCS_SV_API_Base::get_plugin()
 	 * @return object
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function get_plugin() {
 		return WCS_PayPal::instance();

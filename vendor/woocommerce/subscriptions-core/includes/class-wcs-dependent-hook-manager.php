@@ -7,7 +7,7 @@
  * @package  WooCommerce Subscriptions
  * @category Class
  * @author   WooCommerce
- * @since    2.6.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -26,7 +26,7 @@ class WCS_Dependent_Hook_Manager {
 	/**
 	 * Initialise the class.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function init() {
 		add_action( 'plugins_loaded', array( __CLASS__, 'attach_woocommerce_dependent_hooks' ) );
@@ -38,7 +38,7 @@ class WCS_Dependent_Hook_Manager {
 	 * This attaches all the hooks registered via @see add_woocommerce_dependent_action()
 	 * if the WooCommerce version requirements are met.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function attach_woocommerce_dependent_hooks() {
 		if ( ! isset( self::$dependent_callbacks['woocommerce'] ) ) {
@@ -62,7 +62,7 @@ class WCS_Dependent_Hook_Manager {
 	/**
 	 * Attach function callback if a certain WooCommerce version is present.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param string $tag The action or filter tag to attach the callback too.
 	 * @param string|array $function The callable function to attach to the hook.

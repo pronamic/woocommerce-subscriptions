@@ -8,7 +8,7 @@
  * @subpackage  Gateways/PayPal
  * @category    Class
  * @author      Prospress
- * @since       2.0.6
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0.6
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -27,7 +27,7 @@ class WCS_PayPal_Standard_IPN_Failure_Handler {
 	/**
 	 * Attaches all IPN failure handler related hooks and filters and also sets logging to enabled.
 	 *
-	 * @since 2.0.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.6
 	 * @param array $transaction_details
 	 */
 	public static function attach( $transaction_details ) {
@@ -53,7 +53,7 @@ class WCS_PayPal_Standard_IPN_Failure_Handler {
 	/**
 	 * Close up loose ends
 	 *
-	 * @since 2.0.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.6
 	 * @param $transaction_details
 	 */
 	public static function detach( $transaction_details ) {
@@ -66,7 +66,7 @@ class WCS_PayPal_Standard_IPN_Failure_Handler {
 	/**
 	 * On PHP shutdown log any unexpected failures from PayPal IPN processing
 	 *
-	 * @since 2.0.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.6
 	 */
 	public static function catch_unexpected_shutdown() {
 
@@ -82,7 +82,7 @@ class WCS_PayPal_Standard_IPN_Failure_Handler {
 	/**
 	 * Log any fatal errors occurred while Subscriptions is trying to process IPN messages
 	 *
-	 * @since 2.0.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.6
 	 * @param array $transaction_details the current IPN message being processed when the fatal error occurred
 	 * @param array $error
 	 */
@@ -107,7 +107,7 @@ class WCS_PayPal_Standard_IPN_Failure_Handler {
 	/**
 	 * Log any unexpected fatal errors to wcs-ipn-failures log file
 	 *
-	 * @since 2.0.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.6
 	 * @param string $message
 	 */
 	public static function log_to_failure( $message ) {
@@ -123,7 +123,7 @@ class WCS_PayPal_Standard_IPN_Failure_Handler {
 	 * Builds an error array from exception and call @see self::log_ipn_errors() to log unhandled
 	 * exceptions in a separate paypal log.
 	 *
-	 * @since 2.0.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.6
 	 * @param Exception $exception
 	 */
 	public static function log_unexpected_exception( $exception ) {

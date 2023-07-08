@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Order complete emails are sent to the customer when the order is marked complete and usual indicates that the order has been shipped.
  *
  * @class WC_Email_Customer_Completed_Order
- * @version 2.0.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.0
  * @package WooCommerce/Classes/Emails
  * @author Prospress
  * @extends WC_Email
@@ -45,7 +45,7 @@ class WCS_Email_Processing_Renewal_Order extends WC_Email_Customer_Processing_Or
 	/**
 	 * Get the default e-mail subject.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_subject() {
@@ -55,7 +55,7 @@ class WCS_Email_Processing_Renewal_Order extends WC_Email_Customer_Processing_Or
 	/**
 	 * Get the default e-mail heading.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_heading() {

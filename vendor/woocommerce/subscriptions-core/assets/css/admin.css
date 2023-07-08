@@ -17,32 +17,50 @@
 }
 
 /* Subscriptions Admin Page */
+.woocommerce_page_wc-orders--shop_subscription .tablenav input,
+.woocommerce_page_wc-orders--shop_subscription .tablenav select,
 .post-type-shop_subscription .tablenav input,
 .post-type-shop_subscription .tablenav select {
 	height: 32px;
 }
+.woocommerce_page_wc-orders--shop_subscription .tablenav .select2-container,
 .post-type-shop_subscription .tablenav .select2-container {
 	width: 240px !important;
 	font-size: 14px;
 	vertical-align: middle;
 	margin: 1px 6px 4px 1px;
 }
+.woocommerce_page_wc-orders--shop_subscription
+	.tablenav
+	.select2-selection--single,
 .post-type-shop_subscription .tablenav .select2-selection--single {
 	height: 32px;
 }
+.woocommerce_page_wc-orders--shop_subscription
+	.tablenav
+	.select2-selection__rendered,
 .post-type-shop_subscription .tablenav .select2-selection__rendered {
 	line-height: 29px;
 }
+.woocommerce_page_wc-orders--shop_subscription
+	.tablenav
+	.select2-selection__arrow,
 .post-type-shop_subscription .tablenav .select2-selection__arrow {
 	height: 30px;
 }
+.woocommerce_page_wc-orders--shop_subscription .wp-list-table,
 .post-type-shop_subscription .wp-list-table {
 	margin-top: 1em;
 }
+.woocommerce_page_wc-orders--shop_subscription .widefat .column-status,
+.woocommerce_page_wc-orders--shop_subscription .widefat .column-order_title,
 .post-type-shop_subscription .widefat .column-status,
 .post-type-shop_subscription .widefat .column-order_title {
 	width: 160px;
 	text-align: left;
+}
+.wcs-payment-overdue {
+    color: #d63539;
 }
 /* Product List table */
 table.wp-list-table span.product-type.variable-subscription {
@@ -726,6 +744,14 @@ table.wc_gateways .renewals .tips {
 }
 
 /* Hide irrelevant sections on Edit Subscription screen */
+body.woocommerce_page_wc-orders--shop_subscription
+	.order_actions
+	#actions
+	optgroup[label='Resend order emails'],
+body.woocommerce_page_wc-orders--shop_subscription .add-items .description.tips,
+body.woocommerce_page_wc-orders--shop_subscription
+	.add-items
+	.button.refund-items,
 body.post-type-shop_subscription
 	.order_actions
 	#actions
@@ -746,20 +772,33 @@ body.post-type-shop_subscription .add-items .button.refund-items {
 		width: 19%;
 	}
 
+	.woocommerce_page_wc-orders--shop_subscription
+		.wp-list-table
+		.column-status,
 	.post-type-shop_subscription .wp-list-table .column-status {
 		display: none;
 		text-align: left;
 		padding-bottom: 0;
 	}
 
+	.woocommerce_page_wc-orders--shop_subscription
+		.wp-list-table
+		.column-status
+		mark,
 	.post-type-shop_subscription .wp-list-table .column-status mark {
 		margin: 0;
 	}
 
+	.woocommerce_page_wc-orders--shop_subscription
+		.wp-list-table
+		.column-status::before,
 	.post-type-shop_subscription .wp-list-table .column-status::before {
 		display: none !important;
 	}
 
+	.woocommerce_page_wc-orders--shop_subscription
+		.wp-list-table
+		.column-orders,
 	.post-type-shop_subscription .wp-list-table .column-orders {
 		text-align: left !important;
 	}

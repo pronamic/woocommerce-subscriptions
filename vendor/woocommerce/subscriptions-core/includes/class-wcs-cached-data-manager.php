@@ -3,8 +3,8 @@
  * Subscription Cached Data Manager Class
  *
  * @class    WCS_Cached_Data_Manager
- * @version  2.3.0
- * @since    2.1.2
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.1.2
  * @package  WooCommerce Subscriptions/Classes
  * @category Class
  * @author   Prospress
@@ -73,16 +73,14 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	public function purge_delete( $post_id, $post = null ) {
 		wcs_deprecated_function( __METHOD__, '2.3.0' );
 
-		$post_type = get_post_type( $post_id );
-
-		if ( 'shop_order' === $post_type ) {
+		if ( 'shop_order' === WC_Data_Store::load( 'order' )->get_order_type( $post_id ) ) {
 			wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Related order caching is now handled by %1$s.', 'woocommerce-subscriptions' ), 'WCS_Related_Order_Store' ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment
 			if ( is_callable( array( WCS_Related_Order_Store::instance(), 'delete_related_order_id_from_caches' ) ) ) {
 				WCS_Related_Order_Store::instance()->delete_related_order_id_from_caches( $post_id );
 			}
 		}
 
-		if ( 'shop_subscription' === $post_type ) {
+		if ( 'shop_subscription' === WC_Data_Store::load( 'subscription' )->get_order_type( $post_id ) ) {
 			wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT' ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment
 
 			// Purge wcs_do_subscriptions_exist cache, but only on the before_delete_post hook.
@@ -110,7 +108,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 		wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s and %2$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT', 'WCS_Post_Meta_Cache_Manager' ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment
 
 		// Ensure we're handling a meta key we actually care about.
-		if ( '_customer_user' !== $meta_key || 'shop_subscription' !== get_post_type( $object_id ) ) {
+		if ( '_customer_user' !== $meta_key || 'shop_subscription' !== WC_Data_Store::load( 'subscription' )->get_order_type( $object_id ) ) {
 			return;
 		}
 
@@ -121,7 +119,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * Wrapper function to clear the cache that relates to related orders
 	 *
 	 * @param null $subscription_id
-	 * @deprecated 2.3.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	protected function clear_related_order_cache( $subscription_id ) {
 		wcs_deprecated_function( __METHOD__, '2.3.0', __( 'new related order methods in WCS_Related_Order_Store', 'woocommerce-subscriptions' ) );
@@ -198,7 +196,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	/**
 	 * Check once each week if the log file has exceeded the limits.
 	 *
-	 * @since 2.2.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
 	 */
 	public function initialize_cron_check_size() {
 
@@ -215,7 +213,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * Add a weekly schedule for clearing up the cache
 	 *
 	 * @param $scheduled array
-	 * @since 2.2.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
 	 */
 	function add_weekly_cron_schedule( $schedules ) {
 

@@ -7,7 +7,7 @@
  * @package  WooCommerce Subscriptions
  * @category Class
  * @author   Prospress
- * @since    2.5.3
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,7 +22,7 @@ class WCS_Permalink_Manager {
 	 * If the notice has been trigger, set to true to avoid duplicate notices.
 	 *
 	 * @var bool
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 */
 	protected static $notice_triggered = false;
 
@@ -30,7 +30,7 @@ class WCS_Permalink_Manager {
 	 * The options saved in DB related to permalinks.
 	 *
 	 * @var array
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 */
 	protected static $permalink_options = array(
 		'woocommerce_myaccount_subscriptions_endpoint',
@@ -41,7 +41,7 @@ class WCS_Permalink_Manager {
 	/**
 	 * Hooks.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 */
 	public static function init() {
 		add_filter( 'pre_update_option', array( __CLASS__, 'maybe_allow_permalink_update' ), 10, 3 );
@@ -55,7 +55,7 @@ class WCS_Permalink_Manager {
 	 * @param mixed  $old_value The previous option value.
 	 *
 	 * @return mixed
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 */
 	public static function maybe_allow_permalink_update( $value, $option, $old_value ) {
 		// If is updating a permalink option.
@@ -79,7 +79,7 @@ class WCS_Permalink_Manager {
 	/**
 	 * Display a warning informing that the endpoints changes has been ignored.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 */
 	protected static function show_duplicate_permalink_notice() {
 		if ( ! self::$notice_triggered ) {

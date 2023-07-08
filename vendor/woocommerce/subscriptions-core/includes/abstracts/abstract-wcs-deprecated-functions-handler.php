@@ -5,7 +5,7 @@
  * @package  WooCommerce Subscriptions
  * @category Class
  * @author   WooCommerce
- * @since    4.0.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -34,7 +34,7 @@ abstract class WCS_Deprecated_Functions_Handler {
 	/**
 	 * Determines if a function is deprecated and handled by this class.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param string $function The function to check.
 	 * @return bool
@@ -46,7 +46,7 @@ abstract class WCS_Deprecated_Functions_Handler {
 	/**
 	 * Determines if there's a replacement function to call.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param  string $function The deprecated function to check if there's a replacement for.
 	 * @return bool
@@ -58,7 +58,7 @@ abstract class WCS_Deprecated_Functions_Handler {
 	/**
 	 * Calls the replacement function if one exists.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param string $function  The deprecated function.
 	 * @param array  $arguments The deprecated function arguments.
@@ -87,7 +87,7 @@ abstract class WCS_Deprecated_Functions_Handler {
 	/**
 	 * Triggers the deprecated notice.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 * @param string $function The deprecated function.
 	 */
 	public function trigger_notice( $function ) {

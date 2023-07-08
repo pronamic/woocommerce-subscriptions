@@ -4,7 +4,7 @@
  *
  * @author  Prospress
  * @package WooCommerce-Subscriptions/Templates
- * @version 2.6.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -69,7 +69,7 @@ do_action( 'woocommerce_before_add_to_cart_form' ); ?>
 				/**
 				 * woocommerce_single_variation hook. Used to output the cart button and placeholder for variation data.
 				 *
-				 * @since  2.4.0
+				 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
 				 * @hooked woocommerce_single_variation - 10 Empty div for variation data.
 				 * @hooked woocommerce_single_variation_add_to_cart_button - 20 Qty and cart button.
 				 */

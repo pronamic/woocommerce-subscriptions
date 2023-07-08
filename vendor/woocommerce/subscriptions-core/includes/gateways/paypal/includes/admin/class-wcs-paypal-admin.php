@@ -8,7 +8,7 @@
  * @subpackage  Gateways/PayPal
  * @category    Class
  * @author      Prospress
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +20,7 @@ class WCS_PayPal_Admin {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function init() {
 
@@ -47,7 +47,7 @@ class WCS_PayPal_Admin {
 	/**
 	 * Adds extra PayPal credential fields required to manage subscriptions.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function add_form_fields() {
 
@@ -67,7 +67,7 @@ class WCS_PayPal_Admin {
 	/**
 	 * Handle requests to check whether a PayPal account has Reference Transactions enabled
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_check_account() {
 
@@ -88,7 +88,7 @@ class WCS_PayPal_Admin {
 	/**
 	 * Display an assortment of notices to administrators to encourage them to get PayPal setup right.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_show_admin_notices() {
 		self::maybe_disable_invalid_profile_notice();
@@ -217,7 +217,7 @@ class WCS_PayPal_Admin {
 	/**
 	 * Disable the invalid profile notice when requested.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected static function maybe_disable_invalid_profile_notice() {
 		if ( isset( $_GET['wcs_disable_paypal_invalid_profile_id_notice'] ) ) {
@@ -232,7 +232,7 @@ class WCS_PayPal_Admin {
 	/**
 	 * Remove the invalid credentials error flag whenever a new set of API credentials are saved.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_update_credentials_error_flag() {
 
@@ -304,7 +304,7 @@ class WCS_PayPal_Admin {
 	 *
 	 * @param array $settings The WooCommerce PayPal Settings array.
 	 * @return array
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function add_enable_for_subscriptions_setting( $settings ) {
 		if ( WCS_PayPal::are_reference_transactions_enabled() ) {

@@ -5,7 +5,7 @@
  * @author   Prospress
  * @category Class
  * @package  WooCommerce Subscriptions
- * @since    2.6.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 
 class WCS_Object_Sorter {
@@ -22,7 +22,7 @@ class WCS_Object_Sorter {
 	/**
 	 * Constructor.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param string $property The object property to use in comparisons. This will be used to generate the object getter by prepending 'get_'.
 	 */
@@ -35,7 +35,7 @@ class WCS_Object_Sorter {
 	 *
 	 * Designed to be used by uasort(), usort() or uksort() functions.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param object $object_one
 	 * @param object $object_two
@@ -63,7 +63,7 @@ class WCS_Object_Sorter {
 	 *
 	 * Designed to be used by uasort(), or usort() style functions.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param object $object_one
 	 * @param object $object_two

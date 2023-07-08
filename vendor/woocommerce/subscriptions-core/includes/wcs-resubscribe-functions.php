@@ -7,7 +7,7 @@
  * @author Prospress
  * @category Core
  * @package WooCommerce Subscriptions/Functions
- * @version     2.0
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Check if a given order was created to resubscribe to a cancelled or expired subscription.
  *
  * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_order_contains_resubscribe( $order ) {
 
@@ -46,7 +46,7 @@ function wcs_order_contains_resubscribe( $order ) {
  *
  * @param  int | WC_Subscription $subscription Post ID of a 'shop_subscription' post, or instance of a WC_Subscription object
  * @return WC_Subscription
- * @since  2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_create_resubscribe_order( $subscription ) {
 
@@ -68,7 +68,7 @@ function wcs_create_resubscribe_order( $subscription ) {
  *
  * @param  int | WC_Subscription $subscription Post ID of a 'shop_subscription' post, or instance of a WC_Subscription object
  * @return string
- * @since  2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_users_resubscribe_link( $subscription ) {
 
@@ -84,7 +84,7 @@ function wcs_get_users_resubscribe_link( $subscription ) {
  * Returns a URL including required parameters for an authenticated user to renew a subscription by product ID.
  *
  * @param int $product_id The ID of a product post type.
- * @since 1.2
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
  */
 function wcs_get_users_resubscribe_link_for_product( $product_id ) {
 
@@ -109,7 +109,7 @@ function wcs_get_users_resubscribe_link_for_product( $product_id ) {
  *
  * @param  bool | Array The cart item containing the renewal, else false.
  * @return string
- * @since  2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_cart_contains_resubscribe( $cart = '' ) {
 
@@ -135,7 +135,7 @@ function wcs_cart_contains_resubscribe( $cart = '' ) {
  * Get the subscription to which a renewal order relates.
  *
  * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscriptions_for_resubscribe_order( $order ) {
 	return wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'resubscribe' ) );
@@ -158,7 +158,7 @@ function wcs_get_subscriptions_for_resubscribe_order( $order ) {
  * @param  int | WC_Subscription $subscription Post ID of a 'shop_subscription' post, or instance of a WC_Subscription object
  * @param  int The ID of a user
  * @return bool
- * @since  2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_can_user_resubscribe_to( $subscription, $user_id = '' ) {
 

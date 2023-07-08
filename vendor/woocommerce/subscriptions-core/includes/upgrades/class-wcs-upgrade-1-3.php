@@ -8,7 +8,7 @@
  * @author      Prospress
  * @category    Admin
  * @package     WooCommerce Subscriptions/Admin/Upgrades
- * @version     1.3.0
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v1.3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -4,7 +4,7 @@
  *
  * @author  Prospress
  * @package WooCommerce_Subscriptions/Templates/Emails/Plain
- * @version 2.1.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -19,7 +19,7 @@ echo "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\
 
 /**
  * @hooked WC_Subscriptions_Email::order_details() Shows the order details table.
- * @since 2.1.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.0
  */
 do_action( 'woocommerce_subscriptions_email_order_details', $subscription, $sent_to_admin, $plain_text, $email );
 

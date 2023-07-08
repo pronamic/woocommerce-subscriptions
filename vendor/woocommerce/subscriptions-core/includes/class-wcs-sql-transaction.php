@@ -6,7 +6,7 @@
  * @package  WooCommerce Subscriptions
  * @category Class
  * @author   Automattic
- * @since    3.1.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -37,7 +37,7 @@ class WCS_SQL_Transaction {
 	/**
 	 * Constructor
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 *
 	 * @param string $on_fatal    Optional. The type of query to run on fatal shutdown if this transaction is still active. Can be 'rollback' or 'commit'. Default is 'rollback'.
 	 * @param string $on_shutdown Optional. The type of query to run if a non-error shutdown occurs but there's still an active transaction. Can be 'rollback' or 'commit'. Default is 'commit'.
@@ -63,7 +63,7 @@ class WCS_SQL_Transaction {
 	/**
 	 * Starts a MYSQL Transction.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
 	public function start() {
 		wc_transaction_query( 'start' );
@@ -73,7 +73,7 @@ class WCS_SQL_Transaction {
 	/**
 	 * Commits the MYSQL Transction.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
 	public function commit() {
 		wc_transaction_query( 'commit' );
@@ -83,7 +83,7 @@ class WCS_SQL_Transaction {
 	/**
 	 * Rolls back any changes made during the MYSQL Transction.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
 	public function rollback() {
 		wc_transaction_query( 'rollback' );
@@ -96,7 +96,7 @@ class WCS_SQL_Transaction {
 	 * Shutdowns caused by a fatal will be rolledback or commited @see $this->on_fatal.
 	 * Shutdowns caused by a natural PHP termination (no error) will be rolledback or commited. @see $this->on_shutdown.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
 	public function handle_shutdown() {
 

@@ -11,7 +11,7 @@
  * @package     WooCommerce Subscriptions
  * @subpackage  Gateways/PayPal
  * @category    Class
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,7 +29,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 * @link https://developer.paypal.com/docs/classic/api/NVPAPIOverview/#id084FBM0M0HS
 	 *
 	 * @param string $response the raw URL-encoded response string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function __construct( $response ) {
 
@@ -43,7 +43,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 * @link https://developer.paypal.com/docs/classic/api/errorcodes/
 	 *
 	 * @return bool true if has API error, false otherwise
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function has_api_error() {
 
@@ -63,7 +63,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 * @link https://developer.paypal.com/docs/classic/api/errorcodes/
 	 *
 	 * @return bool true if has API error relating to incorrect credentials, false otherwise
-	 * @since 2.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 */
 	public function has_api_error_for_credentials() {
 
@@ -97,7 +97,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 * @link https://developer.paypal.com/docs/classic/api/errorcodes/
 	 *
 	 * @return string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_api_error_code() {
 
@@ -122,7 +122,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 * @link https://developer.paypal.com/docs/classic/api/errorcodes/
 	 *
 	 * @return string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_api_error_message() {
 
@@ -155,7 +155,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 *
 	 * @param string $name parameter name
 	 * @return bool
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function has_parameter( $name ) {
 		return ! empty( $this->parameters[ $name ] );
@@ -166,7 +166,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 *
 	 * @param string $name parameter name
 	 * @return string|null
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function get_parameter( $name ) {
 		return $this->has_parameter( $name ) ? $this->parameters[ $name ] : null;
@@ -181,7 +181,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 * @link https://developer.paypal.com/docs/classic/api/errorcodes/
 	 *
 	 * @return string user message, if there is one
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_user_message() {
 
@@ -201,7 +201,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 * Returns the string representation of this response
 	 *
 	 * @return string response
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function to_string() {
 
@@ -213,7 +213,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 * sensitive elements masked or removed
 	 *
 	 * @return string response safe for logging/displaying
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function to_string_safe() {
 
@@ -226,7 +226,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 *
 	 * @see WC_Gateway_Paypal_Response::get_paypal_order()
 	 * @param string $response the raw URL-encoded response string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_order() {
 

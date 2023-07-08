@@ -173,9 +173,9 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 
 			if ( $subscription ) {
 				// Copy all meta, excluding core properties (totals etc), from the subscription to new renewal order
-				add_filter( 'wcs_renewal_order_meta', array( $this, 'exclude_core_order_meta_properties' ) );
+				add_filter( 'wc_subscriptions_renewal_order_data', array( $this, 'exclude_core_properties_from_copy' ) );
 				wcs_copy_order_meta( $subscription, $order, 'renewal_order' );
-				remove_filter( 'wcs_renewal_order_meta', array( $this, 'exclude_core_order_meta_properties' ) );
+				remove_filter( 'wc_subscriptions_renewal_order_data', array( $this, 'exclude_core_properties_from_copy' ) );
 			}
 		}
 	}
@@ -198,7 +198,7 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 		$subscription = wcs_get_subscription( $cart_item[ $this->cart_item_key ]['subscription_id'] );
 
 		// Mark this order as a renewal.
-		$order->update_meta_data( '_subscription_renewal', $subscription->get_id() );
+		WCS_Related_Order_Store::instance()->add_relation( $order, $subscription, 'renewal' );
 
 		// Mark this order as an early renewal.
 		$order->update_meta_data( '_subscription_renewal_early', $subscription->get_id() );
@@ -389,7 +389,7 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 	 * @since 2.3.0
 	 */
 	public static function allow_early_renewal_order_cancellation() {
-		if ( isset( $_GET['cancel_order'] ) && isset( $_GET['order_id'] ) && isset( $_GET['_wpnonce'] ) && wp_verify_nonce( $_GET['_wpnonce'], 'woocommerce-cancel_order' ) ) {
+		if ( isset( $_GET['cancel_order'], $_GET['order_id'], $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'woocommerce-cancel_order' ) ) {
 			$order_id = absint( $_GET['order_id'] );
 			$order    = wc_get_order( $order_id );
 
@@ -400,17 +400,77 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 	}
 
 	/**
+	 * Excludes core properties from being copied to the renewal order when an early renewal is created.
+	 *
+	 * These core order properties are set when the order is created via the checkout and should not be
+	 * copied from the subscription in case they were changed via the checkout process.
+	 *
+	 * @since 4.8.0
+	 *
+	 * @param array $order_data The data to be copied to the early renewal order. Each value is keyed by the meta key. Example format [ '_meta_key' => 'meta_value' ].
+	 * @return array $order_data The filtered set of order data.
+	 */
+	public function exclude_core_properties_from_copy( $order_data ) {
+		$excluded_properties = array(
+			'_customer_user',
+			'_order_currency',
+			'_prices_include_tax',
+			'_order_version',
+			'_shipping_first_name',
+			'_shipping_last_name',
+			'_shipping_company',
+			'_shipping_address_1',
+			'_shipping_address_2',
+			'_shipping_city',
+			'_shipping_state',
+			'_shipping_postcode',
+			'_shipping_country',
+			'_shipping_address_index',
+			'_billing_first_name',
+			'_billing_last_name',
+			'_billing_company',
+			'_billing_address_1',
+			'_billing_address_2',
+			'_billing_city',
+			'_billing_state',
+			'_billing_postcode',
+			'_billing_country',
+			'_billing_email',
+			'_billing_phone',
+			'_billing_address_index',
+			'is_vat_exempt',
+			'_customer_ip_address',
+			'_customer_user_agent',
+			'_cart_discount',
+			'_cart_discount_tax',
+			'_order_shipping',
+			'_order_shipping_tax',
+			'_order_tax',
+			'_order_total',
+		);
+
+		// Remove the core order properties from the data copied from the subscription.
+		foreach ( $excluded_properties as $meta_key ) {
+			unset( $order_data[ $meta_key ] );
+		}
+
+		return $order_data;
+	}
+
+	/**
 	 * Excludes core order meta properties from the meta copied from the subscription.
 	 *
 	 * Attached to the dynamic hook 'wcs_renewal_order_meta' which is triggered by wcs_copy_order_meta
 	 * when copying meta from the subscription to the early renewal order.
 	 *
 	 * @since 2.5.6
+	 * @deprecated 4.8.0
 	 *
 	 * @param array $order_meta The meta keys and values to copy from the subscription to the early renewal order.
 	 * @return array The subscription meta to copy to the early renewal order.
 	 */
 	public function exclude_core_order_meta_properties( $order_meta ) {
+		wcs_deprecated_function( __METHOD__, '4.8.0', __CLASS__ . '::exclude_core_properties_from_copy()' );
 
 		// Additional meta keys to exclude. These are in addition to the meta keys already excluded by wcs_copy_order_meta().
 		$excluded_meta_keys = array(

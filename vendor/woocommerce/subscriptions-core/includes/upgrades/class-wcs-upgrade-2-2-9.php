@@ -6,7 +6,7 @@
  * @author Prospress
  * @category Admin
  * @package WooCommerce Subscriptions/Admin/Upgrades
- * @version 2.2.9
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,7 +22,7 @@ class WCS_Upgrade_2_2_9 {
 	/**
 	 * Schedule an WP-Cron event to run in 3 minutes to repair subscription synced post meta.
 	 *
-	 * @since 2.2.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
 	 */
 	public static function schedule_repair() {
 		wp_schedule_single_event( gmdate( 'U' ) + ( MINUTE_IN_SECONDS * 3 ), self::$cron_hook );
@@ -35,7 +35,7 @@ class WCS_Upgrade_2_2_9 {
 	 * WC 3.0 was active, to have missing _contains_synced_subscription post meta. This was fixed to prevent new subscriptions
 	 * falling victim to that bug in WCS 2.2.8 however existing subscriptions need to be repaired.
 	 *
-	 * @since 2.2.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
 	 */
 	public static function repair_subscriptions_containing_synced_variations() {
 		$repaired_subscriptions  = get_option( self::$repaired_subscriptions_option, array() );
@@ -84,7 +84,7 @@ class WCS_Upgrade_2_2_9 {
 	/**
 	 * Get a batch of subscriptions to repair.
 	 *
-	 * @since 2.2.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
 	 * @param array $repaired_subscriptions A list of subscription post IDs to ignore.
 	 * @return array A list of subscription ids which may need to be repaired.
 	 */
@@ -115,7 +115,7 @@ class WCS_Upgrade_2_2_9 {
 	 * Add a message to the wcs-upgrade-subscriptions-containing-synced-variations log
 	 *
 	 * @param string The message to be logged
-	 * @since 2.2.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
 	 */
 	protected static function log( $message ) {
 		WCS_Upgrade_Logger::add( $message, 'wcs-upgrade-subscriptions-containing-synced-variations' );

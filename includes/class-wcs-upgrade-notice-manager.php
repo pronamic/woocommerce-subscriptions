@@ -68,7 +68,7 @@ class WCS_Upgrade_Notice_Manager {
 	 */
 	public static function maybe_show_admin_notice() {
 
-		if ( isset( $_GET['_wcsnonce'] ) && wp_verify_nonce( $_GET['_wcsnonce'], 'dismiss_upgrade_notice' ) && ! empty( $_GET['dismiss_upgrade_notice'] ) && self::$version === $_GET['dismiss_upgrade_notice'] ) {
+		if ( isset( $_GET['_wcsnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wcsnonce'] ) ) , 'dismiss_upgrade_notice' ) && ! empty( $_GET['dismiss_upgrade_notice'] ) && self::$version === $_GET['dismiss_upgrade_notice'] ) {
 			delete_option( self::$option_name );
 			return;
 		}

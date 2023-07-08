@@ -2,7 +2,7 @@
 /**
  * Outputs a subscription variation's payment date synchronisation fields for WooCommerce 2.3+
  *
- * @version 2.1.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.0
  *
  * @var int $loop
  * @var WP_POST $variation

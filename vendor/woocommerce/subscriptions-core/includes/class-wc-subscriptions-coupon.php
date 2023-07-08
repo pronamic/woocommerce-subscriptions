@@ -8,7 +8,7 @@
  * @subpackage WC_Subscriptions_Coupon
  * @category Class
  * @author Max Rice
- * @since 1.2
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
  */
 class WC_Subscriptions_Coupon {
 
@@ -25,7 +25,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Stores the coupons not applied to a given calculation (so they can be applied later)
 	 *
-	 * @since 1.3.5
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.5
 	 * @deprecated
 	 */
 	private static $removed_coupons = array();
@@ -64,7 +64,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Set up the class, including it's hooks & filters, when the file is loaded.
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 **/
 	public static function init() {
 
@@ -103,7 +103,7 @@ class WC_Subscriptions_Coupon {
 	* @param string $coupon_html Html string of the recurring coupon's cell in the Cart totals table
 	* @param WC_coupon $coupon WC_Coupon object of the recurring coupon
 	* @return string $coupon_html Modified html string of the coupon containing the marking
-	* @since 2.3
+	* @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3
 	*/
 	public static function mark_recurring_coupon_in_initial_cart_for_hiding( $coupon_html, $coupon ) {
 		$displaying_initial_cart_totals = false;
@@ -124,7 +124,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Add discount types
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function add_discount_types( $discount_types ) {
 
@@ -142,7 +142,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Get the discount amount for Subscriptions coupon types
 	 *
-	 * @since 2.0.10
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.10
 	 */
 	public static function get_discount_amount( $discount, $discounting_amount, $item, $single, $coupon ) {
 
@@ -158,7 +158,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Get the discount amount which applies for a cart item for subscription coupon types
 	 *
-	 * @since 2.2.13
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.13
 	 * @param array $cart_item
 	 * @param float $discount the original discount amount
 	 * @param float $discounting_amount the cart item price/total which the coupon should apply to
@@ -317,7 +317,7 @@ class WC_Subscriptions_Coupon {
 	 *
 	 * Uses methods and data structures introduced in WC 3.0.
 	 *
-	 * @since 2.2.13
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.13
 	 * @param WC_Order_Item $line_item
 	 * @param float $discount the original discount amount
 	 * @param float $discounting_amount the line item price/total
@@ -368,7 +368,7 @@ class WC_Subscriptions_Coupon {
 	 *  - 'recurring_fee' for the recurring amount subscription coupon
 	 *  - 'sign_up_fee' for the sign-up fee subscription coupon
 	 *
-	 * @since 1.3.5
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.5
 	 */
 	public static function cart_contains_discount( $coupon_type = 'any' ) {
 
@@ -399,7 +399,7 @@ class WC_Subscriptions_Coupon {
 	 * @param WC_Coupon $coupon
 	 * @param WC_Discounts $discount Added in WC 3.2 the WC_Discounts object contains information about the coupon being applied to either carts or orders - Optional
 	 * @return boolean Whether the coupon is valid or not
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function validate_subscription_coupon( $valid, $coupon, $discount = null ) {
 
@@ -429,7 +429,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Check if a subscription coupon is valid for the cart.
 	 *
-	 * @since 2.2.13
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.13
 	 * @param boolean $valid
 	 * @param WC_Coupon $coupon
 	 * @return bool whether the coupon is valid
@@ -480,7 +480,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Check if a subscription coupon is valid for an order/subscription.
 	 *
-	 * @since 2.2.13
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.13
 	 * @param WC_Coupon $coupon The subscription coupon being validated. Can accept recurring_fee, recurring_percent, sign_up_fee or sign_up_fee_percent coupon types.
 	 * @param WC_Order|WC_Subscription $order The order or subscription object to which the coupon is being applied
 	 * @return bool whether the coupon is valid
@@ -511,7 +511,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Returns a subscription coupon-specific error if validation failed
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function add_coupon_error( $error ) {
 
@@ -529,7 +529,7 @@ class WC_Subscriptions_Coupon {
 	 * This function is hooked to "woocommerce_before_calculate_totals" so that WC will calculate a subscription
 	 * product's total based on the total of it's price per period and sign up fee (if any).
 	 *
-	 * @since 1.3.5
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.5
 	 *
 	 * @param WC_Cart $cart
 	 */
@@ -601,7 +601,7 @@ class WC_Subscriptions_Coupon {
 	 *
 	 * @param  string $code coupon code
 	 * @return array subtotal
-	 * @since 2.0.10
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.10
 	 */
 	private static function get_renewal_subtotal( $code ) {
 
@@ -636,7 +636,7 @@ class WC_Subscriptions_Coupon {
 	 * @param int|WC_Product $product_id
 	 * @param array $cart_item
 	 * @return boolean whether a product is a renewal order line item
-	 * @since 2.0.10
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.10
 	 */
 	private static function is_subscription_renewal_line_item( $product_id, $cart_item ) {
 
@@ -665,7 +665,7 @@ class WC_Subscriptions_Coupon {
 	 *
 	 * @param array $coupon_types
 	 * @return array supported coupon types
-	 * @since 2.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2
 	 */
 	public static function add_pseudo_coupon_types( $coupon_types ) {
 		return array_merge(
@@ -685,7 +685,7 @@ class WC_Subscriptions_Coupon {
 	 * @param  string $label
 	 * @param  WC_Coupon $coupon
 	 * @return string
-	 * @since 2.2.8
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.8
 	 */
 	public static function get_pseudo_coupon_label( $label, $coupon ) {
 		// If the coupon is one of our pseudo coupons, rather than displaying "Coupon: discount_renewal" display a nicer label.
@@ -724,7 +724,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Checks if a coupon is one of our virtual coupons applied to renewal carts.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param string $coupon_type The coupon's type.
 	 * @return bool Whether the coupon is a recuring cart virtual coupon.
@@ -736,7 +736,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Checks if a coupon is one of our recurring coupons.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param string $coupon_type The coupon's type.
 	 * @return bool Whether the coupon is a recuring cart virtual coupon.
@@ -750,7 +750,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Apply sign up fee or recurring fee discount
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function apply_subscription_discount( $original_price, $cart_item, $cart ) {
 		_deprecated_function( __METHOD__, '2.0.10', 'Have moved to filtering on "woocommerce_coupon_get_discount_amount" to return discount amount. See: ' . __CLASS__ . '::get_discount_amount()' );
@@ -870,7 +870,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Validates a subscription coupon's use for a given product.
 	 *
-	 * @since 2.5.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.4
 	 *
 	 * @param bool       $is_valid Whether the coupon is valid for the product.
 	 * @param WC_Product $product  The product object.
@@ -905,7 +905,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Store how much discount each coupon grants.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 * @param WC_Cart $cart The WooCommerce cart object.
 	 * @param mixed $code
 	 * @param mixed $amount
@@ -926,7 +926,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Restores discount coupons which had been removed for special subscription calculations.
 	 *
-	 * @since 1.3.5
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.5
 	 */
 	public static function restore_coupons( $cart ) {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -954,7 +954,7 @@ class WC_Subscriptions_Coupon {
 	 * This function overrides that by ensuring the limit is accounted for across all recurring carts.
 	 * The items which the coupon applied to in initial cart are the items in recurring carts that the coupon will apply to.
 	 *
-	 * @since 3.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.0
 	 *
 	 * @param int       $apply_quantity The item quantity to apply the coupon to.
 	 * @param object    $item The stdClass cart item object. @see WC_Discounts::set_items_from_cart() for an example of object properties.
@@ -1021,7 +1021,7 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Apply sign up fee or recurring fee discount before tax is calculated
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function apply_subscription_discount_before_tax( $original_price, $cart_item, $cart ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::apply_subscription_discount( $original_price, $cart_item, $cart )' );
@@ -1031,8 +1031,8 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Apply sign up fee or recurring fee discount after tax is calculated
 	 *
-	 * @since 1.2
-	 * @version 1.3.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
+	 * @version 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.6
 	 */
 	public static function apply_subscription_discount_after_tax( $coupon, $cart_item, $price ) {
 		_deprecated_function( __METHOD__, '2.0', 'WooCommerce 2.3 removed after tax discounts. Use ' . __CLASS__ . '::apply_subscription_discount( $original_price, $cart_item, $cart )' );
@@ -1045,7 +1045,7 @@ class WC_Subscriptions_Coupon {
 	 * this functionality in older versions of WC, so we require 3.2+ to enable this.
 	 *
 	 * @author Jeremy Pry
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function maybe_add_recurring_coupon_hooks() {
 		_deprecated_function( __METHOD__, '4.0.0' );
@@ -1058,7 +1058,7 @@ class WC_Subscriptions_Coupon {
 	 * @author Jeremy Pry
 	 *
 	 * @param int $id The coupon ID.
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function add_coupon_fields( $id ) {
 		_deprecated_function( __METHOD__, '4.0.0', 'WCS_Limited_Recurring_Coupon_Manager::add_coupon_fields( $id ) if available' );
@@ -1074,7 +1074,7 @@ class WC_Subscriptions_Coupon {
 	 * @author Jeremy Pry
 	 *
 	 * @param int $post_id
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function save_coupon_fields( $post_id ) {
 		_deprecated_function( __METHOD__, '4.0.0', 'WCS_Limited_Recurring_Coupon_Manager::save_coupon_fields( $post_id ) if available' );
@@ -1089,7 +1089,7 @@ class WC_Subscriptions_Coupon {
 	 * @author Jeremy Pry
 	 *
 	 * @param WC_Subscription $subscription The current subscription.
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function check_coupon_usages( $subscription ) {
 		_deprecated_function( __METHOD__, '4.0.0', 'WCS_Limited_Recurring_Coupon_Manager::check_coupon_usages( $subscription ) if available' );
@@ -1105,7 +1105,7 @@ class WC_Subscriptions_Coupon {
 	 *
 	 * @param string $column_name The name of the current column in the table.
 	 * @param int    $post_id     The coupon post ID.
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function add_limit_to_list_table( $column_name, $post_id ) {
 		wcs_deprecated_function( __METHOD__, '4.0.0', 'WCS_Limited_Recurring_Coupon_Manager::add_limit_to_list_table( $column_name, $post_id ) if available' );
@@ -1122,7 +1122,7 @@ class WC_Subscriptions_Coupon {
 	 * @param WC_Payment_Gateway[] $gateways The available payment gateways.
 	 *
 	 * @return array The filtered payment gateways.
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function gateways_subscription_amount_changes( $gateways ) {
 		wcs_deprecated_function( __METHOD__, '4.0.0', 'WCS_Limited_Recurring_Coupon_Manager::gateways_subscription_amount_changes( $gateways ) if available' );
@@ -1141,7 +1141,7 @@ class WC_Subscriptions_Coupon {
 	 * @param string $message The current message indicating there are no payment methods available..
 	 *
 	 * @return string The filtered message indicating there are no payment methods available.
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function no_available_payment_methods_message( $message ) {
 		wcs_deprecated_function( __METHOD__, '4.0.0', 'WCS_Limited_Recurring_Coupon_Manager::no_available_payment_methods_message() if available' );
@@ -1156,7 +1156,7 @@ class WC_Subscriptions_Coupon {
 	 * @param string $code The coupon code.
 	 *
 	 * @return bool
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function coupon_is_limited( $code ) {
 		wcs_deprecated_function( __METHOD__, '4.0.0', 'WCS_Limited_Recurring_Coupon_Manager::coupon_is_limited() if available' );
@@ -1172,7 +1172,7 @@ class WC_Subscriptions_Coupon {
 	 *
 	 * @author Jeremy Pry
 	 * @return bool
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function cart_contains_limited_recurring_coupon() {
 		wcs_deprecated_function( __METHOD__, '4.0.0', 'WCS_Limited_Recurring_Coupon_Manager::cart_contains_limited_recurring_coupon() if available' );
@@ -1191,7 +1191,7 @@ class WC_Subscriptions_Coupon {
 	 * @param WC_Order|WC_Subscription $order
 	 *
 	 * @return bool
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function order_has_limited_recurring_coupon( $order ) {
 		wcs_deprecated_function( __METHOD__, '4.0.0', 'WCS_Limited_Recurring_Coupon_Manager::order_has_limited_recurring_coupon( $order ) if available' );
@@ -1211,7 +1211,7 @@ class WC_Subscriptions_Coupon {
 	 *
 	 * @return false|int False for non-recurring coupons, or the limit number for recurring coupons.
 	 *                   A value of 0 is for unlimited usage.
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function get_coupon_limit( $code ) {
 		wcs_deprecated_function( __METHOD__, '4.0.0', 'WCS_Limited_Recurring_Coupon_Manager::get_coupon_limit( $code ) if available' );
@@ -1227,7 +1227,7 @@ class WC_Subscriptions_Coupon {
 	 *
 	 * @param WC_Cart $recurring_cart The recurring cart object.
 	 * @return bool
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function recurring_cart_contains_expiring_coupon( $recurring_cart ) {
 		wcs_deprecated_function( __METHOD__, '4.0.0', 'WCS_Limited_Recurring_Coupon_Manager::recurring_cart_contains_expiring_coupon( $recurring_cart ) if available' );

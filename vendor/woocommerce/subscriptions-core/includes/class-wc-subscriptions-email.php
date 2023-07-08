@@ -14,7 +14,7 @@ class WC_Subscriptions_Email {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function init() {
 
@@ -31,7 +31,7 @@ class WC_Subscriptions_Email {
 	/**
 	 * Add Subscriptions' email classes.
 	 *
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function add_emails( $email_classes ) {
 		$email_classes['WCS_Email_New_Renewal_Order']              = new WCS_Email_New_Renewal_Order();
@@ -51,7 +51,7 @@ class WC_Subscriptions_Email {
 	/**
 	 * Hooks up all of Subscription's transaction emails after the WooCommerce object is constructed.
 	 *
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function hook_transactional_emails() {
 
@@ -105,7 +105,7 @@ class WC_Subscriptions_Email {
 	 * Init the mailer and call for the cancelled email notification hook.
 	 *
 	 * @param $subscription WC Subscription
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function send_cancelled_email( $subscription ) {
 		WC()->mailer();
@@ -119,7 +119,7 @@ class WC_Subscriptions_Email {
 	 * Init the mailer and call for the expired email notification hook.
 	 *
 	 * @param $subscription WC Subscription
-	 * @since 2.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 */
 	public static function send_expired_email( $subscription ) {
 		WC()->mailer();
@@ -131,7 +131,7 @@ class WC_Subscriptions_Email {
 	 * Init the mailer and call for the suspended email notification hook.
 	 *
 	 * @param $subscription WC Subscription
-	 * @since 2.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 */
 	public static function send_on_hold_email( $subscription ) {
 		WC()->mailer();
@@ -261,7 +261,7 @@ class WC_Subscriptions_Email {
 	 * @param bool $sent_to_admin Whether the email is sent to admin - defaults to false
 	 * @param bool $plain_text Whether the email should use plain text templates - defaults to false
 	 * @param WC_Email $email
-	 * @since 2.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 */
 	public static function order_details( $order, $sent_to_admin = false, $plain_text = false, $email = '' ) {
 
@@ -297,7 +297,7 @@ class WC_Subscriptions_Email {
 	 *
 	 * @param string Optional. The action hook or filter to detach WC core's transactional emails from. Defaults to the current filter.
 	 * @param int Optional. The priority the function runs on. Default 10.
-	 * @since 2.2.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.3
 	 */
 	public static function detach_woocommerce_transactional_email( $hook = '', $priority = 10 ) {
 
@@ -316,7 +316,7 @@ class WC_Subscriptions_Email {
 	 * @param string Optional. The action hook or filter to attach WC core's transactional emails to. Defaults to the current filter.
 	 * @param int Optional. The priority the function should run on. Default 10.
 	 * @param int Optional. The number of arguments the function accepts. Default 10.
-	 * @since 2.2.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.3
 	 */
 	public static function attach_woocommerce_transactional_email( $hook = '', $priority = 10, $accepted_args = 10 ) {
 
@@ -338,7 +338,7 @@ class WC_Subscriptions_Email {
 	 * @param bool $sent_to_admin Whether the email is sent to admin - defaults to false
 	 * @param bool $plain_text Whether the email should use plain text templates - defaults to false
 	 * @param WC_Email $email
-	 * @since 2.2.17
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.17
 	 */
 	public static function order_download_details( $order, $sent_to_admin = false, $plain_text = false, $email = '' ) {
 		if ( is_callable( array( 'WC_Emails', 'order_downloads' ) ) ) {
@@ -352,7 +352,7 @@ class WC_Subscriptions_Email {
 	 * @param int $user_id The ID of the user who the subscription belongs to
 	 * @param string $subscription_key A subscription key of the form created by @see self::get_subscription_key()
 	 * @return void
-	 * @deprecated 2.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function send_subscription_email( $user_id, $subscription_key ) {
 		_deprecated_function( __FUNCTION__, '2.0' );

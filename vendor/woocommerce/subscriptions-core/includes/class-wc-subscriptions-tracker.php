@@ -3,10 +3,9 @@
  * Tracker for Subscriptions usage.
  *
  * @class     WC_Subscriptions_Tracker
- * @version   2.6.4
+ * @version   1.0.0 - Migrated from WooCommerce Subscriptions v2.6.4
  * @package   WooCommerce Subscriptions/Classes
  * @category  Class
- * @author    WooCommerce
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -19,7 +18,7 @@ class WC_Subscriptions_Tracker {
 	public static function init() {
 		// Only add data if Tracker enabled
 		if ( 'yes' === get_option( 'woocommerce_allow_tracking', 'no' ) ) {
-			add_filter( 'woocommerce_tracker_data', array( __CLASS__, 'add_subscriptions_tracking_data' ), 10, 1 );
+			add_filter( 'woocommerce_tracker_data', [ __CLASS__, 'add_subscriptions_tracking_data' ], 10, 1 );
 		}
 	}
 
@@ -42,7 +41,7 @@ class WC_Subscriptions_Tracker {
 	 * @return array Subscriptions options data.
 	 */
 	private static function get_subscriptions_options() {
-		return array(
+		return [
 			// Staging and live site
 			'wc_subscriptions_staging'             => WCS_Staging::is_duplicate_site() ? 'staging' : 'live',
 			'wc_subscriptions_live_url'            => esc_url( WCS_Staging::get_site_url_from_source( 'subscriptions_install' ) ),
@@ -55,12 +54,12 @@ class WC_Subscriptions_Tracker {
 
 			// Renewals
 			'accept_manual_renewals'               => get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals' ),
-			'turn_off_automatic_payments'          => 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_turn_off_automatic_payments', 'none' ),
+			'turn_off_automatic_payments'          => 'no' === get_option( WC_Subscriptions_Admin::$option_prefix . '_accept_manual_renewals' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_turn_off_automatic_payments', 'none' ),
 			'enable_auto_renewal_toggle'           => get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_auto_renewal_toggle' ),
 
 			// Early renewal
 			'enable_early_renewal'                 => get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal' ),
-			'enable_early_renewal_via_modal'       => 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal_via_modal', 'none' ),
+			'enable_early_renewal_via_modal'       => 'no' === get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal_via_modal', 'none' ),
 
 			// Switching
 			'allow_switching'                      => get_option( WC_Subscriptions_Admin::$option_prefix . '_allow_switching' ),
@@ -71,8 +70,8 @@ class WC_Subscriptions_Tracker {
 
 			// Synchronization
 			'sync_payments'                        => get_option( WC_Subscriptions_Admin::$option_prefix . '_sync_payments' ),
-			'prorate_synced_payments'              => $prorate_synced_payments = ( 'no' == get_option( WC_Subscriptions_Admin::$option_prefix . '_sync_payments' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_prorate_synced_payments', 'none' ) ),
-			'days_no_fee'                          => 'recurring' == $prorate_synced_payments ? get_option( WC_Subscriptions_Admin::$option_prefix . '_days_no_fee', 'none' ) : 'none',
+			'prorate_synced_payments'              => $prorate_synced_payments = ( 'no' === get_option( WC_Subscriptions_Admin::$option_prefix . '_sync_payments' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_prorate_synced_payments', 'none' ) ),
+			'days_no_fee'                          => 'recurring' === $prorate_synced_payments ? get_option( WC_Subscriptions_Admin::$option_prefix . '_days_no_fee', 'none' ) : 'none',
 
 			// Miscellaneous
 			'max_customer_suspensions'             => get_option( WC_Subscriptions_Admin::$option_prefix . '_max_customer_suspensions' ),
@@ -80,7 +79,7 @@ class WC_Subscriptions_Tracker {
 			'allow_zero_initial_order_without_payment_method' => get_option( WC_Subscriptions_Admin::$option_prefix . '_zero_initial_payment_requires_payment' ),
 			'drip_downloadable_content_on_renewal' => get_option( WC_Subscriptions_Admin::$option_prefix . '_drip_downloadable_content_on_renewal' ),
 			'enable_retry'                         => get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_retry' ),
-		);
+		];
 	}
 
 	/**
@@ -98,71 +97,102 @@ class WC_Subscriptions_Tracker {
 	/**
 	 * Gets subscription counts.
 	 *
-	 * @return array
+	 * @return array Subscription count by status. Keys are subscription status slugs, values are subscription counts (string).
 	 */
 	private static function get_subscription_counts() {
-		$subscription_counts      = array();
-		$subscription_counts_data = wp_count_posts( 'shop_subscription' );
+		$subscription_counts = [];
+		$count_by_status     = WC_Data_Store::load( 'subscription' )->get_subscriptions_count_by_status();
 		foreach ( wcs_get_subscription_statuses() as $status_slug => $status_name ) {
-			$subscription_counts[ $status_slug ] = $subscription_counts_data->{ $status_slug };
+			$subscription_counts[ $status_slug ] = $count_by_status[ $status_slug ] ?? 0;
 		}
+		// Ensure all values are strings.
+		$subscription_counts = array_map( 'strval', $subscription_counts );
 		return $subscription_counts;
 	}
 
 	/**
 	 * Gets subscription order counts and totals.
 	 *
-	 * @return array
+	 * @return array Subscription order counts and totals by type (initial, switch, renewal, resubscribe). Values are returned as strings.
 	 */
 	private static function get_subscription_orders() {
-		global $wpdb;
-
-		$order_totals   = array();
-		$relation_types = array(
+		$order_totals   = [];
+		$relation_types = [
 			'switch',
 			'renewal',
 			'resubscribe',
-		);
+		];
 
+		// Get the subtotal and count for each subscription type.
 		foreach ( $relation_types as $relation_type ) {
+			// Get orders with the given relation type.
+			$relation_orders = wcs_get_orders_with_meta_query(
+				[
+					'type'       => 'shop_order',
+					'status'     => [ 'wc-completed', 'wc-processing', 'wc-refunded' ],
+					'limit'      => -1,
+					'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+						[
+							'key'     => '_subscription_' . $relation_type,
+							'compare' => 'EXISTS',
+						],
+					],
+				]
+			);
 
-			$total_and_count = $wpdb->get_row( sprintf(
-				"SELECT
-					SUM( order_total.meta_value ) AS 'gross_total', COUNT( orders.ID ) as 'count'
-				FROM {$wpdb->prefix}posts AS orders
-					LEFT JOIN {$wpdb->prefix}postmeta AS order_relation ON order_relation.post_id = orders.ID
-					LEFT JOIN {$wpdb->prefix}postmeta AS order_total ON order_total.post_id = orders.ID
-				WHERE order_relation.meta_key = '_subscription_%s'
-					AND orders.post_status in ( 'wc-completed', 'wc-processing', 'wc-refunded' )
-					AND order_total.meta_key = '_order_total'
-				GROUP BY order_total.meta_key
-				", $relation_type
-			), ARRAY_A );
+			// Sum the totals and count the orders.
+			$count = count( $relation_orders );
+			$total = array_reduce(
+				$relation_orders,
+				function( $total, $order ) {
+					return $total + $order->get_total();
+				},
+				0
+			);
 
-			$order_totals[ $relation_type . '_gross' ] = is_null( $total_and_count ) ? 0 : $total_and_count['gross_total'];
-			$order_totals[ $relation_type . '_count' ] = is_null( $total_and_count ) ? 0 : $total_and_count['count'];
+			$order_totals[ $relation_type . '_gross' ] = $total;
+			$order_totals[ $relation_type . '_count' ] = $count;
 		}
 
-		// Finally get the initial revenue and count
-		$total_and_count = $wpdb->get_row(
-			"SELECT
-				SUM( order_total.meta_value ) AS 'gross_total', COUNT( * ) as 'count'
-			FROM {$wpdb->prefix}posts AS orders
-				LEFT JOIN {$wpdb->prefix}posts AS subscriptions ON subscriptions.post_parent = orders.ID
-				LEFT JOIN {$wpdb->prefix}postmeta AS order_total ON order_total.post_id = orders.ID
-			WHERE orders.post_status in ( 'wc-completed', 'wc-processing', 'wc-refunded' )
-				AND subscriptions.post_type = 'shop_subscription'
-				AND orders.post_type = 'shop_order'
-				AND order_total.meta_key = '_order_total'
-			GROUP BY order_total.meta_key
-		", ARRAY_A );
+		// Finally, get the initial revenue and count.
+		// Get the orders for all initial subscription orders (no switch, renewal or resubscribe meta key).
+		$initial_subscription_orders = wcs_get_orders_with_meta_query(
+			[
+				'type'       => 'shop_order',
+				'status'     => [ 'wc-completed', 'wc-processing', 'wc-refunded' ],
+				'limit'      => -1,
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					[
+						'key'     => '_subscription_switch',
+						'compare' => 'NOT EXISTS',
+					],
+					[
+						'key'     => '_subscription_renewal',
+						'compare' => 'NOT EXISTS',
+					],
+					[
+						'key'     => '_subscription_resubscribe',
+						'compare' => 'NOT EXISTS',
+					],
+				],
+			]
+		);
 
-		$initial_order_total = is_null( $total_and_count ) ? 0 : $total_and_count['gross_total'];
-		$initial_order_count = is_null( $total_and_count ) ? 0 : $total_and_count['count'];
+		// Sum the totals and count the orders.
+		$initial_order_count = count( $initial_subscription_orders );
+		$initial_order_total = array_reduce(
+			$initial_subscription_orders,
+			function( $total, $order ) {
+				return $total + $order->get_total();
+			},
+			0
+		);
 
-		// Don't double count resubscribe revenue and count
-		$order_totals['initial_gross'] = $initial_order_total - $order_totals['resubscribe_gross'];
-		$order_totals['initial_count'] = $initial_order_count - $order_totals['resubscribe_count'];
+		$order_totals['initial_gross'] = $initial_order_total;
+		$order_totals['initial_count'] = $initial_order_count;
+
+		// Ensure all values are strings.
+		$order_totals = array_map( 'strval', $order_totals );
 
 		return $order_totals;
 	}
@@ -170,28 +200,32 @@ class WC_Subscriptions_Tracker {
 	/**
 	 * Gets first and last subscription created dates.
 	 *
-	 * @return array
+	 * @return array 'first' and 'last' created subscription dates as a string in the date format 'Y-m-d H:i:s' or '-'.
 	 */
 	private static function get_subscription_dates() {
-		global $wpdb;
-
-		$min_max = $wpdb->get_row(
-			"
-			SELECT
-				MIN( post_date_gmt ) as 'first', MAX( post_date_gmt ) as 'last'
-			FROM {$wpdb->prefix}posts
-			WHERE post_type = 'shop_subscription'
-			AND post_status NOT IN ( 'trash', 'auto-draft' )
-		",
-			ARRAY_A
+		// Ignore subscriptions with status 'trash'.
+		$first = wcs_get_subscriptions(
+			[
+				'subscriptions_per_page' => 1,
+				'orderby'                => 'date',
+				'order'                  => 'ASC',
+				'subscription_status'    => [ 'active', 'on-hold', 'pending', 'cancelled', 'expired' ],
+			]
+		);
+		$last  = wcs_get_subscriptions(
+			[
+				'subscriptions_per_page' => 1,
+				'orderby'                => 'date',
+				'order'                  => 'DESC',
+				'subscription_status'    => [ 'active', 'on-hold', 'pending', 'cancelled', 'expired' ],
+			]
 		);
 
-		if ( is_null( $min_max ) ) {
-			$min_max = array(
-				'first' => '-',
-				'last'  => '-',
-			);
-		}
+		// Return each date in 'Y-m-d H:i:s' format or '-' if no subscriptions found.
+		$min_max = [
+			'first' => count( $first ) ? array_shift( $first )->get_date( 'date_created' ) : '-',
+			'last'  => count( $last ) ? array_shift( $last )->get_date( 'date_created' ) : '-',
+		];
 
 		return $min_max;
 	}

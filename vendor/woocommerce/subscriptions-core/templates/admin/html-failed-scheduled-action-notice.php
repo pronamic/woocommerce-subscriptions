@@ -2,7 +2,7 @@
 /**
  * The template for displaying an admin notice to report failed Subscriptions related scheduled actions.
  *
- * @version 2.5.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
  * @var array $failed_scheduled_actions
  * @var string $affected_subscription_events
  */

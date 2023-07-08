@@ -7,7 +7,7 @@
  * @author   WooCommerce
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin/Upgrades
- * @since    2.6.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 
 // Exit if accessed directly
@@ -32,7 +32,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	/**
 	 * Attaches callbacks to hooks.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 * @see WCS_Background_Updater::init() for additional hooks and callbacks.
 	 */
 	public function init() {
@@ -46,7 +46,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	 *
 	 * Sets the page to 1.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public function schedule_repair() {
 		$this->set_page( 1 );
@@ -56,7 +56,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	/**
 	 * Gets a batch of items which need to be repaired.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 * @return array An array of items which need to be repaired.
 	 */
 	protected function get_items_to_update() {
@@ -82,7 +82,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	/**
 	 * Runs the update and save any items which didn't get processed.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public function run_update() {
 		parent::run_update();
@@ -94,7 +94,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	/**
 	 * Schedules the repair event for this item.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	protected function update_item( $item ) {
 		// Schedule the individual repair actions to run in 1 hr to give us the best chance at scheduling all the actions before they start running and clogging up the queue.
@@ -105,7 +105,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	/**
 	 * Gets the current page number.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 * @return int
 	 */
 	protected function get_page() {
@@ -115,7 +115,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	/**
 	 * Sets the current page number.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 * @param int $page.
 	 */
 	protected function set_page( $page ) {
@@ -125,7 +125,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	/**
 	 * Gets items from the last request which weren't processed.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 * @return array
 	 */
 	protected function get_unprocessed_items() {
@@ -135,7 +135,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	/**
 	 * Saves any items which haven't been handled.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	protected function save_unprocessed_items() {
 		if ( ! empty( $this->items_to_repair ) ) {
@@ -147,7 +147,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	/**
 	 * Deletes any items stored in the unprocessed cache stored in an option.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	protected function clear_unprocessed_items_cache() {
 		delete_option( "{$this->repair_hook}_unprocessed" );
@@ -158,7 +158,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	 *
 	 * This function is called when there are no longer any items to update.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	protected function unschedule_background_updates() {
 		parent::unschedule_background_updates();

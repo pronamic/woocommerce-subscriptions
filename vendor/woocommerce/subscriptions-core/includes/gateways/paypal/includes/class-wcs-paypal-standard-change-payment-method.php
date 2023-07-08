@@ -10,7 +10,7 @@
  * @subpackage  Gateways/PayPal
  * @category    Class
  * @author      Prospress
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,7 +22,7 @@ class WCS_PayPal_Standard_Change_Payment_Method {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function init() {
 
@@ -40,7 +40,7 @@ class WCS_PayPal_Standard_Change_Payment_Method {
 	 * If changing a subscriptions payment method from and to PayPal, wait until an appropriate IPN message
 	 * has come in before deciding to cancel the old subscription.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_remove_subscription_cancelled_callback( $subscription, $new_payment_method, $old_payment_method ) {
 		if ( 'paypal' == $new_payment_method && 'paypal' == $old_payment_method && ! WCS_PayPal::are_reference_transactions_enabled() ) {
@@ -52,7 +52,7 @@ class WCS_PayPal_Standard_Change_Payment_Method {
 	 * If changing a subscriptions payment method from and to PayPal, the cancelled subscription hook was removed in
 	 * @see self::maybe_remove_cancelled_subscription_hook() so we want to add it again for other subscriptions.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_reattach_subscription_cancelled_callback( $subscription, $new_payment_method, $old_payment_method ) {
 		if ( 'paypal' == $new_payment_method && 'paypal' == $old_payment_method && ! WCS_PayPal::are_reference_transactions_enabled() ) {
@@ -65,7 +65,7 @@ class WCS_PayPal_Standard_Change_Payment_Method {
 	 *
 	 * @param  string $item_name
 	 * @return string
-	 * @since 1.5.14
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.14
 	 */
 	public static function maybe_dont_update_payment_method( $update, $new_payment_method, $subscription ) {
 
@@ -81,7 +81,7 @@ class WCS_PayPal_Standard_Change_Payment_Method {
 	 *
 	 * @param string $change_button_text
 	 * @param WC_Payment_Gateway $gateway
-	 * @since 2.0.8
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.8
 	 */
 	public static function change_payment_button_text( $change_button_text, $gateway ) {
 

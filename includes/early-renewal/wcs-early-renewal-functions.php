@@ -117,7 +117,7 @@ function wcs_get_early_renewal_url( $subscription ) {
 	 * @param string $url The early renewal URL.
 	 * @param int    $subscription_id The ID of the subscription to renew to.
 	 */
-	return apply_filters( 'woocommerce_subscriptions_get_early_renewal_url', $url, $subscription_id );
+	return apply_filters( 'woocommerce_subscriptions_get_early_renewal_url', $url, $subscription_id ); // nosemgrep: audit.php.wp.security.xss.query-arg -- False positive. $url is escaped in the template and escaping URLs should be done at the point of output or usage.
 }
 
 /**

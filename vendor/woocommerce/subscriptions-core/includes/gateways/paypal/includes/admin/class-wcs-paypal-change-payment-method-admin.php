@@ -8,7 +8,7 @@
  * @subpackage  Gateways/PayPal
  * @category    Class
  * @author      Prospress
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +20,7 @@ class WCS_PayPal_Change_Payment_Method_Admin {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function init() {
 
@@ -40,7 +40,7 @@ class WCS_PayPal_Change_Payment_Method_Admin {
 	 * @param array $payment_meta associative array of meta data required for automatic payments
 	 * @param WC_Subscription $subscription An instance of a subscription object
 	 * @return array
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function add_payment_meta_details( $payment_meta, $subscription ) {
 		$subscription_id = get_post_meta( $subscription->get_id(), '_paypal_subscription_id', true );
@@ -73,7 +73,7 @@ class WCS_PayPal_Change_Payment_Method_Admin {
 	 * @param string $payment_method_id The ID of the payment method to validate
 	 * @param array $payment_meta associative array of meta data required for automatic payments
 	 * @return array
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function validate_payment_meta( $payment_meta, $subscription ) {
 		if ( empty( $payment_meta['post_meta']['_paypal_subscription_id']['value'] ) ) {

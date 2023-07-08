@@ -20,7 +20,7 @@
  * @author   WooCommerce
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin/Upgrades
- * @version  3.1.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
  */
 
 // Exit if accessed directly.
@@ -33,7 +33,7 @@ class WCS_Repair_Subtracted_Base_Tax_Line_Item_Meta extends WCS_Background_Repai
 	 *
 	 * @param WC_Logger_Interface $logger The WC_Logger instance.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
 	public function __construct( WC_Logger_Interface $logger ) {
 		$this->scheduled_hook = 'wcs_schedule_subtracted_base_line_item_tax_repairs';
@@ -48,7 +48,7 @@ class WCS_Repair_Subtracted_Base_Tax_Line_Item_Meta extends WCS_Background_Repai
 	 * @param int $page The page number to get results from. Base 1 - the first page is 1.
 	 * @return array    A list of line item ids.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
 	protected function get_items_to_repair( $page ) {
 		global $wpdb;
@@ -68,7 +68,7 @@ class WCS_Repair_Subtracted_Base_Tax_Line_Item_Meta extends WCS_Background_Repai
 	 *
 	 * @param int $line_item_id The ID for the line item to repair.
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
 	public function repair_item( $line_item_id ) {
 		try {

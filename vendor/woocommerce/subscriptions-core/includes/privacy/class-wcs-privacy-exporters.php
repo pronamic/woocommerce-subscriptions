@@ -5,7 +5,7 @@
  * @author   Prospress
  * @category Class
  * @package  WooCommerce Subscriptions\Privacy
- * @version  2.2.20
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,7 +23,7 @@ class WCS_Privacy_Exporters {
 	 * @param string $email_address The user email address.
 	 * @param int    $page  Page.
 	 * @return array An array of personal data in name value pairs
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 */
 	public static function subscription_data_exporter( $email_address, $page ) {
 		$done              = false;
@@ -67,7 +67,7 @@ class WCS_Privacy_Exporters {
 	/**
 	 * Get personal data (key/value pairs) for an subscription object.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param WC_Subscription $subscription Subscription object.
 	 * @return array
 	 */
@@ -124,7 +124,7 @@ class WCS_Privacy_Exporters {
 		/**
 		 * Allow extensions to register their own personal data for this subscription for the export.
 		 *
-		 * @since 2.2.20
+		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 		 * @param array    $personal_data Array of name value pairs to expose in the export.
 		 * @param WC_Subscription $subscription A subscription object.
 		 */

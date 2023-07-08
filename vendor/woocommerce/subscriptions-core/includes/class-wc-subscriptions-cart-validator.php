@@ -7,7 +7,7 @@
  * @package    WooCommerce Subscriptions
  * @subpackage WC_Subscriptions_Cart_Validator
  * @category   Class
- * @since      2.6.0
+ * @since      1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 class WC_Subscriptions_Cart_Validator {
 
@@ -28,7 +28,7 @@ class WC_Subscriptions_Cart_Validator {
 	 *
 	 * If multiple purchase flag is set, allow them to be added at the same time.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function maybe_empty_cart( $valid, $product_id, $quantity, $variation_id = '', $variations = array() ) {
 		$is_subscription                 = WC_Subscriptions_Product::is_subscription( $product_id );
@@ -80,7 +80,7 @@ class WC_Subscriptions_Cart_Validator {
 	 * @param $cart WC_Cart the one we got from session
 	 * @return WC_Cart $cart
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function validate_cart_contents_for_mixed_checkout( $cart ) {
 
@@ -119,7 +119,7 @@ class WC_Subscriptions_Cart_Validator {
 	/**
 	 * Don't allow new subscription products to be added to the cart if it contains a subscription renewal already.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function can_add_subscription_product_to_cart( $can_add, $product_id, $quantity, $variation_id = '', $variations = array(), $item_data = array() ) {
 
@@ -140,7 +140,7 @@ class WC_Subscriptions_Cart_Validator {
 	 * purcahses disabled, the cart already contains products and the customer adds a new item or logs in
 	 * causing a cart merge.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param array  $fragments The add to cart AJAX args.
 	 * @return array $fragments

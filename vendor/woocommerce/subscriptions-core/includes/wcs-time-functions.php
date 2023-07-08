@@ -7,7 +7,7 @@
  * @author   Prospress
  * @category Core
  * @package  WooCommerce Subscriptions/Functions
- * @version  2.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @param int (optional) An interval in the range 1-6
  * @param string (optional) One of day, week, month or year. If empty, all subscription ranges are returned.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscription_period_strings( $number = 1, $period = '' ) {
 
@@ -48,7 +48,7 @@ function wcs_get_subscription_period_strings( $number = 1, $period = '' ) {
  *
  * @param int (optional) An interval in the range 1-6
  * @param string (optional) One of day, week, month or year. If empty, all subscription ranges are returned.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscription_trial_period_strings( $number = 1, $period = '' ) {
 
@@ -78,7 +78,7 @@ function wcs_get_subscription_trial_period_strings( $number = 1, $period = '' ) 
  * M – for months; allowable range is 1 to 24
  * Y – for years; allowable range is 1 to 5
  *
- * @since 2.1.2
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.2
  */
 function wcs_get_non_cached_subscription_ranges() {
 
@@ -152,7 +152,7 @@ function wcs_get_subscription_ranges( $subscription_period = '' ) {
  * Return an i18n'ified associative array of all possible subscription periods.
  *
  * @param int (optional) An interval in the range 1-6
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscription_period_interval_strings( $interval = '' ) {
 
@@ -176,7 +176,7 @@ function wcs_get_subscription_period_interval_strings( $interval = '' ) {
  * Return an i18n'ified associative array of all time periods allowed for subscriptions.
  *
  * @param string (Optional) Either 'singular' for singular trial periods or 'plural'.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_available_time_periods( $form = 'singular' ) {
 
@@ -200,7 +200,7 @@ function wcs_get_available_time_periods( $form = 'singular' ) {
  * Returns an array of allowed trial period lengths.
  *
  * @param string (optional) One of day, week, month or year. If empty, all subscription trial period lengths are returned.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscription_trial_lengths( $subscription_period = '' ) {
 
@@ -224,7 +224,7 @@ function wcs_get_subscription_trial_lengths( $subscription_period = '' ) {
  * @param string $period             One of day, week, month or year.
  * @param int    $from_timestamp     A Unix timestamp to add the time too.
  * @param string $timezone_behaviour Optional. If the $from_timestamp parameter should be offset to the site time or not, either 'offset_site_time' or 'no_offset'. Default 'no_offset'.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_add_time( $number_of_periods, $period, $from_timestamp, $timezone_behaviour = 'no_offset' ) {
 
@@ -254,7 +254,7 @@ function wcs_add_time( $number_of_periods, $period, $from_timestamp, $timezone_b
  * @param int $from_timestamp        A Unix timestamp to add the months too.
  * @param int $months_to_add         The number of months to add to the timestamp.
  * @param string $timezone_behaviour Optional. If the $from_timestamp parameter should be offset to the site time or not, either 'offset_site_time' or 'no_offset'. Default 'no_offset'.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_add_months( $from_timestamp, $months_to_add, $timezone_behaviour = 'no_offset' ) {
 
@@ -290,7 +290,7 @@ function wcs_add_months( $from_timestamp, $months_to_add, $timezone_behaviour = 
  * @param int $end_timestamp A Unix timestamp at some time in the future
  * @param string $unit_of_time A unit of time, either day, week month or year.
  * @param string $rounding_method A rounding method, either ceil (default) or floor for anything else
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_estimate_periods_between( $start_timestamp, $end_timestamp, $unit_of_time = 'month', $rounding_method = 'ceil' ) {
 
@@ -618,29 +618,28 @@ function wcs_sort_by_fractions( $a, $b ) {
 }
 
 /**
- * PHP on Windows does not have strptime function. Therefore this is what we're using to check
- * whether the given time is of a specific format.
+ * Validate whether a given datetime matches the mysql pattern of YYYY-MM-DD HH:MM:SS
+ * This function will return false when the date or time is invalid (e.g. 2015-02-29 00:00:00)
  *
  * @param  string $time the mysql time string
- * @return boolean      true if it matches our mysql pattern of YYYY-MM-DD HH:MM:SS
+ * @return boolean      if the string is valid
  */
 function wcs_is_datetime_mysql_format( $time ) {
 	if ( ! is_string( $time ) ) {
 		return false;
 	}
 
-	if ( function_exists( 'strptime' ) ) {
-		$valid_time = $match = ( false !== strptime( $time, '%Y-%m-%d %H:%M:%S' ) );
-	} else {
-		// parses for the pattern of YYYY-MM-DD HH:MM:SS, but won't check whether it's a valid timedate
-		$match = preg_match( '/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/', $time );
+	$format = 'Y-m-d H:i:s';
 
-		// parses time, returns false for invalid dates
-		$valid_time = wcs_date_to_time( $time );
-	}
+	$date_object = DateTime::createFromFormat( $format, $time );
 
-	// magic number -2209078800 is strtotime( '1900-01-00 00:00:00' ). Needed to achieve parity with strptime
-	return $match && false !== $valid_time && -2209078800 <= $valid_time;
+	// DateTime::createFromFormat will return false if it is an invalid date.
+	return $date_object
+			// We also need to check the output of the format() method against the provided string as it will sometimes return
+			// the closest date. Passing `2022-02-29 01:02:03` will return `2022-03-01 01:02:03`
+			&& $date_object->format( $format ) === $time
+			// we check the year is greater than or equal to 1900 as mysql will not accept dates before this.
+			&& (int) $date_object->format( 'Y' ) >= 1900;
 }
 
 /**
@@ -730,7 +729,7 @@ function wcs_get_days_in_cycle( $period, $interval ) {
  * Set a DateTime's timezone to the WordPress site's timezone, or a UTC offset
  * if no timezone string is available.
  *
- * @since 2.4.2
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.2
  * @param WC_DateTime $date
  * @return WC_DateTime
  */
@@ -751,7 +750,7 @@ function wcs_set_local_timezone( WC_DateTime $date ) {
  * Get an instance of the site's timezone.
  *
  * @return DateTimeZone Timezone object for the timezone the site is using.
- * @deprecated 2.4.2
+ * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.2
  */
 function wcs_get_sites_timezone() {
 	_deprecated_function( __FUNCTION__, '2.4.2' );
@@ -807,7 +806,7 @@ function wcs_get_sites_timezone() {
  * Y – for years; allowable range is 1 to 5
  *
  * @param string (optional) One of day, week, month or year. If empty, all subscription ranges are returned.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscription_ranges_tlc() {
 	_deprecated_function( __FUNCTION__, '2.1.2', 'wcs_get_non_cached_subscription_ranges' );
@@ -819,7 +818,7 @@ function wcs_get_subscription_ranges_tlc() {
  * Take a date in the form of a timestamp, MySQL date/time string or DateTime object (or perhaps
  * a WC_Datetime object when WC > 3.0 is active) and create a WC_DateTime object.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
  * @return null|WC_DateTime in site's timezone
  */
@@ -846,7 +845,7 @@ function wcs_get_datetime_from( $variable_date_type ) {
 /**
  * Get a MySQL date/time string in UTC timezone from a WC_Datetime object.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param WC_DateTime
  * @return string MySQL date/time string representation of the DateTime object in UTC timezone
  */
@@ -859,7 +858,7 @@ function wcs_get_datetime_utc_string( $datetime ) {
 /**
  * Format a date for output, a wrapper for wcs_format_datetime() introduced with WC 3.0.
  *
- * @since  2.2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param  WC_DateTime $date
  * @param  string $format Defaults to the wc_date_format function if not set.
  * @return string
@@ -885,7 +884,7 @@ function wcs_format_datetime( $date, $format = '' ) {
 /**
  * Compares two periods and returns the longest period.
  *
- * @since 4.0.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  *
  * @param string $current_period Period string. Can be 'day', 'week', 'month', 'year'.
  * @param string $new_period     Period string. Can be 'day', 'week', 'month', 'year'.
@@ -910,7 +909,7 @@ function wcs_get_longest_period( $current_period, $new_period ) {
 /**
  * Compares two periods and returns the shortest period.
  *
- * @since 4.0.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  *
  * @param string $current_period A period string. Can be 'day', 'week', 'month', 'year'.
  * @param string $new_period     A period string. Can be 'day', 'week', 'month', 'year'.

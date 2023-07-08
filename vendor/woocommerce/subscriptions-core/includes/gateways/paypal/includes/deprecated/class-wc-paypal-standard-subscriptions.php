@@ -10,7 +10,7 @@
  * @subpackage  WC_PayPal_Standard_Subscriptions
  * @category    Class
  * @author      Brent Shepherd
- * @since       1.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v1.0
  */
 
 class WC_PayPal_Standard_Subscriptions {
@@ -25,7 +25,7 @@ class WC_PayPal_Standard_Subscriptions {
 	/**
 	 * Set the public properties to make sure  we don't trigger any fatal errors even though the class is deprecated.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function init() {
 		self::$api_username  = WCS_PayPal::get_option( 'api_username' );
@@ -37,7 +37,7 @@ class WC_PayPal_Standard_Subscriptions {
 	/**
 	 * Checks if the PayPal API credentials are set.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function are_credentials_set() {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_PayPal::are_credentials_set()' );
@@ -47,7 +47,7 @@ class WC_PayPal_Standard_Subscriptions {
 	/**
 	 * Add subscription support to the PayPal Standard gateway only when credentials are set
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function add_paypal_standard_subscription_support( $is_supported, $feature, $gateway ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_PayPal_Supports::add_feature_support( $is_supported, $feature, $gateway )' );
@@ -58,7 +58,7 @@ class WC_PayPal_Standard_Subscriptions {
 	 * When a PayPal IPN messaged is received for a subscription transaction,
 	 * check the transaction details and
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function process_paypal_ipn_request( $transaction_details ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_PayPal::process_ipn_request( $transaction_details )' );
@@ -71,7 +71,7 @@ class WC_PayPal_Standard_Subscriptions {
 	 * PayPal doesn't support subscriptions with a $0 recurring total, we need to circumvent it and
 	 * manage it entirely ourselves.)
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function paypal_standard_subscription_args( $paypal_args, $order = '' ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_PayPal_Standard_Request::get_paypal_args( $paypal_args, $order )' );
@@ -81,7 +81,7 @@ class WC_PayPal_Standard_Subscriptions {
 	/**
 	 * Adds extra PayPal credential fields required to manage subscriptions.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function add_subscription_form_fields() {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_PayPal_Admin::add_form_fields()' );
@@ -92,7 +92,7 @@ class WC_PayPal_Standard_Subscriptions {
 	 * Returns a PayPal Subscription ID/Recurring Payment Profile ID based on a user ID and subscription key
 	 *
 	 * @param WC_Order|WC_Subscription A WC_Order object or child object (i.e. WC_Subscription)
-	 * @since 1.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.1
 	 */
 	public static function get_subscriptions_paypal_id( $order_id, $product_id = '' ) {
 		_deprecated_function( __METHOD__, '2.0', 'wcs_get_paypal_id( $order_id )' );
@@ -105,7 +105,7 @@ class WC_PayPal_Standard_Subscriptions {
 	 * Although the PayPal Standard API provides no facility for cancelling a subscription, the PayPal
 	 * Express Checkout NVP API can be used.
 	 *
-	 * @since 1.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.1
 	 */
 	public static function change_subscription_status( $profile_id, $new_status, $order = null ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_PayPal::get_api()->manage_recurring_payments_profile_status()' );
@@ -115,7 +115,7 @@ class WC_PayPal_Standard_Subscriptions {
 	/**
 	 * Checks a set of args and derives an Order ID with backward compatibility for WC < 1.7 where 'custom' was the Order ID.
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_order_id_and_key( $args ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_Paypal_Standard_IPN_Handler::get_order_id_and_key()' );
@@ -126,7 +126,7 @@ class WC_PayPal_Standard_Subscriptions {
 	 * If changing a subscriptions payment method from and to PayPal, wait until an appropriate IPN message
 	 * has come in before deciding to cancel the old subscription.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_remove_subscription_cancelled_callback( $subscription, $new_payment_method, $old_payment_method ) {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -136,7 +136,7 @@ class WC_PayPal_Standard_Subscriptions {
 	 * If changing a subscriptions payment method from and to PayPal, the cancelled subscription hook was removed in
 	 * @see self::maybe_remove_cancelled_subscription_hook() so we want to add it again for other subscriptions.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_reattach_subscription_cancelled_callback( $subscription, $new_payment_method, $old_payment_method ) {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -147,7 +147,7 @@ class WC_PayPal_Standard_Subscriptions {
 	 *
 	 * @param  string $item_name
 	 * @return string
-	 * @since 1.5.14
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.14
 	 */
 	public static function maybe_dont_update_payment_method( $update, $new_payment_method ) {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -157,7 +157,7 @@ class WC_PayPal_Standard_Subscriptions {
 	/**
 	 * In typical PayPal style, there are a couple of important limitations we need to work around:
 	 *
-	 * @since 1.4.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.3
 	 */
 	public static function scheduled_subscription_payment() {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -176,7 +176,7 @@ class WC_PayPal_Standard_Subscriptions {
 	/**
 	 * When a store manager or user cancels a subscription in the store, also cancel the subscription with PayPal.
 	 *
-	 * @since 1.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.1
 	 */
 	public static function cancel_subscription_with_paypal( $order, $product_id = '', $profile_id = '' ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_PayPal_Status_Manager::cancel_subscription( $subscription )' );
@@ -188,7 +188,7 @@ class WC_PayPal_Standard_Subscriptions {
 	/**
 	 * When a store manager or user suspends a subscription in the store, also suspend the subscription with PayPal.
 	 *
-	 * @since 1.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.1
 	 */
 	public static function suspend_subscription_with_paypal( $order, $product_id ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_PayPal_Status_Manager::suspend_subscription( $subscription )' );
@@ -202,7 +202,7 @@ class WC_PayPal_Standard_Subscriptions {
 	 *
 	 * How PayPal Handles suspension is discussed here: https://www.x.com/developers/paypal/forums/nvp/reactivate-recurring-profile
 	 *
-	 * @since 1.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.1
 	 */
 	public static function reactivate_subscription_with_paypal( $order, $product_id ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_PayPal::reactivate_subscription( $subscription )' );
@@ -245,7 +245,7 @@ class WC_PayPal_Standard_Subscriptions {
 	 * If changing a subscriptions payment method from and to PayPal, wait until an appropriate IPN message
 	 * has come in before deciding to cancel the old subscription.
 	 *
-	 * @since 1.4.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.6
 	 */
 	public static function maybe_remove_cancelled_subscription_hook( $order, $subscription_key, $new_payment_method, $old_payment_method ) {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -255,7 +255,7 @@ class WC_PayPal_Standard_Subscriptions {
 	 * If changing a subscriptions payment method from and to PayPal, the cancelled subscription hook was removed in
 	 * @see self::maybe_remove_cancelled_subscription_hook() so we want to add it again for other subscriptions.
 	 *
-	 * @since 1.4.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.6
 	 */
 	public static function maybe_readd_cancelled_subscription_hook( $order, $subscription_key, $new_payment_method, $old_payment_method ) {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -264,7 +264,7 @@ class WC_PayPal_Standard_Subscriptions {
 	/**
 	 * Takes a timestamp for a date in the future and calculates the number of days between now and then
 	 *
-	 * @since 1.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function calculate_trial_periods_until( $future_timestamp ) {
 		_deprecated_function( __METHOD__, '2.0', 'wcs_calculate_paypal_trial_periods_until()' );

@@ -9,7 +9,7 @@
  * @subpackage  Gateways/PayPal
  * @category    Class
  * @author      Prospress
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -42,7 +42,7 @@ class WCS_PayPal {
 	 *
 	 * @see wc_paypal_express()
 	 * @return WCS_PayPal
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function instance() {
 		if ( is_null( self::$instance ) ) {
@@ -54,7 +54,7 @@ class WCS_PayPal {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function init() {
 
@@ -104,6 +104,9 @@ class WCS_PayPal {
 		// Remove PayPal from the available payment methods if it's disabled for subscription purchases.
 		add_filter( 'woocommerce_available_payment_gateways', array( __CLASS__, 'maybe_remove_paypal_standard' ) );
 
+		// Add PayPal domains to the list of allowed hosts for safe redirect.
+		add_filter( 'allowed_redirect_hosts', __CLASS__ . '::allow_paypal_redirect' );
+
 		WCS_PayPal_Supports::init();
 		WCS_PayPal_Status_Manager::init();
 		WCS_PayPal_Standard_Switcher::init();
@@ -118,7 +121,7 @@ class WCS_PayPal {
 	/**
 	 * Get a WooCommerce setting value for the PayPal Standard Gateway
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_option( $setting_key ) {
 
@@ -133,7 +136,7 @@ class WCS_PayPal {
 	/**
 	 * Checks if the PayPal API credentials are set.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function are_credentials_set() {
 
@@ -152,7 +155,7 @@ class WCS_PayPal {
 	 * Subscriptions keeps a record of all accounts where reference transactions were found to be enabled just in case the
 	 * store manager switches to and from accounts. This record is stored as a JSON encoded array in the options table.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function are_reference_transactions_enabled( $bypass_cache = '' ) {
 
@@ -186,7 +189,7 @@ class WCS_PayPal {
 	/**
 	 * Handle WC API requests where we need to run a reference transaction API operation
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function handle_wc_api() {
 
@@ -297,7 +300,7 @@ class WCS_PayPal {
 	 * PayPal doesn't support subscriptions with a $0 recurring total, we need to circumvent it and
 	 * manage it entirely ourselves.)
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_paypal_args( $paypal_args, $order ) {
 
@@ -318,7 +321,7 @@ class WCS_PayPal {
 	 *
 	 * @link https://developer.paypal.com/docs/classic/ipn/integration-guide/IPNandPDTVariables/
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function process_ipn_request( $transaction_details ) {
 
@@ -343,7 +346,7 @@ class WCS_PayPal {
 	/**
 	 * Check whether a given subscription is using reference transactions and if so process the payment.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function process_subscription_payment( $amount, $order ) {
 
@@ -369,7 +372,7 @@ class WCS_PayPal {
 	/**
 	 * Process a payment based on a response
 	 *
-	 * @since 2.0.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
 	 */
 	public static function process_subscription_payment_response( $order, $response ) {
 
@@ -416,7 +419,7 @@ class WCS_PayPal {
 	 * @param object $resubscribe_order The order created for resubscribing the subscription
 	 * @param object $subscription The subscription to which the resubscribe order relates
 	 * @return object
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function remove_resubscribe_order_meta( $resubscribe_order, $subscription ) {
 
@@ -439,26 +442,31 @@ class WCS_PayPal {
 	}
 
 	/**
-	 * Maybe adds a warning message to subscription script parameters which is used in a Javascript dialog if the
-	 * payment method of the subscription is set to be changed. The warning message is only added if the subscriptions
-	 * payment gateway is PayPal Standard.
+	 * Adds script parameters necessary to display a JS dialog when changing a PayPal subscription's payment method.
+	 *
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 *
 	 * @param array $script_parameters The script parameters used in subscription meta boxes.
 	 * @return array $script_parameters
-	 * @since 2.0
 	 */
 	public static function maybe_add_change_payment_method_warning( $script_parameters ) {
-		global $post;
-		$subscription = wcs_get_subscription( $post );
+		global $post, $theorder;
 
-		if ( 'paypal' === $subscription->get_payment_method() ) {
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			$subscription = $theorder; // $theorder is a subscription object on Edit subscription admin screens.
+		} else {
+			$subscription = wcs_get_subscription( $post->ID );
+		}
 
-			$paypal_profile_id  = wcs_get_paypal_id( $subscription->get_id() );
-			$is_paypal_standard = ! wcs_is_paypal_profile_a( $paypal_profile_id, 'billing_agreement' );
+		if ( ! $subscription || 'paypal' !== $subscription->get_payment_method() ) {
+			return $script_parameters;
+		}
 
-			if ( $is_paypal_standard ) {
-				$script_parameters['change_payment_method_warning'] = __( "Are you sure you want to change the payment method from PayPal standard?\n\nThis will suspend the subscription at PayPal.", 'woocommerce-subscriptions' );
-			}
+		$paypal_profile_id  = wcs_get_paypal_id( $subscription->get_id() );
+		$is_paypal_standard = ! wcs_is_paypal_profile_a( $paypal_profile_id, 'billing_agreement' );
+
+		if ( $is_paypal_standard ) {
+			$script_parameters['change_payment_method_warning'] = __( "Are you sure you want to change the payment method from PayPal standard?\n\nThis will suspend the subscription at PayPal.", 'woocommerce-subscriptions' );
 		}
 
 		return $script_parameters;
@@ -476,7 +484,7 @@ class WCS_PayPal {
 	 * @param WC_Order $order         The actual order.
 	 *
 	 * @return bool
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 */
 	public static function maybe_override_needs_payment( $needs_payment, $order ) {
 		if ( $needs_payment && self::instance()->get_id() === $order->get_payment_method() && ! self::are_reference_transactions_enabled() && wcs_order_contains_subscription( $order, array( 'parent' ) ) ) {
@@ -500,7 +508,7 @@ class WCS_PayPal {
 	 * - PayPal Reference Transactions is disabled.
 	 * - order is parent order of a subscription.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 */
 	public static function maybe_add_payment_lock() {
 		if ( ! wcs_is_order_received_page() ) {
@@ -521,7 +529,7 @@ class WCS_PayPal {
 	 *
 	 * @param int $order_id Order cancelled/paid.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 */
 	public static function maybe_remove_payment_lock( $order_id ) {
 		$order = wc_get_order( $order_id );
@@ -532,6 +540,21 @@ class WCS_PayPal {
 		}
 	}
 
+	/**
+	 * Allow PayPal domains for redirect.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $hosts Add PayPal domains for `wp_safe_redirect`.
+	 *
+	 * @return array
+	 */
+	public static function allow_paypal_redirect( $hosts ) {
+		$hosts[] = 'www.paypal.com';
+		$hosts[] = 'www.sandbox.paypal.com';
+		return $hosts;
+	}
+
 	/** Getters ******************************************************/
 
 	/**
@@ -539,7 +562,7 @@ class WCS_PayPal {
 	 *
 	 * @see SV_WC_Payment_Gateway::get_api()
 	 * @return WC_PayPal_Express_API API instance
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected static function get_ipn_handler( $ipn_type = 'standard' ) {
 
@@ -570,7 +593,7 @@ class WCS_PayPal {
 	 * Get the API object
 	 *
 	 * @return WCS_PayPal_Express_API API instance
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_api() {
 
@@ -590,7 +613,7 @@ class WCS_PayPal {
 	/**
 	 * Return the default WC PayPal gateway's settings.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function reload_options() {
 		self::get_options();
@@ -599,7 +622,7 @@ class WCS_PayPal {
 	/**
 	 * Return the default WC PayPal gateway's settings.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected static function get_options() {
 
@@ -613,7 +636,7 @@ class WCS_PayPal {
 	/**
 	 * Log API request/response data
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function log_api_requests( $request_data, $response_data ) {
 		WC_Gateway_Paypal::log( 'Subscription Request Parameters: ' . print_r( $request_data, true ) );
@@ -627,7 +650,7 @@ class WCS_PayPal {
 	}
 
 	public function get_version() {
-		return WC_Subscriptions_Core_Plugin::instance()->get_plugin_version();
+		return WC_Subscriptions_Core_Plugin::instance()->get_library_version();
 	}
 
 	public function get_id() {
@@ -644,7 +667,7 @@ class WCS_PayPal {
 	 * In any other case, it will be disabled by default.
 	 * This function is called when 2.5.0 is active for the first time. @see WC_Subscriptions_Upgrader::upgrade()
 	 *
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function set_enabled_for_subscriptions_default() {
 
@@ -674,7 +697,7 @@ class WCS_PayPal {
 	 *
 	 * @param array $available_gateways A list of available payment methods displayed on the checkout.
 	 * @return array
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function maybe_remove_paypal_standard( $available_gateways ) {
 
@@ -699,7 +722,7 @@ class WCS_PayPal {
 	/**
 	 * Gets subscriptions with a given paypal subscription id.
 	 *
-	 * @since 2.5.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.4
 	 * @param string $paypal_id The PayPal Standard Profile ID or PayPal Reference Transactions Billing Agreement.
 	 * @param string $return    Optional. The type to return. Can be 'ids' to return subscription IDs or 'objects' to return WC_Subscription objects. Default 'ids'.
 	 * @return WC_Subscription[]|int[] Subscriptions (objects or IDs) with the PayPal Profile ID or Billing Agreement stored in meta.
@@ -707,19 +730,21 @@ class WCS_PayPal {
 	public static function get_subscriptions_by_paypal_id( $paypal_id, $return = 'ids' ) {
 
 		if ( ! isset( self::$subscriptions_by_paypal_id[ $paypal_id ] ) ) {
-			$subscription_ids = get_posts( array(
-				'posts_per_page' => -1,
-				'post_type'      => 'shop_subscription',
-				'post_status'    => 'any',
-				'fields'         => 'ids',
-				'meta_query'     => array(
-					array(
-						'key'     => '_paypal_subscription_id',
-						'compare' => '=',
-						'value'   => $paypal_id,
-					),
-				),
-			) );
+			$subscription_ids = wcs_get_orders_with_meta_query(
+				[
+					'limit'      => -1,
+					'type'       => 'shop_subscription',
+					'status'     => 'any',
+					'return'     => 'ids',
+					'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+						[
+							'key'     => '_paypal_subscription_id',
+							'compare' => '=',
+							'value'   => $paypal_id,
+						],
+					],
+				]
+			);
 
 			self::$subscriptions_by_paypal_id[ $paypal_id ] = array_combine( $subscription_ids, $subscription_ids );
 		}

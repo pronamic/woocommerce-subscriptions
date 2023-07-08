@@ -7,7 +7,7 @@
  * @author Prospress
  * @category Core
  * @package WooCommerce Subscriptions/Functions
- * @version     2.0
+ * @version     1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *    'trial_length': The total number of periods the subscription trial period should continue for.  Default 0, meaning no trial period.
  *    'trial_period': The temporal period for the subscription's trial period. Should be one of {day|week|month|year} as used by @see wcs_get_subscription_period_strings()
  *    'use_per_slash': Allow calling code to determine if they want the shorter price string using a slash for singular billing intervals, e.g. $5 / month, or the longer form, e.g. $5 every month, which is normally reserved for intervals > 1
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  * @return string The price string with translated and billing periods included
  */
 function wcs_price_string( $subscription_details ) {
@@ -232,7 +232,7 @@ function wcs_price_string( $subscription_details ) {
  *
  * @param int $timestamp_gmt
  * @return string A human friendly string to display for the timestamp's date
- * @since 2.1
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
  */
 function wcs_get_human_time_diff( $timestamp_gmt ) {
 
@@ -260,7 +260,7 @@ function wcs_get_human_time_diff( $timestamp_gmt ) {
  * @param string $content Content to filter through kses.
  * @param array $allowed_html List of allowed HTML elements.
  * @return string Filtered string of HTML.
- * @since 2.2.17
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.17
  */
 function wp_kses_allow_underscores( $content, $allowed_html ) {
 
@@ -283,7 +283,7 @@ function wp_kses_allow_underscores( $content, $allowed_html ) {
  *
  * eg. Given 2, the function returns 2nd.
  *
- * @since 4.0.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  *
  * @param string The number to append the ordinal suffix to.
  * @return string

@@ -2,7 +2,7 @@
 /**
  * Upgrade script for version 3.1.0
  *
- * @version 3.1.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ class WCS_Upgrade_3_1_0 {
 	 * This is to maintain backwards compatibility with the delivery payloads now that we have added a
 	 * wc/v3/subscriptions endpoint with 3.1
 	 *
-	 * @since 3.1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
 	public static function migrate_subscription_webhooks_using_api_version_3() {
 		global $wpdb;

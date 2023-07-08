@@ -20,16 +20,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WCS_Meta_Box_Payment_Retries {
 
 	/**
-	 * Output the metabox
+	 * Outputs the Payment retry metabox.
+	 *
+	 * @param WC_Order|WP_Post $order The order object or post object.
 	 */
-	public static function output( $post ) {
+	public static function output( $order ) {
+		// For backwards compatibility the $order parameter could be a Post.
+		if ( is_a( $order, 'WP_Post' ) ) {
+			$order = wc_get_order( $order->ID );
+		}
+
+		if ( ! wcs_is_order( $order ) ) {
+			return;
+		}
 
 		WC()->mailer();
 
-		$retries = WCS_Retry_Manager::store()->get_retries_for_order( $post->ID );
+		$retries = WCS_Retry_Manager::store()->get_retries_for_order( $order->get_id() );
 
 		include_once( dirname( __FILE__ ) . '/html-retries-table.php' );
 
-		do_action( 'woocommerce_subscriptions_retries_meta_box', $post->ID, $retries );
+		do_action( 'woocommerce_subscriptions_retries_meta_box', $order->get_id(), $retries );
 	}
 }

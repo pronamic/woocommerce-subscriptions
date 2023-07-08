@@ -5,7 +5,7 @@
  * Extends WC_Subscription to provide WC 3.0 methods when running WooCommerce < 3.0.
  *
  * @class    WC_Subscription_Legacy
- * @version  2.1
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.1
  * @package  WooCommerce Subscriptions/Classes
  * @category Class
  * @author   Brent Shepherd
@@ -64,7 +64,7 @@ class WC_Subscription_Legacy extends WC_Subscription {
 	/**
 	 * Get parent order ID.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @return int
 	 */
 	public function get_parent_id() {
@@ -325,7 +325,7 @@ class WC_Subscription_Legacy extends WC_Subscription {
 	/**
 	 * Get order key.
 	 *
-	 * @since  2.2.0
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param  string $context
 	 * @return string
 	 */
@@ -387,7 +387,7 @@ class WC_Subscription_Legacy extends WC_Subscription {
 	 * @param array|int Either an order item (in the array format returned by self::get_items()) or the ID of an order item.
 	 * @param  string $tax_inclusive_or_exclusive Whether or not to adjust sign up fee if prices inc tax - ensures that the sign up fee paid amount includes the paid tax if inc
 	 * @return bool
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_items_sign_up_fee( $line_item, $tax_inclusive_or_exclusive = 'exclusive_of_tax' ) {
 
@@ -526,7 +526,7 @@ class WC_Subscription_Legacy extends WC_Subscription {
 	 * Set parent order ID. We don't use WC_Abstract_Order::set_parent_id() because we want to allow false
 	 * parent IDs, like 0.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param int $value
 	 */
 	public function set_parent_id( $value ) {
@@ -620,7 +620,7 @@ class WC_Subscription_Legacy extends WC_Subscription {
 	/**
 	 * Set a certain date type for the last order on the subscription.
 	 *
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param string $date_type
 	 * @param string|integer|object
 	 * @return WC_DateTime|NULL object if the date is set or null if there is no date.
@@ -751,7 +751,7 @@ class WC_Subscription_Legacy extends WC_Subscription {
 	/**
 	 * Update meta data by key or ID, if provided.
 	 *
-	 * @since  2.2.0
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param  string $key
 	 * @param  string $value
 	 * @param  int $meta_id
@@ -768,7 +768,7 @@ class WC_Subscription_Legacy extends WC_Subscription {
 	 * Save subscription date changes to the database.
 	 * Nothing to do here as all date properties are saved when calling @see $this->set_prop().
 	 *
-	 * @since 2.2.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.6
 	 */
 	public function save_dates() {
 		// Nothing to do here.

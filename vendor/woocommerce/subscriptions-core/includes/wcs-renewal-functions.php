@@ -7,7 +7,7 @@
  * @author Prospress
  * @category Core
  * @package WooCommerce Subscriptions/Functions
- * @version 2.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @param  int | WC_Subscription $subscription Post ID of a 'shop_subscription' post, or instance of a WC_Subscription object
  * @return WC_Order | WP_Error
- * @since  2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_create_renewal_order( $subscription ) {
 
@@ -42,7 +42,7 @@ function wcs_create_renewal_order( $subscription ) {
  * Check if a given order is a subscription renewal order.
  *
  * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_order_contains_renewal( $order ) {
 
@@ -66,7 +66,7 @@ function wcs_order_contains_renewal( $order ) {
  *
  * @param  bool | Array The cart item containing the renewal, else false.
  * @return string
- * @since  2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_cart_contains_renewal() {
 
@@ -88,7 +88,7 @@ function wcs_cart_contains_renewal() {
  * Checks the cart to see if it contains a subscription product renewal for a failed renewal payment.
  *
  * @return bool|array The cart item containing the renewal, else false.
- * @since  2.0
+ * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_cart_contains_failed_renewal_order_payment() {
 
@@ -111,7 +111,7 @@ function wcs_cart_contains_failed_renewal_order_payment() {
  * Get the subscription/s to which a resubscribe order relates.
  *
  * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscriptions_for_renewal_order( $order ) {
 	return wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'renewal' ) );
@@ -120,7 +120,7 @@ function wcs_get_subscriptions_for_renewal_order( $order ) {
 /**
  * Get the last renewal order which isn't an early renewal order.
  *
- * @since 2.6.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  *
  * @param WC_Subscription $subscription The subscription object.
  * @return WC_Order|bool The last non-early renewal order, otherwise false.
@@ -145,7 +145,7 @@ function wcs_get_last_non_early_renewal_order( $subscription ) {
 /**
  * Checks if manual renewals are required - automatic renewals are disabled.
  *
- * @since 4.0.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  * @return bool Weather manual renewal are required.
  */
 function wcs_is_manual_renewal_required() {
@@ -155,7 +155,7 @@ function wcs_is_manual_renewal_required() {
 /**
  * Checks if manual renewals are enabled.
  *
- * @since 4.0.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  * @return bool Weather manual renewal are enabled.
  */
 function wcs_is_manual_renewal_enabled() {

@@ -3,7 +3,7 @@
  * Enqueues WC Subscriptions frontend scripts.
  *
  * @package WooCommerce Subscriptions
- * @since 3.1.3
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.3
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,7 +21,7 @@ class WC_Subscriptions_Frontend_Scripts {
 	/**
 	 * Gets the plugin URL for an assets file.
 	 *
-	 * @since 3.1.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.3
 	 * @return string The file URL.
 	 */
 	public static function get_file_url( $file_relative_url = '' ) {
@@ -31,15 +31,15 @@ class WC_Subscriptions_Frontend_Scripts {
 	/**
 	 * Enqueues scripts for frontend.
 	 *
-	 * @since 3.1.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.3
 	 */
 	public static function enqueue_scripts() {
 		$dependencies = array( 'jquery' );
 
 		if ( is_cart() || is_checkout() ) {
-			wp_enqueue_script( 'wcs-cart', self::get_file_url( 'assets/js/frontend/wcs-cart.js' ), $dependencies, WC_Subscriptions_Core_Plugin::instance()->get_plugin_version(), true );
+			wp_enqueue_script( 'wcs-cart', self::get_file_url( 'assets/js/frontend/wcs-cart.js' ), $dependencies, WC_Subscriptions_Core_Plugin::instance()->get_library_version(), true );
 		} elseif ( is_product() ) {
-			wp_enqueue_script( 'wcs-single-product', self::get_file_url( 'assets/js/frontend/single-product.js' ), $dependencies, WC_Subscriptions_Core_Plugin::instance()->get_plugin_version(), true );
+			wp_enqueue_script( 'wcs-single-product', self::get_file_url( 'assets/js/frontend/single-product.js' ), $dependencies, WC_Subscriptions_Core_Plugin::instance()->get_library_version(), true );
 		} elseif ( wcs_is_view_subscription_page() ) {
 			$subscription = wcs_get_subscription( absint( get_query_var( 'view-subscription' ) ) );
 
@@ -54,7 +54,7 @@ class WC_Subscriptions_Frontend_Scripts {
 					'has_payment_gateway'    => $subscription->has_payment_gateway() && wc_get_payment_gateway_by_order( $subscription )->supports( 'subscriptions' ),
 				);
 
-				wp_enqueue_script( 'wcs-view-subscription', self::get_file_url( 'assets/js/frontend/view-subscription.js' ), $dependencies, WC_Subscriptions_Core_Plugin::instance()->get_plugin_version(), true );
+				wp_enqueue_script( 'wcs-view-subscription', self::get_file_url( 'assets/js/frontend/view-subscription.js' ), $dependencies, WC_Subscriptions_Core_Plugin::instance()->get_library_version(), true );
 				wp_localize_script( 'wcs-view-subscription', 'WCSViewSubscription', apply_filters( 'woocommerce_subscriptions_frontend_view_subscription_script_parameters', $script_params ) );
 			}
 		}
@@ -63,7 +63,7 @@ class WC_Subscriptions_Frontend_Scripts {
 	/**
 	 * Enqueues stylesheets.
 	 *
-	 * @since 3.1.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.3
 	 */
 	public static function enqueue_styles( $styles ) {
 
@@ -78,7 +78,7 @@ class WC_Subscriptions_Frontend_Scripts {
 			$styles['wcs-view-subscription'] = array(
 				'src'     => str_replace( array( 'http:', 'https:' ), '', self::get_file_url( 'assets/css/view-subscription.css' ) ),
 				'deps'    => 'woocommerce-smallscreen',
-				'version' => WC_Subscriptions_Core_Plugin::instance()->get_plugin_version(),
+				'version' => WC_Subscriptions_Core_Plugin::instance()->get_library_version(),
 				'media'   => 'all',
 			);
 		}

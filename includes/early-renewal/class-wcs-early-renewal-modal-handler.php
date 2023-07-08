@@ -103,7 +103,7 @@ class WCS_Early_Renewal_Modal_Handler {
 			return;
 		}
 
-		if ( ! wp_verify_nonce( $_GET['wcs_nonce'], 'wcs-renew-early-modal-' . $_GET['subscription_id'] ) ) {
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['wcs_nonce'] ) ), 'wcs-renew-early-modal-' . absint( $_GET['subscription_id'] ) ) ) {
 			wc_add_notice( __( 'There was an error with your request. Please try again.', 'woocommerce-subscriptions' ), 'error' );
 			self::redirect();
 		}

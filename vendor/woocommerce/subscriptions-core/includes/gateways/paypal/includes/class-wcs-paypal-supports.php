@@ -11,7 +11,7 @@
  * @subpackage  Gateways/PayPal
  * @category    Class
  * @author      Prospress
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -41,7 +41,7 @@ class WCS_PayPal_Supports {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function init() {
 
@@ -58,7 +58,7 @@ class WCS_PayPal_Supports {
 	/**
 	 * Add subscription support to the PayPal Standard gateway only when credentials are set
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function add_feature_support_for_gateway( $is_supported, $feature, $gateway ) {
 
@@ -78,7 +78,7 @@ class WCS_PayPal_Supports {
 	 * Add additional feature support at the subscription level instead of just the gateway level because some subscriptions may have been
 	 * setup with PayPal Standard while others may have been setup with Billing Agreements to use with Reference Transactions.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function add_feature_support_for_subscription( $is_supported, $feature, $subscription ) {
 
@@ -114,7 +114,7 @@ class WCS_PayPal_Supports {
 	/**
 	 * Adds the payment gateway features supported by the type of billing the PayPal account supports (Reference Transactions or Standard).
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param array $features The list of features the payment gateway supports.
 	 * @param WC_Payment_Gateway $gateway The payment gateway object.

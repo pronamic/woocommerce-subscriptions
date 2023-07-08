@@ -7,7 +7,7 @@
  * @package     WooCommerce Subscriptions
  * @subpackage  Gateways/PayPal
  * @author      Brent Shepherd
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Returns a PayPal Subscription ID or Billing Agreement ID use to process payment for a given subscription or order.
  *
  * @param int The ID of a WC_Order or WC_Subscription object
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_paypal_id( $order ) {
 
@@ -34,7 +34,7 @@ function wcs_get_paypal_id( $order ) {
  *
  * @param int|object A WC_Order or WC_Subscription object or the ID of a WC_Order or WC_Subscription object
  * @param string A PayPal Standard Subscription ID or Express Checkout Billing Agreement ID
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_set_paypal_id( $order, $paypal_subscription_id ) {
 
@@ -62,7 +62,7 @@ function wcs_set_paypal_id( $order, $paypal_subscription_id ) {
  *
  * @param string $profile_id A PayPal Standard Subscription ID or Express Checkout Billing Agreement ID
  * @param string $profile_type A type of profile ID, can be 'billing_agreement' or 'old_id'.
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_is_paypal_profile_a( $profile_id, $profile_type ) {
 
@@ -82,7 +82,7 @@ function wcs_is_paypal_profile_a( $profile_id, $profile_type ) {
  *
  * @param  string $item_name
  * @return string
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_paypal_item_name( $item_name ) {
 
@@ -95,7 +95,7 @@ function wcs_get_paypal_item_name( $item_name ) {
 /**
  * Takes a timestamp for a date in the future and calculates the number of days between now and then
  *
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_calculate_paypal_trial_periods_until( $future_timestamp ) {
 

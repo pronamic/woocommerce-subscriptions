@@ -9,7 +9,7 @@
  * @package  WooCommerce Subscriptions
  * @category Class
  * @author   Prospress
- * @since    2.2.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Handles deprecation notices and triggering of legacy filter hooks when WC 3.0+ subscription filters are triggered.
  *
- * @since 2.2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  */
 class WCS_Deprecated_Filter_Hooks extends WC_Deprecated_Filter_Hooks {
 
@@ -46,7 +46,7 @@ class WCS_Deprecated_Filter_Hooks extends WC_Deprecated_Filter_Hooks {
 	 *
 	 * @param string $old_hook
 	 * @param string $new_hook
-	 * @since 2.2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
 	protected function display_notice( $old_hook, $new_hook ) {
 		wcs_deprecated_function( sprintf( 'The "%s" hook uses out of date data structures and', esc_html( $old_hook ) ), '2.2.0', esc_html( $new_hook ) . ' to filter subscription properties' );

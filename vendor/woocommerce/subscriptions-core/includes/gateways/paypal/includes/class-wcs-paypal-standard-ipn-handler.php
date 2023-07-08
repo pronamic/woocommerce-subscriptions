@@ -12,7 +12,7 @@
  * @subpackage  Gateways/PayPal
  * @category    Class
  * @author      Prospress
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -50,7 +50,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	 * Based on the IPN Variables documented here: https://developer.paypal.com/docs/classic/ipn/integration-guide/IPNandPDTVariables/#id091EB0901HT
 	 *
 	 * @param array $transaction_details Post data after wp_unslash
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function valid_response( $transaction_details ) {
 		global $wpdb;
@@ -71,7 +71,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	 * Process a PayPal Standard Subscription IPN request
 	 *
 	 * @param array $transaction_details Post data after wp_unslash
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function process_ipn_request( $transaction_details ) {
 
@@ -558,7 +558,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	/**
 	 * Return valid transaction types
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_transaction_types() {
 		return $this->transaction_types;
@@ -584,11 +584,11 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	/**
 	 * Checks a set of args and derives an Order ID with backward compatibility for WC < 1.7 where 'custom' was the Order ID.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_order_id_and_key( $args, $order_type = 'shop_order', $meta_key = '_paypal_subscription_id' ) {
-
-		$order_id = $order_key = '';
+		$order_id  = '';
+		$order_key = '';
 
 		if ( isset( $args['subscr_id'] ) ) { // PayPal Standard IPN message
 			$subscription_id = $args['subscr_id'];
@@ -600,32 +600,36 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 
 		// First try and get the order ID by the subscription ID
 		if ( ! empty( $subscription_id ) ) {
+			$orders = wcs_get_orders_with_meta_query(
+				[
+					'limit'      => 1,
+					'orderby'    => 'ID',
+					'order'      => 'ASC',
+					'type'       => $order_type,
+					'status'     => 'any',
+					'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+						[
+							'key'     => $meta_key,
+							'value'   => $subscription_id,
+							'compare' => '=',
+						],
+					],
+				]
+			);
 
-			$posts = get_posts( array(
-				'numberposts'      => 1,
-				'orderby'          => 'ID',
-				'order'            => 'ASC',
-				'meta_key'         => $meta_key,
-				'meta_value'       => $subscription_id,
-				'post_type'        => $order_type,
-				'post_status'      => 'any',
-				'suppress_filters' => true,
-			) );
-
-			if ( ! empty( $posts ) ) {
-				$order_id  = $posts[0]->ID;
-				$order_key = get_post_meta( $order_id, '_order_key', true );
+			if ( ! empty( $orders ) ) {
+				$order_id  = $orders[0]->get_id();
+				$order_key = $orders[0]->get_order_key();
 			}
 		}
 
 		// Couldn't find the order ID by subscr_id, so it's either not set on the order yet or the $args doesn't have a subscr_id (?!), either way, let's get it from the args
 		if ( empty( $order_id ) && isset( $args['custom'] ) ) {
-
 			$order_details = json_decode( $args['custom'] );
 
 			if ( is_object( $order_details ) ) { // WC 2.3.11+ converted the custom value to JSON, if we have an object, we've got valid JSON
 
-				if ( 'shop_order' == $order_type ) {
+				if ( 'shop_order' === $order_type ) {
 					$order_id  = $order_details->order_id;
 					$order_key = $order_details->order_key;
 				} elseif ( isset( $order_details->subscription_id ) ) {
@@ -638,8 +642,8 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 
 					if ( ! empty( $subscriptions ) ) {
 						$subscription = array_pop( $subscriptions );
-						$order_id  = $subscription->get_id();
-						$order_key = $subscription->get_order_key();
+						$order_id     = $subscription->get_id();
+						$order_key    = $subscription->get_order_key();
 					}
 				}
 			} else { // WC < 2.3.11, we could have a variety of payloads, but something has gone wrong if we got to here as we should only be here on new purchases where the '_paypal_subscription_id' is not already set, so throw an exception
@@ -677,7 +681,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	 *
 	 * @param WC_Subscription A subscription object
 	 * @param string A PayPal Subscription Profile ID
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected static function cancel_subscription( $subscription, $old_paypal_subscriber_id ) {
 
@@ -702,7 +706,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	 * Check for a valid transaction type
 	 *
 	 * @param  string $txn_type
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function validate_transaction_type( $txn_type ) {
 		if ( in_array( strtolower( $txn_type ), $this->get_transaction_types() ) ) {
@@ -718,7 +722,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	 * @param string $note The text note
 	 * @param WC_Order $order An order object
 	 * @param array $transaction_details The transaction details, as provided by PayPal
-	 * @since 2.0.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.20
 	 */
 	protected function add_order_note( $note, $order, $transaction_details ) {
 		$note = apply_filters( 'wcs_paypal_ipn_note', $note, $order, $transaction_details );
@@ -735,7 +739,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	 * @param array|string Order type we want. Defaults to any.
 	 *
 	 * @return WC_Order|null If order with that transaction id, WC_Order object, otherwise null
-	 * @since 2.4.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.3
 	 */
 	protected function get_order_by_transaction_id( $subscription, $transaction_id, $order_types = 'any' ) {
 		$orders        = $subscription->get_related_orders( 'all', $order_types );
@@ -757,7 +761,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	* @param WC_Subscription object $subscription
 	* @param int $transaction_id Id from transaction details as provided by PayPal
 	* @return WC_Order|null If order with that transaction id, WC_Order object, otherwise null
-	* @since 2.1
+	* @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	*/
 	protected function get_renewal_order_by_transaction_id( $subscription, $transaction_id ) {
 		return self::get_order_by_transaction_id( $subscription, $transaction_id, 'renewal' );
@@ -770,7 +774,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	 * @param int $transaction_id Id from transaction details as provided by PayPal
 	 *
 	 * @return WC_Order|null If order with that transaction id, WC_Order object, otherwise null
-	 * @since 2.4.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.3
 	 */
 	protected function get_parent_order_by_transaction_id( $subscription, $transaction_id ) {
 		return self::get_order_by_transaction_id( $subscription, $transaction_id, 'parent' );

@@ -6,7 +6,7 @@
  * @subpackage  Gateways/PayPal
  * @category    Class
  * @author      Prospress
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,7 +18,7 @@ class WCS_PayPal_Status_Manager extends WCS_PayPal {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function init() {
 
@@ -35,7 +35,7 @@ class WCS_PayPal_Status_Manager extends WCS_PayPal {
 	/**
 	 * When a store manager or user cancels a subscription in the store, also cancel the subscription with PayPal.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function cancel_subscription( $subscription ) {
 		if ( ! wcs_is_paypal_profile_a( wcs_get_paypal_id( $subscription->get_id() ), 'billing_agreement' ) && self::update_subscription_status( $subscription, 'Cancel' ) ) {
@@ -46,7 +46,7 @@ class WCS_PayPal_Status_Manager extends WCS_PayPal {
 	/**
 	 * When a store manager or user suspends a subscription in the store, also suspend the subscription with PayPal.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function suspend_subscription( $subscription ) {
 		if ( ! wcs_is_paypal_profile_a( wcs_get_paypal_id( $subscription->get_id() ), 'billing_agreement' ) && self::update_subscription_status( $subscription, 'Suspend' ) ) {
@@ -59,7 +59,7 @@ class WCS_PayPal_Status_Manager extends WCS_PayPal {
 	 *
 	 * How PayPal Handles suspension is discussed here: https://www.x.com/developers/paypal/forums/nvp/reactivate-recurring-profile
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function reactivate_subscription( $subscription ) {
 		if ( ! wcs_is_paypal_profile_a( wcs_get_paypal_id( $subscription->get_id() ), 'billing_agreement' ) && self::update_subscription_status( $subscription, 'Reactivate' ) ) {
@@ -73,7 +73,7 @@ class WCS_PayPal_Status_Manager extends WCS_PayPal {
 	 * Although the PayPal Standard API provides no facility for cancelling a subscription, the PayPal
 	 * Express Checkout NVP API can be used.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function update_subscription_status( $subscription, $new_status ) {
 
@@ -126,7 +126,7 @@ class WCS_PayPal_Status_Manager extends WCS_PayPal {
 	 *
 	 * @param string $status The subscription status sent to the current payment gateway before changing subscription payment method.
 	 * @return object $subscription
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function suspend_subscription_on_payment_changed( $status, $subscription ) {
 		return ( 'paypal' == $subscription->get_payment_method() ) ? 'on-hold' : $status;

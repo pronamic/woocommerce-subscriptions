@@ -8,7 +8,7 @@
  * @subpackage  WC_Subscriptions_Cart
  * @category    Class
  * @author      Brent Shepherd
- * @since       1.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v1.0
  */
 class WC_Subscriptions_Cart {
 
@@ -22,42 +22,35 @@ class WC_Subscriptions_Cart {
 	 * - 'recurring_total' used to calculate the totals for the recurring amount when the recurring amount differs to to 'combined_total' because of coupons or sign-up fees.
 	 * - 'free_trial_total' used to calculate the initial total when there is a free trial period and no sign-up fee. Different to 'combined_total' because shipping is not charged up-front when there is a free trial.
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	private static $calculation_type = 'none';
 
 	/**
 	 * An internal pointer to the current recurring cart calculation (if any)
 	 *
-	 * @since 2.0.12
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.12
 	 */
 	private static $recurring_cart_key = 'none';
 
 	/**
 	 * A cache of the calculated recurring shipping packages
 	 *
-	 * @since 2.0.13
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.13
 	 */
 	private static $recurring_shipping_packages = array();
 
 	/**
-	 * A cache of the calculated shipping package rates
-	 *
-	 * @since 2.0.18
-	 */
-	private static $shipping_rates = array();
-
-	/**
 	 * A cache of the current recurring cart being calculated
 	 *
-	 * @since 2.0.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.20
 	 */
 	private static $cached_recurring_cart = null;
 
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function init() {
 		// Make sure WC calculates total on sign up fee + price per period, and keep a record of the price per period
@@ -96,9 +89,6 @@ class WC_Subscriptions_Cart {
 		// Make sure we use our recurring shipping method for recurring shipping calculations not the default method
 		add_filter( 'woocommerce_shipping_chosen_method', array( __CLASS__, 'set_chosen_shipping_method' ), 10, 2 );
 
-		// Cache package rates. Hook in early to ensure we get a full set of rates.
-		add_filter( 'woocommerce_package_rates', __CLASS__ . '::cache_package_rates', 1, 2 );
-
 		// When WooCommerce calculates rates for a recurring shipping package, make sure there is a different set of rates
 		add_filter( 'woocommerce_shipping_package_name', __CLASS__ . '::change_initial_shipping_package_name', 1, 3 );
 
@@ -128,7 +118,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Attach dependant callbacks.
 	 *
-	 * @since 2.5.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.6
 	 */
 	public static function attach_dependant_hooks() {
 		// WooCommerce determines if free shipping is available using the WC->cart total and coupons, we need to recalculate its availability when obtaining shipping methods for a recurring cart
@@ -145,7 +135,7 @@ class WC_Subscriptions_Cart {
 	 * This function is hooked to "woocommerce_before_calculate_totals" so that WC will calculate a subscription
 	 * product's total based on the total of it's price per period and sign up fee (if any).
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function add_calculation_price_filter() {
 		WC()->cart->recurring_carts = array();
@@ -164,7 +154,7 @@ class WC_Subscriptions_Cart {
 	 * Removes the "set_subscription_prices_for_calculation" filter from the WC Product's woocommerce_get_price hook once
 	 * calculations are complete.
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function remove_calculation_price_filter() {
 		remove_filter( 'woocommerce_product_get_price', __CLASS__ . '::set_subscription_prices_for_calculation', 100 );
@@ -201,7 +191,7 @@ class WC_Subscriptions_Cart {
 	 * If there are subscriptions in the cart and the product is not a subscription, then
 	 * set the recurring total to 0.
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function set_subscription_prices_for_calculation( $price, $product ) {
 
@@ -249,8 +239,8 @@ class WC_Subscriptions_Cart {
 	 * product prices to see whether they include sign-up fees and/or free trial periods and then recalculates the
 	 * appropriate totals by using the @see self::$calculation_type flag and cloning the cart to run @see WC_Cart::calculate_totals()
 	 *
-	 * @since 1.3.5
-	 * @version 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.5
+	 * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function calculate_subscription_totals( $total, $cart ) {
 		if ( ! self::cart_contains_subscription() && ! wcs_cart_contains_resubscribe() ) { // cart doesn't contain subscription
@@ -355,7 +345,7 @@ class WC_Subscriptions_Cart {
 		/**
 		 * Allow third-parties to override whether the fees will be removed from the initial order cart.
 		 *
-		 * @since 2.4.3
+		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.3
 		 * @param bool $remove_fees_from_cart Whether the fees will be removed. By default fees will be removed if there is no signup fee and all cart items have a trial.
 		 * @param WC_Cart $cart The standard WC cart object.
 		 * @param array $recurring_carts All the recurring cart objects.
@@ -402,7 +392,7 @@ class WC_Subscriptions_Cart {
 	 *
 	 * @internal self::all_cart_items_have_free_trial() is false if non-subscription products are in the cart.
 	 *
-	 * @since 1.5.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.4
 	 */
 	public static function charge_shipping_up_front() {
 		return apply_filters( 'woocommerce_subscriptions_cart_shipping_up_front', ! self::all_cart_items_have_free_trial() );
@@ -411,7 +401,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * The cart needs shipping only if it needs shipping up front and/or for recurring items.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 * @param boolean $needs_shipping True if shipping is needed for the cart.
 	 * @return boolean
 	 */
@@ -460,7 +450,7 @@ class WC_Subscriptions_Cart {
 	 *
 	 * @param $cart_item_key string The key for a cart item about to be removed from the cart.
 	 * @return null
-	 * @since 2.0.15
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.15
 	 */
 	public static function maybe_reset_chosen_shipping_methods( $cart_item_key ) {
 
@@ -498,7 +488,7 @@ class WC_Subscriptions_Cart {
 	 *
 	 * @param string $recurring_cart_key a cart key of the form returned by @see self::get_recurring_cart_key()
 	 * @param int    $package_index the index of a package
-	 * @since 2.0.12
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.12
 	 */
 	public static function get_recurring_shipping_package_key( $recurring_cart_key, $package_index ) {
 		return $recurring_cart_key . '_' . $package_index;
@@ -518,7 +508,7 @@ class WC_Subscriptions_Cart {
 	 * set of packages in WC()->shipping->packages so that plugins attempting to get the details of recurring
 	 * packages can get them with WC()->shipping->get_packages() like any other packages.
 	 *
-	 * @since 2.0.13
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.13
 	 */
 	public static function set_global_recurring_shipping_packages() {
 		foreach ( self::$recurring_shipping_packages as $recurring_cart_key => $packages ) {
@@ -533,7 +523,7 @@ class WC_Subscriptions_Cart {
 	 *
 	 * Useful for determining if certain up-front amounts should be charged.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function all_cart_items_have_free_trial() {
 
@@ -557,7 +547,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Check if the cart contains a subscription which requires shipping.
 	 *
-	 * @since 1.5.4
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.4
 	 */
 	public static function cart_contains_subscriptions_needing_shipping( $cart = null ) {
 
@@ -594,7 +584,7 @@ class WC_Subscriptions_Cart {
 	 * Filters the cart contents to remove any subscriptions with free trials (or synchronised to a date in the future)
 	 * to make sure no shipping amount is calculated for them.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function set_cart_shipping_packages( $packages ) {
 		if ( ! self::cart_contains_subscription() ) {
@@ -649,7 +639,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Checks whether or not the COD gateway should be available on checkout when a subscription has a free trial.
 	 *
-	 * @since 3.0.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.6
 	 *
 	 * @param array $available_gateways The currently available payment gateways.
 	 * @return array All of the available payment gateways.
@@ -695,7 +685,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Returns the subtotal for a cart item including the subscription period and duration details
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_formatted_product_subtotal( $product_subtotal, $product, $quantity, $cart ) {
 
@@ -746,7 +736,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Checks the cart to see if it contains a subscription product.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 * @return boolean
 	 */
 	public static function cart_contains_subscription() {
@@ -763,7 +753,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Checks the cart to see if it contains a subscription product with a free trial
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function cart_contains_free_trial() {
 
@@ -784,7 +774,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Gets the cart calculation type flag
 	 *
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_calculation_type() {
 		return self::$calculation_type;
@@ -793,7 +783,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Sets the cart calculation type flag
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function set_calculation_type( $calculation_type ) {
 		self::$calculation_type = $calculation_type;
@@ -828,7 +818,7 @@ class WC_Subscriptions_Cart {
 	 * Currently short-circuits to return just the sign-up fee of the first subscription, because only
 	 * one subscription can be purchased at a time.
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_cart_subscription_sign_up_fee() {
 
@@ -915,7 +905,7 @@ class WC_Subscriptions_Cart {
 	 * the cart page because it triggers the method multiple times for multiple different pricing structures.
 	 * This uses the same logic found in WC_Shortcode_Cart::output() to determine the correct estimate.
 	 *
-	 * @since 1.4.10
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.10
 	 */
 	private static function maybe_restore_shipping_methods() {
 		WC()->shipping->reset_shipping();
@@ -972,7 +962,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Make sure cart product prices correctly include/exclude taxes.
 	 *
-	 * @since 1.5.8
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.8
 	 */
 	public static function cart_product_price( $price, $product ) {
 
@@ -991,20 +981,19 @@ class WC_Subscriptions_Cart {
 	}
 
 	/**
-	 * Display the recurring totals for items in the cart
+	 * Displays the recurring totals for items in the cart.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function display_recurring_totals() {
 
-		if ( self::cart_contains_subscription() ) {
-
-			// We only want shipping for recurring amounts, and they need to be calculated again here
+		if ( self::cart_contains_subscription() && ! empty( WC()->cart->recurring_carts ) ) {
+			// We only want shipping for recurring amounts, and they need to be calculated again here.
 			self::$calculation_type       = 'recurring_total';
 			$carts_with_multiple_payments = 0;
 
 			foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
-				// Cart contains more than one payment
+				// Cart contains more than one payment.
 				if ( 0 != $recurring_cart->next_payment_date ) {
 					$carts_with_multiple_payments++;
 				}
@@ -1035,7 +1024,7 @@ class WC_Subscriptions_Cart {
 	 * to allow products on the same billing schedule to be grouped together - free trials and synchronisation is accounted for by
 	 * using the first renewal date (if any) for the susbcription.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_recurring_cart_key( $cart_item, $renewal_time = '' ) {
 
@@ -1096,7 +1085,7 @@ class WC_Subscriptions_Cart {
 	 *
 	 * @param array $shipping_methods
 	 *
-	 * @since 2.0.13
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.13
 	 */
 	public static function filter_recurring_cart_chosen_shipping_method( $shipping_methods ) {
 
@@ -1132,37 +1121,47 @@ class WC_Subscriptions_Cart {
 	 * Ensures there is at least one chosen shipping method and that the chosen method is valid considering the available
 	 * package rates.
 	 *
-	 * @since 2.0.14
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.14
 	 */
 	public static function validate_recurring_shipping_methods() {
 		$shipping_methods     = WC()->checkout()->shipping_methods;
 		$added_invalid_notice = false;
 		$standard_packages    = WC()->shipping->get_packages();
 
-		// temporarily store the current calculation type and recurring cart key so we can restore them later
+		// Temporarily store the current calculation type and recurring cart key so we can restore them later.
 		$calculation_type        = self::$calculation_type;
 		$recurring_cart_key_flag = self::$recurring_cart_key;
+		$cached_recurring_cart   = self::$cached_recurring_cart;
 
 		self::set_calculation_type( 'recurring_total' );
 
 		foreach ( WC()->cart->recurring_carts as $recurring_cart_key => $recurring_cart ) {
-			self::set_recurring_cart_key( $recurring_cart_key );
-
 			if ( false === $recurring_cart->needs_shipping() || 0 == $recurring_cart->next_payment_date ) {
 				continue;
 			}
 
+			// Set the recurring cart flags so shipping calculations have the recurring cart as context.
+			self::set_recurring_cart_key( $recurring_cart_key );
+			self::set_cached_recurring_cart( $recurring_cart );
+
 			foreach ( $recurring_cart->get_shipping_packages() as $recurring_cart_package_key => $recurring_cart_package ) {
 				$package_index = isset( $recurring_cart_package['package_index'] ) ? $recurring_cart_package['package_index'] : 0;
-				$package       = self::get_calculated_shipping_for_package( $recurring_cart_package );
+				$package       = WC()->shipping->calculate_shipping_for_package( $recurring_cart_package );
 
-				if ( ( isset( $standard_packages[ $package_index ] ) && $package['rates'] == $standard_packages[ $package_index ]['rates'] ) ) {
-					// the recurring package rates match the initial package rates, there won't be a selected shipping method for this recurring cart package move on to the next package.
+				$package_rates_match = false;
+				if ( isset( $standard_packages[ $package_index ] ) ) {
+					// phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+					$package_rates_match = apply_filters( 'wcs_recurring_shipping_package_rates_match_standard_rates', $package['rates'] == $standard_packages[ $package_index ]['rates'], $package['rates'], $standard_packages[ $package_index ]['rates'], $recurring_cart_key );
+				}
+
+				if ( $package_rates_match ) {
+					// The recurring package rates match the initial package rates, there won't be a selected shipping method for this recurring cart package move on to the next package.
 					if ( apply_filters( 'wcs_cart_totals_shipping_html_price_only', true, $package, $recurring_cart ) ) {
 						continue;
 					}
 				}
 
+				// If the chosen shipping method is not available for this recurring cart package, display an error and unset the selected method.
 				if ( ! isset( $package['rates'][ $shipping_methods[ $recurring_cart_package_key ] ] ) ) {
 					if ( ! $added_invalid_notice ) {
 						wc_add_notice( __( 'Invalid recurring shipping method.', 'woocommerce-subscriptions' ), 'error' );
@@ -1179,8 +1178,10 @@ class WC_Subscriptions_Cart {
 			WC()->checkout()->shipping_methods = $shipping_methods;
 		}
 
+		// Restore the calculation type and recurring cart key.
 		self::set_calculation_type( $calculation_type );
 		self::set_recurring_cart_key( $recurring_cart_key_flag );
+		self::set_cached_recurring_cart( $cached_recurring_cart );
 	}
 
 	/**
@@ -1188,7 +1189,7 @@ class WC_Subscriptions_Cart {
 	 *
 	 * @param int The product ID or variation ID to look for.
 	 * @return bool Whether the product is in the cart.
-	 * @since 2.0.13
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.13
 	 */
 	public static function cart_contains_product( $product_id ) {
 
@@ -1211,7 +1212,7 @@ class WC_Subscriptions_Cart {
 	 *
 	 * @param int The product ID or variation ID other than which to look for.
 	 * @return bool Whether another subscription product is in the cart.
-	 * @since 3.0.5
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.5
 	 */
 	public static function cart_contains_other_subscription_products( $product_id ) {
 
@@ -1231,53 +1232,6 @@ class WC_Subscriptions_Cart {
 	}
 
 	/**
-	 * Cache the package rates calculated by @see WC_Shipping::calculate_shipping_for_package() to avoid multiple calls of calculate_shipping_for_package() per request.
-	 *
-	 * @param array $rates A set of WC_Shipping_Rate objects.
-	 * @param array $package A shipping package in the form returned by @see WC_Cart->get_shipping_packages()
-	 * @return array $rates An unaltered set of WC_Shipping_Rate objects passed to the function
-	 * @since 2.0.18
-	 */
-	public static function cache_package_rates( $rates, $package ) {
-		self::$shipping_rates[ self::get_package_shipping_rates_cache_key( $package ) ] = $rates;
-
-		return $rates;
-	}
-
-	/**
-	 * Calculates the shipping rates for a package.
-	 *
-	 * This function will check cached rates based on a hash of the package contents to avoid re-calculation per page load.
-	 * If there are no rates stored in the cache for this package, it will fall back to @see WC_Shipping::calculate_shipping_for_package()
-	 *
-	 * @param array $package A shipping package in the form returned by @see WC_Cart->get_shipping_packages()
-	 * @return array $package
-	 * @since 2.0.18
-	 */
-	public static function get_calculated_shipping_for_package( $package ) {
-		$key = self::get_package_shipping_rates_cache_key( $package );
-
-		if ( isset( self::$shipping_rates[ $key ] ) ) {
-			$package['rates'] = apply_filters( 'woocommerce_package_rates', self::$shipping_rates[ $key ], $package );
-		} else {
-			$package = WC()->shipping->calculate_shipping_for_package( $package );
-		}
-
-		return $package;
-	}
-
-	/**
-	 * Generate a unique package key for a given shipping package to be used for caching package rates.
-	 *
-	 * @param array $package A shipping package in the form returned by WC_Cart->get_shipping_packages().
-	 * @return string key hash
-	 * @since 2.0.18
-	 */
-	private static function get_package_shipping_rates_cache_key( $package ) {
-		return md5( json_encode( array( array_keys( $package['contents'] ), $package['contents_cost'], $package['applied_coupons'] ) ) );
-	}
-
-	/**
 	 * When calculating the free shipping method availability, WC uses the WC->cart object. During shipping calculations for
 	 * recurring carts we need the recurring cart's total and coupons to be the base for checking its availability
 	 *
@@ -1285,7 +1239,7 @@ class WC_Subscriptions_Cart {
 	 * @param array $package
 	 * @return bool $is_available a revised version of is_available based off the recurring cart object
 	 *
-	 * @since 2.0.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.20
 	 */
 	public static function maybe_recalculate_shipping_method_availability( $is_available, $package ) {
 
@@ -1325,7 +1279,7 @@ class WC_Subscriptions_Cart {
 	 * By default WooCommerce core checks the initial cart for shipping method availability. For recurring carts,
 	 * shipping method availability is based whether the recurring total and coupons meet the requirements.
 	 *
-	 * @since 2.5.6
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.6
 	 *
 	 * @param bool               $is_available Whether the shipping method is available or not.
 	 * @param array              $package a shipping package.
@@ -1355,7 +1309,7 @@ class WC_Subscriptions_Cart {
 	 * Allow third-parties to apply fees which apply to the cart to recurring carts.
 	 *
 	 * @param WC_Cart
-	 * @since 2.2.16
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.16
 	 */
 	public static function apply_recurring_fees( $cart ) {
 
@@ -1386,7 +1340,7 @@ class WC_Subscriptions_Cart {
 	 * that those packages no longer use the previously selected shipping method.
 	 *
 	 * @param string $encoded_form_data Encoded checkout form data.
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public static function update_chosen_shipping_methods( $encoded_form_data ) {
 		$chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods', array() );
@@ -1406,7 +1360,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Removes all subscription products from the shopping cart.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function remove_subscriptions_from_cart() {
 
@@ -1426,7 +1380,7 @@ class WC_Subscriptions_Cart {
 	 * We need to record these base tax rates to be able to honour grandfathered subscription
 	 * recurring prices in renewal carts.
 	 *
-	 * @since 3.0.10
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.10
 	 * @param WC_Cart $cart The cart object. Could be the global (initial cart) or a recurring cart.
 	 */
 	public static function record_base_tax_rates( $cart ) {
@@ -1463,7 +1417,7 @@ class WC_Subscriptions_Cart {
 	 * use the recurring cart key instead of numeric index. Therefore, we need to hook in to override
 	 * the default shipping method when WooCommerce could not find a matching shipping method.
 	 *
-	 * @since 2.0.12
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.12
 	 *
 	 * @param string $default_method the default shipping method for the customer/store returned by WC_Shipping::get_default_method()
 	 * @param array  $available_methods set of shipping rates for this calculation
@@ -1491,7 +1445,7 @@ class WC_Subscriptions_Cart {
 	 *
 	 * Only enabled if multiple checkout is not enabled.
 	 *
-	 * @since 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param string $url The cart redirect $url.
 	 * @return string $url.
@@ -1530,10 +1484,42 @@ class WC_Subscriptions_Cart {
 	/* Deprecated */
 
 	/**
+	 * Calculates the shipping rates for a package.
+	 *
+	 * This function will check cached rates based on a hash of the package contents to avoid re-calculation per page load.
+	 * If there are no rates stored in the cache for this package, it will fall back to @see WC_Shipping::calculate_shipping_for_package()
+	 *
+	 * @deprecated 5.4.0
+	 *
+	 * @param array $package A shipping package in the form returned by @see WC_Cart->get_shipping_packages()
+	 * @return array $package
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.18
+	 */
+	public static function get_calculated_shipping_for_package( $package ) {
+		_deprecated_function( __METHOD__, 'subscriptions-core 5.4.0', 'WC()->shipping->calculate_shipping_for_package()' );
+		return WC()->shipping->calculate_shipping_for_package( $package );
+	}
+
+	/**
+	 * Cache the package rates calculated by @see WC_Shipping::calculate_shipping_for_package() to avoid multiple calls of calculate_shipping_for_package() per request.
+	 *
+	 * @deprecated 5.4.0
+	 *
+	 * @param array $rates A set of WC_Shipping_Rate objects.
+	 * @param array $package A shipping package in the form returned by @see WC_Cart->get_shipping_packages()
+	 * @return array $rates An unaltered set of WC_Shipping_Rate objects passed to the function
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.18
+	 */
+	public static function cache_package_rates( $rates, $package ) {
+		_deprecated_function( __METHOD__, 'subscriptions-core 5.4.0' );
+		return $rates;
+	}
+
+	/**
 	 * Don't allow new subscription products to be added to the cart if it contains a subscription renewal already.
 	 *
-	 * @deprecated 2.6.0
-	 * @since 2.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function check_valid_add_to_cart( $is_valid, $product_id, $quantity, $variation_id = '', $variations = array(), $item_data = array() ) {
 		_deprecated_function( __METHOD__, '2.6.0', 'WC_Subscriptions_Cart_Validator::check_valid_add_to_cart' );
@@ -1551,8 +1537,8 @@ class WC_Subscriptions_Cart {
 	 * Make sure cart totals are calculated when the cart widget is populated via the get_refreshed_fragments() method
 	 * so that @see self::get_formatted_cart_subtotal() returns the correct subtotal price string.
 	 *
-	 * @since 1.5.11
-	 * @deprecated 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.11
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function pre_get_refreshed_fragments() {
 		wcs_deprecated_function( __METHOD__, '2.5.0' );
@@ -1567,8 +1553,8 @@ class WC_Subscriptions_Cart {
 	 *
 	 * Returns the cart_item containing the product renewal, else false.
 	 *
-	 * @deprecated 2.0
-	 * @since 1.3
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3
 	 */
 	public static function cart_contains_subscription_renewal( $role = '' ) {
 		_deprecated_function( __METHOD__, '2.0', 'wcs_cart_contains_renewal( $role )' );
@@ -1580,8 +1566,8 @@ class WC_Subscriptions_Cart {
 	 *
 	 * Returns the cart_item containing the product renewal, else false.
 	 *
-	 * @deprecated 2.0
-	 * @since 1.4
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function cart_contains_failed_renewal_order_payment() {
 		_deprecated_function( __METHOD__, '2.0', 'wcs_cart_contains_failed_renewal_order_payment()' );
@@ -1593,7 +1579,7 @@ class WC_Subscriptions_Cart {
 	 * Restore renewal flag when cart is reset and modify Product object with
 	 * renewal order related info
 	 *
-	 * @since 1.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3
 	 */
 	public static function get_cart_item_from_session( $session_data, $values, $key ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_Cart_Renewal::get_cart_item_from_session( $session_data, $values, $key )' );
@@ -1602,7 +1588,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * For subscription renewal via cart, use original order discount
 	 *
-	 * @since 1.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3
 	 */
 	public static function before_calculate_totals( $cart ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_Cart_Renewal::set_renewal_discounts( $cart )' );
@@ -1613,7 +1599,7 @@ class WC_Subscriptions_Cart {
 	 *
 	 * No longer required as of 1.3.5 as totals are calculated correctly internally.
 	 *
-	 * @since 1.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3
 	 */
 	public static function get_discounted_price_for_renewal( $price, $values, $cart ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_Cart_Renewal::get_discounted_price_for_renewal( $price, $values, $cart )' );
@@ -1623,8 +1609,8 @@ class WC_Subscriptions_Cart {
 	 * Returns a string with the cart discount and subscription period.
 	 *
 	 * @return mixed formatted price or false if there are none
-	 * @since 1.2
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_formatted_discounts_before_tax( $discount, $cart ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1635,8 +1621,8 @@ class WC_Subscriptions_Cart {
 	 * Gets the order discount amount - these are applied after tax
 	 *
 	 * @return mixed formatted price or false if there are none
-	 * @since 1.2
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_formatted_discounts_after_tax( $discount, $cart ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1649,8 +1635,8 @@ class WC_Subscriptions_Cart {
 	 * @param string $discount_html String of the coupon's discount amount
 	 * @param string $coupon WC_Coupon object for the coupon to which this line item relates
 	 * @return string formatted subscription price string if the cart includes a coupon being applied to recurring amount
-	 * @since 1.4.6
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.6
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function cart_coupon_discount_amount_html( $discount_html, $coupon ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1663,8 +1649,8 @@ class WC_Subscriptions_Cart {
 	 * @param string $discount_html String of the coupon's discount amount
 	 * @param string $coupon WC_Coupon object for the coupon to which this line item relates
 	 * @return string formatted subscription price string if the cart includes a coupon being applied to recurring amount
-	 * @since 1.4.6
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.6
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function cart_totals_fee_html( $cart_totals_fee_html, $fee ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1674,9 +1660,9 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Includes the sign-up fee total in the cart total (after calculation).
 	 *
-	 * @since 1.5.10
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.10
 	 * @return string formatted price
-	 * @deprecated 2.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_formatted_cart_total( $cart_contents_total ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1686,8 +1672,8 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Includes the sign-up fee subtotal in the subtotal displayed in the cart.
 	 *
-	 * @since 1.2
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_formatted_cart_subtotal( $cart_subtotal, $compound, $cart ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1698,8 +1684,8 @@ class WC_Subscriptions_Cart {
 	 * Returns an array of taxes merged by code, formatted with recurring amount ready for output.
 	 *
 	 * @return array Array of tax_id => tax_amounts for items in the cart
-	 * @since 1.3.5
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.5
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_recurring_tax_totals( $tax_totals, $cart ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1711,8 +1697,8 @@ class WC_Subscriptions_Cart {
 	 * recurring amount.
 	 *
 	 * @return array Array of tax_id => tax_amounts for items in the cart
-	 * @since 1.4.10
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.10
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_taxes_total_html( $total ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1723,8 +1709,8 @@ class WC_Subscriptions_Cart {
 	 * Appends the cart subscription string to a cart total using the @see self::get_cart_subscription_string and then returns it.
 	 *
 	 * @return string Formatted subscription price string for the cart total.
-	 * @since 1.2
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_formatted_total( $total ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1735,8 +1721,8 @@ class WC_Subscriptions_Cart {
 	 * Appends the cart subscription string to a cart total using the @see self::get_cart_subscription_string and then returns it.
 	 *
 	 * @return string Formatted subscription price string for the cart total.
-	 * @since 1.2
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_formatted_total_ex_tax( $total_ex_tax ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1746,8 +1732,8 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Returns an array of the recurring total fields
 	 *
-	 * @since 1.2
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_recurring_totals_fields() {
 		_deprecated_function( __METHOD__, '2.0', 'recurring total values stored in WC()->cart->recurring_carts' );
@@ -1759,8 +1745,8 @@ class WC_Subscriptions_Cart {
 	 *
 	 * Deprecated because a cart can now contain multiple subscription products, so there is no single period for the entire cart.
 	 *
-	 * @since 1.0
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_cart_subscription_period() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1782,8 +1768,8 @@ class WC_Subscriptions_Cart {
 	 *
 	 * Deprecated because a cart can now contain multiple subscription products, so there is no single interval for the entire cart.
 	 *
-	 * @since 1.0
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_cart_subscription_interval() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1803,8 +1789,8 @@ class WC_Subscriptions_Cart {
 	 *
 	 * Deprecated because a cart can now contain multiple subscription products, so there is no single length for the entire cart.
 	 *
-	 * @since 1.1
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.1
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_cart_subscription_length() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1828,8 +1814,8 @@ class WC_Subscriptions_Cart {
 	 *
 	 * Deprecated because a cart can now contain multiple subscription products, so there is no single trial length for the entire cart.
 	 *
-	 * @since 1.1
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.1
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_cart_subscription_trial_length() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1853,8 +1839,8 @@ class WC_Subscriptions_Cart {
 	 *
 	 * Deprecated because a cart can now contain multiple subscription products, so there is no single trial period for the entire cart.
 	 *
-	 * @since 1.2
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_cart_subscription_trial_period() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1880,7 +1866,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return float price
-	 * @deprecated 2.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_recurring_cart_contents_total() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1904,7 +1890,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return double The total recurring item subtotal amount less tax for items in the cart.
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_recurring_subtotal_ex_tax() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1924,7 +1910,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return double The total recurring item subtotal amount for items in the cart.
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_recurring_subtotal() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1944,7 +1930,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return double The total recurring cart discount amount for items in the cart.
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_recurring_discount_cart() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1964,7 +1950,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return double
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_recurring_discount_cart_tax() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -1984,7 +1970,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return double The total recurring discount amount for items in the cart.
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_recurring_discount_total() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2006,7 +1992,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return double The total recurring shipping tax amount for items in the cart.
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_recurring_shipping_tax_total() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2028,7 +2014,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return double The total recurring shipping amount for items in the cart.
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_recurring_shipping_total() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2048,7 +2034,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return array Array of tax_id => tax_amounts for items in the cart
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_recurring_taxes() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2072,7 +2058,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return array Array of fee_id => fee_details for items in the cart
-	 * @since 1.4.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.9
 	 */
 	public static function get_recurring_fees() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2092,7 +2078,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return double The total recurring tax amount tax for items in the cart (maybe not including compound taxes)
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_recurring_taxes_total( $compound = true ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2123,7 +2109,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return double The total recurring tax amount tax for items in the cart.
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_recurring_total_tax() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2143,7 +2129,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return double The total recurring amount less tax for items in the cart.
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_recurring_total_ex_tax() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2156,7 +2142,7 @@ class WC_Subscriptions_Cart {
 	 * Deprecated because the cart can now contain subscriptions on multiple billing schedules so there is no one "total"
 	 *
 	 * @return double The total recurring amount for items in the cart.
-	 * @since 1.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_recurring_total() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2174,8 +2160,8 @@ class WC_Subscriptions_Cart {
 	 * Calculate the total amount of recurring shipping needed.  Removes any item from the calculation that
 	 * is not a subscription and calculates the totals.
 	 *
-	 * @since 1.5
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function calculate_recurring_shipping() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2193,8 +2179,8 @@ class WC_Subscriptions_Cart {
 	 * @param string $initial_amount The initial amount to be displayed for the subscription as passed through the @see woocommerce_price() function.
 	 * @param float  $recurring_amount The price to display in the subscription.
 	 * @param array  $args (optional) Flags to customise  to display the trial and length of the subscription. Default to false - don't display.
-	 * @since 1.0
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_cart_subscription_string( $initial_amount, $recurring_amount, $args = array() ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2271,8 +2257,8 @@ class WC_Subscriptions_Cart {
 	 * Uses the a subscription's combined price total calculated by WooCommerce to determine the
 	 * total price that should be charged per period.
 	 *
-	 * @since 1.2
-	 * @deprecated 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function set_calculated_total( $total ) {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
@@ -2282,7 +2268,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Get the recurring amounts values from the session
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_cart_from_session() {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -2291,7 +2277,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Store the sign-up fee cart values in the session
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function set_session() {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -2300,7 +2286,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Reset the sign-up fee fields in the current session
 	 *
-	 * @since 1.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function reset() {
 		_deprecated_function( __METHOD__, '2.0' );
@@ -2310,7 +2296,7 @@ class WC_Subscriptions_Cart {
 	 * Returns a cart item's product ID. For a variation, this will be a variation ID, for a simple product,
 	 * it will be the product's ID.
 	 *
-	 * @since 1.5
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5
 	 */
 	public static function get_items_product_id( $cart_item ) {
 		_deprecated_function( __METHOD__, '2.0', 'wcs_get_canonical_product_id( $cart_item )' );
@@ -2340,7 +2326,7 @@ class WC_Subscriptions_Cart {
 	 * Don't display shipping prices if the initial order won't require shipping (i.e. all the products in the cart are subscriptions with a free trial or synchronised to a date in the future)
 	 *
 	 * @return string Label for a shipping method
-	 * @since 1.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3
 	 */
 	public static function get_cart_shipping_method_full_label( $label, $method ) {
 		_deprecated_function( __METHOD__, '2.0.12' );
@@ -2522,9 +2508,9 @@ class WC_Subscriptions_Cart {
 	 * We can't do this on the cart page unfortunately because it doesn't pass the entire forms post data and instead only
 	 * sends the shipping methods with a numerical index.
 	 *
-	 * @deprecated 3.1.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 * @return null
-	 * @since 2.0.12
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.12
 	 */
 	public static function add_shipping_method_post_data() {
 		wcs_deprecated_function( __METHOD__, '3.1.0' );
@@ -2566,10 +2552,10 @@ class WC_Subscriptions_Cart {
 	 *
 	 * For more details, see: https://github.com/Prospress/woocommerce-subscriptions/pull/1187#issuecomment-186091152
 	 *
-	 * @deprecated 3.1.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 *
 	 * @param array $packages An array of shipping package of the form returned by WC_Cart->get_shipping_packages() which includes the package's contents, cost, customer, destination and alternative rates
-	 * @since 2.0.19
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.19
 	 */
 	public static function reset_shipping_method_counts( $packages ) {
 		wcs_deprecated_function( __METHOD__, '3.1.0' );
@@ -2583,8 +2569,8 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Checks to see if payment method is required on a subscription product with a $0 initial payment.
 	 *
-	 * @since 2.5.0
-	 * @deprecated 4.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public static function zero_initial_payment_requires_payment() {
 		wcs_deprecated_function( __METHOD__, '4.0.0', 'WCS_Zero_Initial_Payment_Checkout_Manager::zero_initial_checkout_requires_payment() if available.' );

@@ -13,8 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * it is being moved to use the 'post_author' column of the posts table from WC v2.4 or v2.5. It
  * will eventually also be moved quite likely to custom tables.
  *
- * @version  2.3.0
- * @since    2.3.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  * @category Class
  * @author   Prospress
  */

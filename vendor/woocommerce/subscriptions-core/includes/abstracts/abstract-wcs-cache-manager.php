@@ -5,7 +5,7 @@
  * Implements methods to deal with the soft caching layer
  *
  * @class    WCS_Cache_Manager
- * @version  2.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  * @package  WooCommerce Subscriptions/Classes
  * @category Class
  * @author   Gabor Javorszky

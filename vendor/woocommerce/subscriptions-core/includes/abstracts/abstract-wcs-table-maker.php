@@ -7,7 +7,7 @@
  * @author   Prospress
  * @category Abstract Class
  * @package  WooCommerce Subscriptions/Abstracts
- * @since    2.4
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.4
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

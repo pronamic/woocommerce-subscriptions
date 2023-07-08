@@ -8,6 +8,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * @method static WC_Subscriptions_Plugin instance()
+ */
 class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 
 	/**
@@ -52,7 +55,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 			$notice = new WCS_Admin_Notice( 'error' );
 
 			// translators: 1-2: opening/closing <b> tags, 3: Subscriptions version.
-			$notice->set_simple_content( sprintf( __( '%1$sWarning!%2$s We can see the %1$sWooCommerce Subscriptions Early Renewal%2$s plugin is active. Version %3$s of %1$sWooCommerce Subscriptions%2$s comes with that plugin\'s functionality packaged into the core plugin. Please deactivate WooCommerce Subscriptions Early Renewal to avoid any conflicts.', 'woocommerce-subscriptions' ), '<b>', '</b>', $this->get_plugin_version() ) );
+			$notice->set_simple_content( sprintf( __( '%1$sWarning!%2$s We can see the %1$sWooCommerce Subscriptions Early Renewal%2$s plugin is active. Version %3$s of %1$sWooCommerce Subscriptions%2$s comes with that plugin\'s functionality packaged into the core plugin. Please deactivate WooCommerce Subscriptions Early Renewal to avoid any conflicts.', 'woocommerce-subscriptions' ), '<b>', '</b>', $this->get_plugin_version() ) ); // get_plugin_version() is used here to report the correct WCS version.
 			$notice->set_actions(
 				array(
 					array(
@@ -117,9 +120,14 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 	}
 
 	/**
-	 * Gets the plugin's version
+	 * Gets the version of WooCommerce Subscriptions.
+	 *
+	 * NOTE: This function should only be used to get the version of WooCommerce Subscriptions.
+	 * `WC_Subscriptions_Core_Plugin::instance()->get_plugin_version()` will return either the version of WooCommerce Subscriptions (if installed) or the version of WooCommerce Subscriptions Core.
+	 * `WC_Subscriptions_Core_Plugin::instance()->get_library_version()` should be used to get the version of WooCommerce Subscriptions Core.
 	 *
 	 * @since 4.0.0
+	 * @see get_library_version()
 	 * @return string The plugin version.
 	 */
 	public function get_plugin_version() {

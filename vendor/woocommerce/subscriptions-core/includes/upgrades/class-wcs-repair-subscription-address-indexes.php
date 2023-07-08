@@ -8,7 +8,7 @@
  * @author   Prospress
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin/Upgrades
- * @version  2.3.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
  */
 
 // Exit if accessed directly.
@@ -23,7 +23,7 @@ class WCS_Repair_Subscription_Address_Indexes extends WCS_Background_Upgrader {
 	 *
 	 * @param WC_Logger_Interface $logger The WC_Logger instance.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function __construct( WC_Logger_Interface $logger ) {
 		$this->scheduled_hook = 'wcs_add_missing_subscription_address_indexes';
@@ -34,7 +34,7 @@ class WCS_Repair_Subscription_Address_Indexes extends WCS_Background_Upgrader {
 	/**
 	 * Update a subscription, setting its address indexes.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	protected function update_item( $subscription_id ) {
 		try {
@@ -56,7 +56,7 @@ class WCS_Repair_Subscription_Address_Indexes extends WCS_Background_Upgrader {
 	/**
 	 * Get a batch of subscriptions which need address indexes.
 	 *
-	 * @since 2.3.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 * @return array A list of subscription ids which need address indexes.
 	 */
 	protected function get_items_to_update() {

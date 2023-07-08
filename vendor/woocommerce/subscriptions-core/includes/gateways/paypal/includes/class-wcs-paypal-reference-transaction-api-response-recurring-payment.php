@@ -15,7 +15,7 @@
  * @package     WooCommerce Subscriptions
  * @subpackage  Gateways/PayPal
  * @category    Class
- * @since       2.0.9
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,7 +29,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Recurring_Payment extends WC
 	 *
 	 * @see WC_PayPal_Express_API_Response::__construct()
 	 * @param string $response the raw URL-encoded response string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function __construct( $response ) {
 		parent::__construct( $response );
@@ -40,7 +40,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Recurring_Payment extends WC
 	 * parameters. Parallels payments are not used, so the numeric portion of
 	 * the prefix is always '0'
 	 *
-	 * @since 2.0.9
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.9
 	 * @return string
 	 */
 	protected function get_payment_parameter_prefix() {

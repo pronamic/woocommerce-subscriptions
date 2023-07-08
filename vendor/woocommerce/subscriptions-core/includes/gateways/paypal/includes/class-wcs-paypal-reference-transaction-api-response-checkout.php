@@ -13,7 +13,7 @@
  * @package     WooCommerce Subscriptions
  * @subpackage  Gateways/PayPal
  * @category    Class
- * @since       2.0
+ * @since       1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -27,7 +27,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Checkout extends WCS_PayPal_
 	 * API call
 	 *
 	 * @return string|null
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_token() {
 		return $this->get_parameter( 'TOKEN' );
@@ -36,9 +36,9 @@ class WCS_PayPal_Reference_Transaction_API_Response_Checkout extends WCS_PayPal_
 	/**
 	 * Get the billing agreement status for a successful SetExpressCheckout
 	 *
-	 * @since 3.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.0
 	 * @return string|null
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_billing_agreement_status() {
 		return $this->get_parameter( 'BILLINGAGREEMENTACCEPTEDSTATUS' );
@@ -47,9 +47,9 @@ class WCS_PayPal_Reference_Transaction_API_Response_Checkout extends WCS_PayPal_
 	/**
 	 * Get the shipping details from GetExpressCheckoutDetails response mapped to the WC shipping address format
 	 *
-	 * @since 3.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.0
 	 * @return array
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_shipping_details() {
 
@@ -79,7 +79,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Checkout extends WCS_PayPal_
 	 * Get the note text from checkout details
 	 *
 	 * @return string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_note_text() {
 		return $this->get_parameter( 'PAYMENTREQUEST_0_NOTETEXT' );
@@ -89,7 +89,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Checkout extends WCS_PayPal_
 	 * Gets the payer ID from checkout details, a payer ID is a Unique PayPal Customer Account identification number
 	 *
 	 * @return string
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_payer_id() {
 		return $this->get_parameter( 'PAYERID' );
@@ -101,7 +101,7 @@ class WCS_PayPal_Reference_Transaction_API_Response_Checkout extends WCS_PayPal_
 	 * @param string $country_code country code sent by PayPal
 	 * @param string $state state name or code sent by PayPal
 	 * @return string state code
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private function get_state_code( $country_code, $state ) {
 

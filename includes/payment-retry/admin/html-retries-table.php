@@ -17,19 +17,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<th><?php esc_html_e( 'Retry Date', 'woocommerce-subscriptions' ); ?></th>
 				<th>
 					<?php esc_html_e( 'Retry Status', 'woocommerce-subscriptions' ); ?>
-					<?php echo wcs_help_tip( __( 'The status of the automatic payment retry: pending means the retry will be processed in the future, failed means the payment was not successful when retried and completed means the payment succeeded when retried.', 'woocommerce-subscriptions' ) ); ?>
+					<?php echo wc_help_tip( __( 'The status of the automatic payment retry: pending means the retry will be processed in the future, failed means the payment was not successful when retried and completed means the payment succeeded when retried.', 'woocommerce-subscriptions' ) ); ?>
 				</th>
 				<th>
 					<?php esc_html_e( 'Status of Order', 'woocommerce-subscriptions' ); ?>
-					<?php echo wcs_help_tip( __( 'The status applied to the order for the time between when the renewal payment failed or last retry occurred and when this retry was processed.', 'woocommerce-subscriptions' ) ); ?>
+					<?php echo wc_help_tip( __( 'The status applied to the order for the time between when the renewal payment failed or last retry occurred and when this retry was processed.', 'woocommerce-subscriptions' ) ); ?>
 				</th>
 				<th>
 					<?php esc_html_e( 'Status of Subscription', 'woocommerce-subscriptions' ); ?>
-					<?php echo wcs_help_tip( __( 'The status applied to the subscription for the time between when the renewal payment failed or last retry occurred and when this retry was processed.', 'woocommerce-subscriptions' ) ); ?>
+					<?php echo wc_help_tip( __( 'The status applied to the subscription for the time between when the renewal payment failed or last retry occurred and when this retry was processed.', 'woocommerce-subscriptions' ) ); ?>
 				</th>
 				<th>
 					<?php esc_html_e( 'Email', 'woocommerce-subscriptions' ); ?>
-					<?php echo wcs_help_tip( __( 'The email sent to the customer when the renewal payment or payment retry failed to notify them that the payment would be retried.', 'woocommerce-subscriptions' ) ); ?>
+					<?php echo wc_help_tip( __( 'The email sent to the customer when the renewal payment or payment retry failed to notify them that the payment would be retried.', 'woocommerce-subscriptions' ) ); ?>
 				</th>
 			</tr>
 		</thead>

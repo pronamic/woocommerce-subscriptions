@@ -127,7 +127,10 @@ class WCS_Webhooks {
 			$webhook      = new WC_Webhook( $id );
 			$current_user = get_current_user_id();
 
-			wp_set_current_user( $webhook->get_user_id() );
+			// Build the payload with the same user context as the user who created
+			// the webhook -- this avoids permission errors as background processing
+			// runs with no user context.
+			wp_set_current_user( $webhook->get_user_id() ); // phpcs:ignore Generic.PHP.ForbiddenFunctions.Discouraged -- user ID can only be provided by WC_Webhook::get_user_id() which is the webhook author's ID.
 
 			switch ( $webhook->get_api_version() ) {
 				case 'legacy_v3':
@@ -150,7 +153,8 @@ class WCS_Webhooks {
 					break;
 			}
 
-			wp_set_current_user( $current_user );
+			// Restore the current user.
+			wp_set_current_user( $current_user ); // phpcs:ignore Generic.PHP.ForbiddenFunctions.Discouraged -- this ID was provided by get_current_user_id() above.
 		}
 
 		return $payload;

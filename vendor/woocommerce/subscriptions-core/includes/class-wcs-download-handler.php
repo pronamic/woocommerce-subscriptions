@@ -8,7 +8,7 @@
  * @subpackage WCS_Download_Handler
  * @category   Class
  * @author     Prospress
- * @since      2.0
+ * @since      1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +20,7 @@ class WCS_Download_Handler {
 	/**
 	 * Initialize filters and hooks for class.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function init() {
 		add_action( 'woocommerce_grant_product_download_permissions', __CLASS__ . '::save_downloadable_product_permissions' );
@@ -31,9 +31,22 @@ class WCS_Download_Handler {
 
 		add_action( 'woocommerce_admin_created_subscription', array( __CLASS__, 'grant_download_permissions' ) );
 
-		add_action( 'deleted_post', __CLASS__ . '::delete_subscription_permissions' );
+		add_action( 'woocommerce_loaded', [ __CLASS__, 'attach_wc_dependent_hooks' ] );
 
 		add_action( 'woocommerce_process_product_file_download_paths', __CLASS__ . '::grant_new_file_product_permissions', 11, 3 );
+	}
+
+	/**
+	 * Attach hooks that depend on WooCommerce being loaded.
+	 *
+	 * @since 5.2
+	 */
+	public static function attach_wc_dependent_hooks() {
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			add_action( 'woocommerce_delete_subscription', [ __CLASS__, 'delete_subscription_download_permissions' ] );
+		} else {
+			add_action( 'deleted_post', [ __CLASS__, 'delete_subscription_permissions' ] );
+		}
 	}
 
 	/**
@@ -72,7 +85,8 @@ class WCS_Download_Handler {
 					}
 				}
 			}
-			update_post_meta( $subscription->get_id(), '_download_permissions_granted', 1 );
+
+			$subscription->get_data_store()->set_download_permissions_granted( $subscription, true );
 		}
 	}
 
@@ -143,25 +157,31 @@ class WCS_Download_Handler {
 	 * Repairs a glitch in WordPress's save function. You cannot save a null value on update, see
 	 * https://github.com/woocommerce/woocommerce/issues/7861 for more info on this.
 	 *
-	 * @param integer $post_id The ID of the subscription
+	 * @param integer $id The ID of the subscription
 	 */
-	public static function repair_permission_data( $post_id ) {
-		if ( absint( $post_id ) !== $post_id ) {
+	public static function repair_permission_data( $id ) {
+		if ( absint( $id ) !== $id ) {
 			return;
 		}
 
-		if ( 'shop_subscription' !== get_post_type( $post_id ) ) {
+		if ( 'shop_subscription' !== WC_Data_Store::load( 'subscription' )->get_order_type( $id ) ) {
 			return;
 		}
 
 		global $wpdb;
 
-		$wpdb->query( $wpdb->prepare( "
-			UPDATE {$wpdb->prefix}woocommerce_downloadable_product_permissions
-			SET access_expires = null
-			WHERE order_id = %d
-			AND access_expires = %s
-		", $post_id, '0000-00-00 00:00:00' ) );
+		$wpdb->query(
+			$wpdb->prepare(
+				"
+				UPDATE {$wpdb->prefix}woocommerce_downloadable_product_permissions
+				SET access_expires = null
+				WHERE order_id = %d
+				AND access_expires = %s
+				",
+				$id,
+				'0000-00-00 00:00:00'
+			)
+		);
 	}
 
 	/**
@@ -169,7 +189,7 @@ class WCS_Download_Handler {
 	 * Hooked into 'woocommerce_admin_created_subscription' to grant permissions to admin created subscriptions.
 	 *
 	 * @param WC_Subscription $subscription
-	 * @since 2.4.2
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.2
 	 */
 	public static function grant_download_permissions( $subscription ) {
 		wc_downloadable_product_permissions( $subscription->get_id() );
@@ -178,14 +198,26 @@ class WCS_Download_Handler {
 	/**
 	 * Remove download permissions attached to a subscription when it is permenantly deleted.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
+	 *
+	 * @param $id The ID of the subscription whose downloadable product permission being deleted.
 	 */
-	public static function delete_subscription_permissions( $post_id ) {
-		global $wpdb;
-
-		if ( 'shop_subscription' == get_post_type( $post_id ) ) {
-			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->prefix}woocommerce_downloadable_product_permissions WHERE order_id = %d", $post_id ) );
+	public static function delete_subscription_permissions( $id ) {
+		if ( 'shop_subscription' === WC_Data_Store::load( 'subscription' )->get_order_type( $id ) ) {
+			self::delete_subscription_download_permissions( $id );
 		}
+	}
+
+	/**
+	 * Remove download permissions attached to a subscription when it is permenantly deleted.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param $id The ID of the subscription whose downloadable product permission being deleted.
+	 */
+	public static function delete_subscription_download_permissions( $id ) {
+		global $wpdb;
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->prefix}woocommerce_downloadable_product_permissions WHERE order_id = %d", $id ) );
 	}
 
 	/**
@@ -195,7 +227,7 @@ class WCS_Download_Handler {
 	 * @param int $product_id
 	 * @param int $variation_id
 	 * @param array $downloadable_files product downloadable files
-	 * @since 2.0.18
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.18
 	 */
 	public static function grant_new_file_product_permissions( $product_id, $variation_id, $downloadable_files ) {
 		global $wpdb;
@@ -242,14 +274,14 @@ class WCS_Download_Handler {
 	 * When adding new downloadable content to a subscription product, check if we don't
 	 * want to automatically add the new downloadable files to the subscription or initial and renewal orders.
 	 *
-	 * @deprecated 4.0.0
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param bool $grant_access
 	 * @param string $download_id
 	 * @param int $product_id
 	 * @param WC_Order $order
 	 * @return bool
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_revoke_immediate_access( $grant_access, $download_id, $product_id, $order ) {
 		wcs_deprecated_function( __METHOD__, '4.0.0', 'WCS_Drip_Downloads_Manager::maybe_revoke_immediate_access() if available' );

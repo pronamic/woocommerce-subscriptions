@@ -14,7 +14,7 @@
  * @author   WooCommerce
  * @category Admin
  * @package  WooCommerce Subscriptions/Admin/Upgrades
- * @version  2.6.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 
 // Exit if accessed directly.
@@ -29,7 +29,7 @@ class WCS_Repair_Line_Item_Has_Trial_Meta extends WCS_Background_Repairer {
 	 *
 	 * @param WC_Logger_Interface $logger The WC_Logger instance.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public function __construct( WC_Logger_Interface $logger ) {
 		$this->scheduled_hook = 'wcs_schedule_trial_subscription_repairs';
@@ -44,7 +44,7 @@ class WCS_Repair_Line_Item_Has_Trial_Meta extends WCS_Background_Repairer {
 	 * @param int $page The page number to get results from.
 	 * @return array    A list of subscription ids.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	protected function get_items_to_repair( $page ) {
 		$query      = new WP_Query();
@@ -74,7 +74,7 @@ class WCS_Repair_Line_Item_Has_Trial_Meta extends WCS_Background_Repairer {
 	 *
 	 * @param int $subscription_id
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public function repair_item( $subscription_id ) {
 		try {

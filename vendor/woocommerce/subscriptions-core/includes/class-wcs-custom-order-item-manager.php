@@ -3,7 +3,7 @@
  * Subscriptions Custom Order Item Manager
  *
  * @author   Prospress
- * @since    2.6.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 class WCS_Custom_Order_Item_Manager {
 
@@ -39,7 +39,7 @@ class WCS_Custom_Order_Item_Manager {
 	/**
 	 * Initialise class hooks & filters when the file is loaded
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function init() {
 
@@ -53,7 +53,7 @@ class WCS_Custom_Order_Item_Manager {
 	 *
 	 * @param array $type_to_group_list Existing list of types and their groups
 	 * @return array $type_to_group_list
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function add_extra_groups( $type_to_group_list ) {
 
@@ -70,7 +70,7 @@ class WCS_Custom_Order_Item_Manager {
 	 * @param string $classname
 	 * @param string $item_type
 	 * @return string $classname
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function map_classname_for_extra_items( $classname, $item_type ) {
 
@@ -86,7 +86,7 @@ class WCS_Custom_Order_Item_Manager {
 	 *
 	 * @param  array $data_stores The registered data stores.
 	 * @return array
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function register_data_stores( $data_stores ) {
 

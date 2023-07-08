@@ -5,7 +5,7 @@ use Automattic\WooCommerce\Blocks\Integrations\IntegrationInterface;
  * Class for integrating with WooCommerce Blocks
  *
  * @package WooCommerce Subscriptions
- * @since   3.1.0
+ * @since   1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
  */
 class WCS_Blocks_Integration implements IntegrationInterface {
 	/**
@@ -95,6 +95,6 @@ class WCS_Blocks_Integration implements IntegrationInterface {
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG && file_exists( $file ) ) {
 			return filemtime( $file );
 		}
-		return \WC_Subscriptions_Core_Plugin::instance()->get_plugin_version();
+		return \WC_Subscriptions_Core_Plugin::instance()->get_library_version();
 	}
 }

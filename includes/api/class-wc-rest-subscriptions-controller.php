@@ -42,7 +42,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	public function register_routes() {
 		parent::register_routes();
 
-		register_rest_route( $this->namespace, "/{$this->rest_base}/statuses", array(
+		register_rest_route( $this->namespace, "/{$this->rest_base}/statuses", array( // nosemgrep: audit.php.wp.security.rest-route.permission-callback.return-true  -- /subscriptions/statuses is a public endpoint and doesn't need any permission checks.
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_statuses' ),

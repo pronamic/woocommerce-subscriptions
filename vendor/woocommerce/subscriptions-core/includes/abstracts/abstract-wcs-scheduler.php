@@ -6,7 +6,7 @@
  * or subscription expires.
  *
  * @class     WCS_Scheduler
- * @version   2.0.0
+ * @version   1.0.0 - Migrated from WooCommerce Subscriptions v2.0.0
  * @package   WooCommerce Subscriptions/Abstracts
  * @category  Abstract Class
  * @author    Prospress

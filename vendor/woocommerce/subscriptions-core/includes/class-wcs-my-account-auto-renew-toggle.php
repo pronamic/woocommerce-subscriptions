@@ -5,7 +5,7 @@
  * @package  WooCommerce Subscriptions
  * @category Class
  * @author   Prospress
- * @since    2.5.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
  */
 class WCS_My_Account_Auto_Renew_Toggle {
 
@@ -19,7 +19,7 @@ class WCS_My_Account_Auto_Renew_Toggle {
 	/**
 	 * Initialize filters and hooks for class.
 	 *
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function init() {
 		self::$setting_id = WC_Subscriptions_Admin::$option_prefix . '_enable_auto_renewal_toggle';
@@ -34,7 +34,7 @@ class WCS_My_Account_Auto_Renew_Toggle {
 	 *
 	 * @param WC_Subscription $subscription The subscription for which the checks for auto-renewal needs to be made
 	 * @return boolean
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function can_subscription_auto_renewal_be_changed( $subscription ) {
 
@@ -65,7 +65,7 @@ class WCS_My_Account_Auto_Renew_Toggle {
 	/**
 	 * Determines if a subscription is eligible for toggling auto renewal and whether the user, or current user has permission to do so.
 	 *
-	 * @since 3.0.1
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.1
 	 *
 	 * @param WC_Subscription $subscription The subscription to check if auto renewal is allowed.
 	 * @param int             $user_id      The user ID to check if they have permission. Optional. Default is current user.
@@ -83,7 +83,7 @@ class WCS_My_Account_Auto_Renew_Toggle {
 	/**
 	 * Disable auto renewal of subscription
 	 *
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function disable_auto_renew() {
 
@@ -107,7 +107,7 @@ class WCS_My_Account_Auto_Renew_Toggle {
 	/**
 	 * Enable auto renewal of subscription
 	 *
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function enable_auto_renew() {
 
@@ -145,7 +145,7 @@ class WCS_My_Account_Auto_Renew_Toggle {
 	 *
 	 * @param array $settings
 	 * @return array
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function add_setting( $settings ) {
 		WC_Subscriptions_Admin::insert_setting_after( $settings, 'woocommerce_subscriptions_turn_off_automatic_payments', array(
@@ -164,7 +164,7 @@ class WCS_My_Account_Auto_Renew_Toggle {
 	 * Checks if the store has enabled the auto-renewal toggle.
 	 *
 	 * @return bool true if the toggle is enabled, otherwise false.
-	 * @since 2.5.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function is_enabled() {
 		return 'yes' === get_option( self::$setting_id, 'no' );

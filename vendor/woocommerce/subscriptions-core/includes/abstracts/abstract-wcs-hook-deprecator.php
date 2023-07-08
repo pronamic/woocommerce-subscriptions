@@ -12,7 +12,7 @@
  * @subpackage WCS_Hook_Deprecator
  * @category Class
  * @author Prospress
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 abstract class WCS_Hook_Deprecator {
@@ -23,7 +23,7 @@ abstract class WCS_Hook_Deprecator {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function __construct() {
 		foreach ( $this->deprecated_hooks as $new_hook => $old_hook ) {
@@ -34,7 +34,7 @@ abstract class WCS_Hook_Deprecator {
 	/**
 	 * Check if an old hook still has callbacks attached to it, and if so, display a notice and trigger the old hook.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function maybe_handle_deprecated_hook() {
 
@@ -61,7 +61,7 @@ abstract class WCS_Hook_Deprecator {
 	/**
 	 * Check if an old hook still has callbacks attached to it, and if so, display a notice and trigger the old hook.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function handle_deprecated_hook( $new_hook, $old_hook, $new_callback_args, $return_value ) {
 
@@ -78,7 +78,7 @@ abstract class WCS_Hook_Deprecator {
 	/**
 	 * Display a deprecated notice for old hooks.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected static function display_notice( $old_hook, $new_hook ) {
 		_deprecated_function( sprintf( 'The "%s" hook uses out of date data structures so', esc_html( $old_hook ) ), '2.0 of WooCommerce Subscriptions', esc_html( $new_hook ) );
@@ -87,7 +87,7 @@ abstract class WCS_Hook_Deprecator {
 	/**
 	 * Trigger the old hook with the original callback parameters
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	abstract protected function trigger_hook( $old_hook, $new_callback_args );
 
@@ -97,7 +97,7 @@ abstract class WCS_Hook_Deprecator {
 	 * Because a subscription can exist without an order in Subscriptions 2.0, the order might actually
 	 * fallback to being the subscription rather than the order used to purchase the subscription.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected static function get_order( $subscription ) {
 		return ( false == $subscription->get_parent_id() ) ? $subscription : $subscription->get_parent();
@@ -109,7 +109,7 @@ abstract class WCS_Hook_Deprecator {
 	 * Because a subscription can exist without an order in Subscriptions 2.0, the order might actually
 	 * fallback to being the subscription rather than the order used to purchase the subscription.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected static function get_order_id( $subscription ) {
 		return ( false == $subscription->get_parent_id() ) ? $subscription->get_id() : $subscription->get_parent_id();
@@ -118,7 +118,7 @@ abstract class WCS_Hook_Deprecator {
 	/**
 	 * Get the first product ID for a subscription to pass to callbacks.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected static function get_product_id( $subscription ) {
 		$order_items = $subscription->get_items();

@@ -4,7 +4,7 @@
  * edit subscription admin page.
  *
  * @class    WCS_Change_Payment_Method_Admin
- * @version  2.0
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  * @package  WooCommerce Subscriptions/Includes
  * @category Class
  * @author   Prospress
@@ -15,7 +15,7 @@ class WCS_Change_Payment_Method_Admin {
 	/**
 	 * Display the edit payment gateway option under
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function display_fields( $subscription ) {
 
@@ -103,7 +103,7 @@ class WCS_Change_Payment_Method_Admin {
 	 * Get the new payment data from POST and check the new payment method supports
 	 * the new admin change hook.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 * @param $subscription WC_Subscription
 	 */
 	public static function save_meta( $subscription ) {
@@ -157,7 +157,7 @@ class WCS_Change_Payment_Method_Admin {
 	/**
 	 * Get a list of possible gateways that a subscription could be changed to by admins.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 * @param $subscription int | WC_Subscription
 	 * @return
 	 */

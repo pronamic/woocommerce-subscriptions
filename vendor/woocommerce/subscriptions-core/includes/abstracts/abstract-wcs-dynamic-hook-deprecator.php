@@ -6,7 +6,7 @@
  * @subpackage WCS_Hook_Deprecator
  * @category Class
  * @author Prospress
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 abstract class WCS_Dynamic_Hook_Deprecator extends WCS_Hook_Deprecator {
@@ -22,7 +22,7 @@ abstract class WCS_Dynamic_Hook_Deprecator extends WCS_Hook_Deprecator {
 	 * $wp_filter global for our hooks either, because sometime, hooks are dynamically hooked based
 	 * on other hooks. Sigh.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function __construct() {
 		add_filter( 'all', array( &$this, 'check_for_deprecated_hooks' ) );
@@ -31,7 +31,7 @@ abstract class WCS_Dynamic_Hook_Deprecator extends WCS_Hook_Deprecator {
 	/**
 	 * Check if the current hook contains the prefix of any dynamic hook that has been deprecated.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function check_for_deprecated_hooks() {
 
@@ -53,7 +53,7 @@ abstract class WCS_Dynamic_Hook_Deprecator extends WCS_Hook_Deprecator {
 	 * Check if a given hook contains the prefix and if it does, attach the @see $this->maybe_handle_deprecated_hook() method
 	 * as a callback to it.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected function check_for_deprecated_hook( $current_hook, $new_hook_prefix, $old_hook_prefix ) {
 

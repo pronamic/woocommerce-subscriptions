@@ -4,8 +4,8 @@
  *
  * @author  Prospress
  * @package WooCommerce_Subscription/Templates
- * @since 2.2.19
- * @version 2.6.5
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.5
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

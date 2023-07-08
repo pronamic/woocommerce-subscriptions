@@ -6,7 +6,7 @@
  * @subpackage WCS_Cart_Initial_Payment
  * @category Class
  * @author Prospress
- * @since 2.0
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
 class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
@@ -17,7 +17,7 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function __construct() {
 		$this->setup_hooks();
@@ -34,7 +34,7 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 	/**
 	 * Setup the cart for paying for a delayed initial payment for a subscription.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function maybe_setup_cart() {
 		global $wp;
@@ -94,7 +94,7 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 	 * Checks the cart to see if it contains an initial payment item.
 	 *
 	 * @return bool | Array The cart item containing the initial payment, else false.
-	 * @since  2.0.13
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0.13
 	 */
 	protected function cart_contains() {
 
@@ -117,7 +117,7 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 	 *
 	 * @param Array The initial payment cart item.
 	 * @return WC_Order | The order object
-	 * @since  2.0.13
+	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0.13
 	 */
 	protected function get_order( $cart_item = '' ) {
 		$order = false;
@@ -136,7 +136,7 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 	/**
 	 * Deteremines if the cart should honor the granfathered subscription/order line item total.
 	 *
-	 * @since 3.0.10
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.10
 	 *
 	 * @param array $cart_item The cart item to check.
 	 * @return bool Whether the cart should honor the order's prices.

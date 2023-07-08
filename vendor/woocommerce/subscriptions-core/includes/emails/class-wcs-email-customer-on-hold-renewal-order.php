@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
  * Order On Hold emails are sent to the customer when the renewal order is marked on-hold and usually indicates that the order is awaiting payment confirmation.
  *
  * @class   WCS_Email_On-hold_Renewal_Order
- * @version 3.0.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.0
  * @package WooCommerce_Subscriptions/Includes/Emails
  * @author  WooCommerce.
  * @extends WC_Email_Customer_On_Hold_Order
@@ -44,7 +44,7 @@ class WCS_Email_Customer_On_Hold_Renewal_Order extends WC_Email_Customer_On_Hold
 	/**
 	 * Get the default e-mail subject.
 	 *
-	 * @since 3.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.0
 	 * @return string
 	 */
 	public function get_default_subject() {
@@ -54,7 +54,7 @@ class WCS_Email_Customer_On_Hold_Renewal_Order extends WC_Email_Customer_On_Hold
 	/**
 	 * Get the default e-mail heading.
 	 *
-	 * @since 3.0.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.0
 	 * @return string
 	 */
 	public function get_default_heading() {

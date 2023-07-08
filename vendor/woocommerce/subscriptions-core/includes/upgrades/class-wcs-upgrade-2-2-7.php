@@ -5,7 +5,7 @@
  * @author Prospress
  * @category Admin
  * @package WooCommerce Subscriptions/Admin/Upgrades
- * @version 2.2.7
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +20,7 @@ class WCS_Upgrade_2_2_7 {
 	/**
 	 * Schedule an WP-Cron event to run in 5 minutes to repair pending cancelled subscriptions.
 	 *
-	 * @since 2.2.7
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
 	public static function schedule_end_of_prepaid_term_repair() {
 		wp_schedule_single_event( gmdate( 'U' ) + ( MINUTE_IN_SECONDS * 3 ), self::$cron_hook );
@@ -33,7 +33,7 @@ class WCS_Upgrade_2_2_7 {
 	 * end of prepaid term actions. This results in pending cancelled subscriptions not transitioning to
 	 * cancelled automatically.
 	 *
-	 * @since 2.2.7
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
 	public static function repair_pending_cancelled_subscriptions() {
 		$subscriptions_to_repair  = self::get_subscriptions_to_repair();
@@ -94,7 +94,7 @@ class WCS_Upgrade_2_2_7 {
 	/**
 	 * Get a batch of pending cancelled subscriptions to repair.
 	 *
-	 * @since 2.2.7
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 * @return array An list of subscription ids which may need to be repaired.
 	 */
 	public static function get_subscriptions_to_repair() {
@@ -118,7 +118,7 @@ class WCS_Upgrade_2_2_7 {
 	 * Add a message to the wcs-upgrade-end-of-prepaid-term-repair log
 	 *
 	 * @param string The message to be logged
-	 * @since 2.2.7
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
 	protected static function log( $message ) {
 		WCS_Upgrade_Logger::add( $message, 'wcs-upgrade-end-of-prepaid-term-repair' );

@@ -1370,4 +1370,16 @@ jQuery( function ( $ ) {
 		},
 	};
 	wcs_accounts_and_privacy_settings.init();
+
+	$( '#wpbody' ).on( 'click', '#doaction, #doaction2', function () {
+		var action = $( this ).is( '#doaction' )
+			? $( '#bulk-action-selector-top' ).val()
+			: $( '#bulk-action-selector-bottom' ).val();
+
+		if ( 'wcs_remove_personal_data' === action ) {
+			return window.confirm(
+				WCSubscriptions.i18n_remove_personal_data_notice
+			);
+		}
+	} );
 } );

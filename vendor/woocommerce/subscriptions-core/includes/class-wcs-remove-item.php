@@ -4,14 +4,14 @@
  *
  *
  * @author   Prospress
- * @since    2.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 class WCS_Remove_Item {
 
 	/**
 	 * Initialise class hooks & filters when the file is loaded
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function init() {
 
@@ -24,7 +24,7 @@ class WCS_Remove_Item {
 	 *
 	 * @param int $subscription_id
 	 * @param int $order_item_id
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_remove_url( $subscription_id, $order_item_id ) {
 
@@ -45,7 +45,7 @@ class WCS_Remove_Item {
 	 * @param int $subscription_id
 	 * @param int $order_item_id
 	 * @param string $base_url
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_undo_remove_url( $subscription_id, $order_item_id, $base_url ) {
 
@@ -64,7 +64,7 @@ class WCS_Remove_Item {
 	/**
 	 * Process the remove or re-add a line item from a subscription request.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_remove_or_add_item_to_subscription() {
 
@@ -160,7 +160,7 @@ class WCS_Remove_Item {
 	 * Validate the incoming request to either remove an item or add and item back to a subscription that was previously removed.
 	 * Add an descriptive notice to the page whether or not the request was validated or not.
 	 *
-	 * @since 2.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 * @param WC_Subscription $subscription
 	 * @param int $order_item_id
 	 * @param bool $undo_request bool

@@ -5,7 +5,7 @@
  * @author   Prospress
  * @category Class
  * @package  WooCommerce Subscriptions\Privacy
- * @version  2.2.20
+ * @version  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +20,7 @@ class WCS_Privacy_Erasers {
 	 * Subscriptions are erased in blocks of 10 to avoid timeouts.
 	 * Based on @see WC_Privacy_Erasers::order_data_eraser().
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param string $email_address The user email address.
 	 * @param int    $page  Page.
 	 * @return array An array of response data to return to the WP eraser.
@@ -48,7 +48,7 @@ class WCS_Privacy_Erasers {
 	/**
 	 * Erase personal data from an array of subscriptions and generate an eraser response.
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param  array $subscriptions An array of WC_Subscription objects.
 	 * @param  int   $limit The number of subscriptions erased in each batch. Optional. Default is 10.
 	 * @return array An array of response data to return to the WP eraser.
@@ -88,7 +88,7 @@ class WCS_Privacy_Erasers {
 	 *
 	 * Note; this will hinder the subscription's ability function correctly for obvious reasons!
 	 *
-	 * @since 2.2.20
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param WC_Subscription $subscription $subscription object.
 	 */
 	public static function remove_subscription_personal_data( $subscription ) {
@@ -97,7 +97,7 @@ class WCS_Privacy_Erasers {
 		/**
 		 * Allow extensions to remove their own personal data for this subscription first, so subscription data is still available.
 		 *
-		 * @since 2.2.20
+		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 		 * @param WC_Subscription $subscription A Subscription object.
 		 */
 		do_action( 'woocommerce_privacy_before_remove_subscription_personal_data', $subscription );
@@ -110,7 +110,7 @@ class WCS_Privacy_Erasers {
 		/**
 		 * Expose props and data types we'll be anonymizing.
 		 *
-		 * @since 2.2.20
+		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 		 * @param array    $props Keys are the prop names, values are the data type we'll be passing to wp_privacy_anonymize_data().
 		 * @param WC_subscription $subscription A subscription object.
 		 */
@@ -160,7 +160,7 @@ class WCS_Privacy_Erasers {
 				/**
 				 * Expose a way to control the anonymized value of a prop via 3rd party code.
 				 *
-				 * @since 2.2.20
+				 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 				 * @param bool     $anonymized_data Value of this prop after anonymization.
 				 * @param string   $prop Name of the prop being removed.
 				 * @param string   $value Current value of the data.
@@ -191,7 +191,7 @@ class WCS_Privacy_Erasers {
 		/**
 		 * Allow extensions to remove their own personal data for this subscription.
 		 *
-		 * @since 2.2.20
+		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 		 * @param WC_subscription $subscription A subscription object.
 		 */
 		do_action( 'woocommerce_privacy_remove_subscription_personal_data', $subscription );

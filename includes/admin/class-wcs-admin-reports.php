@@ -23,6 +23,12 @@ class WCS_Admin_Reports {
 	 * Constructor
 	 */
 	public function __construct() {
+		// The subscription reports are incompatible with stores running HPOS with sycning disabled.
+		if ( wcs_is_custom_order_tables_usage_enabled() && ! wcs_is_custom_order_tables_data_sync_enabled() ) {
+			add_action( 'admin_notices', [ __CLASS__, 'display_hpos_incompatibility_notice' ] );
+			return;
+		}
+
 		// Add the reports layout to the WooCommerce -> Reports admin section
 		add_filter( 'woocommerce_admin_reports', __CLASS__ . '::initialize_reports', 12, 1 );
 
@@ -31,6 +37,35 @@ class WCS_Admin_Reports {
 
 		// Add any actions we need based on the screen
 		add_action( 'current_screen', __CLASS__ . '::conditional_reporting_includes' );
+	}
+
+	/**
+	 * Displays an admin notice indicating subscription reports are disabled on HPOS environments with no syncing.
+	 */
+	public static function display_hpos_incompatibility_notice() {
+		$screen = get_current_screen();
+
+		// Only display the admin notice on report admin screens.
+		if ( ! $screen || 'woocommerce_page_wc-reports' !== $screen->id ) {
+			return;
+		}
+
+		$admin_notice = new WCS_Admin_Notice( 'error' );
+
+		$admin_notice->set_html_content(
+			sprintf(
+				'<p><strong>%s</strong></p><p>%s</p>',
+				_x( 'WooCommerce Subscriptions - Reports Not Available', 'heading used in an admin notice', 'woocommerce-subscriptions' ),
+				sprintf(
+					// translators: placeholders $1 and $2 are opening <a> tags linking to the WooCommerce documentation on HPOS and data synchronization. Placeholder $3 is a closing link (<a>) tag.
+					__( 'Subscription reports are incompatible with the %1$sWooCommerce data storage features%3$s enabled on your store. Please enable %2$stable synchronization%3$s if you wish to use subscription reports.', 'woocommerce-subscriptions' ),
+					'<a href="https://woocommerce.com/document/high-performance-order-storage/">',
+					'<a href="https://woocommerce.com/document/high-performance-order-storage/#section-4">',
+					'</a>'
+				)
+			)
+		);
+		$admin_notice->display();
 	}
 
 	/**
@@ -99,7 +134,7 @@ class WCS_Admin_Reports {
 		$suffix         = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 		$screen         = get_current_screen();
 		$wc_screen_id   = sanitize_title( __( 'WooCommerce', 'woocommerce-subscriptions' ) );
-		$version        = WC_Subscriptions_Plugin::instance()->get_plugin_version();
+		$version        = WC_Subscriptions_Core_Plugin::instance()->get_library_version();
 
 		// Reports Subscriptions Pages
 		if ( in_array( $screen->id, apply_filters( 'woocommerce_reports_screen_ids', array( $wc_screen_id . '_page_wc-reports', 'toplevel_page_wc-reports', 'dashboard' ) ) ) && isset( $_GET['tab'] ) && 'subscriptions' == $_GET['tab'] ) {
@@ -172,7 +207,7 @@ class WCS_Admin_Reports {
 			$properties = array(
 				'orders_count'          => array_sum( (array) wp_count_posts( 'shop_order' ) ),
 				'subscriptions_count'   => array_sum( (array) wp_count_posts( 'shop_subscription' ) ),
-				'subscriptions_version' => WC_Subscriptions_Plugin::instance()->get_plugin_version(),
+				'subscriptions_version' => WC_Subscriptions_Plugin::instance()->get_plugin_version(), // get_plugin_version() is used here to report the correct WCS version.
 			);
 
 			if ( in_array( $name, array( 'subscription-events-by-date', 'upcoming-recurring-revenue', 'subscription-payment-retry' ), true ) ) {

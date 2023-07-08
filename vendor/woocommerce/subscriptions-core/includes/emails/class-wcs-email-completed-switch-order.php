@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Order switch email sent to customer when a subscription is switched successfully.
  *
  * @class WCS_Email_Completed_Switch_Order
- * @version 2.0.0
+ * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.0
  * @package WooCommerce/Classes/Emails
  * @author Prospress
  * @extends WC_Email
@@ -48,7 +48,7 @@ class WCS_Email_Completed_Switch_Order extends WC_Email_Customer_Completed_Order
 	/**
 	 * Get the default e-mail subject.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_subject() {
@@ -58,7 +58,7 @@ class WCS_Email_Completed_Switch_Order extends WC_Email_Customer_Completed_Order
 	/**
 	 * Get the default e-mail heading.
 	 *
-	 * @since 2.5.3
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 * @return string
 	 */
 	public function get_default_heading() {

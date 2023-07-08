@@ -4,7 +4,7 @@
  *
  * @package  WooCommerce Subscriptions
  * @category Class
- * @since    2.6.0
+ * @since    1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -56,7 +56,7 @@ class WCS_Modal {
 	 *
 	 * The required files will only be enqueued once. Subsequent calls will do nothing.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function register_scripts_and_styles() {
 		static $registered = false;
@@ -80,17 +80,17 @@ class WCS_Modal {
 	/**
 	 * Enqueues the modal scripts and styles.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public static function enqueue_scripts_and_styles() {
-		wp_enqueue_script( 'wcs-modal-scripts', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'assets/js/modal.js' ), array( 'jquery' ), WC_Subscriptions_Core_Plugin::instance()->get_plugin_version(), true );
-		wp_enqueue_style( 'wcs-modal-styles', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'assets/css/modal.css' ), array( 'dashicons' ), WC_Subscriptions_Core_Plugin::instance()->get_plugin_version() );
+		wp_enqueue_script( 'wcs-modal-scripts', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'assets/js/modal.js' ), array( 'jquery' ), WC_Subscriptions_Core_Plugin::instance()->get_library_version(), true );
+		wp_enqueue_style( 'wcs-modal-styles', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'assets/css/modal.css' ), array( 'dashicons' ), WC_Subscriptions_Core_Plugin::instance()->get_library_version() );
 	}
 
 	/**
 	 * Constructor.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param string|callable  $content      The content to display in the modal. This should be a string when $content_type is either 'plain-text' or 'html',
 	 *                                       a WooCommerce template filename when $content_type is 'template' or a function that echoes out the content when $content_type is 'callback'.
@@ -121,7 +121,7 @@ class WCS_Modal {
 	/**
 	 * Prints the modal HTML.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public function print_html() {
 		wc_get_template( 'html-modal.php', array( 'modal' => $this ), '', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory( 'templates/' ) );
@@ -130,7 +130,7 @@ class WCS_Modal {
 	/**
 	 * Prints the modal inner content.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
 	public function print_content() {
 		switch ( $this->content_type ) {
@@ -152,7 +152,7 @@ class WCS_Modal {
 	/**
 	 * Determines if the modal has a heading.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @return bool
 	 */
@@ -163,7 +163,7 @@ class WCS_Modal {
 	/**
 	 * Determines if the modal has actions.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @return bool
 	 */
@@ -174,7 +174,7 @@ class WCS_Modal {
 	/**
 	 * Adds a button or link action which will be printed in the modal footer.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param array $action_args {
 	 *     Action button or link details.
@@ -199,7 +199,7 @@ class WCS_Modal {
 	/**
 	 * Returns the modal heading.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @return string
 	 */
@@ -210,7 +210,7 @@ class WCS_Modal {
 	/**
 	 * Returns the array of actions.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @return array The modal actions.
 	 */
@@ -221,7 +221,7 @@ class WCS_Modal {
 	/**
 	 * Returns the modal's trigger selector.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @return string The trigger element's selector.
 	 */
@@ -232,7 +232,7 @@ class WCS_Modal {
 	/**
 	 * Returns a flattened string of HTML element attributes from an array of attributes and values.
 	 *
-	 * @since 2.6.0
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 *
 	 * @param array $attributes An array of attributes in a array( 'attribute' => 'value' ) or array( 'attribute' => array( 'value', 'value ) ).
 	 * @return string

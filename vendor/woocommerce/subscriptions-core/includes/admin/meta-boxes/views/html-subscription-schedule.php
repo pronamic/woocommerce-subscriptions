@@ -14,28 +14,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	<div id="billing-schedule">
 		<?php if ( $the_subscription->can_date_be_updated( 'next_payment' ) ) : ?>
-		<div class="billing-schedule-edit wcs-date-input"><?php
-			// Subscription Period Interval
-			echo woocommerce_wp_select(
-				array(
-					'id'      => '_billing_interval',
-					'class'   => 'billing_interval',
-					'label'   => __( 'Payment:', 'woocommerce-subscriptions' ),
-					'value'   => $the_subscription->get_billing_interval(),
-					'options' => wcs_get_subscription_period_interval_strings(),
-				)
-			);
+		<div class="billing-schedule-edit wcs-date-input">
+			<?php
+				// Subscription Period Interval
+				wcs_woocommerce_wp_select(
+					array(
+						'id'      => '_billing_interval',
+						'class'   => 'billing_interval',
+						'label'   => __( 'Payment:', 'woocommerce-subscriptions' ),
+						'value'   => $the_subscription->get_billing_interval(),
+						'options' => wcs_get_subscription_period_interval_strings(),
+					),
+					$the_subscription
+				);
 
-			// Billing Period
-			echo woocommerce_wp_select(
-				array(
-					'id'      => '_billing_period',
-					'class'   => 'billing_period',
-					'label'   => __( 'Billing Period', 'woocommerce-subscriptions' ),
-					'value'   => $the_subscription->get_billing_period(),
-					'options' => wcs_get_subscription_period_strings(),
-				)
-			);
+				// Billing Period
+				wcs_woocommerce_wp_select(
+					array(
+						'id'      => '_billing_period',
+						'class'   => 'billing_period',
+						'label'   => __( 'Billing Period', 'woocommerce-subscriptions' ),
+						'value'   => $the_subscription->get_billing_period(),
+						'options' => wcs_get_subscription_period_strings(),
+					),
+					$the_subscription
+				);
 			?>
 			<input type="hidden" name="wcs-lengths" id="wcs-lengths" data-subscription_lengths="<?php echo esc_attr( wcs_json_encode( wcs_get_subscription_ranges() ) ); ?>">
 		</div>
