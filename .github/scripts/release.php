@@ -128,8 +128,7 @@ if ( ! property_exists( $result, $product_id ) ) {
 $update_data = $result->{$product_id};
 
 $version = $update_data->version;
-
-$url = $update_data->package;
+$zip_url = $update_data->package;
 
 line(
 	sprintf(
@@ -141,7 +140,7 @@ line(
 line(
 	sprintf(
 		'WooCommerce Subscriptions ZIP URL: %s',
-		$url
+		$zip_url
 	)
 );
 
@@ -174,7 +173,7 @@ line( '::group::Download WooCommerce Subscriptions' );
 run(
 	sprintf(
 		'curl %s --output %s',
-		escapeshellarg( $result->url ),
+		escapeshellarg( $zip_url ),
 		$zip_file
 	)
 );
@@ -216,7 +215,7 @@ run(
 );
 
 line( '::endgroup::' );
-
+exit;
 /**
  * Git user.
  * 
