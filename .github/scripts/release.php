@@ -278,8 +278,7 @@ $release_not_found = ( 1 === $result_code );
 
 /**
  * GitHub release.
- * 
- * @todo https://memberpress.com/wp-json/wp/v2/pages?slug=change-log
+ *
  * @link https://cli.github.com/manual/gh_release_create
  */
 if ( $release_not_found ) {
