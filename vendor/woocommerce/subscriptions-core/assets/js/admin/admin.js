@@ -86,6 +86,26 @@ jQuery( function ( $ ) {
 					.addClass( 'form-row-last' );
 			}
 		},
+		enableSubscriptionProductFields: function () {
+			product_type = $( 'select#product-type' ).val();
+			enable_type  = '';
+
+			// Variable subscriptions need to enable variable product fields and subscriptions products need to enable simple product fields.
+			if ( 'variable-subscription' === product_type ) {
+				enable_type = 'variable'
+			} else if ( 'subscription' === product_type ) {
+				enable_type = 'simple';
+			}
+
+			if ( enable_type ) {
+				$( `.enable_if_${ enable_type }` ).each( function () {
+					$( this ).removeClass( 'disabled' );
+					if ( $( this ).is( 'input' ) ) {
+						$( this ).prop( 'disabled', false );
+					}
+				} );
+			}
+		},
 		showOrHideStockFields: function () {
 			if ( $( 'input#_manage_stock' ).is( ':checked' ) ) {
 				$( 'div.stock_fields' ).show();
@@ -718,9 +738,34 @@ jQuery( function ( $ ) {
 	$( 'body' ).on( 'woocommerce-product-type-change', function () {
 		$.showHideSubscriptionMeta();
 		$.showHideVariableSubscriptionMeta();
+		$.enableSubscriptionProductFields();
 		$.showHideSyncOptions();
 		$.showHideSubscriptionsPanels();
 	} );
+
+	// WC Core enable/disable product fields when saving attributes. We need to make sure we re-enable our fields.
+	$( document.body ).on( 'woocommerce_attributes_saved', function () {
+		$.enableSubscriptionProductFields();
+	} );
+
+	/**
+	 * This function is called after WC Core fetches new attribute HTML and appends the elements asynchronously.
+	 * It triggers relevant functions to hide/show and enable/disable fields.
+	 *
+	 * @see add_attribute_to_list() in assets/js/admin/meta-boxes-product.js
+	 *
+	 * Since there is no specific event to hook into when the async call is resolved, we rely on WC clicking
+	 * the attribute metabox heading after fetching the HTML but before disabling the product fields.
+	 * We take advantage of this by attaching a click event listener to the '.woocommerce_attribute.wc-metabox h3'
+	 * element and waiting a short time before re-enabling the product fields.
+	 */
+	$( document ).on( 'click', '.woocommerce_attribute.wc-metabox h3', function() {
+		setTimeout( function() {
+			$.showHideSubscriptionMeta();
+			$.showHideVariableSubscriptionMeta();
+			$.enableSubscriptionProductFields();
+		}, 100 );
+	});
 
 	$( 'input#_downloadable, input#_virtual' ).on( 'change', function () {
 		$.showHideSubscriptionMeta();

@@ -1,5 +1,11 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 6.0.0 - 2023-07-18 =
+* Fix - Resolve an issue that prevented the "Used for variations" checkbox from being enabled on the variable subscription product edit screen on WC version v7.9.0.
+
+= 5.9.0 - 2023-07-14 =
+* Fix - Ensure when a customer changes the shipping method on cart and checkout that the recurring totals correctly reflect the chosen method.
+
 = 5.8.0 - 2023-07-05 =
 * Fix - When HPOS is enabled, permanently deleting a subscription related order wasn't updating the related orders cache properly.
 * Fix - Added logic to check if the recurring cart array is present before displaying the recurring totals section in the cart.

@@ -64,6 +64,8 @@ class WC_Subscriptions_Order {
 		add_filter( 'woocommerce_payment_complete_order_status', __CLASS__ . '::maybe_autocomplete_order', 10, 3 );
 
 		add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'add_subscription_order_query_args' ), 10, 2 );
+
+		add_filter( 'woocommerce_order_query_args', array( __CLASS__, 'map_order_query_args_for_subscriptions' ) );
 	}
 
 	/*
@@ -1216,6 +1218,58 @@ class WC_Subscriptions_Order {
 		}
 
 		return $query;
+	}
+
+	/**
+	 * Filter the query_vars of a wc_get_orders() query to map 'any' to be all valid subscription statuses instead of
+	 * defaulting to only valid order statuses.
+	 *
+	 * @param $query_vars
+	 *
+	 * @return mixed
+	 */
+	public static function map_order_query_args_for_subscriptions( $query_vars ) {
+		if ( ! wcs_is_custom_order_tables_usage_enabled() ) {
+			return $query_vars;
+		}
+
+		/**
+		 * Map the 'any' status to wcs_get_subscription_statuses() in HPOS environments.
+		 *
+		 * In HPOS environments, the 'any' status now maps to wc_get_order_statuses() statuses. Whereas, in
+		 * WP Post architecture 'any' meant any status except for ‘inherit’, ‘trash’ and ‘auto-draft’.
+		 *
+		 * If we're querying for subscriptions, we need to map 'any' to be all valid subscription statuses otherwise it would just search for order statuses.
+		 */
+		if ( isset( $query_vars['post_type'] ) && '' !== $query_vars['post_type'] ) {
+			// OrdersTableQuery::maybe_remap_args() will overwrite `type` with the `post_type` value.
+			if ( 'shop_subscription' !== $query_vars['post_type'] ) {
+				return $query_vars;
+			}
+
+			// Simplify the type logic.
+			$query_vars['type'] = 'shop_subscription';
+			unset( $query_vars['post_type'] );
+		}
+
+		if ( isset( $query_vars['type'] ) && 'shop_subscription' === $query_vars['type'] ) {
+			if ( isset( $query_vars['post_status'] ) && '' !== $query_vars['post_status'] ) {
+				// OrdersTableQuery::maybe_remap_args() will overwrite `status` with the `post_status` value.
+				if ( [ 'any' ] !== (array) $query_vars['post_status'] ) {
+					return $query_vars;
+				}
+
+				// Simplify the status logic.
+				$query_vars['status'] = 'any';
+				unset( $query_vars['post_status'] );
+			}
+
+			if ( [ 'any' ] === (array) $query_vars['status'] || [ '' ] === (array) $query_vars['status'] ) {
+				$query_vars['status'] = array_keys( wcs_get_subscription_statuses() );
+			}
+		}
+
+		return $query_vars;
 	}
 
 	/* Deprecated Functions */

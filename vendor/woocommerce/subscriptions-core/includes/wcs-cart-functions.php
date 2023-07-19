@@ -83,11 +83,11 @@ function wcs_cart_totals_shipping_html() {
 					$chosen_recurring_method = empty( $package['rates'] ) ? '' : current( $package['rates'] )->id;
 				}
 
-				$shipping_selection_displayed       = false;
-				$only_one_shipping_option           = count( $package['rates'] ) === 1;
-				$recurring_rates_match_intial_rates = isset( $package['rates'][ $chosen_initial_method ] ) && isset( $initial_packages[ $package_index ] ) && $package['rates'] == $initial_packages[ $package_index ]['rates'];
+				$shipping_selection_displayed        = false;
+				$only_one_shipping_option            = count( $package['rates'] ) === 1;
+				$recurring_rates_match_initial_rates = isset( $package['rates'][ $chosen_initial_method ] ) && isset( $initial_packages[ $package_index ] ) && $package['rates'] == $initial_packages[ $package_index ]['rates']; // phpcs:ignore WordPress.PHP.StrictComparisons
 
-				if ( $only_one_shipping_option || ( $recurring_rates_match_intial_rates && apply_filters( 'wcs_cart_totals_shipping_html_price_only', true, $package, $recurring_cart ) ) ) {
+				if ( $only_one_shipping_option || ( $recurring_rates_match_initial_rates && apply_filters( 'wcs_cart_totals_shipping_html_price_only', true, $package, $recurring_cart ) ) ) {
 					$shipping_method = ( 1 === count( $package['rates'] ) ) ? current( $package['rates'] ) : $package['rates'][ $chosen_initial_method ];
 					// packages match, display shipping amounts only
 					?>
@@ -109,6 +109,9 @@ function wcs_cart_totals_shipping_html() {
 							<?php do_action( 'woocommerce_after_shipping_rate', $shipping_method, $recurring_cart_package_key ); ?>
 							<?php if ( ! empty( $show_package_details ) ) : ?>
 								<?php echo '<p class="woocommerce-shipping-contents"><small>' . esc_html( $package_details ) . '</small></p>'; ?>
+							<?php endif; ?>
+							<?php if ( $recurring_rates_match_initial_rates ) : ?>
+								<?php wcs_cart_print_inherit_shipping_flag( $recurring_cart_package_key ); ?>
 							<?php endif; ?>
 						</td>
 					</tr>
@@ -180,6 +183,30 @@ function wcs_cart_print_shipping_input( $shipping_method_index, $shipping_method
 		esc_attr( sanitize_title( $shipping_method->id ) ),
 		esc_attr( $shipping_method->id ),
 		esc_attr( $checked )
+	);
+}
+
+/**
+ * Prints a hidden element which indicates that the shipping method for a given recurring cart is inherited from the initial cart.
+ *
+ * In frontend scripts, this hidden element's data properties are used to link initial cart shipping method changes to the
+ * corresponding hidden recurring cart shipping method input element.
+ *
+ * @param string $shipping_method_index The shipping method index for the recurring cart. eg 2023_08_11_monthly_0.
+ */
+function wcs_cart_print_inherit_shipping_flag( $shipping_method_index ) {
+	// Split the string using the underscore character
+	$parts = explode( '_', $shipping_method_index );
+
+	// Extract the recurring cart key and package index
+	$recurring_cart_key = implode( '_', array_slice( $parts, 0, -1 ) );
+	$package_index      = end( $parts );
+
+	printf(
+		'<input type="hidden" data-recurring_index="%1$s" data-index="%2$s" data-recurring-cart-key="%3$s" data-recurring-cart-key="%2$s" value="true" class="recurring-cart-shipping-mapping-info"/>',
+		esc_attr( $shipping_method_index ),
+		esc_attr( $package_index ),
+		esc_attr( $recurring_cart_key )
 	);
 }
 

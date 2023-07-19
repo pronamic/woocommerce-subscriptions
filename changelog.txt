@@ -1,5 +1,12 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2023-07-19 - version 5.3.0
+* Fix: Ensure when a customer changes the shipping method on cart and checkout that the recurring totals correctly reflect the chosen method.
+* Fix: Resolve an issue that prevented the "Used for variations" checkbox from being enabled on the variable subscription product edit screen on WC version v7.9.0.
+* Fix: When HPOS is enabled, the `wc/v3/subscriptions` REST API endpoint will now fetch subscriptions of all statuses.
+* Dev: Filter the WC_Order_Query args to properly query subscription statuses when HPOS is enabled.
+* Dev: Updated subscriptions-core to 6.0.0
+
 2023-07-05 - version 5.2.0
 * Fix: Resolved an issue that prevented the selected Shipping Method from being saved when switching an assembled Product Bundle.
 * Fix: When HPOS is enabled, permanently deleting a subscription related order wasn't updating the related orders cache properly.
