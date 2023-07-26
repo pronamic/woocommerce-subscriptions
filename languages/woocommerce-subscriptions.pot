@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the WooCommerce Subscriptions plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 5.3.0\n"
+"Project-Id-Version: WooCommerce Subscriptions 5.3.1\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-07-19T03:29:55+00:00\n"
+"POT-Creation-Date: 2023-07-26T05:12:54+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: woocommerce-subscriptions\n"
@@ -985,12 +985,12 @@ msgid "Meta value."
 msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin
-#: includes/class-wc-subscriptions-dependency-manager.php:149
+#: includes/class-wc-subscriptions-dependency-manager.php:156
 msgid "%1$sWooCommerce Subscriptions is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for WooCommerce Subscriptions to work. Please %5$sinstall & activate WooCommerce &raquo;%6$s"
 msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$: minimum supported WooCommerce version, 4$-5$: opening and closing link tags, leads to plugin admin
-#: includes/class-wc-subscriptions-dependency-manager.php:152
+#: includes/class-wc-subscriptions-dependency-manager.php:159
 msgid "%1$sWooCommerce Subscriptions is inactive.%2$s This version of Subscriptions requires WooCommerce %3$s or newer. Please %4$supdate WooCommerce to version %3$s or newer &raquo;%5$s"
 msgstr ""
 
@@ -6024,11 +6024,11 @@ msgstr ""
 msgid "\"%s\" is not a valid new order type."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/wcs-order-functions.php:526
+#: vendor/woocommerce/subscriptions-core/includes/wcs-order-functions.php:533
 msgid "Invalid data. No valid subscription / order was passed in."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/wcs-order-functions.php:530
+#: vendor/woocommerce/subscriptions-core/includes/wcs-order-functions.php:537
 msgid "Invalid data. No valid item id was passed in."
 msgstr ""
 

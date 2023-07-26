@@ -667,6 +667,7 @@ jQuery( function ( $ ) {
 	if ( $( '.options_group.pricing' ).length > 0 ) {
 		$.setSalePeriod();
 		$.showHideSubscriptionMeta();
+		$.enableSubscriptionProductFields();
 		$.showHideVariableSubscriptionMeta();
 		$.setSubscriptionLengths();
 		$.setTrialPeriods();

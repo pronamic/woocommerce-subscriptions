@@ -1,5 +1,10 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+
+= 6.1.0 - 2023-07-26 =
+* Fix - Resolved an issue that prevented the "Used for variations" checkbox to not be enabled on the edit product page load causing variations to be deleted erroneously.
+* Dev - Fixed wcs_get_subscription_orders() returning an empty list when querying parent orders when HPOS is enabled with data syncing off.
+
 = 6.0.0 - 2023-07-18 =
 * Fix - Resolve an issue that prevented the "Used for variations" checkbox from being enabled on the variable subscription product edit screen on WC version v7.9.0.
 

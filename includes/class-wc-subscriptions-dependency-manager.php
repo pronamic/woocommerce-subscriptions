@@ -79,13 +79,20 @@ class WC_Subscriptions_Dependency_Manager {
 	/**
 	 * This method detects the active version of WooCommerce.
 	 *
-	 * The resulting version is based on the WooCommerce plugin data. The WooCommerce plugin is determined by this logic:
+	 * If the WC_VERSION constant is already defined, use that as a first preference.
+	 * If it's not defined, fetch the version based on the WooCommerce plugin data.
+	 *
+	 * The WooCommerce plugin is determined by this logic:
 	 * 1. Installed at 'woocommerce/woocommerce.php'
 	 * 2. Installed at any '{x}/woocommerce.php' where the plugin name is 'WooCommerce'
 	 *
 	 * @return string|null The active WooCommerce version, or null if WooCommerce is not active.
 	 */
 	private function get_woocommerce_active_version() {
+		if ( defined( 'WC_VERSION' ) ) {
+			return WC_VERSION;
+		}
+
 		// Use a cached value to avoid calling get_plugins() and looping multiple times.
 		if ( true === $this->wc_version_cached ) {
 			return $this->wc_active_version;

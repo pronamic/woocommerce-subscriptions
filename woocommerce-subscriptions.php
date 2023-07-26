@@ -5,7 +5,7 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
- * Version: 5.3.0
+ * Version: 5.3.1
  *
  * WC requires at least: 6.5
  * WC tested up to: 7.9.0
@@ -31,7 +31,7 @@
  * @since   1.0
  */
 
-require_once( 'includes/class-wc-subscriptions-dependency-manager.php' );
+require_once( __DIR__ . '/includes/class-wc-subscriptions-dependency-manager.php' );
 $dependency_manager = new WC_Subscriptions_Dependency_Manager( WC_Subscriptions::$wc_minimum_supported_version );
 
 // Check the dependencies before loading the plugin. If the dependencies are not met, display an admin notice and exit
@@ -77,7 +77,7 @@ class WC_Subscriptions {
 	public static $plugin_file = __FILE__;
 
 	/** @var string */
-	public static $version = '5.3.0'; // WRCS: DEFINED_VERSION.
+	public static $version = '5.3.1'; // WRCS: DEFINED_VERSION.
 
 	/** @var string */
 	public static $wc_minimum_supported_version = '6.5';

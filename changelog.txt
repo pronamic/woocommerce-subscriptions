@@ -1,5 +1,11 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2023-07-26 - version 5.3.1
+* Fix: Resolved an issue that prevented the "Used for variations" checkbox to not be enabled on the edit product page load causing variations to be deleted erroneously.
+* Dev: Fixed wcs_get_subscription_orders() returning an empty list when querying parent orders when HPOS is enabled with data syncing off.
+* Dev: Use the WC_VERSION constant when determining the active WooCommerce version inside our dependency manager if it's defined.
+* Dev: Updated subscriptions-core to 6.1.0
+
 2023-07-19 - version 5.3.0
 * Fix: Ensure when a customer changes the shipping method on cart and checkout that the recurring totals correctly reflect the chosen method.
 * Fix: Resolve an issue that prevented the "Used for variations" checkbox from being enabled on the variable subscription product edit screen on WC version v7.9.0.

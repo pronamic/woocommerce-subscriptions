@@ -439,11 +439,18 @@ function wcs_get_subscription_orders( $return_fields = 'ids', $order_type = 'par
 	$order_ids = array();
 
 	if ( $any_order_type || in_array( 'parent', $order_type ) ) {
+		$is_hpos          = wcs_is_custom_order_tables_usage_enabled();
+		$table_name       = $is_hpos ? 'wc_orders' : 'posts';
+		$parent_order_col = $is_hpos ? 'parent_order_id' : 'post_parent';
+		$type_col         = $is_hpos ? 'type' : 'post_type';
+
+		// @codingStandardsIgnoreStart
 		$order_ids = array_merge( $order_ids, $wpdb->get_col(
-			"SELECT DISTINCT post_parent FROM {$wpdb->posts}
-			 WHERE post_type = 'shop_subscription'
-			 AND post_parent <> 0"
+			"SELECT DISTINCT {$parent_order_col} FROM {$wpdb->prefix}{$table_name}
+			WHERE {$type_col} = 'shop_subscription'
+			AND {$parent_order_col} <> 0"
 		) );
+		// @codingStandardsIgnoreEnd
 	}
 
 	if ( $any_order_type || in_array( 'renewal', $order_type ) || in_array( 'resubscribe', $order_type ) || in_array( 'switch', $order_type ) ) {
