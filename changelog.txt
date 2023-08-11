@@ -1,5 +1,13 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2023-08-11 - version 5.4.0
+* Add: Introduce an updated empty state screen for the WooCommerce > Subscriptions list table.
+* Fix: Ensure subscription checkout and cart block integrations are loaded on store environments where WooPayments is not enabled.
+* Fix: Ensure the shipping phone number field is copied to subscriptions and their orders when copying address meta.
+* Update: When HPOS is disabled, fetch subscriptions by customer_id using the user's subscription cache to improve performance.
+* Dev: Deprecated the 'woocommerce_subscriptions_not_found_label' filter.
+* Dev: Updated subscriptions-core to 6.2.0
+
 2023-07-26 - version 5.3.1
 * Fix: Resolved an issue that prevented the "Used for variations" checkbox to not be enabled on the edit product page load causing variations to be deleted erroneously.
 * Dev: Fixed wcs_get_subscription_orders() returning an empty list when querying parent orders when HPOS is enabled with data syncing off.

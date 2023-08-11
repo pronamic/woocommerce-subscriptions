@@ -106,6 +106,7 @@ function wcs_copy_order_address( $from_order, $to_order, $address_type = 'all' )
 		$to_order->set_shipping_state( $from_order->get_shipping_state() );
 		$to_order->set_shipping_postcode( $from_order->get_shipping_postcode() );
 		$to_order->set_shipping_country( $from_order->get_shipping_country() );
+		$to_order->set_shipping_phone( $from_order->get_shipping_phone() );
 	}
 
 	if ( 'all' === $address_type || 'billing' === $address_type ) {

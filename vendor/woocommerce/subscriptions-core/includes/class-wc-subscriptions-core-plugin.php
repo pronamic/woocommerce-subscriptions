@@ -16,7 +16,7 @@ class WC_Subscriptions_Core_Plugin {
 	 * The version of subscriptions-core library.
 	 * @var string
 	 */
-	protected $library_version = '6.1.0'; // WRCS: DEFINED_VERSION.
+	protected $library_version = '6.2.0'; // WRCS: DEFINED_VERSION.
 
 	/**
 	 * The subscription scheduler instance.
@@ -133,6 +133,7 @@ class WC_Subscriptions_Core_Plugin {
 		WCS_Dependent_Hook_Manager::init();
 		WCS_Admin_Product_Import_Export_Manager::init();
 		WC_Subscriptions_Frontend_Scripts::init();
+		WCS_Admin_Empty_List_Content_Manager::init();
 
 		add_action( 'init', array( 'WC_Subscriptions_Synchroniser', 'init' ) );
 		add_action( 'after_setup_theme', array( 'WC_Subscriptions_Upgrader', 'init' ), 11 );
@@ -153,11 +154,9 @@ class WC_Subscriptions_Core_Plugin {
 		// Initialise the cache.
 		$this->cache = WCS_Cache_Manager::get_instance();
 
-		if ( class_exists( 'Automattic\WooCommerce\Blocks\Package' ) && version_compare( \Automattic\WooCommerce\Blocks\Package::get_version(), '4.4.0', '>' ) ) {
-			// When WooCommerceBlocks is loaded, set up the Integration class.
-			add_action( 'woocommerce_blocks_loaded', array( $this, 'setup_blocks_integration' ) );
-			add_action( 'woocommerce_blocks_loaded', array( 'WC_Subscriptions_Extend_Store_Endpoint', 'init' ) );
-		}
+		// When WooCommerceBlocks is loaded, set up the Integration class.
+		add_action( 'woocommerce_blocks_loaded', array( $this, 'setup_blocks_integration' ) );
+		add_action( 'woocommerce_blocks_loaded', array( 'WC_Subscriptions_Extend_Store_Endpoint', 'init' ) );
 
 		if ( ! $payment_gateways_handler::are_zero_total_subscriptions_allowed() ) {
 			WC_Subscriptions_Gateway_Restrictions_Manager::init();
@@ -326,19 +325,6 @@ class WC_Subscriptions_Core_Plugin {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public function register_order_types() {
-		$subscriptions_exist = $this->cache->cache_and_get( 'wcs_do_subscriptions_exist', 'wcs_do_subscriptions_exist' );
-
-		if ( true === (bool) apply_filters( 'woocommerce_subscriptions_not_empty', $subscriptions_exist ) ) {
-			$not_found_text = __( 'No Subscriptions found', 'woocommerce-subscriptions' );
-		} else {
-			$not_found_text = '<p>' . __( 'Subscriptions will appear here for you to view and manage once purchased by a customer.', 'woocommerce-subscriptions' ) . '</p>';
-			// translators: placeholders are opening and closing link tags
-			$not_found_text .= '<p>' . sprintf( __( '%1$sLearn more about managing subscriptions &raquo;%2$s', 'woocommerce-subscriptions' ), '<a href="http://docs.woocommerce.com/document/subscriptions/store-manager-guide/#section-3" target="_blank">', '</a>' ) . '</p>';
-			// translators: placeholders are opening and closing link tags
-			$not_found_text .= '<p>' . sprintf( __( '%1$sAdd a subscription product &raquo;%2$s', 'woocommerce-subscriptions' ), '<a href="' . esc_url( WC_Subscriptions_Admin::add_subscription_url() ) . '">', '</a>' ) . '</p>';
-		}
-
-		$subscriptions_not_found_text = apply_filters( 'woocommerce_subscriptions_not_found_label', $not_found_text );
 
 		wc_register_order_type(
 			'shop_subscription',
@@ -357,7 +343,7 @@ class WC_Subscriptions_Core_Plugin {
 						'view'               => _x( 'View Subscription', 'custom post type setting', 'woocommerce-subscriptions' ),
 						'view_item'          => _x( 'View Subscription', 'custom post type setting', 'woocommerce-subscriptions' ),
 						'search_items'       => __( 'Search Subscriptions', 'woocommerce-subscriptions' ),
-						'not_found'          => $subscriptions_not_found_text,
+						'not_found'          => WCS_Admin_Empty_List_Content_Manager::get_content(),
 						'not_found_in_trash' => _x( 'No Subscriptions found in trash', 'custom post type setting', 'woocommerce-subscriptions' ),
 						'parent'             => _x( 'Parent Subscriptions', 'custom post type setting', 'woocommerce-subscriptions' ),
 						'menu_name'          => __( 'Subscriptions', 'woocommerce-subscriptions' ),
@@ -560,6 +546,9 @@ class WC_Subscriptions_Core_Plugin {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 */
 	public function setup_blocks_integration() {
+		if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Package' ) || ! version_compare( \Automattic\WooCommerce\Blocks\Package::get_version(), '4.4.0', '>' ) ) {
+			return;
+		}
 		/**
 		 * Filter the compatible blocks for WooCommerce Subscriptions.
 		 */

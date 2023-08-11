@@ -1,0 +1,26 @@
+.woo_subscriptions_empty_state__container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: 48px 0;
+	position: static;
+	height: 344px;
+	left: calc(50% - 1240px / 2);
+	top: 271px;
+	flex: none;
+	order: 1;
+	flex-grow: 0;
+	margin: 0;
+	text-align: center;
+}
+.woo_subscriptions_empty_state__container .woo_subscriptions_empty_state__description {
+	max-width: 535px;
+	margin: 15px 0;
+}
+.woo_subscriptions_empty_state__button_container {
+	margin: 8px 0;
+}
+.woo_subscriptions_empty_state__container .woo_subscriptions_empty_state__button_container * + * {
+	margin-left: 10px;
+}

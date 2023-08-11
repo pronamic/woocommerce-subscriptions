@@ -317,6 +317,7 @@ class WC_Subscriptions_Data_Copier {
 				'_shipping_state'      => $this->from_object->get_shipping_state( 'edit' ),
 				'_shipping_postcode'   => $this->from_object->get_shipping_postcode( 'edit' ),
 				'_shipping_country'    => $this->from_object->get_shipping_country( 'edit' ),
+				'_shipping_phone'      => $this->from_object->get_shipping_phone( 'edit' ),
 			]
 		);
 	}
