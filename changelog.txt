@@ -1,4 +1,8 @@
-*** WooCommerce Subscriptions Changelog ***
+*** Woo Subscriptions Changelog ***
+
+2023-09-21 - version 5.5.0
+* Tweak - Use admin theme color in selectors.
+* Tweak - Change plugin name to Woo Subscriptions.
 
 2023-08-11 - version 5.4.0
 * Add: Introduce an updated empty state screen for the WooCommerce > Subscriptions list table.

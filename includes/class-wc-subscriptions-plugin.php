@@ -55,7 +55,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 			$notice = new WCS_Admin_Notice( 'error' );
 
 			// translators: 1-2: opening/closing <b> tags, 3: Subscriptions version.
-			$notice->set_simple_content( sprintf( __( '%1$sWarning!%2$s We can see the %1$sWooCommerce Subscriptions Early Renewal%2$s plugin is active. Version %3$s of %1$sWooCommerce Subscriptions%2$s comes with that plugin\'s functionality packaged into the core plugin. Please deactivate WooCommerce Subscriptions Early Renewal to avoid any conflicts.', 'woocommerce-subscriptions' ), '<b>', '</b>', $this->get_plugin_version() ) ); // get_plugin_version() is used here to report the correct WCS version.
+			$notice->set_simple_content( sprintf( __( '%1$sWarning!%2$s We can see the %1$sWooCommerce Subscriptions Early Renewal%2$s plugin is active. Version %3$s of %1$sWoo Subscriptions%2$s comes with that plugin\'s functionality packaged into the core plugin. Please deactivate WooCommerce Subscriptions Early Renewal to avoid any conflicts.', 'woocommerce-subscriptions' ), '<b>', '</b>', $this->get_plugin_version() ) ); // get_plugin_version() is used here to report the correct WCS version.
 			$notice->set_actions(
 				array(
 					array(
@@ -202,7 +202,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 						sprintf(
 							// translators: $1-$2: opening and closing <strong> tags, $3-$4: opening and closing <em> tags.
 							__(
-								'%1$sWooCommerce Subscriptions Installed%2$s &#8211; %3$sYou\'re ready to start selling subscriptions!%4$s',
+								'%1$sWoo Subscriptions Installed%2$s &#8211; %3$sYou\'re ready to start selling subscriptions!%4$s',
 								'woocommerce-subscriptions'
 							),
 							'<strong>',

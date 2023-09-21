@@ -55,7 +55,7 @@ class WCS_Admin_Reports {
 		$admin_notice->set_html_content(
 			sprintf(
 				'<p><strong>%s</strong></p><p>%s</p>',
-				_x( 'WooCommerce Subscriptions - Reports Not Available', 'heading used in an admin notice', 'woocommerce-subscriptions' ),
+				_x( 'Woo Subscriptions - Reports Not Available', 'heading used in an admin notice', 'woocommerce-subscriptions' ),
 				sprintf(
 					// translators: placeholders $1 and $2 are opening <a> tags linking to the WooCommerce documentation on HPOS and data synchronization. Placeholder $3 is a closing link (<a>) tag.
 					__( 'Subscription reports are incompatible with the %1$sWooCommerce data storage features%3$s enabled on your store. Please enable %2$stable synchronization%3$s if you wish to use subscription reports.', 'woocommerce-subscriptions' ),

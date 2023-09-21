@@ -405,6 +405,7 @@ class WC_Subscriptions_Switcher {
 				'css'      => 'min-width:150px;',
 				'default'  => 'no',
 				'type'     => 'select',
+				'class'    => 'wc-enhanced-select',
 				'options'  => array(
 					'no'              => _x( 'Never', 'when to allow a setting', 'woocommerce-subscriptions' ),
 					'virtual-upgrade' => _x( 'For Upgrades of Virtual Subscription Products Only', 'when to prorate recurring fee when switching', 'woocommerce-subscriptions' ),
@@ -422,6 +423,7 @@ class WC_Subscriptions_Switcher {
 				'css'      => 'min-width:150px;',
 				'default'  => 'no',
 				'type'     => 'select',
+				'class'    => 'wc-enhanced-select',
 				'options'  => array(
 					'no'   => _x( 'Never (do not charge a sign up fee)', 'when to prorate signup fee when switching', 'woocommerce-subscriptions' ),
 					'full' => _x( 'Never (charge the full sign up fee)', 'when to prorate signup fee when switching', 'woocommerce-subscriptions' ),
@@ -437,6 +439,7 @@ class WC_Subscriptions_Switcher {
 				'css'      => 'min-width:150px;',
 				'default'  => 'no',
 				'type'     => 'select',
+				'class'    => 'wc-enhanced-select',
 				'options'  => array(
 					'no'      => _x( 'Never', 'when to allow a setting', 'woocommerce-subscriptions' ),
 					'virtual' => _x( 'For Virtual Subscription Products Only', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),

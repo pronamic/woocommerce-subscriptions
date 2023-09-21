@@ -35,6 +35,7 @@ class WCS_Customer_Suspension_Manager {
 			'css'      => 'min-width:50px;',
 			'default'  => 0,
 			'type'     => 'select',
+			'class'    => 'wc-enhanced-select',
 			'options'  => apply_filters( 'woocommerce_subscriptions_max_customer_suspension_range', array_merge( range( 0, 12 ), array( 'unlimited' => 'Unlimited' ) ) ),
 			'desc_tip' => __( 'Set a maximum number of times a customer can suspend their account for each billing period. For example, for a value of 3 and a subscription billed yearly, if the customer has suspended their account 3 times, they will not be presented with the option to suspend their account until the next year. Store managers will always be able to suspend an active subscription. Set this to 0 to turn off the customer suspension feature completely.', 'woocommerce-subscriptions' ),
 		);
