@@ -44,6 +44,7 @@ class WCS_Array_Property_Post_Meta_Black_Magic implements ArrayAccess {
 	 * @param string $key
 	 * @return mixed
 	 */
+	#[\ReturnTypeWillChange]
 	public function offsetGet( $key ) {
 		return get_post_meta( $this->product_id, $this->maybe_prefix_meta_key( $key ) );
 	}
@@ -53,6 +54,7 @@ class WCS_Array_Property_Post_Meta_Black_Magic implements ArrayAccess {
 	 * @param string $key
 	 * @param mixed $value
 	 */
+	#[\ReturnTypeWillChange]
 	public function offsetSet( $key, $value ) {
 		update_post_meta( $this->product_id, $this->maybe_prefix_meta_key( $key ), $value );
 	}
@@ -62,6 +64,7 @@ class WCS_Array_Property_Post_Meta_Black_Magic implements ArrayAccess {
 	 * @param string $key
 	 * @return bool
 	 */
+	#[\ReturnTypeWillChange]
 	public function offsetExists( $key ) {
 		return metadata_exists( 'post', $this->product_id, $this->maybe_prefix_meta_key( $key ) );
 	}
@@ -69,6 +72,7 @@ class WCS_Array_Property_Post_Meta_Black_Magic implements ArrayAccess {
 	/**
 	 * Nothing to do here as we access post meta directly.
 	 */
+	#[\ReturnTypeWillChange]
 	public function offsetUnset( $key ) {
 	}
 

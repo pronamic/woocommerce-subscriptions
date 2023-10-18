@@ -41,7 +41,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		// Subscription Period Interval
 		woocommerce_wp_select( array(
 			'id'            => 'variable_subscription_period_interval[' . $loop . ']',
-			'class'         => 'wc_input_subscription_period_interval',
+			'class'         => 'wc_input_subscription_period_interval wc-enhanced-select',
 			'wrapper_class' => '_subscription_period_interval_field',
 			'label'         => __( 'Subscription Periods', 'woocommerce-subscriptions' ),
 			'options'       => wcs_get_subscription_period_interval_strings(),
@@ -52,7 +52,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		// Billing Period
 		woocommerce_wp_select( array(
 			'id'            => 'variable_subscription_period[' . $loop . ']',
-			'class'         => 'wc_input_subscription_period',
+			'class'         => 'wc_input_subscription_period wc-enhanced-select',
 			'wrapper_class' => '_subscription_period_field',
 			'label'         => __( 'Billing Period', 'woocommerce-subscriptions' ),
 			'value'         => $subscription_period,
@@ -64,7 +64,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		// Subscription Length
 		woocommerce_wp_select( array(
 			'id'            => 'variable_subscription_length[' . $loop . ']',
-			'class'         => 'wc_input_subscription_length',
+			'class'         => 'wc_input_subscription_length wc-enhanced-select',
 			'wrapper_class' => '_subscription_length_field',
 			'label'         => __( 'Subscription Length', 'woocommerce-subscriptions' ),
 			'options'       => wcs_get_subscription_ranges( $subscription_period ),
@@ -110,7 +110,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		// Trial Period
 		woocommerce_wp_select( array(
 			'id'            => 'variable_subscription_trial_period[' . $loop . ']',
-			'class'         => 'wc_input_subscription_trial_period',
+			'class'         => 'wc_input_subscription_trial_period wc-enhanced-select',
 			'wrapper_class' => '_subscription_trial_period_field',
 			'label'         => __( 'Subscription Trial Period', 'woocommerce-subscriptions' ),
 			'options'       => wcs_get_available_time_periods(),

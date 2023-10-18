@@ -17,7 +17,7 @@ global $wp_locale;
 	<td colspan="1" class="subscription_sync_week_month"<?php echo esc_attr( $display_week_month_select ); ?>>
 		<?php woocommerce_wp_select( array(
 			'id'            => 'variable' . WC_Subscriptions_Synchroniser::$post_meta_key . '[' . $loop . ']',
-			'class'         => 'wc_input_subscription_payment_sync',
+			'class'         => 'wc_input_subscription_payment_sync wc-enhanced-select',
 			'wrapper_class' => '_subscription_payment_sync_field',
 			'label'         => WC_Subscriptions_Synchroniser::$sync_field_label,
 			'options'       => WC_Subscriptions_Synchroniser::get_billing_period_ranges( $subscription_period ),
@@ -30,7 +30,7 @@ global $wp_locale;
 		<label><?php esc_html_e( 'Synchronise Renewals', 'woocommerce-subscriptions' ); ?></label>
 		<?php woocommerce_wp_text_input( array(
 			'id'            => 'variable' . WC_Subscriptions_Synchroniser::$post_meta_key_day . '[' . $loop . ']',
-			'class'         => 'wc_input_subscription_payment_sync',
+			'class'         => 'wc_input_subscription_payment_sync wc-enhanced-select',
 			'wrapper_class' => '_subscription_payment_sync_field',
 			'label'         => WC_Subscriptions_Synchroniser::$sync_field_label,
 			'placeholder'   => _x( 'Day', 'input field placeholder for day field for annual subscriptions', 'woocommerce-subscriptions' ),
@@ -45,7 +45,7 @@ global $wp_locale;
 
 		woocommerce_wp_select( array(
 			'id'            => 'variable' . WC_Subscriptions_Synchroniser::$post_meta_key_month . '[' . $loop . ']',
-			'class'         => 'wc_input_subscription_payment_sync',
+			'class'         => 'wc_input_subscription_payment_sync wc-enhanced-select',
 			'wrapper_class' => '_subscription_payment_sync_field',
 			'label'         => '',
 			'options'       => $wp_locale->month,

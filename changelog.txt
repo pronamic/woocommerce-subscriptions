@@ -1,5 +1,28 @@
 *** Woo Subscriptions Changelog ***
 
+2023-10-18 - version 5.6.0
+* Add: Introduce the "Subscription Relationship" column under the Orders list admin page when HPOS is enabled.
+* Add: Use admin theme color and the correct WooCommerce colors.
+* Fix: Resolved an issue that caused subscriptions to go on-hold when a customer fails or abandons an early renewal order payment.
+* Fix: Resolved an issue that caused subscriptions with an unpaid early renewal order to be incorrectly considered as needing payment.
+* Fix: When HPOS is enabled, make the orders_by_type_query filter box work in the WooCommerce orders screen.
+* Fix: Ensure renewal orders paid via the Block Checkout are correctly linked to their subscription.
+* Fix: Resolved an issue that caused paying for failed/pending parent orders that include Product Add-ons to not calculate the correct total.
+* Fix: Ensure the order needs processing transient is deleted when a subscription order (eg renewal) is created. Fixes issues with renewal orders going straight to a completed status.
+* Fix: Store the correct subscription start date in postmeta and ordermeta when HPOS and data syncing is being used.
+* Fix: When HPOS is enabled, deleting a customer will now delete their subscriptions.
+* Fix: Missing styles on the Edit Subscription page when HPOS is enabled.
+* Fix: Resolve an issue that would cause additional subscriptions to be created when completing a switch via the Block Checkout.
+* Fix: Resolve an issue that would cause 3rd party plugin edit product fields with the show_if_variable-subscription class to be incorrectly hidden.
+* Fix: Allow gateways to execute action on payment method deletion before updating the subscription.
+* Fix: Ensure subscriptions have a date created that correctly accounts for the site's timezone. Fixes issues with subscriptions having a date created double the site's UTC offset.
+* Fix: When HPOS is enabled, fix quick-editing the subscription statuses on the admin list table.
+* Dev: PHP 8.2: Fix "Creation of dynamic property" warnings.
+* Dev: PHP 8.2: Fix "Automatic conversion of false to array is deprecated" warnings.
+* Dev: PHP warnings from using debug_backtrace().
+* Dev: Updated subscriptions-core to 6.4.0
+* Dev: Updated the hooks for Checkout Blocks, replacing the deprecated `woocommerce_blocks_checkout_` prefixed hooks with `woocommerce_store_api_checkout`.
+
 2023-09-21 - version 5.5.0
 * Tweak - Use admin theme color in selectors.
 * Tweak - Change plugin name to Woo Subscriptions.

@@ -14,6 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WCS_Email_New_Switch_Order extends WC_Email_New_Order {
 
 	/**
+	 * @var array Subscriptions linked to the switch order.
+	 */
+	public $subscriptions;
+
+	/**
 	 * Constructor
 	 */
 	function __construct() {

@@ -24,11 +24,7 @@ class WC_Subscriptions_Checkout {
 		add_action( 'woocommerce_checkout_order_processed', array( __CLASS__, 'process_checkout' ), 100, 2 );
 
 		// Same as above, but this is for the Checkout block.
-		if ( class_exists( 'Automattic\WooCommerce\Blocks\Package' ) && ( version_compare( \Automattic\WooCommerce\Blocks\Package::get_version(), '6.3.0', '>=' ) || \Automattic\WooCommerce\Blocks\Package::is_experimental_build() ) ) {
-			add_action( 'woocommerce_blocks_checkout_order_processed', array( __CLASS__, 'process_checkout' ), 100, 1 );
-		} else {
-			add_action( '__experimental_woocommerce_blocks_checkout_order_processed', array( __CLASS__, 'process_checkout' ), 100, 1 );
-		}
+		add_action( 'woocommerce_store_api_checkout_order_processed', array( __CLASS__, 'process_checkout' ), 100, 1 );
 
 		// Some callbacks need to hooked after WC has loaded.
 		add_action( 'woocommerce_loaded', array( __CLASS__, 'attach_dependant_hooks' ) );

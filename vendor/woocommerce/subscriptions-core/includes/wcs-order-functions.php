@@ -215,6 +215,9 @@ function wcs_create_order_from_subscription( $subscription, $type ) {
 		// If we got here, the subscription was created without problems
 		$transaction->commit();
 
+		// Delete the transient that caches whether the order needs processing. Because we've added line items, the order may now need processing.
+		delete_transient( 'wc_order_' . $new_order->get_id() . '_needs_processing' );
+
 		/**
 		 * Filters the new order created from the subscription.
 		 *

@@ -1001,7 +1001,7 @@ class WC_Subscriptions_Manager {
 					}
 				}
 
-				wp_delete_post( $subscription->get_id() );
+				$subscription->delete( true );
 			}
 		}
 	}

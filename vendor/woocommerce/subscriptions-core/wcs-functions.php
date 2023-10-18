@@ -174,7 +174,7 @@ function wcs_create_subscription( $args = array() ) {
 
 	$subscription->set_customer_note( $args['customer_note'] ?? '' );
 	$subscription->set_customer_id( $args['customer_id'] );
-	$subscription->set_date_created( $args['date_created'] );
+	$subscription->set_date_created( wcs_date_to_time( $args['date_created'] ) );
 	$subscription->set_created_via( $args['created_via'] );
 	$subscription->set_currency( $args['currency'] );
 	$subscription->set_prices_include_tax( 'no' !== $args['prices_include_tax'] );

@@ -172,7 +172,7 @@ class WCS_Email_Expired_Subscription extends WC_Email {
 				'type'        => 'select',
 				'description' => __( 'Choose which format of email to send.', 'woocommerce-subscriptions' ),
 				'default'     => 'html',
-				'class'       => 'email_type',
+				'class'       => 'email_type wc-enhanced-select',
 				'options'     => array(
 					'plain'     => _x( 'Plain text', 'email type', 'woocommerce-subscriptions' ),
 					'html'      => _x( 'HTML', 'email type', 'woocommerce-subscriptions' ),

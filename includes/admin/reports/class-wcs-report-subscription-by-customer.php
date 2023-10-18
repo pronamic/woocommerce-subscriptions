@@ -239,7 +239,12 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 		$cached_results = get_transient( strtolower( __CLASS__ ) );
 		$query_hash     = md5( $total_query );
 
-		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
+		// Set a default value for cached results for PHP 8.2+ compatibility.
+		if ( empty( $cached_results ) ) {
+			$cached_results = [];
+		}
+
+		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			// Enable big selects for reports
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_customer_total_data', $wpdb->get_row( $total_query ) );
@@ -268,7 +273,7 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 
 		$query_hash = md5( $renewal_switch_total_query );
 
-		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
+		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			// Enable big selects for reports
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_customer_total_renewal_switch_data', $wpdb->get_row( $renewal_switch_total_query ) );

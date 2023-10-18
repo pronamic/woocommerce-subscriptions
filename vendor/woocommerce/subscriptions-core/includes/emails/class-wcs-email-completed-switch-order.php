@@ -17,6 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WCS_Email_Completed_Switch_Order extends WC_Email_Customer_Completed_Order {
 
 	/**
+	 * @var array Subscriptions linked to the switch order.
+	 */
+	public $subscriptions;
+
+	/**
 	 * Constructor
 	 */
 	function __construct() {
@@ -33,10 +38,6 @@ class WCS_Email_Completed_Switch_Order extends WC_Email_Customer_Completed_Order
 		$this->template_html  = 'emails/customer-completed-switch-order.php';
 		$this->template_plain = 'emails/plain/customer-completed-switch-order.php';
 		$this->template_base  = WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory( 'templates/' );
-
-		// Other settings
-		$this->heading_downloadable = $this->get_option( 'heading_downloadable', __( 'Your subscription change is complete - download your files', 'woocommerce-subscriptions' ) );
-		$this->subject_downloadable = $this->get_option( 'subject_downloadable', __( 'Your {blogname} subscription change from {order_date} is complete - download your files', 'woocommerce-subscriptions' ) );
 
 		// Triggers for this email
 		add_action( 'woocommerce_subscriptions_switch_completed_switch_notification', array( $this, 'trigger' ) );
@@ -170,5 +171,26 @@ class WCS_Email_Completed_Switch_Order extends WC_Email_Customer_Completed_Order
 			'',
 			$this->template_base
 		);
+	}
+
+	/**
+	 * Gets the deprecated public variables for backwards compatibility.
+	 *
+	 * @param string $key Key.
+	 *
+	 * @return string|null
+	 */
+	public function __get( $key ) {
+		if ( 'heading_downloadable' === $key ) {
+			wcs_deprecated_argument( __CLASS__ . '::$' . $key, '5.6.0', 'The heading_downloadable property used for emails with downloadable files was removed in WooCommerce 3.1. Use the heading property instead.' );
+			return $this->get_option( 'heading_downloadable', __( 'Your subscription change is complete - download your files', 'woocommerce-subscriptions' ) );
+
+		} elseif ( 'subject_downloadable' === $key ) {
+			wcs_deprecated_argument( __CLASS__ . '::$' . $key, '5.6.0', 'The subject_downloadable property used for emails with downloadable files was removed in WooCommerce 3.1. Use the subject property instead.' );
+			return $this->get_option( 'subject_downloadable', __( 'Your {blogname} subscription change from {order_date} is complete - download your files', 'woocommerce-subscriptions' ) );
+
+		} else {
+			return;
+		}
 	}
 }

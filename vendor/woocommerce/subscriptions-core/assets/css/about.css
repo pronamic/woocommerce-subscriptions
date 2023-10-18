@@ -27,7 +27,7 @@ ul {
 }
 .wcs-badge {
 	position: relative;
-	background: #9c5d90;
+	background: #7F54B3;
 	text-rendering: optimizeLegibility;
 	padding-top: 150px;
 	height: 52px;
@@ -35,7 +35,7 @@ ul {
 	font-weight: 600;
 	font-size: 14px;
 	text-align: center;
-	color: #ddc8d9;
+	color: #fff;
 	margin: 5px 0 0 0;
 	-webkit-box-shadow: 0 1px 3px rgba( 0, 0, 0, 0.2 );
 	box-shadow: 0 1px 3px rgba( 0, 0, 0, 0.2 );
@@ -92,42 +92,8 @@ ul {
 }
 .woocommerce-message {
 	position: relative;
-	border-left-color: #cc99c2 !important;
+	border-left-color: #7F54B3 !important;
 	overflow: hidden;
-}
-
-.woocommerce-message a.button-primary,
-p.woocommerce-actions a.button-primary,
-.woocommerce-message a.button-primary:focus,
-p.woocommerce-actions a.button-primary:focus,
-.woocommerce-message a.button-primary:active,
-p.woocommerce-actions a.button-primary:active {
-	background: #b366a4;
-	border-color: #b366a4;
-	-webkit-box-shadow: inset 0 1px 0 rgba( 255, 255, 255, 0.25 ),
-		0 1px 0 rgba( 0, 0, 0, 0.15 );
-	box-shadow: inset 0 1px 0 rgba( 255, 255, 255, 0.25 ),
-		0 1px 0 rgba( 0, 0, 0, 0.15 );
-	text-shadow: 0 -1px 1px #b366a4, 1px 0 1px #b366a4, 0 1px 1px #b366a4,
-		-1px 0 1px #b366a4;
-	color: #fff;
-	text-decoration: none;
-}
-
-.woocommerce-message a.button-primary:hover,
-p.woocommerce-actions a.button-primary:hover {
-	background: #bb77ae;
-	border-color: #aa559a;
-	-webkit-box-shadow: inset 0 1px 0 rgba( 255, 255, 255, 0.25 ),
-		0 1px 0 rgba( 0, 0, 0, 0.15 );
-	box-shadow: inset 0 1px 0 rgba( 255, 255, 255, 0.25 ),
-		0 1px 0 rgba( 0, 0, 0, 0.15 );
-}
-
-.woocommerce-message a.button-primary:active,
-p.woocommerce-actions a.button-primary:active {
-	background: #aa559a;
-	border-color: #aa559a;
 }
 
 .woocommerce-message a.skip,

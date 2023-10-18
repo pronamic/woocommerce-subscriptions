@@ -218,6 +218,7 @@ class WC_Subscriptions_Synchroniser {
 				'css'      => 'min-width:150px;',
 				'default'  => 'no',
 				'type'     => 'select',
+				'class'    => 'wc-enhanced-select',
 				'options'  => array(
 					'no'        => _x( 'Never (do not charge any recurring amount)', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
 					'recurring' => _x( 'Never (charge the full recurring amount at sign-up)', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
@@ -285,7 +286,7 @@ class WC_Subscriptions_Synchroniser {
 			woocommerce_wp_select(
 				array(
 					'id'          => self::$post_meta_key,
-					'class'       => 'wc_input_subscription_payment_sync select short',
+					'class'       => 'wc_input_subscription_payment_sync select short wc-enhanced-select',
 					'label'       => self::$sync_field_label,
 					'options'     => self::get_billing_period_ranges( $subscription_period ),
 					'description' => self::$sync_description,
@@ -303,14 +304,14 @@ class WC_Subscriptions_Synchroniser {
 				<span class="wrap">
 
 					<label for="<?php echo esc_attr( self::$post_meta_key_month ); ?>" class="wcs_hidden_label"><?php esc_html_e( 'Month for Synchronisation', 'woocommerce-subscriptions' ); ?></label>
-					<select id="<?php echo esc_attr( self::$post_meta_key_month ); ?>" name="<?php echo esc_attr( self::$post_meta_key_month ); ?>" class="wc_input_subscription_payment_sync last" >
+					<select id="<?php echo esc_attr( self::$post_meta_key_month ); ?>" name="<?php echo esc_attr( self::$post_meta_key_month ); ?>" class="wc_input_subscription_payment_sync last wc-enhanced-select" >
 						<?php foreach ( self::get_year_sync_options() as $value => $label ) { ?>
 							<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $value, $payment_month, true ) ?>><?php echo esc_html( $label ); ?></option>
 						<?php } ?>
 					</select>
 
-					<?php $daysInMonth = $payment_month ? gmdate( 't', wc_string_to_timestamp( "2001-{$payment_month}-01" ) ) : 0; ?>
-					<input type="number" id="<?php echo esc_attr( self::$post_meta_key_day ); ?>" name="<?php echo esc_attr( self::$post_meta_key_day ); ?>" class="wc_input_subscription_payment_sync" value="<?php echo esc_attr( $payment_day ); ?>" placeholder="<?php echo esc_attr_x( 'Day', 'input field placeholder for day field for annual subscriptions', 'woocommerce-subscriptions' ); ?>" step="1" min="<?php echo esc_attr( min( 1, $daysInMonth ) ); ?>" max="<?php echo esc_attr( $daysInMonth ); ?>" <?php disabled( 0, $payment_month, true ); ?> />
+					<?php $days_in_month = $payment_month ? gmdate( 't', wc_string_to_timestamp( "2001-{$payment_month}-01" ) ) : 0; ?>
+					<input type="number" id="<?php echo esc_attr( self::$post_meta_key_day ); ?>" name="<?php echo esc_attr( self::$post_meta_key_day ); ?>" class="wc_input_subscription_payment_sync wc-enhanced-select" value="<?php echo esc_attr( $payment_day ); ?>" placeholder="<?php echo esc_attr_x( 'Day', 'input field placeholder for day field for annual subscriptions', 'woocommerce-subscriptions' ); ?>" step="1" min="<?php echo esc_attr( min( 1, $days_in_month ) ); ?>" max="<?php echo esc_attr( $days_in_month ); ?>" <?php disabled( 0, $payment_month, true ); ?> />
 				</span>
 				<?php echo wcs_help_tip( self::$sync_description_year ); ?>
 			</p><?php

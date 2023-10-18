@@ -2,19 +2,6 @@
 .woocommerce-subscriptions-activated p a.button-primary {
 	display: inline-block;
 }
-.woocommerce-subscriptions-activated a.button-primary:hover {
-	background: #bb77ae;
-	border-color: #aa559a;
-	-webkit-box-shadow: inset 0 1px 0 rgba( 255, 255, 255, 0.25 ),
-		0 1px 0 rgba( 0, 0, 0, 0.15 );
-	box-shadow: inset 0 1px 0 rgba( 255, 255, 255, 0.25 ),
-		0 1px 0 rgba( 0, 0, 0, 0.15 );
-}
-.woocommerce-subscriptions-activated a.button-primary:active,
-.woocommerce-subscriptions-activated a.button-primary:active {
-	background: #aa559a;
-	border-color: #aa559a;
-}
 
 /* Subscriptions Admin Page */
 .woocommerce_page_wc-orders--shop_subscription .tablenav input,
@@ -314,6 +301,25 @@ a.close-subscriptions-search {
 	width: auto !important;
 }
 
+.wc_input_subscription_payment_sync +.select2,
+.wc_input_subscription_length +.select2,
+#_subscription_limit +.select2 {
+	min-width: 180px;
+	width: 80% !important;
+	margin-bottom: 4px;
+}
+
+.wc_input_subscription_period + .select2,
+.wc_input_subscription_trial_period + .select2 {
+	width: 30.75% !important;
+	margin-top: 0;
+}
+
+.wc_input_subscription_period_interval + .select2 {
+	margin-right: 3.8%;
+	width: 30.75% !important;
+}
+
 .variable_subscription_sync p._subscription_payment_sync_field {
 	padding-left: 0 !important;
 }
@@ -360,7 +366,32 @@ a.close-subscriptions-search {
 	.wc_input_subscription_period_interval {
 	max-width: 33%;
 	float: left;
+	margin-right: 2px;
 }
+
+#variable_product_options .select2 {
+	margin: 2px 2px 0 0;
+}
+
+#variable_product_options
+	.select2-container 
+	.select2-selection--single {
+	min-height: 40px;
+}
+
+#variable_product_options 
+	.select2-container 
+	.select2-selection--single 
+	.select2-selection__rendered {
+	line-height: 36px;
+}
+#variable_product_options 
+	.select2-container 
+	.select2-selection--single 
+	.select2-selection__arrow {
+	height: 36px;
+}
+
 .variable_subscription_pricing_2_3 .wc_input_subscription_price {
 	clear: left;
 }
@@ -735,7 +766,7 @@ table.wp-list-table .subscription_renewal_order::after {
 	height: 100%;
 	text-align: center;
 	content: '\e018';
-	color: #a46497;
+	color: var(--wp-admin-theme-color);
 }
 
 table.wc_gateways .renewals .tips {

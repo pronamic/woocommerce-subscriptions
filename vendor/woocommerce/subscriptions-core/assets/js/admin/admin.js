@@ -40,21 +40,14 @@ jQuery( function ( $ ) {
 				'hide_if_variable-subscription'
 			);
 
-			/**
-			 * WC core will hide and show product specific fields in show_and_hide_panels(), however that function only runs on specific events, but not
-			 * when variations are added or loaded. To make sure our subscription-related fields aren't shown by default when a variation is added, we set
-			 * subscription pricing elements "base" cases here.
-			 *
-			 * Note: show() being called on the 'hide_if_' fields and vice versa is intentional. All fields are set in their inverse state first, and
-			 * then shown/hidden by product type afterwards.
-			 */
-			$( '.hide_if_variable-subscription' ).show();
-			$( '.show_if_variable-subscription' ).hide();
+			var product_type = $( 'select#product-type' ).val();
 
-			if ( $( 'select#product-type' ).val() == 'variable-subscription' ) {
+			if ( 'variable-subscription' === product_type ) {
+				// Hide and show subscription fields when variable subscription is selected
 				$( 'input#_downloadable' ).prop( 'checked', false );
 				$( 'input#_virtual' ).prop( 'checked', false );
 
+				// Variable subscriptions inherit fields from variable products.
 				$( '.show_if_variable' ).show();
 				$( '.hide_if_variable' ).hide();
 				$( '.show_if_variable-subscription' ).show();
@@ -67,14 +60,7 @@ jQuery( function ( $ ) {
 					.addClass( 'form-row-full' )
 					.removeClass( 'form-row-last' );
 			} else {
-				if ( 'variable' === $( 'select#product-type' ).val() ) {
-					$( '.show_if_variable-subscription' ).hide();
-					$( '.show_if_variable' ).show();
-					$( '.hide_if_variable' ).hide();
-					$.showOrHideStockFields();
-				}
-
-				if ( 'subscription' === $( 'select#product-type' ).val() ) {
+				if ( 'subscription' === product_type ) {
 					$( '.show_if_subscription' ).show();
 					$( '.hide_if_subscription' ).hide();
 				}

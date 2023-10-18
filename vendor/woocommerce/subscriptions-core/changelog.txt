@@ -1,5 +1,25 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 6.4.0 - 2023-10-18 =
+* Add - Use admin theme color and the correct WooCommerce colors.
+* Fix - Resolve an issue that would cause 3rd party plugin edit product fields with the show_if_variable-subscription class to be incorrectly hidden.
+* Fix - Allow gateways to execute action on payment method deletion before updating the subscription.
+* Fix - Ensure subscriptions have a date created that correctly accounts for the site's timezone. Fixes issues with subscriptions having a date created double the site's UTC offset.
+* Fix - When HPOS is enabled, fix quick-editing the subscription statuses on the admin list table.
+* Dev - Updated the hooks for Checkout Blocks, replacing the deprecated `woocommerce_blocks_checkout_` prefixed hooks with `woocommerce_store_api_checkout`.
+* Dev - PHP 8.2: Fix "Creation of dynamic property" warnings.
+
+= 6.3.0 - 2023-10-06 =
+* Add - Introduce the "Subscription Relationship" column under the Orders list admin page when HPOS is enabled.
+* Fix - Resolved an issue that caused subscriptions with an unpaid early renewal order to be incorrectly considered as needing payment.
+* Fix - When HPOS is enabled, make the orders_by_type_query filter box work in the WooCommerce orders screen.
+* Fix - Ensure renewal orders paid via the Block Checkout are correctly linked to their subscription.
+* Fix - Resolved an issue that caused paying for failed/pending parent orders that include Product Add-ons to not calculate the correct total.
+* Fix - Ensure the order needs processing transient is deleted when a subscription order (eg renewal) is created. Fixes issues with renewal orders going straight to a completed status.
+* Fix - Store the correct subscription start date in postmeta and ordermeta when HPOS and data syncing is being used.
+* Fix - When HPOS is enabled, deleting a customer will now delete their subscriptions.
+* Fix - Missing styles on the Edit Subscription page when HPOS is enabled.
+
 = 6.2.0 - 2023-08-10 =
 * Add - Introduce an updated empty state screen for the WooCommerce > Subscriptions list table.
 * Fix - Ensure subscription checkout and cart block integrations are loaded on store environments where WooPayments is not enabled.

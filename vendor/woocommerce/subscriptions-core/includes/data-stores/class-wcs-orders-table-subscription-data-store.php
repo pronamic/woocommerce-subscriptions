@@ -609,6 +609,11 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 			];
 
 			if ( empty( $existing_meta_data ) ) {
+				// If we're saving a start date for the first time and it's empty, set it to the created date as a default.
+				if ( '_schedule_start' === $new_meta_data['key'] && empty( $new_meta_data['value'] ) ) {
+					$new_meta_data['value'] = $subscription->get_date( 'date_created' );
+				}
+
 				$this->data_store_meta->add_meta( $subscription, (object) $new_meta_data );
 			} elseif ( $existing_meta_data->meta_value !== $new_meta_data['value'] ) {
 				$new_meta_data['id'] = $existing_meta_data->meta_id;
@@ -649,7 +654,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 				continue;
 			}
 
-			// If we're setting the start date and it's missing, we set it to the created date.
+			// If we're reading in the start date and it's missing, set it in memory to the created date.
 			if ( 'schedule_start' === $prop_key && empty( $meta_data[ $meta_key ] ) ) {
 				$meta_data[ $meta_key ] = $subscription->get_date( 'date_created' );
 			}

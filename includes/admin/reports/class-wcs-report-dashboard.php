@@ -52,6 +52,11 @@ class WCS_Report_Dashboard {
 
 		$cached_results = get_transient( strtolower( __CLASS__ ) );
 
+		// Set a default value for cached results for PHP 8.2+ compatibility.
+		if ( empty( $cached_results ) ) {
+			$cached_results = [];
+		}
+
 		// Subscription signups this month
 		$query = $wpdb->prepare(
 			"SELECT COUNT(DISTINCT wcsubs.ID) AS count
@@ -69,7 +74,7 @@ class WCS_Report_Dashboard {
 
 		$query_hash = md5( $query );
 
-		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
+		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_signup_query', $query ) );
 			$update_cache = true;
@@ -128,7 +133,7 @@ class WCS_Report_Dashboard {
 
 		$query_hash = md5( $query );
 
-		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
+		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_renewal_query', $query ) );
 			$update_cache = true;
@@ -162,7 +167,7 @@ class WCS_Report_Dashboard {
 
 		$query_hash = md5( $query );
 
-		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
+		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_renewal_revenue_query', $query ) );
 			$update_cache = true;
@@ -185,7 +190,7 @@ class WCS_Report_Dashboard {
 
 		$query_hash = md5( $query );
 
-		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
+		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_cancellation_query', $query ) );
 			$update_cache = true;

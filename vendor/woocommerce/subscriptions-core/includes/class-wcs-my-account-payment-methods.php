@@ -21,7 +21,9 @@ class WCS_My_Account_Payment_Methods {
 		}
 
 		add_filter( 'woocommerce_payment_methods_list_item', array( __CLASS__, 'flag_subscription_payment_token_deletions' ), 10, 2 );
-		add_action( 'woocommerce_payment_token_deleted', array( __CLASS__, 'maybe_update_subscriptions_payment_meta' ), 10, 2 );
+
+		// This needs to run after the payment plugins had a chance to execute their delete actions.
+		add_action( 'woocommerce_payment_token_deleted', array( __CLASS__, 'maybe_update_subscriptions_payment_meta' ), 11, 2 );
 		add_action( 'woocommerce_payment_token_set_default', array( __CLASS__, 'display_default_payment_token_change_notice' ), 10, 2 );
 		add_action( 'wp', array( __CLASS__, 'update_subscription_tokens' ) );
 

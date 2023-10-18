@@ -107,6 +107,12 @@ class WCS_Switch_Cart_Item {
 	public $switch_type;
 
 	/**
+	 * Whether the last order was a switch and was a fully reduced pre-paid term.
+	 * @var bool
+	 */
+	public $is_switch_after_fully_reduced_prepaid_term;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 2.6.0

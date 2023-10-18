@@ -134,7 +134,7 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 	}
 
 	/**
-	 * Deteremines if the cart should honor the granfathered subscription/order line item total.
+	 * Determines if the cart should honor the grandfathered subscription/order line item total.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.10
 	 *

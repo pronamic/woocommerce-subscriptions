@@ -15,6 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WCS_Retry_Admin {
 
 	/**
+	 * @var string The ID of the setting to enable/disable the retry system.
+	 */
+	public $setting_id;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct( $setting_id ) {

@@ -1315,8 +1315,9 @@ class WCS_Admin_Post_Types {
 
 		// On HPOS environments, WC expects a slightly different format for the bulk actions.
 		if ( $is_hpos_enabled ) {
+			$id_key          = wcs_is_woocommerce_pre( '8.1' ) ? 'order' : 'id';
 			$action_url_args = [
-				'order'    => [ $subscription->get_id() ],
+				$id_key    => [ $subscription->get_id() ],
 				'_wpnonce' => wp_create_nonce( 'bulk-orders' ),
 			];
 		} else {

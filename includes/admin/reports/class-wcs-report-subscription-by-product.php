@@ -161,7 +161,12 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 		$cached_results = get_transient( strtolower( __CLASS__ ) );
 		$query_hash     = md5( $query );
 
-		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
+		// Set a default value for cached results for PHP 8.2+ compatibility.
+		if ( empty( $cached_results ) ) {
+			$cached_results = [];
+		}
+
+		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_product_data', $wpdb->get_results( $query, OBJECT_K ), $args );
 			set_transient( strtolower( __CLASS__ ), $cached_results, WEEK_IN_SECONDS );
@@ -214,7 +219,7 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 
 		$query_hash = md5( $query );
 
-		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
+		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
 			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_product_lifetime_value_data', $wpdb->get_results( $query, OBJECT_K ), $args );
 			set_transient( strtolower( __CLASS__ ), $cached_results, WEEK_IN_SECONDS );

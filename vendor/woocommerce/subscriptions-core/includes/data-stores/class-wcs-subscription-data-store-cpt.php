@@ -221,6 +221,10 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 		foreach ( $this->get_props_to_update( $subscription, $this->subscription_meta_keys_to_props ) as $meta_key => $prop ) {
 			$meta_value = ( 'schedule_' == substr( $prop, 0, 9 ) ) ? $subscription->get_date( $prop ) : $subscription->{"get_$prop"}( 'edit' );
 
+			if ( 'schedule_start' === $prop && ! $meta_value ) {
+				$meta_value = $subscription->get_date( 'date_created' );
+			}
+
 			// Store as a string of the boolean for backward compatibility (yep, it's gross)
 			if ( 'requires_manual_renewal' === $prop ) {
 				$meta_value = $meta_value ? 'true' : 'false';

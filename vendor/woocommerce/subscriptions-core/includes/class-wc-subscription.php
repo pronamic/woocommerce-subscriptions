@@ -251,31 +251,30 @@ class WC_Subscription extends WC_Order {
 	}
 
 	/**
-	 * Checks if the subscription has an unpaid order or renewal order (and therefore, needs payment).
+	 * Checks if the subscription needs payment.
 	 *
-	 * @param string $subscription_key A subscription key of the form created by @see self::get_subscription_key()
-	 * @param int $user_id The ID of the user who owns the subscriptions. Although this parameter is optional, if you have the User ID you should pass it to improve performance.
-	 * @return bool True if the subscription has an unpaid renewal order, false if the subscription has no unpaid renewal orders.
+	 * A subscription requires payment if it:
+	 *  - is pending or failed,
+	 *  - has an unpaid parent order, or
+	 *  - has an unpaid order or renewal order (and therefore, needs payment)
+	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
+	 *
+	 * @return bool True if the subscription requires payment, otherwise false.
 	 */
 	public function needs_payment() {
-
 		$needs_payment = false;
+		$parent_order  = $this->get_parent();
 
-		// First check if the subscription is pending or failed or is for $0
+		// If the subscription is pending or failed and it has a total > 0, it needs payment.
 		if ( parent::needs_payment() ) {
-
 			$needs_payment = true;
-
-		// Now make sure the parent order doesn't need payment
-		} elseif ( ( $parent_order = $this->get_parent() ) && ( $parent_order->needs_payment() || $parent_order->has_status( array( 'on-hold', 'cancelled' ) ) ) ) {
-
+		} elseif ( $parent_order && ( $parent_order->needs_payment() || $parent_order->has_status( array( 'on-hold', 'cancelled' ) ) ) ) {
+			// If the subscription has an unpaid parent order, it needs payment.
 			$needs_payment = true;
-
-		// And finally, check that the latest order (switch or renewal) doesn't need payment
 		} else {
-
-			$order = $this->get_last_order( 'all', array( 'renewal', 'switch' ) );
+			// Lastly, check if the last non-early renewal order needs payment.
+			$order = wcs_get_last_non_early_renewal_order( $this );
 
 			if ( $order && ( $order->needs_payment() || $order->has_status( array( 'on-hold', 'failed', 'cancelled' ) ) ) ) {
 				$needs_payment = true;
