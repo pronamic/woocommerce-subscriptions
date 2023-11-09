@@ -60,6 +60,16 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
+
+		register_rest_route( $this->namespace, "/orders/(?P<id>[\d]+)/{$this->rest_base}", array(
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'create_subscriptions_from_order' ),
+				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'args'                => $this->get_collection_params(),
+			),
+			'schema' => array( $this, 'get_public_item_schema' ),
+		) );
 	}
 
 	/**
@@ -261,7 +271,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 					$this->update_address( $subscription, $value, $key );
 					break;
 				case 'start_date':
-				case 'trial_end':
+				case 'trial_end_date':
 				case 'next_payment_date':
 				case 'cancelled_date':
 				case 'end_date':
@@ -413,8 +423,8 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
 			),
-			'trial_date' => array(
-				'description' => __( "The subscription's trial date, as GMT.", 'woocommerce-subscriptions' ),
+			'trial_end_date' => array(
+				'description' => __( "The subscription's trial end date, as GMT.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
 				'context'     => array( 'view', 'edit' ),
 			),
@@ -511,5 +521,197 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 			// translators: 1$: gateway id, 2$: error message
 			throw new WC_REST_Exception( 'woocommerce_rest_invalid_payment_data', sprintf( __( 'Subscription payment method could not be set to %1$s with error message: %2$s', 'woocommerce-subscriptions' ), $payment_method, $e->getMessage() ), 400 );
 		}
+	}
+
+	/**
+	 * Creates subscriptions from an order.
+	 *
+	 * @param WP_REST_Request $request
+	 * @return array Subscriptions created from the order.
+	 */
+	public function create_subscriptions_from_order( $request ) {
+		$order_id = absint( $request->get_param( 'id' ) );
+
+		if ( empty( $order_id ) ) {
+			return new WP_Error( 'woocommerce_rest_order_invalid_id', __( 'Invalid order ID.', 'woocommerce-subscriptions' ), array( 'status' => 404 ) );
+		}
+
+		$order = wc_get_order( $order_id );
+
+		if ( ! $order || ! wcs_is_order( $order ) ) {
+			return new WP_Error( 'woocommerce_rest_order_invalid_id', sprintf( __( 'Failed to load order object with the ID %d.', 'woocommerce-subscriptions' ), $order_id ), array( 'status' => 404 ) );
+		}
+
+		if ( ! $order->get_customer_id() ) {
+			return new WP_Error( 'woocommerce_rest_invalid_order', __( 'Order does not have a customer associated with it. Subscriptions require a customer.', 'woocommerce-subscriptions' ), array( 'status' => 404 ) );
+		}
+
+		if ( wcs_order_contains_subscription( $order, 'any' ) ) {
+			return new WP_Error( 'woocommerce_rest_invalid_order', __( 'Order already has subscriptions associated with it.', 'woocommerce-subscriptions' ), array( 'status' => 404 ) );
+		}
+
+		$subscription_groups = [];
+		$subscriptions       = [];
+
+		// Group the order items into subscription groups.
+		foreach ( $order->get_items() as $item ) {
+			$product = $item->get_product();
+
+			if ( ! WC_Subscriptions_Product::is_subscription( $product ) ) {
+				continue;
+			}
+
+			$subscription_groups[ wcs_get_subscription_item_grouping_key( $item ) ][] = $item;
+		}
+
+		// Return a 204 if there are no subscriptions to be created.
+		if ( empty( $subscription_groups ) ) {
+			$response = rest_ensure_response( $subscriptions );
+			$response->set_status( 204 );
+			return $response;
+		}
+
+		/**
+		 * Start creating any subscriptions start transaction if available.
+		 *
+		 * To ensure data integrity, if any subscription fails to be created, the transaction will be rolled back. This will enable
+		 * the client to resubmit the request without having to worry about duplicate subscriptions being created.
+		 */
+		$transaction = new WCS_SQL_Transaction();
+		$transaction->start();
+
+		try {
+			// Create subscriptions.
+			foreach ( $subscription_groups as $items ) {
+				// Get the first item in the group to use as the base for the subscription.
+				$product      = $items[0]->get_product();
+				$start_date   = wcs_get_datetime_utc_string( $order->get_date_created( 'edit' ) );
+				$subscription = wcs_create_subscription( [
+					'order_id'           => $order_id,
+					'created_via'        => 'rest-api',
+					'start_date'         => $start_date,
+					'status'             => $order->is_paid() ? 'active' : 'pending',
+					'billing_period'     => WC_Subscriptions_Product::get_period( $product ),
+					'billing_interval'   => WC_Subscriptions_Product::get_interval( $product ),
+					'customer_note'      => $order->get_customer_note(),
+				] );
+
+				if ( is_wp_error( $subscription ) ) {
+					throw new Exception( $subscription->get_error_message() );
+				}
+
+				wcs_copy_order_address( $order, $subscription );
+
+				$subscription->update_dates(
+					array(
+						'trial_end'    => WC_Subscriptions_Product::get_trial_expiration_date( $product, $start_date ),
+						'next_payment' => WC_Subscriptions_Product::get_first_renewal_payment_date( $product, $start_date ),
+						'end'          => WC_Subscriptions_Product::get_expiration_date( $product, $start_date ),
+					)
+				);
+
+				$subscription->set_payment_method( $order->get_payment_method() );
+
+				wcs_copy_order_meta( $order, $subscription, 'subscription' );
+
+				// Add items.
+				$subscription_needs_shipping = false;
+				foreach ( $items as $item ) {
+					// Create order line item.
+					$item_id = wc_add_order_item(
+						$subscription->get_id(),
+						[
+							'order_item_name' => $item->get_name(),
+							'order_item_type' => $item->get_type(),
+						]
+					);
+
+					$subscription_item = $subscription->get_item( $item_id );
+
+					wcs_copy_order_item( $item, $subscription_item );
+					$subscription_item->save();
+
+					// Check if this subscription will need shipping.
+					if ( ! $subscription_needs_shipping ) {
+						$product = $item->get_product();
+
+						if ( $product ) {
+							$subscription_needs_shipping = $product->needs_shipping() && ! WC_Subscriptions_Product::needs_one_time_shipping( $product );
+						}
+					}
+				}
+
+				// Add coupons.
+				foreach ( $order->get_coupons() as $coupon_item ) {
+					$coupon = new WC_Coupon( $coupon_item->get_code() );
+
+					try {
+						// validate_subscription_coupon_for_order will throw an exception if the coupon cannot be applied to the subscription.
+						WC_Subscriptions_Coupon::validate_subscription_coupon_for_order( true, $coupon, $subscription );
+
+						$subscription->apply_coupon( $coupon->get_code() );
+					} catch ( Exception $e ) {
+						// Do nothing. The coupon will not be applied to the subscription.
+					}
+				}
+
+				// Add shipping.
+				if ( $subscription_needs_shipping ) {
+					foreach ( $order->get_shipping_methods() as $shipping_item ) {
+						$rate = new WC_Shipping_Rate( $shipping_item->get_method_id(), $shipping_item->get_method_title(), $shipping_item->get_total(), $shipping_item->get_taxes(), $shipping_item->get_instance_id() );
+
+						$item = new WC_Order_Item_Shipping();
+						$item->set_order_id( $subscription->get_id() );
+						$item->set_shipping_rate( $rate );
+
+						$subscription->add_item( $item );
+					}
+				}
+
+				// Add fees.
+				foreach ( $order->get_fees() as $fee_item ) {
+					if ( ! apply_filters( 'wcs_should_copy_fee_item_to_subscription', true, $fee_item, $subscription, $order ) ) {
+						continue;
+					}
+
+					$item = new WC_Order_Item_Fee();
+					$item->set_props(
+						array(
+							'name'      => $fee_item->get_name(),
+							'tax_class' => $fee_item->get_tax_class(),
+							'amount'    => $fee_item->get_amount(),
+							'total'     => $fee_item->get_total(),
+							'total_tax' => $fee_item->get_total_tax(),
+							'taxes'     => $fee_item->get_taxes(),
+						)
+					);
+
+					$subscription->add_item( $item );
+				}
+
+				$subscription->calculate_totals();
+				$subscription->save();
+
+				/**
+				 * Fires after a single subscription is created or updated via the REST API.
+				 *
+				 * @param WC_Subscription $object   Inserted subscription.
+				 * @param WP_REST_Request $request  Request object.
+				 * @param boolean         $creating True when creating object, false when updating.
+				 */
+				do_action( "woocommerce_rest_insert_{$this->post_type}_object", $subscription, $request, true );
+
+				$response = $this->prepare_object_for_response( wcs_get_subscription( $subscription->get_id() ), $request );
+				$subscriptions[] = $this->prepare_response_for_collection( $response );
+			}
+		} catch ( Exception $e ) {
+			$transaction->rollback();
+			return new WP_Error( 'woocommerce_rest_invalid_subscription_data', $e->getMessage(), array( 'status' => 404 ) );
+		}
+
+		// If we got here, the subscription was created without problems
+		$transaction->commit();
+
+		return rest_ensure_response( $subscriptions );
 	}
 }

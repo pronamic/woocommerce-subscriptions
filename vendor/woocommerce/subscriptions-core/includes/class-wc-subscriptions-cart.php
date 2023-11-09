@@ -1022,59 +1022,12 @@ class WC_Subscriptions_Cart {
 	 * Subscriptions groups products by billing schedule when calculating cart totals, so that shipping and other "per order" amounts
 	 * can be calculated for each group of items for each renewal. This method constructs a cart key based on the billing schedule
 	 * to allow products on the same billing schedule to be grouped together - free trials and synchronisation is accounted for by
-	 * using the first renewal date (if any) for the susbcription.
+	 * using the first renewal date (if any) for the subscription.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_recurring_cart_key( $cart_item, $renewal_time = '' ) {
-
-		$cart_key = '';
-
-		$product      = $cart_item['data'];
-		$renewal_time = ! empty( $renewal_time ) ? $renewal_time : WC_Subscriptions_Product::get_first_renewal_payment_time( $product );
-		$interval     = WC_Subscriptions_Product::get_interval( $product );
-		$period       = WC_Subscriptions_Product::get_period( $product );
-		$length       = WC_Subscriptions_Product::get_length( $product );
-		$trial_period = WC_Subscriptions_Product::get_trial_period( $product );
-		$trial_length = WC_Subscriptions_Product::get_trial_length( $product );
-
-		if ( $renewal_time > 0 ) {
-			$cart_key .= gmdate( 'Y_m_d_', $renewal_time );
-		}
-
-		// First start with the billing interval and period
-		switch ( $interval ) {
-			case 1:
-				if ( 'day' == $period ) {
-					$cart_key .= 'daily'; // always gotta be one exception
-				} else {
-					$cart_key .= sprintf( '%sly', $period );
-				}
-				break;
-			case 2:
-				$cart_key .= sprintf( 'every_2nd_%s', $period );
-				break;
-			case 3:
-				$cart_key .= sprintf( 'every_3rd_%s', $period ); // or sometimes two exceptions it would seem
-				break;
-			default:
-				$cart_key .= sprintf( 'every_%dth_%s', $interval, $period );
-				break;
-		}
-
-		if ( $length > 0 ) {
-			$cart_key .= '_for_';
-			$cart_key .= sprintf( '%d_%s', $length, $period );
-			if ( $length > 1 ) {
-				$cart_key .= 's';
-			}
-		}
-
-		if ( $trial_length > 0 ) {
-			$cart_key .= sprintf( '_after_a_%d_%s_trial', $trial_length, $trial_period );
-		}
-
-		return apply_filters( 'woocommerce_subscriptions_recurring_cart_key', $cart_key, $cart_item );
+		return apply_filters( 'woocommerce_subscriptions_recurring_cart_key', wcs_get_subscription_grouping_key( $cart_item['data'], $renewal_time ), $cart_item );
 	}
 
 	/**

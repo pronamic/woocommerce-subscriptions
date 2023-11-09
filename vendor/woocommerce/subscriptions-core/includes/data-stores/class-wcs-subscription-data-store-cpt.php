@@ -61,6 +61,23 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	);
 
 	/**
+	 * Custom setters for subscription internal props in the form meta_key => set_|get_{value}.
+	 *
+	 * @var string[]
+	 */
+	protected $internal_data_store_key_getters = array(
+		'_schedule_start'                           => 'schedule_start',
+		'_schedule_trial_end'                       => 'schedule_trial_end',
+		'_schedule_next_payment'                    => 'schedule_next_payment',
+		'_schedule_cancelled'                       => 'schedule_cancelled',
+		'_schedule_end'                             => 'schedule_end',
+		'_schedule_payment_retry'                   => 'schedule_payment_retry',
+		'_subscription_renewal_order_ids_cache'     => 'renewal_order_ids_cache',
+		'_subscription_resubscribe_order_ids_cache' => 'resubscribe_order_ids_cache',
+		'_subscription_switch_order_ids_cache'      => 'switch_order_ids_cache',
+	);
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -603,5 +620,147 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 */
 	public function get_subscriptions_count_by_status() {
 		return (array) wp_count_posts( 'shop_subscription' );
+	}
+
+	/**
+	 * Sets the subscription's start date.
+	 *
+	 * This method is not intended for public use and is called by @see OrdersTableDataStore::backfill_post_record()
+	 * when backfilling subscription data to the WP_Post database.
+	 *
+	 * @param WC_Subscription $subscription
+	 * @param string $date
+	 */
+	public function set_schedule_start( $subscription, $date ) {
+		update_post_meta( $subscription->get_id(), '_schedule_start', $date );
+	}
+
+	/**
+	 * Sets the subscription's trial end date.
+	 *
+	 * This method is not intended for public use and is called by @see OrdersTableDataStore::backfill_post_record()
+	 * when backfilling subscription data to the WP_Post database.
+	 *
+	 * @param WC_Subscription $subscription
+	 * @param string $date
+	 */
+	public function set_schedule_trial_end( $subscription, $date ) {
+		update_post_meta( $subscription->get_id(), '_schedule_trial_end', $date );
+	}
+
+	/**
+	 * Sets the subscription's next payment date.
+	 *
+	 * This method is not intended for public use and is called by @see OrdersTableDataStore::backfill_post_record()
+	 * when backfilling subscription data to the WP_Post database.
+	 *
+	 * @param WC_Subscription $subscription
+	 * @param string $date
+	 */
+	public function set_schedule_next_payment( $subscription, $date ) {
+		update_post_meta( $subscription->get_id(), '_schedule_next_payment', $date );
+	}
+
+	/**
+	 * Sets the subscription's cancelled date.
+	 *
+	 * This method is not intended for public use and is called by @see OrdersTableDataStore::backfill_post_record()
+	 * when backfilling subscription data to the WP_Post database.
+	 *
+	 * @param WC_Subscription $subscription
+	 * @param string $date
+	 */
+	public function set_schedule_cancelled( $subscription, $date ) {
+		update_post_meta( $subscription->get_id(), '_schedule_cancelled', $date );
+	}
+
+	/**
+	 * Sets the subscription's end date.
+	 *
+	 * This method is not intended for public use and is called by @see OrdersTableDataStore::backfill_post_record()
+	 * when backfilling subscription data to the WP_Post database.
+	 *
+	 * @param WC_Subscription $subscription
+	 * @param string $date
+	 */
+	public function set_schedule_end( $subscription, $date ) {
+		update_post_meta( $subscription->get_id(), '_schedule_end', $date );
+	}
+
+	/**
+	 * Sets the subscription's payment retry date.
+	 *
+	 * This method is not intended for public use and is called by @see OrdersTableDataStore::backfill_post_record()
+	 * when backfilling subscription data to the WP_Post database.
+	 *
+	 * @param WC_Subscription $subscription
+	 * @param string $date
+	 */
+	public function set_schedule_payment_retry( $subscription, $date ) {
+		update_post_meta( $subscription->get_id(), '_schedule_payment_retry', $date );
+	}
+
+	/**
+	 * Manually sets the list of subscription's renewal order IDs stored in cache.
+	 *
+	 * This method is not intended for public use and is called by @see OrdersTableDataStore::backfill_post_record()
+	 * when backfilling subscription data to the WP_Post database.
+	 *
+	 * @param WC_Subscription $subscription
+	 * @param array           $renewal_order_ids
+	 */
+	public function set_renewal_order_ids_cache( $subscription, $renewal_order_ids ) {
+		$this->cleanup_backfill_related_order_cache_duplicates( $subscription, 'renewal' );
+		update_post_meta( $subscription->get_id(), '_subscription_renewal_order_ids_cache', $renewal_order_ids );
+	}
+
+	/**
+	 * Manually sets the list of subscription's resubscribe order IDs stored in cache.
+	 *
+	 * This method is not intended for public use and is called by @see OrdersTableDataStore::backfill_post_record()
+	 * when backfilling subscription data to the WP_Post database.
+	 *
+	 * @param WC_Subscription $subscription
+	 * @param array           $resubscribe_order_ids
+	 */
+	public function set_resubscribe_order_ids_cache( $subscription, $resubscribe_order_ids ) {
+		$this->cleanup_backfill_related_order_cache_duplicates( $subscription, 'resubscribe' );
+		update_post_meta( $subscription->get_id(), '_subscription_resubscribe_order_ids_cache', $resubscribe_order_ids );
+	}
+
+	/**
+	 * Manually sets the list of subscription's switch order IDs stored in cache.
+	 *
+	 * This method is not intended for public use and is called by @see OrdersTableDataStore::backfill_post_record()
+	 * when backfilling subscription data to the WP_Post database.
+	 *
+	 * @param WC_Subscription $subscription
+	 * @param array           $switch_order_ids
+	 */
+	public function set_switch_order_ids_cache( $subscription, $switch_order_ids ) {
+		$this->cleanup_backfill_related_order_cache_duplicates( $subscription, 'switch' );
+		update_post_meta( $subscription->get_id(), '_subscription_switch_order_ids_cache', $switch_order_ids );
+	}
+
+	/**
+	 * Deletes a subscription's related order cache - including any duplicates.
+	 *
+	 * WC core between v8.1 and v8.4 would duplicate related order cache meta when backfilling the post record. This method deletes all
+	 * instances of a order type cache (duplicates included). It is intended to be called before setting the cache manually.
+	 *
+	 * Note: this function assumes that the fix to WC (listed below) will be included in 8.4. If it's pushed back, this function will need to be updated,
+	 * if it's brought forward to 8.3, it can be updated but is not strictly required.
+	 *
+	 * @see https://github.com/woocommerce/woocommerce/pull/41281
+	 * @see https://github.com/Automattic/woocommerce-subscriptions-core/pull/538
+	 *
+	 * @param WC_Subscription $subscription      The Subscription.
+	 * @param string          $relationship_type The type of subscription related order relationship to delete. One of: 'renewal', 'resubscribe', 'switch'.
+	 */
+	private function cleanup_backfill_related_order_cache_duplicates( $subscription, $relationship_type ) {
+		// Delete the related order cache on versions of WC after 8.1 but before 8.4.
+		if ( ! wcs_is_woocommerce_pre( '8.1' ) && wcs_is_woocommerce_pre( '8.4' ) ) {
+			delete_post_meta( $subscription->get_id(), "_subscription_{$relationship_type}_order_ids_cache" );
+		}
 	}
 }

@@ -1,5 +1,18 @@
 *** Woo Subscriptions Changelog ***
 
+2023-11-09 - version 5.7.0
+* Add: Introduce a new REST API endpoint to create subscription(s) from a given order. This endpoint is available at POST `/wc/v3/orders/{order_id}/subscriptions` and accepts a single order ID.
+* Add: When a customer toggles automatic renewals on or off via their My Account page, add a note to the subscription to record that event.
+* Fix: Set and update a subscription's trial end date via the REST API.
+* Fix: Ensure the `woocommerce_subscription_renewal_payment_complete` hook is always triggered when processing early renewals via the checkout page (introduced in 5.6.0).
+* Fix: When a subscription is flagged as requiring manual payments, allow admin users to turn on automatic payments for a subscription via the Edit Subscription page by selecting a new payment method.
+* Fix: When processing an early renewal order, make sure the suspension count is reset back to 0 on payment complete.
+* Fix: Ensure proper backfilling of subscription metadata (i.e. dates and cache) to the postmeta table when HPOS is enabled and compatibility mode (data syncing) is turned on.
+* Fix: Fetch and update the `_cancelled_email_sent` meta in a HPOS compatibile way.
+* Dev: Introduce a new wcs_get_subscription_grouping_key() function to generate a unique key for a subscription based on its billing schedule. This function uses the existing recurring cart key concept.
+* Dev: Deprecate the WC_Subscriptions_Synchroniser::add_to_recurring_cart_key(). Use WC_Subscriptions_Synchroniser::add_to_recurring_product_grouping_key() instead.
+* Dev: Update subscriptions-core to 6.5.0.
+
 2023-10-18 - version 5.6.0
 * Add: Introduce the "Subscription Relationship" column under the Orders list admin page when HPOS is enabled.
 * Add: Use admin theme color and the correct WooCommerce colors.

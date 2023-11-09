@@ -18,7 +18,6 @@ class WCS_Change_Payment_Method_Admin {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function display_fields( $subscription ) {
-
 		$payment_method        = $subscription->get_payment_method();
 		$valid_payment_methods = self::get_valid_payment_methods( $subscription );
 
@@ -34,22 +33,18 @@ class WCS_Change_Payment_Method_Admin {
 		echo '<p class="form-field form-field-wide">';
 
 		if ( count( $valid_payment_methods ) > 1 ) {
-
-			$found_method = false;
-			echo '<label>' . esc_html__( 'Payment Method', 'woocommerce-subscriptions' ) . ':</label>';
+			echo '<label>' . esc_html__( 'Payment method', 'woocommerce-subscriptions' ) . '</label>';
 			echo '<select class="wcs_payment_method_selector" name="_payment_method" id="_payment_method" class="first">';
 
-			foreach ( $valid_payment_methods as $gateway_id => $gateway_title ) {
+			$selected_payment_method = $subscription->get_requires_manual_renewal() ? 'manual' : $subscription->get_payment_method();
 
-				echo '<option value="' . esc_attr( $gateway_id ) . '" ' . selected( $payment_method, $gateway_id, false ) . '>' . esc_html( $gateway_title ) . '</option>';
-				if ( $payment_method == $gateway_id ) {
-					$found_method = true;
-				}
+			foreach ( $valid_payment_methods as $gateway_id => $gateway_title ) {
+				echo '<option value="' . esc_attr( $gateway_id ) . '" ' . selected( $selected_payment_method, $gateway_id, false ) . '>' . esc_html( $gateway_title ) . '</option>';
 			}
 			echo '</select>';
 
 		} elseif ( count( $valid_payment_methods ) == 1 ) {
-			echo '<strong>' . esc_html__( 'Payment Method', 'woocommerce-subscriptions' ) . ':</strong><br/>' . esc_html( current( $valid_payment_methods ) );
+			echo '<strong>' . esc_html__( 'Payment method', 'woocommerce-subscriptions' ) . '</strong><br/>' . esc_html( current( $valid_payment_methods ) );
 			// translators: %s: gateway ID.
 			echo wcs_help_tip( sprintf( _x( 'Gateway ID: [%s]', 'The gateway ID displayed on the Edit Subscriptions screen when editing payment method.', 'woocommerce-subscriptions' ), key( $valid_payment_methods ) ) );
 			echo '<input type="hidden" value="' . esc_attr( key( $valid_payment_methods ) ) . '" id="_payment_method" name="_payment_method">';
@@ -91,12 +86,10 @@ class WCS_Change_Payment_Method_Admin {
 				}
 
 				echo '</div>';
-
 			}
 		}
 
 		wp_nonce_field( 'wcs_change_payment_method_admin', '_wcsnonce' );
-
 	}
 
 	/**
@@ -149,6 +142,13 @@ class WCS_Change_Payment_Method_Admin {
 
 		// Update the payment method for manual only if it has changed.
 		if ( ! $subscription->is_manual() || 'manual' !== $payment_method ) {
+			// If the subscription is being changed away from manual and it is flagged as requiring manual payments turn on automatic renewals.
+			if ( 'manual' !== $payment_method && $subscription->get_requires_manual_renewal() && ! wcs_is_manual_renewal_required() && $payment_gateway->supports( 'subscriptions' ) ) {
+				$subscription->set_requires_manual_renewal( false );
+				// Translators: Placeholder is the payment gateway title.
+				$subscription->add_order_note( sprintf( __( 'Admin turned on automatic renewals by changing payment method to "%s" via the Edit Subscription screen.', 'woocommerce-subscriptions' ), $payment_gateway->get_title() ), false, true );
+			}
+
 			$subscription->set_payment_method( $payment_gateway, $payment_method_meta );
 			$subscription->save();
 		}

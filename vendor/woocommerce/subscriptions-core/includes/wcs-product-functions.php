@@ -437,3 +437,66 @@ function wcs_calculate_min_max_variations( $variations_data ) {
 		'identical'    => $subscription_details_identical,
 	);
 }
+
+/**
+ * Generates a key for grouping subscription products with the same billing schedule.
+ *
+ * Used in a frontend cart and checkout context to group items by a recurring cart key for use in generating recurring carts.
+ * Used by the orders/<id>/subscriptions REST API endpoint to group order items into subscriptions.
+ *
+ * @see https://woocommerce.com/document/subscriptions/develop/multiple-subscriptions/#section-3
+ *
+ * @param WC_Product $product      The product to generate the key for.
+ * @param int        $renewal_time The timestamp of the first renewal payment.
+ *
+ * @return string The subscription product grouping key.
+ */
+function wcs_get_subscription_grouping_key( $product, $renewal_time = 0 ) {
+	$key = '';
+
+	$renewal_time = ! empty( $renewal_time ) ? $renewal_time : WC_Subscriptions_Product::get_first_renewal_payment_time( $product );
+	$interval     = WC_Subscriptions_Product::get_interval( $product );
+	$period       = WC_Subscriptions_Product::get_period( $product );
+	$length       = WC_Subscriptions_Product::get_length( $product );
+	$trial_period = WC_Subscriptions_Product::get_trial_period( $product );
+	$trial_length = WC_Subscriptions_Product::get_trial_length( $product );
+
+	if ( $renewal_time > 0 ) {
+		$key .= gmdate( 'Y_m_d_', $renewal_time );
+	}
+
+	// First start with the billing interval and period.
+	switch ( $interval ) {
+		case 1:
+			if ( 'day' === $period ) {
+				$key .= 'daily';
+			} else {
+				$key .= sprintf( '%sly', $period );
+			}
+			break;
+		case 2:
+			$key .= sprintf( 'every_2nd_%s', $period );
+			break;
+		case 3:
+			$key .= sprintf( 'every_3rd_%s', $period ); // or sometimes two exceptions it would seem
+			break;
+		default:
+			$key .= sprintf( 'every_%dth_%s', $interval, $period );
+			break;
+	}
+
+	if ( $length > 0 ) {
+		$key .= '_for_';
+		$key .= sprintf( '%d_%s', $length, $period );
+
+		if ( $length > 1 ) {
+			$key .= 's';
+		}
+	}
+
+	if ( $trial_length > 0 ) {
+		$key .= sprintf( '_after_a_%d_%s_trial', $trial_length, $trial_period );
+	}
+
+	return apply_filters( 'wcs_subscription_product_grouping_key', $key, $product, $renewal_time );
+}

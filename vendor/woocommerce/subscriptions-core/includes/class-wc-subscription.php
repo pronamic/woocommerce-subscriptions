@@ -1778,7 +1778,12 @@ class WC_Subscription extends WC_Order {
 		// Add order note depending on initial payment
 		$this->add_order_note( __( 'Payment status marked complete.', 'woocommerce-subscriptions' ) );
 
-		$this->update_status( 'active' ); // also saves the subscription
+		// $this->update_status() only calls save if the status has changed.
+		if ( 'active' !== $this->get_status( 'edit' ) ) {
+			$this->update_status( 'active' );
+		} else {
+			$this->save();
+		}
 
 		do_action( 'woocommerce_subscription_payment_complete', $this );
 

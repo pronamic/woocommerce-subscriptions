@@ -98,6 +98,7 @@ class WCS_My_Account_Auto_Renew_Toggle {
 
 		if ( $subscription && self::can_user_toggle_auto_renewal( $subscription ) ) {
 			$subscription->set_requires_manual_renewal( true );
+			$subscription->add_order_note( __( 'Customer turned off automatic renewals via their My Account page.', 'woocommerce-subscriptions' ) );
 			$subscription->save();
 
 			self::send_ajax_response( $subscription );
@@ -122,6 +123,7 @@ class WCS_My_Account_Auto_Renew_Toggle {
 
 		if ( wc_get_payment_gateway_by_order( $subscription ) && self::can_user_toggle_auto_renewal( $subscription ) ) {
 			$subscription->set_requires_manual_renewal( false );
+			$subscription->add_order_note( __( 'Customer turned on automatic renewals via their My Account page.', 'woocommerce-subscriptions' ) );
 			$subscription->save();
 
 			self::send_ajax_response( $subscription );

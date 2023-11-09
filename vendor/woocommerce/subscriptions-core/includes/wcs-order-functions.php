@@ -979,3 +979,19 @@ function wcs_order_contains_early_renewal( $order ) {
 	 */
 	return apply_filters( 'woocommerce_subscriptions_is_early_renewal_order', $is_early_renewal, $order );
 }
+
+/**
+ * Generates a key for grouping subscription products with the same billing schedule.
+ *
+ * Used by the orders/<id>/subscriptions REST API endpoint to group order items into subscriptions.
+ *
+ * @see https://woocommerce.com/document/subscriptions/develop/multiple-subscriptions/#section-3
+ *
+ * @param WC_Order_Item_Product $item         The order item to generate the key for.
+ * @param int                   $renewal_time The timestamp of the first renewal payment.
+ *
+ * @return string The item's subscription grouping key.
+ */
+function wcs_get_subscription_item_grouping_key( $item, $renewal_time = '' ) {
+	return apply_filters( 'woocommerce_subscriptions_item_grouping_key', wcs_get_subscription_grouping_key( $item->get_product(), $renewal_time ), $item );
+}

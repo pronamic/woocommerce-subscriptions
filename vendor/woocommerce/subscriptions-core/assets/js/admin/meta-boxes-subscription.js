@@ -351,4 +351,17 @@ jQuery( function ( $ ) {
 			);
 		}
 	} );
+
+	/**
+	 * When the auto-renewal is toggled on or off, show or hide the chosen payment methods meta fields.
+	 */
+	$( '#wc-subscription-auto-renew' ).on( 'change', function() {
+		var $payment_method_meta_elements = $( '#wcs_' + $( '#_payment_method' ).val() + '_fields' );
+
+		if ( $( this ).is( ':checked' ) ) {
+			$payment_method_meta_elements.fadeIn();
+		} else {
+			$payment_method_meta_elements.fadeOut();
+		}
+	} );
 } );

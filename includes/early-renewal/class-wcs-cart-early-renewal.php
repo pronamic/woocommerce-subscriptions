@@ -479,6 +479,9 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 
 		// Payment success - if payment was successful and dates haven't been updated for this order, update the subscription dates and store meta to prevent dates being updated multiple times for the same order.
 		if ( $subscription && $order->is_paid() && ! $order->meta_exists( self::SUBSCRIPTION_DATES_UPDATED_META_KEY ) ) {
+			// Call the subscription payment complete function to trigger the payment complete hook and reset suspension counts and update user roles.
+			$subscription->payment_complete();
+
 			wcs_update_dates_after_early_renewal( $subscription, $order );
 
 			$order->update_meta_data( self::SUBSCRIPTION_DATES_UPDATED_META_KEY, wc_bool_to_string( true ) );

@@ -882,4 +882,112 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 
 		return $results ? array_combine( array_column( $results, 'status' ), array_map( 'absint', array_column( $results, 'cnt' ) ) ) : array();
 	}
+
+	/**
+	 * Fetches the subscription's start date.
+	 * This method is called by @see parent::backfill_post_record() when backfilling subscriptions details to WP_Post DB.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 *
+	 * @return string
+	 */
+	public function get_schedule_start( $subscription ) {
+		return $subscription->get_date( 'start' );
+	}
+
+	/**
+	 * Fetches the subscription's trial end date.
+	 * This method is called by @see parent::backfill_post_record() when backfilling subscriptions details to WP_Post DB.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 *
+	 * @return string
+	 */
+	public function get_schedule_trial_end( $subscription ) {
+		return $subscription->get_date( 'trial_end' );
+	}
+
+	/**
+	 * Fetches the subscription's next payment date.
+	 * This method is called by @see parent::backfill_post_record() when backfilling subscriptions details to WP_Post DB.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 *
+	 * @return string
+	 */
+	public function get_schedule_next_payment( $subscription ) {
+		return $subscription->get_date( 'next_payment' );
+	}
+
+	/**
+	 * Fetches the subscription's cancelled date.
+	 * This method is called by @see parent::backfill_post_record() when backfilling subscriptions details to WP_Post DB.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 *
+	 * @return string
+	 */
+	public function get_schedule_cancelled( $subscription ) {
+		return $subscription->get_date( 'cancelled' );
+	}
+
+	/**
+	 * Fetches the subscription's end date.
+	 * This method is called by @see parent::backfill_post_record() when backfilling subscriptions details to WP_Post DB.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 *
+	 * @return string
+	 */
+	public function get_schedule_end( $subscription ) {
+		return $subscription->get_date( 'end' );
+	}
+
+	/**
+	 * Fetches the subscription's payment retry date.
+	 * This method is called by @see parent::backfill_post_record() when backfilling subscriptions details to WP_Post DB.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 *
+	 * @return string
+	 */
+	public function get_schedule_payment_retry( $subscription ) {
+		return $subscription->get_date( 'payment_retry' );
+	}
+
+	/**
+	 * Returns a list of subscriptions's renewal order IDs stored in cache meta.
+	 * This method is called by @see parent::backfill_post_record() when backfilling subscriptions details to WP_Post DB.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 *
+	 * @return array
+	 */
+	public function get_renewal_order_ids_cache( $subscription ) {
+		return $subscription->get_meta( '_subscription_renewal_order_ids_cache' );
+	}
+
+	/**
+	 * Returns a list of subscriptions's resubscribe order IDs stored in cache meta.
+	 * This method is called by @see parent::backfill_post_record() when backfilling subscriptions details to WP_Post DB.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 *
+	 * @return array
+	 */
+	public function get_resubscribe_order_ids_cache( $subscription ) {
+		return $subscription->get_meta( '_subscription_resubscribe_order_ids_cache' );
+	}
+
+	/**
+	 * Returns a list of subscriptions's switch order IDs stored in cache meta.
+	 * This method is called by @see parent::backfill_post_record() when backfilling subscriptions details to WP_Post DB.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 *
+	 * @return array
+	 */
+	public function get_switch_order_ids_cache( $subscription ) {
+		return $subscription->get_meta( '_subscription_switch_order_ids_cache' );
+	}
 }
