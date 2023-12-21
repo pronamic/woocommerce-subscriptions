@@ -948,6 +948,80 @@ class WC_Subscription extends WC_Order {
 	}
 
 	/**
+	 * Set schedule trial end date.
+	 *
+	 * Note: This function is intended for internal use only and should not be accessed directly.
+	 * It only exists to support setting the trial end date prop from the data store.
+	 * Calling this function does not automatically schedule the trial end date as a Scheduled Action.
+	 *
+	 * Use WC_Subscription::update_dates() instead.
+	 *
+	 * @param string $schedule_trial_end
+	 */
+	public function set_trial_end_date( $schedule_trial_end ) {
+		$this->set_prop( 'schedule_trial_end', $schedule_trial_end );
+	}
+
+	/**
+	 * Set schedule next payment date.
+	 *
+	 * Note: This function is intended for internal use only and should not be accessed directly.
+	 * It only exists to support setting the next payment date prop from the data store.
+	 * Calling this function does not automatically schedule the next payment date as a Scheduled Action.
+	 *
+	 * Use WC_Subscription::update_dates() instead.
+	 *
+	 * @param string $schedule_next_payment
+	 */
+	public function set_next_payment_date( $schedule_next_payment ) {
+		$this->set_prop( 'schedule_next_payment', $schedule_next_payment );
+	}
+
+	/**
+	 * Set schedule cancelled date.
+	 *
+	 * Note: This function is intended for internal use only and should not be accessed directly.
+	 * It only exists to support setting the cancelled date prop from the data store.
+	 *
+	 * Use WC_Subscription::update_dates() instead.
+	 *
+	 * @param string $schedule_cancelled
+	 */
+	public function set_cancelled_date( $schedule_cancelled ) {
+		$this->set_prop( 'schedule_cancelled', $schedule_cancelled );
+	}
+
+	/**
+	 * Set schedule end date.
+	 *
+	 * Note: This function is intended for internal use only and should not be accessed directly.
+	 * It only exists to support setting the end date prop from the data store.
+	 * Calling this function does not automatically schedule the end date as a Scheduled Action.
+	 *
+	 * Use WC_Subscription::update_dates() instead.
+	 *
+	 * @param string $schedule_end
+	 */
+	public function set_end_date( $schedule_end ) {
+		$this->set_prop( 'schedule_end', $schedule_end );
+	}
+
+	/**
+	 * Set schedule payment retry date.
+	 *
+	 * Note: This function is intended for internal use only and should not be accessed directly.
+	 * It only exists to support setting the payment retry date prop from the data store.
+	 * Calling this function does not automatically schedule the payment retry date as a Scheduled Action.
+	 *
+	 * Use WC_Subscription::update_dates() instead.
+	 *
+	 * @param string $schedule_payment_retry
+	 */
+	public function set_payment_retry_date( $schedule_payment_retry ) {
+		$this->set_prop( 'schedule_payment_retry', $schedule_payment_retry );
+	}
+
+	/**
 	 * Set parent order ID. We don't use WC_Abstract_Order::set_parent_id() because we want to allow false
 	 * parent IDs, like 0.
 	 *

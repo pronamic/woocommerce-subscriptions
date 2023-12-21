@@ -232,8 +232,10 @@ class WCS_Query extends WC_Query {
 			return;
 		}
 
-		$subscription = wcs_get_subscription( absint( $query->get( 'subscription-payment-method' ) ) );
-		if ( ! $subscription ) {
+		$subscription_id = absint( $query->get( 'subscription-payment-method' ) );
+		$subscription    = wcs_get_subscription( $subscription_id );
+
+		if ( ! $subscription || ! current_user_can( 'edit_shop_subscription_payment_method', $subscription_id ) ) {
 			return;
 		}
 

@@ -332,11 +332,11 @@ class WCS_Switch_Cart_Item {
 	public function calculate_days_in_old_cycle() {
 		$method_to_use = 'days_between_payments';
 
-		// If the subscription contains a synced product and the next payment is actually the first payment, determine the days in the "old" cycle from the subscription object
+		// If the subscription contains a synced product with no proration on signup and the next payment is actually the first payment, determine the days in the "old" cycle from the subscription object
 		if ( WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $this->subscription ) ) {
 			$first_synced_payment = WC_Subscriptions_Synchroniser::calculate_first_payment_date( wc_get_product( $this->canonical_product_id ), 'timestamp', $this->subscription->get_date( 'start' ) );
 
-			if ( $first_synced_payment === $this->next_payment_timestamp ) {
+			if ( $first_synced_payment === $this->next_payment_timestamp && 0 === $this->get_total_paid_for_current_period() ) {
 				$method_to_use = 'days_in_billing_cycle';
 			}
 		}

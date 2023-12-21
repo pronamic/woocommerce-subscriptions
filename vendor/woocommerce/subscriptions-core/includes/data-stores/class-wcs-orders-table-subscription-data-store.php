@@ -990,4 +990,70 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 	public function get_switch_order_ids_cache( $subscription ) {
 		return $subscription->get_meta( '_subscription_switch_order_ids_cache' );
 	}
+
+	/**
+	 * Sets the subscription's start date prop.
+	 * Called by @see OrdersTableDataStore::set_order_prop() when syncing/migrating internal meta key data.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 * @param string           $date         The date to set.
+	 */
+	public function set_schedule_start( $subscription, $date ) {
+		$subscription->set_start_date( $date );
+	}
+
+	/**
+	 * Sets the subscription's trial end date prop.
+	 * Called by @see OrdersTableDataStore::set_order_prop() when syncing/migrating internal meta key data.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 * @param string           $date         The date to set.
+	 */
+	public function set_schedule_trial_end( $subscription, $date ) {
+		$subscription->set_trial_end_date( $date );
+	}
+
+	/**
+	 * Sets the subscription's next payment date prop.
+	 * Called by @see OrdersTableDataStore::set_order_prop() when syncing/migrating internal meta key data.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 * @param string           $date         The date to set.
+	 */
+	public function set_schedule_next_payment( $subscription, $date ) {
+		$subscription->set_next_payment_date( $date );
+	}
+
+	/**
+	 * Sets the subscription's cancelled date prop.
+	 * Called by @see OrdersTableDataStore::set_order_prop() when syncing/migrating internal meta key data.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 * @param string           $date         The date to set.
+	 */
+	public function set_schedule_cancelled( $subscription, $date ) {
+		$subscription->set_cancelled_date( $date );
+	}
+
+	/**
+	 * Sets the subscription's end date prop.
+	 * Called by @see OrdersTableDataStore::set_order_prop() when syncing/migrating internal meta key data.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 * @param string           $date         The date to set.
+	 */
+	public function set_schedule_end( $subscription, $date ) {
+		$subscription->set_end_date( $date );
+	}
+
+	/**
+	 * Sets the subscription's payment retry date prop.
+	 * Called by @see OrdersTableDataStore::set_order_prop() when syncing/migrating internal meta key data.
+	 *
+	 * @param \WC_Subscription $subscription Subscription object.
+	 * @param string           $date         The date to set.
+	 */
+	public function set_schedule_payment_retry( $subscription, $date ) {
+		$subscription->set_payment_retry_date( $date );
+	}
 }

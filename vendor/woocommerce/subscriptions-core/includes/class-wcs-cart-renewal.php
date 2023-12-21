@@ -427,6 +427,7 @@ class WCS_Cart_Renewal {
 
 			if ( $subscription ) {
 				$subscription_items = $subscription->get_items();
+				$item_to_renew      = [];
 
 				/**
 				 * Find the subscription or order line item that represents this cart item.
@@ -443,6 +444,11 @@ class WCS_Cart_Renewal {
 							break;
 						}
 					}
+				}
+
+				// If we can't find the item to renew, return the cart item session data as is.
+				if ( empty( $item_to_renew ) ) {
+					return $cart_item_session_data;
 				}
 
 				$price = $item_to_renew['line_subtotal'];
@@ -1613,16 +1619,8 @@ class WCS_Cart_Renewal {
 			return $has_status;
 		}
 
-		/**
-		 * This function is only concerned with updating the order cart hash during REST API requests - which is the request
-		 * context where the Store API Checkout Block validates the order for payment resumption.
-		 */
-		if ( ! WC()->is_rest_api_request() ) {
-			return $has_status;
-		}
-
 		// If the order being validated is the order in the cart, then we need to update the cart hash so it can be resumed.
-		if ( $order && $order->get_id() === WC()->session->get( 'store_api_draft_order', 0 ) ) {
+		if ( $order && $order->get_id() === (int) WC()->session->get( 'store_api_draft_order', 0 ) ) {
 			$cart_order = $this->get_order();
 
 			if ( $cart_order && $cart_order->get_id() === $order->get_id() ) {

@@ -241,11 +241,6 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		$payment_meta   = array();
 		$dates          = array();
 
-		// If the start date is not set in the request, set its default to now.
-		if ( ! isset( $request['start_date'] ) ) {
-			$request['start_date'] = gmdate( 'Y-m-d H:i:s' );
-		}
-
 		// Both setting (set_status()) and updating (update_status()) are valid ways for requests to set a subscription's status.
 		$status_transition = 'set';
 
@@ -322,8 +317,8 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		}
 
 		if ( ! empty( $dates ) ) {
-			// If the start date is not set in the request when a subscription is created with an active status, set its default to now.
-			if ( 'active' === $status && empty( $id ) && ! isset( $dates['start_date'] ) ) {
+			// If the start date is not set in the request when a subscription is being created, set its default to now.
+			if ( empty( $id ) && ! isset( $dates['start_date'] ) ) {
 				$dates['start_date'] = gmdate( 'Y-m-d H:i:s' );
 			}
 
