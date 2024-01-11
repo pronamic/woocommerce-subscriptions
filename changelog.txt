@@ -1,5 +1,12 @@
 *** Woo Subscriptions Changelog ***
 
+2024-01-11 - version 5.9.0
+* Fix: Resolved an issue that caused ordering the Admin Subscriptions List Table to not work when HPOS is enabled.
+* Fix: When switching all subscription items in the same cart, ensure the previous subscription is reused where possible instead of creating all new subscriptions.
+* Update: Changed the edit subscription product "Expire after" (Subscription length) so it more clearly describes when a subscription will automatically stop renewing.
+* Update: Log all exceptions caught by WooCommerce while processing a subscription scheduled action.
+* Dev: Update subscriptions-core to 6.7.0.
+
 2023-12-21 - version 5.8.0
 * Fix: Incorrect switch calculation when upgrading a synchronised product before the first renewal is due where the initial payment was prorated.
 * Fix: When updating a subscription via the REST API, don't update the start date to the current time if the start date is not set in the request.

@@ -35,6 +35,13 @@ class WCS_Failed_Scheduled_Action_Manager {
 	protected $logger;
 
 	/**
+	 * Exceptions caught by WC while this class is listening to the `woocommerce_caught_exception` action.
+	 *
+	 * @var Exception[]
+	 */
+	protected $exceptions = [];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param WC_Logger_Interface $logger The WC Logger instance.
@@ -55,6 +62,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 		add_action( 'action_scheduler_failed_execution', array( $this, 'log_action_scheduler_failure' ), 10, 2 );
 		add_action( 'action_scheduler_unexpected_shutdown', array( $this, 'log_action_scheduler_failure' ), 10, 2 );
 		add_action( 'admin_notices', array( $this, 'maybe_show_admin_notice' ) );
+		add_action( 'action_scheduler_begin_execute', array( $this, 'maybe_attach_exception_listener' ) );
 	}
 
 	/**
@@ -106,6 +114,56 @@ class WCS_Failed_Scheduled_Action_Manager {
 		);
 
 		update_option( WC_Subscriptions_Admin::$option_prefix . '_failed_scheduled_actions', $failed_scheduled_actions );
+
+		// If there is an exception listener and it's caught exceptions, log them for additional debugging.
+		if ( ! empty( $this->exceptions ) ) {
+			foreach ( $this->exceptions as $exception ) {
+				$message = 'Exception: ' . $exception->getMessage() . ' in ' . $exception->getFile() . ':' . $exception->getLine();
+				$this->log( $message . PHP_EOL . $exception->getTraceAsString() );
+				ActionScheduler_Logger::instance()->log( $action_id, $message );
+			}
+
+			// Now that we've logged the exceptions, we can detach the exception listener.
+			$this->clear_exceptions_and_detach_listener();
+		}
+	}
+
+	/**
+	 * Creates a new exception listener when processing subscription-related scheduled actions.
+	 *
+	 * @param int $action_id The ID of the scheduled action being ran.
+	 */
+	public function maybe_attach_exception_listener( $action_id ) {
+		$action = $this->get_action( $action_id );
+
+		if ( ! $action || ! isset( $this->tracked_scheduled_actions[ $action->get_hook() ] ) ) {
+			return;
+		}
+
+		// Add an action to detach the exception listener and clear the caught exceptions after the scheduled action has been executed.
+		add_action( 'action_scheduler_after_execute', [ $this, 'clear_exceptions_and_detach_listener' ] );
+
+		// Attach the exception listener.
+		add_action( 'woocommerce_caught_exception', [ $this, 'handle_exception' ] );
+	}
+
+	/**
+	 * Adds an exception to the list of exceptions caught by WC.
+	 *
+	 * @param Exception $exception The exception that was caught.
+	 */
+	public function handle_exception( $exception ) {
+		$this->exceptions[] = $exception;
+	}
+
+	/**
+	 * Clears the list of exceptions caught by WC and detaches the listener.
+	 *
+	 * This function is called directly and attached to an action that runs after a scheduled action has finished being executed.
+	 */
+	public function clear_exceptions_and_detach_listener() {
+		$this->exceptions = [];
+		remove_action( 'woocommerce_caught_exception', [ $this, 'handle_exception' ] );
 	}
 
 	/**

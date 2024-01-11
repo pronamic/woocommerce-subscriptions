@@ -1025,113 +1025,115 @@ class WC_Subscriptions_Switcher {
 
 					$subscription->set_shipping_total( $subscription_shipping_total );
 					$switch_order_data[ $subscription->get_id() ]['shipping_line_items'] = $new_shipping_line_items;
+				}
 
-					// Loop through cart items to add them to the switched subscription.
-					foreach ( $recurring_cart->get_cart() as $cart_item_key => $cart_item ) {
+				// Loop through cart items to add them to the switched subscription.
+				foreach ( $recurring_cart->get_cart() as $cart_item_key => $cart_item ) {
+					// If we haven't calculated a first payment date, fall back to the recurring cart's next payment date.
+					if ( 0 == $cart_item['subscription_switch']['first_payment_timestamp'] ) {
+						$cart_item['subscription_switch']['first_payment_timestamp'] = wcs_date_to_time( $recurring_cart->next_payment_date );
+					}
 
-						// If we haven't calculated a first payment date, fall back to the recurring cart's next payment date.
-						if ( 0 == $cart_item['subscription_switch']['first_payment_timestamp'] ) {
-							$cart_item['subscription_switch']['first_payment_timestamp'] = wcs_date_to_time( $recurring_cart->next_payment_date );
-						}
+					$is_different_billing_schedule = self::has_different_billing_schedule( $cart_item, $subscription );
+					$is_different_payment_date     = self::has_different_payment_date( $cart_item, $subscription );
+					$is_different_length           = self::has_different_length( $recurring_cart, $subscription );
+					$is_single_item_subscription   = self::is_single_item_subscription( $subscription );
 
-						$is_different_billing_schedule = self::has_different_billing_schedule( $cart_item, $subscription );
-						$is_different_payment_date     = self::has_different_payment_date( $cart_item, $subscription );
-						$is_different_length           = self::has_different_length( $recurring_cart, $subscription );
-						$is_single_item_subscription   = self::is_single_item_subscription( $subscription );
+					$switched_item_data = array();
 
-						$switched_item_data = array();
+					if ( ! empty( $cart_item['subscription_switch']['item_id'] ) ) {
+						$existing_item                          = wcs_get_order_item( $cart_item['subscription_switch']['item_id'], $subscription );
+						$switch_item                            = new WCS_Switch_Cart_Item( $cart_item, $subscription, $existing_item );
+						$is_switch_with_matching_trials         = $switch_item->is_switch_during_trial() && $switch_item->trial_periods_match();
+						$switched_item_data['remove_line_item'] = $cart_item['subscription_switch' ]['item_id'];
+						$switched_item_data['switch_direction'] = $switch_item->get_switch_type();
+					}
 
-						if ( ! empty( $cart_item['subscription_switch']['item_id'] ) ) {
-							$existing_item                          = wcs_get_order_item( $cart_item['subscription_switch']['item_id'], $subscription );
-							$switch_item                            = new WCS_Switch_Cart_Item( $cart_item, $subscription, $existing_item );
-							$is_switch_with_matching_trials         = $switch_item->is_switch_during_trial() && $switch_item->trial_periods_match();
-							$switched_item_data['remove_line_item'] = $cart_item['subscription_switch' ]['item_id'];
-							$switched_item_data['switch_direction'] = $switch_item->get_switch_type();
-						}
+					// An existing subscription can be updated if it's a single item subscription or switches already calculated have left it with just one item.
+					$can_update_existing_subscription = $is_single_item_subscription || ! empty( $existing_item ) &&  self::is_last_remaining_item_after_previous_switches( $subscription, $existing_item, $switch_order_data );
 
-						// If the item is on the same schedule, we can just add it to the new subscription and remove the old item.
-						if ( $is_single_item_subscription || ( false === $is_different_billing_schedule && false === $is_different_payment_date && false === $is_different_length ) ) {
-							// Add the new item
-							$item                       = new WC_Order_Item_Pending_Switch;
-							$item->legacy_values        = $cart_item; // @deprecated For legacy actions.
-							$item->legacy_cart_item_key = $cart_item_key; // @deprecated For legacy actions.
+					// If the item is on the same schedule, we can just add it to the new subscription and remove the old item.
+					if ( $can_update_existing_subscription || ( false === $is_different_billing_schedule && false === $is_different_payment_date && false === $is_different_length ) ) {
+						// Add the new item
+						$item                       = new WC_Order_Item_Pending_Switch;
+						$item->legacy_values        = $cart_item; // @deprecated For legacy actions.
+						$item->legacy_cart_item_key = $cart_item_key; // @deprecated For legacy actions.
+						$item->set_props( array(
+							'quantity'     => $cart_item['quantity'],
+							'variation'    => $cart_item['variation'],
+							'subtotal'     => $cart_item['line_subtotal'],
+							'total'        => $cart_item['line_total'],
+							'subtotal_tax' => $cart_item['line_subtotal_tax'],
+							'total_tax'    => $cart_item['line_tax'],
+							'taxes'        => $cart_item['line_tax_data'],
+						) );
+
+						if ( ! empty( $cart_item[ 'data' ] ) ) {
+							$product = $cart_item[ 'data' ];
 							$item->set_props( array(
-								'quantity'     => $cart_item['quantity'],
-								'variation'    => $cart_item['variation'],
-								'subtotal'     => $cart_item['line_subtotal'],
-								'total'        => $cart_item['line_total'],
-								'subtotal_tax' => $cart_item['line_subtotal_tax'],
-								'total_tax'    => $cart_item['line_tax'],
-								'taxes'        => $cart_item['line_tax_data'],
+								'name'         => $product->get_name(),
+								'tax_class'    => $product->get_tax_class(),
+								'product_id'   => $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id(),
+								'variation_id' => $product->is_type( 'variation' ) ? $product->get_id() : 0,
 							) );
-
-							if ( ! empty( $cart_item[ 'data' ] ) ) {
-								$product = $cart_item[ 'data' ];
-								$item->set_props( array(
-									'name'         => $product->get_name(),
-									'tax_class'    => $product->get_tax_class(),
-									'product_id'   => $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id(),
-									'variation_id' => $product->is_type( 'variation' ) ? $product->get_id() : 0,
-								) );
-							}
-
-							if ( WC_Subscriptions_Product::get_trial_length( wcs_get_canonical_product_id( $cart_item ) ) > 0 ) {
-								$item->add_meta_data( '_has_trial', 'true' );
-							}
-
-							do_action( 'woocommerce_checkout_create_order_line_item', $item, $cart_item_key, $cart_item, $subscription );
-
-							$subscription->add_item( $item );
-
-							// The subscription is not saved automatically, we need to call 'save' because we added an item
-							$subscription->save();
-							$item_id = $item->get_id();
-
-							$switched_item_data['add_line_item'] = $item_id;
-
-							// Remove the item from the cart so that WC_Subscriptions_Checkout doesn't add it to a subscription
-							if ( 1 == count( WC()->cart->recurring_carts[ $recurring_cart_key ]->get_cart() ) ) {
-								// If this is the only item in the cart, clear out recurring carts so WC_Subscriptions_Checkout doesn't try to create an empty subscription
-								unset( WC()->cart->recurring_carts[ $recurring_cart_key ] );
-							} else {
-								unset( WC()->cart->recurring_carts[ $recurring_cart_key ]->cart_contents[ $cart_item_key ] );
-							}
 						}
 
-						$switch_order_data[ $subscription->get_id() ]['switches'][ $cart_item['subscription_switch']['order_line_item_id'] ] = $switched_item_data;
+						if ( WC_Subscriptions_Product::get_trial_length( wcs_get_canonical_product_id( $cart_item ) ) > 0 ) {
+							$item->add_meta_data( '_has_trial', 'true' );
+						}
 
-						// If the old subscription has just one item, we can safely update its billing schedule
-						if ( $is_single_item_subscription ) {
+						do_action( 'woocommerce_checkout_create_order_line_item', $item, $cart_item_key, $cart_item, $subscription );
 
-							if ( $is_different_billing_schedule ) {
-								$switch_order_data[ $subscription->get_id() ]['billing_schedule']['_billing_period']   = WC_Subscriptions_Product::get_period( $cart_item['data'] );
-								$switch_order_data[ $subscription->get_id() ]['billing_schedule']['_billing_interval'] = absint( WC_Subscriptions_Product::get_interval( $cart_item['data'] ) );
-							}
+						$subscription->add_item( $item );
 
-							$updated_dates = array();
+						// The subscription is not saved automatically, we need to call 'save' because we added an item
+						$subscription->save();
+						$item_id = $item->get_id();
 
-							if ( '1' == WC_Subscriptions_Product::get_length( $cart_item['data'] ) || ( 0 != $recurring_cart->end_date && gmdate( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] ) >= $recurring_cart->end_date ) ) {
-								// Delete the next payment date.
-								$updated_dates['next_payment'] = 0;
-							} else if ( $is_different_payment_date ) {
-								$updated_dates['next_payment'] = gmdate( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] );
-							}
+						$switched_item_data['add_line_item'] = $item_id;
 
-							if ( $is_different_length ) {
-								$updated_dates['end'] = $recurring_cart->end_date;
-							}
+						// Remove the item from the cart so that WC_Subscriptions_Checkout doesn't add it to a subscription
+						if ( 1 == count( WC()->cart->recurring_carts[ $recurring_cart_key ]->get_cart() ) ) {
+							// If this is the only item in the cart, clear out recurring carts so WC_Subscriptions_Checkout doesn't try to create an empty subscription
+							unset( WC()->cart->recurring_carts[ $recurring_cart_key ] );
+						} else {
+							unset( WC()->cart->recurring_carts[ $recurring_cart_key ]->cart_contents[ $cart_item_key ] );
+						}
+					}
 
-							// If the switch should maintain the current trial or delete it.
-							if ( isset( $is_switch_with_matching_trials ) && $is_switch_with_matching_trials ) {
-								$updated_dates['trial_end'] = $subscription->get_date( 'trial_end' );
-							} else {
-								$updated_dates['trial_end'] = 0;
-							}
+					$switch_order_data[ $subscription->get_id() ]['switches'][ $cart_item['subscription_switch']['order_line_item_id'] ] = $switched_item_data;
 
-							if ( ! empty( $updated_dates ) ) {
-								$subscription->validate_date_updates( $updated_dates );
-								$switch_order_data[ $subscription->get_id() ]['dates']['update'] = $updated_dates;
-							}
+					// If the old subscription has just one item, we can safely update its billing schedule
+					if ( $can_update_existing_subscription ) {
+
+						if ( $is_different_billing_schedule ) {
+							$switch_order_data[ $subscription->get_id() ]['billing_schedule']['_billing_period']   = WC_Subscriptions_Product::get_period( $cart_item['data'] );
+							$switch_order_data[ $subscription->get_id() ]['billing_schedule']['_billing_interval'] = absint( WC_Subscriptions_Product::get_interval( $cart_item['data'] ) );
+						}
+
+						$updated_dates = array();
+
+						if ( '1' == WC_Subscriptions_Product::get_length( $cart_item['data'] ) || ( 0 != $recurring_cart->end_date && gmdate( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] ) >= $recurring_cart->end_date ) ) {
+							// Delete the next payment date.
+							$updated_dates['next_payment'] = 0;
+						} else if ( $is_different_payment_date ) {
+							$updated_dates['next_payment'] = gmdate( 'Y-m-d H:i:s', $cart_item['subscription_switch']['first_payment_timestamp'] );
+						}
+
+						if ( $is_different_length ) {
+							$updated_dates['end'] = $recurring_cart->end_date;
+						}
+
+						// If the switch should maintain the current trial or delete it.
+						if ( isset( $is_switch_with_matching_trials ) && $is_switch_with_matching_trials ) {
+							$updated_dates['trial_end'] = $subscription->get_date( 'trial_end' );
+						} else {
+							$updated_dates['trial_end'] = 0;
+						}
+
+						if ( ! empty( $updated_dates ) ) {
+							$subscription->validate_date_updates( $updated_dates );
+							$switch_order_data[ $subscription->get_id() ]['dates']['update'] = $updated_dates;
 						}
 					}
 				}
@@ -2338,6 +2340,41 @@ class WC_Subscriptions_Switcher {
 		if ( isset( self::$switch_totals_calculator ) ) {
 			self::$switch_totals_calculator->log_switches();
 		}
+	}
+
+	/**
+	 * Determines if a subscription item being switched is the last remaining item on the subscription after previous switches.
+	 *
+	 * If the item being switched is the last remaining item on the subscription after previous switches, then the subscription
+	 * can be updated even if the billing schedule is being changed.
+	 *
+	 * @param WC_Subscription       $subscription  The subscription being switched.
+	 * @param WC_Order_Item_Product $switched_item The subscription line item being switched.
+	 * @param array                 $switch_data   Data about the switches that will occur on the subscription.
+	 *
+	 * @return bool True if the item being switched is the last remaining item on the subscription after previous switches.
+	 */
+	private static function is_last_remaining_item_after_previous_switches( $subscription, $switched_item, $switch_data ) {
+		$remaining_items = $subscription->get_items();
+
+		// If there is no switch data for this subscription return false.
+		if ( ! isset( $switch_data[ $subscription->get_id() ]['switches'] ) ) {
+			return false;
+		}
+
+		foreach( $switch_data[ $subscription->get_id() ]['switches'] as $switch ) {
+			// If items are actively being added to this subscription, then it is not the last remaining item.
+			if ( isset( $switch['add_line_item'] ) ) {
+				return false;
+			}
+
+			if ( isset( $switch['remove_line_item'] ) ) {
+				unset( $remaining_items[ $switch['remove_line_item'] ] );
+			}
+		}
+
+		// If there's only 1 item left and it's the item we're switching, then it's the last remaining item.
+		return 1 === count( $remaining_items ) && isset( $remaining_items[ $switched_item->get_id() ] );
 	}
 
 	/**

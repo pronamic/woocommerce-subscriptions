@@ -85,7 +85,7 @@ function wcs_get_non_cached_subscription_ranges() {
 	foreach ( array( 'day', 'week', 'month', 'year' ) as $period ) {
 
 		$subscription_lengths = array(
-			_x( 'Never expire', 'Subscription length', 'woocommerce-subscriptions' ),
+			_x( 'Do not stop until cancelled', 'Subscription length', 'woocommerce-subscriptions' ),
 		);
 
 		switch ( $period ) {

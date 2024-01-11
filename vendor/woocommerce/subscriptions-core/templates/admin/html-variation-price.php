@@ -63,8 +63,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</p>
 	<p class="form-row form-row-last show_if_variable-subscription _subscription_length_field" style="display: none">
 		<label for="variable_subscription_length[<?php echo esc_attr( $loop ); ?>]">
-			<?php esc_html_e( 'Expire after', 'woocommerce-subscriptions' ); ?>
-			<?php echo wcs_help_tip( _x( 'Automatically expire the subscription after this length of time. This length is in addition to any free trial or amount of time provided before a synchronised first renewal date.', 'Subscription Length dropdown\'s description in pricing fields', 'woocommerce-subscriptions' ) ); ?>
+			<?php esc_html_e( 'Stop renewing after', 'woocommerce-subscriptions' ); ?>
+			<?php echo wcs_help_tip( _x( 'Automatically stop renewing the subscription after this length of time. This length is in addition to any free trial or amount of time provided before a synchronised first renewal date.', 'Subscription Length dropdown\'s description in pricing fields', 'woocommerce-subscriptions' ) ); ?>
 		</label>
 		<select name="variable_subscription_length[<?php echo esc_attr( $loop ); ?>]" class="wc_input_subscription_length wc-enhanced-select">
 		<?php foreach ( wcs_get_subscription_ranges( $billing_period ) as $key => $value ) : ?>

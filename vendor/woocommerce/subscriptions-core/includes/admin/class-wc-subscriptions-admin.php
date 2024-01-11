@@ -338,10 +338,10 @@ class WC_Subscriptions_Admin {
 			array(
 				'id'          => '_subscription_length',
 				'class'       => 'wc_input_subscription_length select short wc-enhanced-select',
-				'label'       => __( 'Expire after', 'woocommerce-subscriptions' ),
+				'label'       => __( 'Stop renewing after', 'woocommerce-subscriptions' ),
 				'options'     => wcs_get_subscription_ranges( $chosen_period ),
 				'desc_tip'    => true,
-				'description' => __( 'Automatically expire the subscription after this length of time. This length is in addition to any free trial or amount of time provided before a synchronised first renewal date.', 'woocommerce-subscriptions' ),
+				'description' => __( 'Automatically stop renewing the subscription after this length of time. This length is in addition to any free trial or amount of time provided before a synchronised first renewal date.', 'woocommerce-subscriptions' ),
 			)
 		);
 
@@ -479,7 +479,7 @@ class WC_Subscriptions_Admin {
 				<option value="variable_subscription_sign_up_fee"><?php esc_html_e( 'Subscription sign-up fee', 'woocommerce-subscriptions' ); ?></option>
 				<option value="variable_subscription_period_interval"><?php esc_html_e( 'Subscription billing interval', 'woocommerce-subscriptions' ); ?></option>
 				<option value="variable_subscription_period"><?php esc_html_e( 'Subscription period', 'woocommerce-subscriptions' ); ?></option>
-				<option value="variable_subscription_length"><?php esc_html_e( 'Expire after', 'woocommerce-subscriptions' ); ?></option>
+				<option value="variable_subscription_length"><?php esc_html_e( 'Stop renewing after', 'woocommerce-subscriptions' ); ?></option>
 				<option value="variable_subscription_trial_length"><?php esc_html_e( 'Free trial length', 'woocommerce-subscriptions' ); ?></option>
 				<option value="variable_subscription_trial_period"><?php esc_html_e( 'Free trial period', 'woocommerce-subscriptions' ); ?></option>
 			</optgroup>

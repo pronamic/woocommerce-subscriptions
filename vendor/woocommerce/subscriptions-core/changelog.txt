@@ -1,5 +1,10 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 6.7.0 - 2024-01-11 =
+* Update - Changed the edit subscription product "Expire after" (Subscription length) so it more clearly describes when a subscription will automatically stop renewing.
+* Update - Log all exceptions caught by WooCommerce while processing a subscription scheduled action.
+* Fix - Resolved an issue that caused ordering the Admin Subscriptions List Table to not work when HPOS is enabled.
+
 = 6.6.0 - 2023-12-20 =
 * Fix - When using the checkout block to pay for renewal orders, ensure the order's cart hash is updated to make sure the existing order can be used.
 * Fix - Prevents a PHP fatal error that occurs when the cart contains a renewal order item that no longer exists.

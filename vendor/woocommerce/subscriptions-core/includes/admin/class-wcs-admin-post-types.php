@@ -204,7 +204,6 @@ class WCS_Admin_Post_Types {
 		return $pieces;
 	}
 
-
 	/**
 	 * Displays the dropdown for the product filter
 	 *
@@ -880,6 +879,7 @@ class WCS_Admin_Post_Types {
 		$request_query = $this->set_filter_by_customer_query( $request_query );
 		$request_query = $this->set_filter_by_product_query( $request_query );
 		$request_query = $this->set_filter_by_payment_method_query( $request_query );
+		$request_query = $this->set_order_by_query_args( $request_query );
 
 		return $request_query;
 	}
@@ -1016,6 +1016,36 @@ class WCS_Admin_Post_Types {
 			];
 		} else {
 			$request_query['payment_method'] = $payment_method;
+		}
+
+		return $request_query;
+	}
+
+	/**
+	 * Sets the order by query args for the subscriptions list table request on HPOS enabled sites.
+	 *
+	 * This function is similar to the posts table equivalent function (self::request_query()) except it only sets the order by.
+	 *
+	 * @param array $request_query The query args sent to wc_get_orders() to populate the list table.
+	 * @return array $request_query
+	 */
+	private function set_order_by_query_args( $request_query ) {
+
+		if ( ! isset( $request_query['orderby'] ) ) {
+			return $request_query;
+		}
+
+		switch ( $request_query['orderby'] ) {
+			case 'last_payment_date':
+				add_filter( 'woocommerce_orders_table_query_clauses', [ $this, 'orders_table_query_clauses' ], 10, 3 );
+				break;
+			case 'start_date':
+			case 'trial_end_date':
+			case 'next_payment_date':
+			case 'end_date':
+				$request_query['meta_key'] = sprintf( '_schedule_%s', str_replace( '_date', '', $request_query['orderby'] ) ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				$request_query['orderby']  = 'meta_value';
+				break;
 		}
 
 		return $request_query;
@@ -1751,5 +1781,110 @@ class WCS_Admin_Post_Types {
 			} );
 		</script>
 		<?php
+	}
+
+	/**
+	 * Adds Order table query clauses to order the subscriptions list table by last payment date.
+	 *
+	 * There are 2 methods we use to order the subscriptions list table by last payment date:
+	 *  - High performance: This method uses a temporary table to store the last payment date for each subscription.
+	 *  - Low performance: This method uses a subquery to get the last payment date for each subscription.
+	 *
+	 * @param string[]         $pieces Associative array of the clauses for the query.
+	 * @param OrdersTableQuery $query  The query object.
+	 * @param array            $args   Query args.
+	 *
+	 * @return string[] $pieces Associative array of the clauses for the query.
+	 */
+	public function orders_table_query_clauses( $pieces, $query, $args ) {
+
+		if ( ! is_admin() || ! isset( $args['type'] ) || 'shop_subscription' !== $args['type'] ) {
+			return $pieces;
+		}
+
+		// Let's check whether we even have the privileges to do the things we want to do
+		if ( $this->is_db_user_privileged() ) {
+			$pieces = self::orders_table_clauses_high_performance( $pieces );
+		} else {
+			$pieces = self::orders_table_clauses_low_performance( $pieces );
+		}
+
+		$query_order = strtoupper( $args['order'] );
+
+		// fields and order are identical in both cases
+		$pieces['fields'] .= ', COALESCE(lp.last_payment, orders.date_created_gmt, 0) as lp';
+		$pieces['orderby'] = "CAST(lp AS DATETIME) {$query_order}";
+
+		return $pieces;
+	}
+
+	/**
+	 * Adds order table query clauses to sort the subscriptions list table by last payment date.
+	 *
+	 * This function provides a lower performance method using a subquery to sort by last payment date.
+	 * It is a HPOS version of @see self::posts_clauses_low_performance().
+	 *
+	 * @param string[] $pieces Associative array of the clauses for the query.
+	 * @return string[] $pieces Updated associative array of clauses for the query.
+	 */
+	private function orders_table_clauses_low_performance( $pieces ) {
+		$order_datastore = wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableDataStore::class );
+		$order_table     = $order_datastore::get_orders_table_name();
+		$meta_table      = $order_datastore::get_meta_table_name();
+
+		$pieces['join'] .= "LEFT JOIN
+				(SELECT
+					MAX( orders.date_created_gmt ) as last_payment,
+					order_meta.meta_value
+				FROM {$meta_table} as order_meta
+				LEFT JOIN {$order_table} orders ON orders.id = order_meta.order_id
+				WHERE order_meta.meta_key = '_subscription_renewal'
+				GROUP BY order_meta.meta_value) lp
+			ON {$order_table}.id = lp.meta_value
+			LEFT JOIN {$order_table} orders on {$order_table}.parent_order_id = orders.ID";
+
+		return $pieces;
+	}
+
+	/**
+	 * Adds order table query clauses to sort the subscriptions list table by last payment date.
+	 *
+	 * This function provides a higher performance method using a temporary table to sort by last payment date.
+	 * It is a HPOS version of @see self::posts_clauses_high_performance().
+	 *
+	 * @param string[] $pieces Associative array of the clauses for the query.
+	 * @return string[] $pieces Updated associative array of clauses for the query.
+	 */
+	private function orders_table_clauses_high_performance( $pieces ) {
+		global $wpdb;
+
+		$order_datastore = wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableDataStore::class );
+		$order_table     = $order_datastore::get_orders_table_name();
+		$meta_table      = $order_datastore::get_meta_table_name();
+		$session         = wp_get_session_token();
+
+		$table_name = substr( "{$wpdb->prefix}tmp_{$session}_lastpayment", 0, 64 );
+
+		// Create a temporary table, drop the previous one.
+		$wpdb->query( $wpdb->prepare( 'DROP TEMPORARY TABLE IF EXISTS %s', $table_name ) );
+
+		$wpdb->query(
+			$wpdb->prepare(
+				"CREATE TEMPORARY TABLE %s (id INT PRIMARY KEY, last_payment DATETIME) AS
+				SELECT order_meta.meta_value as id, MAX( orders.date_created_gmt ) as last_payment FROM %s order_meta
+				LEFT JOIN %s as orders ON orders.id = order_meta.order_id
+				WHERE order_meta.meta_key = '_subscription_renewal'
+				GROUP BY order_meta.meta_value",
+				$table_name,
+				$meta_table,
+				$order_table
+			)
+		);
+
+		$pieces['join'] .= "LEFT JOIN {$table_name} lp
+			ON {$order_table}.id = lp.id
+			LEFT JOIN {$order_table} orders on {$order_table}.parent_order_id = orders.id";
+
+		return $pieces;
 	}
 }

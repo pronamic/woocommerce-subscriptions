@@ -145,8 +145,8 @@ class WC_Subscriptions_Manager {
 				$renewal_order = wcs_create_renewal_order( $subscription );
 
 				if ( is_wp_error( $renewal_order ) ) {
-					// translators: placeholder is an order note.
-					throw new Exception( sprintf( __( 'Error: Unable to create renewal order with note "%s"', 'woocommerce-subscriptions' ), $order_note ) );
+					// translators: placeholder %1 is an order note. %2 is the error message that was thrown.
+					throw new Exception( sprintf( __( 'Error: Unable to create renewal order with note "%1$s". Message: %2$s', 'woocommerce-subscriptions' ), $order_note, $renewal_order->get_error_message() ) );
 				}
 			}
 
