@@ -143,7 +143,7 @@ class WC_Subscriptions_Addresses {
 	 */
 	public static function maybe_update_subscription_addresses( $user_id, $address_type ) {
 
-		if ( ! wcs_user_has_subscription( $user_id ) || wc_notice_count( 'error' ) > 0 || empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( $_POST['_wcsnonce'], 'wcs_edit_address' ) ) {
+		if ( ! wcs_user_has_subscription( $user_id ) || ! isset( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_edit_address' ) || wc_notice_count( 'error' ) > 0 ) {
 			return;
 		}
 

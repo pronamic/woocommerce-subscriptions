@@ -1,5 +1,8 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 6.7.1 - 2024-01-17 =
+* Fix - Resolved an error that would occur with WC 8.5.0 when editing a subscription customer from the admin dashboard.
+
 = 6.7.0 - 2024-01-11 =
 * Update - Changed the edit subscription product "Expire after" (Subscription length) so it more clearly describes when a subscription will automatically stop renewing.
 * Update - Log all exceptions caught by WooCommerce while processing a subscription scheduled action.

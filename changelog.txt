@@ -1,5 +1,8 @@
 *** Woo Subscriptions Changelog ***
 
+2024-01-17 - version 5.9.1
+* Fix: Resolved an error that would occur with WooCommerce 8.5.0 when editing a subscription customer from the admin dashboard.
+
 2024-01-11 - version 5.9.0
 * Fix: Resolved an issue that caused ordering the Admin Subscriptions List Table to not work when HPOS is enabled.
 * Fix: When switching all subscription items in the same cart, ensure the previous subscription is reused where possible instead of creating all new subscriptions.
