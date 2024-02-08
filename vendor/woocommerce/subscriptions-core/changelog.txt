@@ -1,5 +1,9 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 6.8.0 - 2024-02-08 =
+* Fix - Block the UI after a customer clicks actions on the My Account > Subscriptions page to prevent multiple requests from being sent.
+* Fix - WC 8.6.0 compatibility: Resolved wc_get_log_file_path() deprecation warnings.
+
 = 6.7.1 - 2024-01-17 =
 * Fix - Resolved an error that would occur with WC 8.5.0 when editing a subscription customer from the admin dashboard.
 

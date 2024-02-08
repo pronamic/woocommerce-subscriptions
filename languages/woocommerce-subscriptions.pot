@@ -2,16 +2,16 @@
 # This file is distributed under the same license as the Woo Subscriptions plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Woo Subscriptions 5.9.1\n"
+"Project-Id-Version: Woo Subscriptions 6.0.0\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-01-17T02:51:06+00:00\n"
+"POT-Creation-Date: 2024-02-08T06:42:10+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.9.0\n"
+"X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: woocommerce-subscriptions\n"
 
 #. Plugin Name of the plugin
@@ -48,6 +48,7 @@ msgstr ""
 
 #: includes/admin/class-wcs-admin-reports.php:81
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:922
+#: includes/api/class-wc-rest-subscriptions-settings.php:29
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1030
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1182
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-system-status.php:59
@@ -1228,19 +1229,19 @@ msgstr ""
 msgid "Learn more"
 msgstr ""
 
-#: includes/class-wcs-webhooks.php:110
+#: includes/class-wcs-webhooks.php:108
 msgid " Subscription created"
 msgstr ""
 
-#: includes/class-wcs-webhooks.php:111
+#: includes/class-wcs-webhooks.php:109
 msgid " Subscription updated"
 msgstr ""
 
-#: includes/class-wcs-webhooks.php:112
+#: includes/class-wcs-webhooks.php:110
 msgid " Subscription deleted"
 msgstr ""
 
-#: includes/class-wcs-webhooks.php:113
+#: includes/class-wcs-webhooks.php:111
 msgid " Subscription switched"
 msgstr ""
 
@@ -1886,6 +1887,46 @@ msgstr ""
 msgid "Want to renew early via the checkout? Click %shere.%s"
 msgstr ""
 
+#: tests/unit/scheduler/scheduler.php:65
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:291
+msgctxt "table heading"
+msgid "Start Date"
+msgstr ""
+
+#: tests/unit/scheduler/scheduler.php:66
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:292
+msgctxt "table heading"
+msgid "Trial End"
+msgstr ""
+
+#: tests/unit/scheduler/scheduler.php:67
+#: vendor/woocommerce/subscriptions-core/templates/myaccount/my-subscriptions.php:40
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:293
+msgctxt "table heading"
+msgid "Next Payment"
+msgstr ""
+
+#: tests/unit/scheduler/scheduler.php:68
+#: vendor/woocommerce/subscriptions-core/templates/emails/cancelled-subscription.php:23
+#: vendor/woocommerce/subscriptions-core/templates/emails/expired-subscription.php:23
+#: vendor/woocommerce/subscriptions-core/templates/emails/on-hold-subscription.php:23
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:294
+msgctxt "table heading"
+msgid "Last Order Date"
+msgstr ""
+
+#: tests/unit/scheduler/scheduler.php:69
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:295
+msgctxt "table heading"
+msgid "Cancelled Date"
+msgstr ""
+
+#: tests/unit/scheduler/scheduler.php:70
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:296
+msgctxt "table heading"
+msgid "End Date"
+msgstr ""
+
 #. translators: 1: relation type, 2: list of valid relation types.
 #: vendor/woocommerce/subscriptions-core/includes/abstracts/abstract-wcs-related-order-store.php:148
 msgid "Invalid relation type: %1$s. Order relationship type must be one of: %2$s."
@@ -2368,7 +2409,7 @@ msgstr ""
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-post-types.php:1365
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-post-types.php:1754
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-manager.php:1937
-#: vendor/woocommerce/subscriptions-core/includes/wcs-user-functions.php:327
+#: vendor/woocommerce/subscriptions-core/includes/wcs-user-functions.php:329
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/related-orders.php:78
 msgctxt "an action on a subscription"
 msgid "Cancel"
@@ -4082,20 +4123,20 @@ msgstr ""
 msgid "First payment: %s"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wcs-cached-data-manager.php:77
+#: vendor/woocommerce/subscriptions-core/includes/class-wcs-cached-data-manager.php:75
 msgid "Related order caching is now handled by %1$s."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wcs-cached-data-manager.php:84
+#: vendor/woocommerce/subscriptions-core/includes/class-wcs-cached-data-manager.php:82
 msgid "Customer subscription caching is now handled by %1$s."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wcs-cached-data-manager.php:108
+#: vendor/woocommerce/subscriptions-core/includes/class-wcs-cached-data-manager.php:106
 #: vendor/woocommerce/subscriptions-core/includes/class-wcs-cached-data-manager.php:238
 msgid "Customer subscription caching is now handled by %1$s and %2$s."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wcs-cached-data-manager.php:125
+#: vendor/woocommerce/subscriptions-core/includes/class-wcs-cached-data-manager.php:123
 msgid "new related order methods in WCS_Related_Order_Store"
 msgstr ""
 
@@ -5215,46 +5256,46 @@ msgid "Customers with a subscription are excluded from this setting."
 msgstr ""
 
 #. translators: placeholder is a list of version numbers (e.g. "1.3 & 1.4 & 1.5")
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:355
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:360
 msgid "Database updated to version %s"
 msgstr ""
 
 #. translators: placeholder is number of upgraded subscriptions
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:363
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:368
 msgctxt "used in the subscriptions upgrader"
 msgid "Marked %s subscription products as \"sold individually\"."
 msgstr ""
 
 #. translators: 1$: number of action scheduler hooks upgraded, 2$: "{execution_time}", will be replaced on front end with actual time
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:372
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:377
 msgid "Migrated %1$s subscription related hooks to the new scheduler (in %2$s seconds)."
 msgstr ""
 
 #. translators: 1$: number of subscriptions upgraded, 2$: "{execution_time}", will be replaced on front end with actual time it took
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:384
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:389
 msgid "Migrated %1$s subscriptions to the new structure (in %2$s seconds)."
 msgstr ""
 
 #. translators: placeholder is "{time_left}", will be replaced on front end with actual time
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:387
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:433
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:392
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:438
 msgctxt "Message that gets sent to front end."
 msgid "Estimated time left (minutes:seconds): %s"
 msgstr ""
 
 #. translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:397
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:402
 msgid "Unable to upgrade subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s."
 msgstr ""
 
 #. translators: placeholder is the number of subscriptions repaired
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:412
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:417
 msgctxt "Repair message that gets sent to front end."
 msgid "Repaired %d subscriptions with incorrect dates, line tax data or missing customer notes."
 msgstr ""
 
 #. translators: placeholder is number of subscriptions that were checked and did not need repairs. There's a space at the beginning!
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:418
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:423
 msgctxt "Repair message that gets sent to front end."
 msgid " %d other subscription was checked and did not need any repairs."
 msgid_plural "%d other subscriptions were checked and did not need any repairs."
@@ -5262,38 +5303,38 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholder is "{execution_time}", which will be replaced on front end with actual time
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:422
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:427
 msgctxt "Repair message that gets sent to front end."
 msgid "(in %s seconds)"
 msgstr ""
 
 #. translators: $1: "Repaired x subs with incorrect dates...", $2: "X others were checked and no repair needed", $3: "(in X seconds)". Ordering for RTL languages.
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:425
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:430
 msgctxt "The assembled repair message that gets sent to front end."
 msgid "%1$s%2$s %3$s"
 msgstr ""
 
 #. translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:444
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:449
 msgctxt "Error message that gets sent to front end when upgrading Subscriptions"
 msgid "Unable to repair subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:648
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:653
 msgid "Welcome to WooCommerce Subscriptions 2.1"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:648
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:653
 msgid "About WooCommerce Subscriptions"
 msgstr ""
 
 #. translators: 1-2: opening/closing <strong> tags, 3-4: opening/closing tags linked to ticket form.
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:879
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:884
 msgid "%1$sWarning!%2$s We discovered an issue in %1$sWooCommerce Subscriptions 2.3.0 - 2.3.2%2$s that may cause your subscription renewal order and customer subscription caches to contain invalid data. For information about how to update the cached data, please %3$sopen a new support ticket%4$s."
 msgstr ""
 
 #. translators: 1-2: opening/closing <strong> tags, 3: active version of Subscriptions, 4: current version of Subscriptions, 5-6: opening/closing tags linked to ticket form, 7-8: opening/closing tags linked to documentation.
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:958
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/class-wc-subscriptions-upgrader.php:963
 msgid "%1$sWarning!%2$s It appears that you have downgraded %1$sWooCommerce Subscriptions%2$s from %3$s to %4$s. Downgrading the plugin in this way may cause issues. Please update to %3$s or higher, or %5$sopen a new support ticket%6$s for further assistance. %7$sLearn more &raquo;%8$s"
 msgstr ""
 
@@ -5814,15 +5855,15 @@ msgid "Continue"
 msgstr ""
 
 #. translators: $1: placeholder is number of weeks, 2$: path to the file
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/templates/wcs-upgrade.php:66
-msgid "To record the progress of the update a new log file was created. This file will be automatically deleted in %1$d weeks. If you would like to delete it sooner, you can find it here: %2$s"
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/templates/wcs-upgrade.php:74
+msgid "To record the progress of the update a new log file was created. This file will be automatically deleted in %1$d weeks. If you would like to delete it sooner, you can find it in the %2$sWooCommerce logs screen%3$s."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/templates/wcs-upgrade.php:71
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/templates/wcs-upgrade.php:79
 msgid "Update Error"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/upgrades/templates/wcs-upgrade.php:72
+#: vendor/woocommerce/subscriptions-core/includes/upgrades/templates/wcs-upgrade.php:80
 msgid "There was an error with the update. Please refresh the page and try again."
 msgstr ""
 
@@ -6124,7 +6165,7 @@ msgctxt "no trial period"
 msgid "no"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/wcs-user-functions.php:318
+#: vendor/woocommerce/subscriptions-core/includes/wcs-user-functions.php:319
 #: vendor/woocommerce/subscriptions-core/templates/single-product/add-to-cart/subscription.php:30
 #: vendor/woocommerce/subscriptions-core/templates/single-product/add-to-cart/variable-subscription.php:28
 msgid "Resubscribe"
@@ -6203,20 +6244,20 @@ msgstr ""
 msgid "Create subscription product"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/templates/admin/html-failed-scheduled-action-notice.php:21
+#: vendor/woocommerce/subscriptions-core/templates/admin/html-failed-scheduled-action-notice.php:26
 msgid "An error has occurred while processing a recent subscription related event. For steps on how to fix the affected subscription and to learn more about the possible causes of this error, please read our guide %1$shere%2$s."
 msgid_plural "An error has occurred while processing recent subscription related events. For steps on how to fix the affected subscriptions and to learn more about the possible causes of this error, please read our guide %1$shere%2$s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: vendor/woocommerce/subscriptions-core/templates/admin/html-failed-scheduled-action-notice.php:31
+#: vendor/woocommerce/subscriptions-core/templates/admin/html-failed-scheduled-action-notice.php:36
 msgid "Affected event:"
 msgid_plural "Affected events:"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: $1 the log file name $2 and $3 are opening and closing link tags, respectively.
-#: vendor/woocommerce/subscriptions-core/templates/admin/html-failed-scheduled-action-notice.php:38
+#: vendor/woocommerce/subscriptions-core/templates/admin/html-failed-scheduled-action-notice.php:43
 msgid "To see further details about these errors, view the %1$s log file from the %2$sWooCommerce logs screen.%2$s"
 msgstr ""
 
@@ -6365,14 +6406,6 @@ msgstr ""
 #: vendor/woocommerce/subscriptions-core/templates/emails/on-hold-subscription.php:22
 msgctxt "table headings in notification email"
 msgid "Price"
-msgstr ""
-
-#: vendor/woocommerce/subscriptions-core/templates/emails/cancelled-subscription.php:23
-#: vendor/woocommerce/subscriptions-core/templates/emails/expired-subscription.php:23
-#: vendor/woocommerce/subscriptions-core/templates/emails/on-hold-subscription.php:23
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:294
-msgctxt "table heading"
-msgid "Last Order Date"
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/templates/emails/cancelled-subscription.php:24
@@ -6657,12 +6690,6 @@ msgstr ""
 msgid "ID"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/templates/myaccount/my-subscriptions.php:40
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:293
-msgctxt "table heading"
-msgid "Next Payment"
-msgstr ""
-
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/my-subscriptions.php:46
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/related-orders.php:53
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/related-subscriptions.php:42
@@ -6770,11 +6797,11 @@ msgstr ""
 msgid "Actions"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/templates/myaccount/subscription-details.php:94
+#: vendor/woocommerce/subscriptions-core/templates/myaccount/subscription-details.php:101
 msgid "Subscription updates"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/templates/myaccount/subscription-details.php:100
+#: vendor/woocommerce/subscriptions-core/templates/myaccount/subscription-details.php:107
 msgctxt "date on subscription updates list. Will be localized"
 msgid "l jS \\o\\f F Y, h:ia"
 msgstr ""
@@ -6840,26 +6867,6 @@ msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/wcs-functions.php:265
 msgid "Can not get address type display name. Address type is not a string."
-msgstr ""
-
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:291
-msgctxt "table heading"
-msgid "Start Date"
-msgstr ""
-
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:292
-msgctxt "table heading"
-msgid "Trial End"
-msgstr ""
-
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:295
-msgctxt "table heading"
-msgid "Cancelled Date"
-msgstr ""
-
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:296
-msgctxt "table heading"
-msgid "End Date"
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/wcs-functions.php:331

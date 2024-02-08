@@ -62,8 +62,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<p><?php esc_html_e( 'Your database has been updated successfully!', 'woocommerce-subscriptions' ); ?></p>
 			<p class="step"><a class="button" href="<?php echo esc_url( $about_page_url ); ?>"><?php esc_html_e( 'Continue', 'woocommerce-subscriptions' ); ?></a></p>
 			<p class="log-notice"><?php
+				// Get the log file URL depending on the log handler (file or database).
+				$url = admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&log_file=%s-%s-log', WCS_Upgrade_Logger::$handle, sanitize_file_name( wp_hash( WCS_Upgrade_Logger::$handle ) ) ) );
+
+				// In WC 8.6 the URL format changed to include the source parameter.
+				if ( ! wcs_is_woocommerce_pre( '8.6.0' ) ) {
+					$url = admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&source=%s&paged=1', WCS_Upgrade_Logger::$handle ) );
+				}
+
 				// translators: $1: placeholder is number of weeks, 2$: path to the file
-				echo wp_kses( sprintf( __( 'To record the progress of the update a new log file was created. This file will be automatically deleted in %1$d weeks. If you would like to delete it sooner, you can find it here: %2$s', 'woocommerce-subscriptions' ), esc_html( WCS_Upgrade_Logger::$weeks_until_cleanup ), '<code class="log-notice">' . esc_html( wc_get_log_file_path( WCS_Upgrade_Logger::$handle ) ) . '</code>' ), array( 'code' => array( 'class' => true ) ) );
+				echo wp_kses_post( sprintf( __( 'To record the progress of the update a new log file was created. This file will be automatically deleted in %1$d weeks. If you would like to delete it sooner, you can find it in the %2$sWooCommerce logs screen%3$s.', 'woocommerce-subscriptions' ), esc_html( WCS_Upgrade_Logger::$weeks_until_cleanup ), '<a href="' . esc_url( $url ) . '">', '</a>' ) );
 				?>
 			</p>
 		</div>

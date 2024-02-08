@@ -149,10 +149,21 @@ jQuery( function ( $ ) {
 		return $paymentMethod.data( 'is_manual' ) === 'no';
 	}
 
+	function blockActionsOnTrigger() {
+		$( '.subscription_details' ).block( {
+			message: null,
+			overlayCSS: {
+				background: '#fff',
+				opacity: 0.6,
+			},
+		} );
+	}
+
 	$toggle.on( 'click', onToggle );
 	maybeApplyColor();
 	displayToggle();
 
 	$early_renewal_modal_submit.on( 'click', blockEarlyRenewalModal );
 	$( document ).on( 'wcs_show_modal', shouldShowEarlyRenewalModal );
+	$( document ).on( 'click', '.wcs_block_ui_on_click', blockActionsOnTrigger );
 } );

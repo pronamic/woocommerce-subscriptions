@@ -66,7 +66,7 @@ class WCS_Initial_Cart_Stock_Manager extends WCS_Renewal_Cart_Stock_Manager {
 		if ( isset( $wp->query_vars['order-pay'] ) ) {
 			$order = wc_get_order( $wp->query_vars['order-pay'] );
 
-			if ( static::has_handled_stock( $order ) && wcs_order_contains_subscription( $order, 'parent' ) ) {
+			if ( $order && static::has_handled_stock( $order ) && wcs_order_contains_subscription( $order, 'parent' ) ) {
 				$parent_order = $order;
 			}
 		}

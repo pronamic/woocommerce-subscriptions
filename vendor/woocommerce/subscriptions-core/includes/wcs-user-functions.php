@@ -307,15 +307,17 @@ function wcs_get_all_user_actions_for_subscription( $subscription, $user_id ) {
 
 		if ( $subscription->can_be_updated_to( 'active' ) && ! $subscription->needs_payment() ) {
 			$actions['reactivate'] = array(
-				'url'  => wcs_get_users_change_status_link( $subscription->get_id(), 'active', $current_status ),
-				'name' => __( 'Reactivate', 'woocommerce-subscriptions' ),
+				'url'      => wcs_get_users_change_status_link( $subscription->get_id(), 'active', $current_status ),
+				'name'     => __( 'Reactivate', 'woocommerce-subscriptions' ),
+				'block_ui' => true,
 			);
 		}
 
 		if ( wcs_can_user_resubscribe_to( $subscription, $user_id ) && false == $subscription->can_be_updated_to( 'active' ) ) {
 			$actions['resubscribe'] = array(
-				'url'  => wcs_get_users_resubscribe_link( $subscription ),
-				'name' => __( 'Resubscribe', 'woocommerce-subscriptions' ),
+				'url'      => wcs_get_users_resubscribe_link( $subscription ),
+				'name'     => __( 'Resubscribe', 'woocommerce-subscriptions' ),
+				'block_ui' => true,
 			);
 		}
 
@@ -323,8 +325,9 @@ function wcs_get_all_user_actions_for_subscription( $subscription, $user_id ) {
 		$next_payment = $subscription->get_time( 'next_payment' );
 		if ( $subscription->can_be_updated_to( 'cancelled' ) && ( ! $subscription->is_one_payment() && ( $subscription->has_status( 'on-hold' ) && empty( $next_payment ) ) || $next_payment > 0 ) ) {
 			$actions['cancel'] = array(
-				'url'  => wcs_get_users_change_status_link( $subscription->get_id(), 'cancelled', $current_status ),
-				'name' => _x( 'Cancel', 'an action on a subscription', 'woocommerce-subscriptions' ),
+				'url'      => wcs_get_users_change_status_link( $subscription->get_id(), 'cancelled', $current_status ),
+				'name'     => _x( 'Cancel', 'an action on a subscription', 'woocommerce-subscriptions' ),
+				'block_ui' => true,
 			);
 		}
 	}

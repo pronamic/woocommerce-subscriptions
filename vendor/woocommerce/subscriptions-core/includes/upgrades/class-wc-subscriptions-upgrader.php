@@ -263,6 +263,11 @@ class WC_Subscriptions_Upgrader {
 			WCS_Upgrade_3_1_0::migrate_subscription_webhooks_using_api_version_3();
 		}
 
+		if ( version_compare( self::$active_version, '6.8.0', '<' ) ) {
+			// Upon upgrading to 6.8.0 delete the 'wcs_cleanup_big_logs' WP Cron job that is no longer used.
+			wp_unschedule_hook( 'wcs_cleanup_big_logs' );
+		}
+
 		self::upgrade_complete();
 	}
 

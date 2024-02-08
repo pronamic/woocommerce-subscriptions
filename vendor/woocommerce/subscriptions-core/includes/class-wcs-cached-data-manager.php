@@ -18,8 +18,6 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 
 	public function __construct() {
 		add_action( 'woocommerce_loaded', array( $this, 'load_logger' ) );
-
-		add_action( 'admin_init', array( $this, 'initialize_cron_check_size' ) ); // setup cron task to truncate big logs.
 		add_filter( 'cron_schedules', array( $this, 'add_weekly_cron_schedule' ) ); // create a weekly cron schedule
 	}
 
@@ -168,6 +166,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * truncated to 0 bytes.
 	 */
 	public static function cleanup_logs() {
+		wcs_deprecated_function( __METHOD__, '6.0.0' );
 		$file = wc_get_log_file_path( 'wcs-cache' );
 		$max_cache_size = apply_filters( 'wcs_max_log_size', 50 * 1024 * 1024 );
 
@@ -199,6 +198,7 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
 	 */
 	public function initialize_cron_check_size() {
+		wcs_deprecated_function( __METHOD__, '6.0.0' );
 
 		$hook = 'wcs_cleanup_big_logs';
 

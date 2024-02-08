@@ -75,6 +75,7 @@ class WCS_API {
 		}
 
 		WC_REST_Subscription_System_Status_Manager::init();
+		new WC_REST_Subscriptions_Settings();
 	}
 
 	/**

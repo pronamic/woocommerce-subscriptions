@@ -12,6 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Get the log file URL depending on the log handler (file or database).
 $url = admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&log_file=%s-%s-log', 'failed-scheduled-actions', sanitize_file_name( wp_hash( 'failed-scheduled-actions' ) ) ) );
 
+// In WC 8.6 the URL format changed to include the source parameter.
+if ( ! wcs_is_woocommerce_pre( '8.6.0' ) ) {
+	$url = admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&source=%s&paged=1', 'failed-scheduled-actions' ) );
+}
+
 if ( defined( 'WC_LOG_HANDLER' ) && 'WC_Log_Handler_DB' === WC_LOG_HANDLER ) {
 	$url = admin_url( sprintf( 'admin.php?page=wc-status&tab=logs&source=%s', 'failed-scheduled-actions' ) );
 }
