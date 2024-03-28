@@ -695,11 +695,11 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * Format prices.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.12
-	 * @param float|int $price
+	 * @param float|int|null $price
 	 * @param int $decimals Optional. The number of decimal points.
 	 * @return string
 	 */
 	private function price_format( $price, $decimals = 2 ) {
-		return number_format( $price, $decimals, '.', '' );
+		return number_format( (float) $price, $decimals, '.', '' );
 	}
 }

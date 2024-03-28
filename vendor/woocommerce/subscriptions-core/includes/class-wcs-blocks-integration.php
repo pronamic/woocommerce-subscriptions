@@ -82,6 +82,7 @@ class WCS_Blocks_Integration implements IntegrationInterface {
 	public function get_script_data() {
 		return array(
 			'woocommerce-subscriptions-blocks' => 'active',
+			'place_order_override'             => $this->get_place_order_button_text_override(),
 		);
 	}
 
@@ -96,5 +97,37 @@ class WCS_Blocks_Integration implements IntegrationInterface {
 			return filemtime( $file );
 		}
 		return \WC_Subscriptions_Core_Plugin::instance()->get_library_version();
+	}
+
+	/**
+	 * Fetches the place order button text if it has been overridden by one of Woo Subscription's methods.
+	 *
+	 * @return string|null The overridden place order button text or null if it hasn't been overridden.
+	 */
+	protected function get_place_order_button_text_override() {
+		$default           = null;
+		$order_button_text = $default;
+
+		// Check if any of our button text override functions (hooked onto 'woocommerce_order_button_text') change the default text.
+		$callbacks = [
+			[ 'WC_Subscriptions_Checkout', 'order_button_text' ],
+			[ \WC_Subscriptions_Core_Plugin::instance()->get_cart_handler( 'WCS_Cart_Renewal' ), 'order_button_text' ],
+			[ \WC_Subscriptions_Core_Plugin::instance()->get_cart_handler( 'WCS_Cart_Switch' ), 'order_button_text' ],
+			[ \WC_Subscriptions_Core_Plugin::instance()->get_cart_handler( 'WCS_Cart_Resubscribe' ), 'order_button_text' ],
+		];
+
+		foreach ( $callbacks as $callback ) {
+			if ( ! is_callable( $callback ) ) {
+				continue;
+			}
+
+			$order_button_text = call_user_func( $callback, $default );
+
+			if ( $order_button_text !== $default ) {
+				break;
+			}
+		}
+
+		return $order_button_text;
 	}
 }

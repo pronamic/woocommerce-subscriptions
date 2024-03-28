@@ -1360,7 +1360,7 @@ class WCS_Cart_Renewal {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.3
 	 */
 	public function setup_discounts( $order ) {
-		$order_discount = $order->get_total_discount();
+		$order_discount = $order->get_total_discount( ! $order->get_prices_include_tax() );
 		$coupon_items   = $order->get_items( 'coupon' );
 
 		if ( empty( $order_discount ) && empty( $coupon_items ) ) {

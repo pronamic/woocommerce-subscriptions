@@ -75,6 +75,8 @@ class WC_Subscriptions_Order {
 		add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'add_subscription_order_query_args' ), 10, 2 );
 
 		add_filter( 'woocommerce_order_query_args', array( __CLASS__, 'map_order_query_args_for_subscriptions' ) );
+
+		add_filter( 'woocommerce_orders_table_query_clauses', [ __CLASS__, 'filter_orders_query_by_parent_orders' ], 10, 2 );
 	}
 
 	/*
@@ -481,6 +483,23 @@ class WC_Subscriptions_Order {
 		$unpaid_statuses = apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ), $order );
 		$order_completed = in_array( $new_order_status, $paid_statuses, true ) && in_array( $old_order_status, $unpaid_statuses, true );
 
+		/**
+		 * Filter whether the subscription order is considered completed.
+		 *
+		 * Allow third party extensions to modify whether the order is considered
+		 * completed and the subscription should activate. This allows for different
+		 * treatment of orders and subscriptions during the completion flow.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param bool              $order_completed  Whether the order is considered completed.
+		 * @param string            $new_order_status The new order status.
+		 * @param string            $old_order_status The old order status.
+		 * @param WC_Subscription[] $subscriptions    The subscriptions in the order.
+		 * @param WC_Order          $order            The order object.
+		 */
+		$order_completed = apply_filters( 'wcs_is_subscription_order_completed', $order_completed, $new_order_status, $old_order_status, $subscriptions, $order );
+
 		foreach ( $subscriptions as $subscription ) {
 			// A special case where payment completes after user cancels subscription
 			if ( $order_completed && $subscription->has_status( 'cancelled' ) ) {
@@ -800,9 +819,11 @@ class WC_Subscriptions_Order {
 			);
 
 		} elseif ( 'parent' === $selected_shop_order_subtype ) {
-
-			$order_query_args['post__in'] = wcs_get_subscription_orders();
-
+			if ( wcs_is_custom_order_tables_usage_enabled() ) {
+				$order_query_args['subscription_parent'] = true;
+			} else {
+				$order_query_args['post__in'] = wcs_get_subscription_orders();
+			}
 		} else {
 
 			switch ( $selected_shop_order_subtype ) {
@@ -832,7 +853,11 @@ class WC_Subscriptions_Order {
 
 		// Also exclude parent orders from non-subscription query
 		if ( 'regular' === $selected_shop_order_subtype ) {
-			$order_query_args['post__not_in'] = wcs_get_subscription_orders();
+			if ( wcs_is_custom_order_tables_usage_enabled() ) {
+				$order_query_args['subscription_parent'] = false;
+			} else {
+				$order_query_args['post__not_in'] = wcs_get_subscription_orders();
+			}
 		}
 
 		return $order_query_args;
@@ -1304,6 +1329,35 @@ class WC_Subscriptions_Order {
 		}
 
 		return $query_vars;
+	}
+
+	/**
+	 * Modifies the query clauses of a wc_get_orders() query to include/exclude parent orders based on the 'subscription_parent' argument.
+	 *
+	 * @param array            $query_clauses The query clauses.
+	 * @param OrdersTableQuery $order_query   The order query object.
+	 *
+	 * @return $query_clauses The modified query clauses to include/exclude parent orders.
+	 */
+	public static function filter_orders_query_by_parent_orders( $query_clauses, $order_query ) {
+		$include_parent_orders = $order_query->get( 'subscription_parent' );
+
+		// Bail if there's no argument to include/exclude parent orders.
+		if ( is_null( $include_parent_orders ) ) {
+			return $query_clauses;
+		}
+
+		if ( true === $include_parent_orders ) {
+			// Limit query to parent orders.
+			$query_clauses['join']  = ( empty( $query_clauses['join'] ) ? '' : $query_clauses['join'] . ' ' );
+			$query_clauses['join'] .= "INNER JOIN {$order_query->get_table_name( 'orders' )} as subscriptions ON subscriptions.parent_order_id = {$order_query->get_table_name( 'orders' )}.id AND subscriptions.type = 'shop_subscription'";
+		} elseif ( false === $include_parent_orders ) {
+			// Exclude parent orders.
+			$query_clauses['where']  = ( empty( $query_clauses['where'] ) ? '1=1 ' : $query_clauses['where'] . ' ' );
+			$query_clauses['where'] .= "AND {$order_query->get_table_name( 'orders' )}.id NOT IN (SELECT parent_order_id FROM {$order_query->get_table_name( 'orders' )} WHERE type = 'shop_subscription')";
+		}
+
+		return $query_clauses;
 	}
 
 	/* Deprecated Functions */

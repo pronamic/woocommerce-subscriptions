@@ -16,7 +16,7 @@ class WC_Subscriptions_Core_Plugin {
 	 * The version of subscriptions-core library.
 	 * @var string
 	 */
-	protected $library_version = '6.8.0'; // WRCS: DEFINED_VERSION.
+	protected $library_version = '6.9.0'; // WRCS: DEFINED_VERSION.
 
 	/**
 	 * The subscription scheduler instance.
@@ -45,6 +45,16 @@ class WC_Subscriptions_Core_Plugin {
 	 * @var WC_Subscriptions_Core_Plugin
 	 */
 	protected static $instance = null;
+
+	/**
+	 * An array of cart handler objects.
+	 *
+	 * Use @see WC_Subscriptions_Core_Plugin::instance()->get_cart_handler( '{class}' ) to fetch a cart handler instance.
+	 * eg WC_Subscriptions_Core_Plugin::instance()->get_cart_handler( 'WCS_Cart_Renewal' ).
+	 *
+	 * @var WCS_Cart_Renewal[]
+	 */
+	protected $cart_handlers = [];
 
 	/**
 	 * Initialise class and attach callbacks.
@@ -121,9 +131,9 @@ class WC_Subscriptions_Core_Plugin {
 		WCS_PayPal_Standard_Change_Payment_Method::init();
 		WC_Subscriptions_Tracker::init();
 		WCS_Upgrade_Logger::init();
-		new WCS_Cart_Renewal();
-		new WCS_Cart_Resubscribe();
-		new WCS_Cart_Initial_Payment();
+		$this->add_cart_handler( new WCS_Cart_Renewal() );
+		$this->add_cart_handler( new WCS_Cart_Resubscribe() );
+		$this->add_cart_handler( new WCS_Cart_Initial_Payment() );
 		WCS_Download_Handler::init();
 		WCS_Limiter::init();
 		WCS_Admin_System_Status::init();
@@ -317,6 +327,32 @@ class WC_Subscriptions_Core_Plugin {
 	 */
 	public function get_gateways_handler_class() {
 		return 'WC_Subscriptions_Core_Payment_Gateways';
+	}
+
+	/**
+	 * Gets the cart handler instance.
+	 *
+	 * @param string $class The class name of the cart handler. eg 'WCS_Cart_Renewal'.
+	 * @return WCS_Cart_Renewal|null The cart handler instance or null if not found.
+	 */
+	public function get_cart_handler( $class ) {
+		if ( ! isset( $this->cart_handlers[ $class ] ) ) {
+			return null;
+		}
+
+		return $this->cart_handlers[ $class ];
+	}
+
+	/**
+	 * Adds a cart handler instance.
+	 *
+	 * This is used to add cart handlers for different cart types. For example, renewal, resubscribe, initial, switch etc.
+	 * To access a cart handler instance, use WC_Subscriptions_Core_Plugin::instance()->get_cart_handler( $class ).
+	 *
+	 * @param WCS_Cart_Renewal $cart_handler An instance of a cart handler.
+	 */
+	protected function add_cart_handler( $cart_handler ) {
+		$this->cart_handlers[ get_class( $cart_handler ) ] = $cart_handler;
 	}
 
 	/**

@@ -36,6 +36,18 @@ class WCS_PayPal_Reference_Transaction_API extends WCS_SV_API_Base {
 	/** @var array the request parameters */
 	private $parameters = array();
 
+	/** @var string */
+	public $gateway_id;
+
+	/** @var string */
+	public $api_username;
+
+	/** @var string */
+	public $api_password;
+
+	/** @var string */
+	public $api_signature;
+
 	/**
 	 * Constructor - setup request object and set endpoint
 	 *

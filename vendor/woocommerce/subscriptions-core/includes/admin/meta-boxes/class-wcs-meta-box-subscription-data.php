@@ -408,6 +408,11 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 			}
 		}
 
+		// Customer note.
+		if ( isset( $_POST['excerpt'] ) ) {
+			$props['customer_note'] = sanitize_textarea_field( wp_unslash( $_POST['excerpt'] ) );
+		}
+
 		$subscription->set_props( $props );
 		$subscription->save();
 

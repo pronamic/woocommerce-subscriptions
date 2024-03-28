@@ -796,6 +796,11 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 			$dates_saved[ $date_prop ] = wcs_get_datetime_from( $subscription->get_time( $date_type ) );
 		}
 
+		// If dates were saved, clear the caches.
+		if ( ! empty( $dates_saved ) ) {
+			$this->clear_caches( $subscription );
+		}
+
 		return $dates_saved;
 	}
 

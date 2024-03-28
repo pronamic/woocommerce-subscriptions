@@ -21,7 +21,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 	public function init() {
 		parent::init();
 		WC_Subscriptions_Switcher::init();
-		new WCS_Cart_Switch();
+		$this->add_cart_handler( new WCS_Cart_Switch() );
 		WCS_Manual_Renewal_Manager::init();
 		WCS_Customer_Suspension_Manager::init();
 		WCS_Drip_Downloads_Manager::init();
@@ -72,7 +72,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 			require_once $this->get_plugin_directory( 'includes/early-renewal/wcs-early-renewal-functions.php' );
 
 			if ( WCS_Early_Renewal_Manager::is_early_renewal_enabled() ) {
-				new WCS_Cart_Early_Renewal();
+				$this->add_cart_handler( new WCS_Cart_Early_Renewal() );
 			}
 		}
 	}

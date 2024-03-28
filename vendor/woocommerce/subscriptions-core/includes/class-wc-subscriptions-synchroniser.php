@@ -312,7 +312,13 @@ class WC_Subscriptions_Synchroniser {
 					</select>
 
 					<?php $days_in_month = $payment_month ? gmdate( 't', wc_string_to_timestamp( "2001-{$payment_month}-01" ) ) : 0; ?>
-					<input type="number" id="<?php echo esc_attr( self::$post_meta_key_day ); ?>" name="<?php echo esc_attr( self::$post_meta_key_day ); ?>" class="wc_input_subscription_payment_sync wc-enhanced-select" value="<?php echo esc_attr( $payment_day ); ?>" placeholder="<?php echo esc_attr_x( 'Day', 'input field placeholder for day field for annual subscriptions', 'woocommerce-subscriptions' ); ?>" step="1" min="<?php echo esc_attr( min( 1, $days_in_month ) ); ?>" max="<?php echo esc_attr( $days_in_month ); ?>" <?php disabled( 0, $payment_month, true ); ?> />
+					<select id="<?php echo esc_attr( self::$post_meta_key_day ); ?>" name="<?php echo esc_attr( self::$post_meta_key_day ); ?>" class="wc_input_subscription_payment_sync wc-enhanced-select" <?php disabled( 0, $payment_month, true ); ?> />
+					<?php
+					foreach ( range( 1, $days_in_month ) as $day ) {
+						echo '<option value="' . esc_attr( $day ) . '"' . selected( $day, $payment_day, false ) . '>' . esc_html( $day ) . '</option>';
+					}
+					?>
+					</select>
 				</span>
 				<?php echo wcs_help_tip( self::$sync_description_year ); ?>
 			</p><?php

@@ -77,8 +77,29 @@ class WC_Subscriptions_Payment_Gateways extends WC_Subscriptions_Core_Payment_Ga
 			throw new InvalidArgumentException( sprintf( __( 'Subscription doesn\'t exist in scheduled action: %d', 'woocommerce-subscriptions' ), $subscription_id ) );
 		}
 
+		// If the subscription's payment method uses gateway scheduled payments, don't process the payment here. The gateway will handle it.
+		if ( $subscription->payment_method_supports( 'gateway_scheduled_payments' ) ) {
+			return;
+		}
+
 		if ( ! $subscription->is_manual() && ! $subscription->has_status( wcs_get_subscription_ended_statuses() ) ) {
-			self::trigger_gateway_renewal_payment_hook( $subscription->get_last_order( 'all', 'renewal' ) );
+			$latest_renewal_order = $subscription->get_last_order( 'all', 'renewal' );
+
+			if ( empty( $latest_renewal_order ) ) {
+				return;
+			}
+
+			if ( $latest_renewal_order->needs_payment() ) {
+				self::trigger_gateway_renewal_payment_hook( $latest_renewal_order );
+			} elseif ( $latest_renewal_order->get_total() > 0 ) {
+				$subscription->add_order_note(
+					sprintf(
+						/* Translators: placeholder is a subscription renewal order ID as a link */
+						__( 'Payment processing of the renewal order %s was skipped because it is already paid.', 'woocommerce_subscriptions' ),
+						'<a href="' . esc_url( $latest_renewal_order->get_edit_order_url() ) . '">' . _x( '#', 'hash before order number', 'woocommerce' ) . $latest_renewal_order->get_order_number() . '</a>'
+						)
+					);
+			}
 		}
 	}
 
@@ -91,7 +112,7 @@ class WC_Subscriptions_Payment_Gateways extends WC_Subscriptions_Core_Payment_Ga
 	public static function trigger_gateway_renewal_payment_hook( $renewal_order ) {
 		if ( ! empty( $renewal_order ) && $renewal_order->get_total() > 0 && $renewal_order->get_payment_method() ) {
 
-			// Make sure gateways are setup
+			// Make sure gateways are setup.
 			WC()->payment_gateways();
 
 			do_action( 'woocommerce_scheduled_subscription_payment_' . $renewal_order->get_payment_method(), $renewal_order->get_total(), $renewal_order );

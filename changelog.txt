@@ -1,10 +1,26 @@
 *** Woo Subscriptions Changelog ***
 
+2024-03-28 - version 6.1.0
+* Fix: Ensure the subscription renewal payment process doesn't attempt to reprocess previously paid renewal orders.
+* Fix: Resolved an issue where discounts, when reapplied to failed or manual subscription order payments, would incorrectly account for inclusive tax.
+* Fix: Resolved an issue that could cause an empty error notice to appear on the My Account > Payment methods page when a customer attempted to delete a token used by subscriptions.
+* Fix: Make sure we always clear the subscription object from cache after updating dates.
+* Fix: Use block theme styles for the 'Add to Cart' button on subscription product pages.
+* Fix: Customer notes not being saved on the Edit Subscription page for stores with HPOS enabled.
+* Fix: Ensure products that have a yearly billing period can choose a date that the subscription is synchronized to.
+* Fix: Improved alignment of subscription product pricing fields on the edit product screen for consistency with other fields.
+* Fix: Avoid setting empty meta keys on subscriptions when changing the customer's default payment method.
+* Fix: Use a more scalable way to filter the orders admin list table by parent orders on HPOS stores.
+* Fix: Resolved an issue that prevented subscription custom place order button labels from working on the block checkout.
+* Update: Change the update all subscriptions checkbox displayed on the change payment method page to be enabled by default.
+* Dev: Update subscriptions-core to 6.9.0
+
 2024-02-08 - version 6.0.0
 * Add: Subscription plugin settings can now be fetched via the /wc/v3/settings/subscriptions REST API endpoint.
 * Fix: Trigger the subscription.updated webhook event for all subscription updates.
 * Fix: Block the UI after a customer clicks actions on the My Account > Subscriptions page to prevent multiple requests from being sent.
 * Fix: WC 8.6.0 compatibility: Resolved wc_get_log_file_path() deprecation warnings.
+* Dev: Update subscriptions-core to 6.8.0
 
 2024-01-17 - version 5.9.1
 * Fix: Resolved an error that would occur with WooCommerce 8.5.0 when editing a subscription customer from the admin dashboard.

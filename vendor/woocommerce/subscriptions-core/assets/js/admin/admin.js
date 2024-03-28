@@ -708,16 +708,21 @@ jQuery( function ( $ ) {
 				);
 
 				if ( 0 < $( this ).val() ) {
-					$syncDayOfMonthInput
-						.val( 1 )
-						.attr( {
-							step: '1',
-							min: '1',
-							max: $.daysInMonth( $( this ).val() ),
-						} )
-						.prop( 'disabled', false );
+					// Clear existing options.
+					$syncDayOfMonthInput.empty();
+
+					// Add options for each day in the month.
+					for ( var day = 1; day <= $.daysInMonth( $( this ).val() ); day++ ) {
+						$syncDayOfMonthInput.append( $( '<option>', {
+							value: day,
+							text: day
+						} ) );
+					}
+
+					$syncDayOfMonthInput.prop( 'disabled', false );
 				} else {
 					$syncDayOfMonthInput.val( 0 ).trigger( 'change' );
+					$syncDayOfMonthInput.prop( 'disabled', true );
 				}
 			}
 		);
