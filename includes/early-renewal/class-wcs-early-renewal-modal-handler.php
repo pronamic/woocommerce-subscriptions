@@ -146,7 +146,11 @@ class WCS_Early_Renewal_Modal_Handler {
 			wc_add_notice( __( 'Payment for the renewal order was unsuccessful with your payment method on file, please try again.', 'woocommerce-subscriptions' ), 'error' );
 			wp_redirect( wcs_get_early_renewal_url( $subscription ) );
 			exit();
-		} else {
+		}
+
+		// Paid early renewals trigger the subscription payment complete hooks, extend next payment dates and reset suspension counts and user roles.
+		// Orders which are on-hold (manual payment or auth/capture gateways) will be handled when the order eventually is marked as payment complete (process/completed).
+		if ( $renewal_order->is_paid() ) {
 			// Trigger the subscription payment complete hooks and reset suspension counts and user roles.
 			$subscription->payment_complete();
 

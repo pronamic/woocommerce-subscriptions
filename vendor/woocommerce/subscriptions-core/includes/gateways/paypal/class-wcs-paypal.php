@@ -511,11 +511,11 @@ class WCS_PayPal {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
 	 */
 	public static function maybe_add_payment_lock() {
-		if ( ! wcs_is_order_received_page() ) {
+		global $wp;
+		if ( ! isset( $wp->query_vars['order-received'] ) ) {
 			return;
 		}
 
-		global $wp;
 		$order = wc_get_order( absint( $wp->query_vars['order-received'] ) );
 
 		if ( $order && self::instance()->get_id() === $order->get_payment_method() && $order->needs_payment() && ! self::are_reference_transactions_enabled() && wcs_order_contains_subscription( $order, array( 'parent' ) ) ) {

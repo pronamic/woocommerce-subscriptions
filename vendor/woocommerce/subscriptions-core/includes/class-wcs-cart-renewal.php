@@ -494,33 +494,44 @@ class WCS_Cart_Renewal {
 	 * Returns address details from the renewal order if the checkout is for a renewal.
 	 *
 	 * @param string $value Default checkout field value.
-	 * @param string $key The checkout form field name/key
+	 * @param string $key   The checkout form field name/key.
+	 *
 	 * @return string $value Checkout field value.
 	 */
 	public function checkout_get_value( $value, $key ) {
 
-		// Only hook in after WC()->checkout() has been initialised
-		if ( $this->cart_contains() && did_action( 'woocommerce_checkout_init' ) > 0 ) {
+		// Only hook in after WC()->checkout() has been initialised.
+		if ( ! $this->cart_contains() || did_action( 'woocommerce_checkout_init' ) <= 0 ) {
+			return $value;
+		}
 
-			// Guard against the fake WC_Checkout singleton, see https://github.com/woocommerce/woocommerce-subscriptions/issues/427#issuecomment-260763250
-			remove_filter( 'woocommerce_checkout_get_value', array( &$this, 'checkout_get_value' ), 10 );
+		// Get the most specific order object, which will be the renewal order for renewals, initial order for initial payments, or a subscription for switches/resubscribes.
+		$order = $this->get_order();
 
-			if ( is_callable( array( WC()->checkout(), 'get_checkout_fields' ) ) ) { // WC 3.0+
-				$address_fields = array_merge( WC()->checkout()->get_checkout_fields( 'billing' ), WC()->checkout()->get_checkout_fields( 'shipping' ) );
-			} else {
-				$address_fields = array_merge( WC()->checkout()->checkout_fields['billing'], WC()->checkout()->checkout_fields['shipping'] );
-			}
+		if ( ! $order ) {
+			return $value;
+		}
 
-			add_filter( 'woocommerce_checkout_get_value', array( &$this, 'checkout_get_value' ), 10, 2 );
+		$address_fields = array_merge(
+			WC()->countries->get_address_fields(
+				$order->get_billing_country(),
+				'billing_'
+			),
+			WC()->countries->get_address_fields(
+				$order->get_shipping_country(),
+				'shipping_'
+			)
+		);
 
-			if ( array_key_exists( $key, $address_fields ) && false !== ( $item = $this->cart_contains() ) ) {
+		// Generate the address getter method for the key.
+		$getter = "get_{$key}";
 
-				// Get the most specific order object, which will be the renewal order for renewals, initial order for initial payments, or a subscription for switches/resubscribes
-				$order = $this->get_order( $item );
+		if ( array_key_exists( $key, $address_fields ) && is_callable( [ $order, $getter ] ) ) {
+			$order_value = call_user_func( [ $order, $getter ] );
 
-				if ( ( $order_value = wcs_get_objects_property( $order, $key ) ) ) {
-					$value = $order_value;
-				}
+			// Given this is fetching the value for a checkout field, we need to ensure the value is a scalar.
+			if ( is_scalar( $order_value ) ) {
+				$value = $order_value;
 			}
 		}
 

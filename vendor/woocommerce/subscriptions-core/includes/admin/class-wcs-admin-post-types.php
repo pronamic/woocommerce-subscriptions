@@ -1811,9 +1811,7 @@ class WCS_Admin_Post_Types {
 
 		$query_order = strtoupper( $args['order'] );
 
-		// fields and order are identical in both cases
-		$pieces['fields'] .= ', COALESCE(lp.last_payment, orders.date_created_gmt, 0) as lp';
-		$pieces['orderby'] = "CAST(lp AS DATETIME) {$query_order}";
+		$pieces['orderby'] = "COALESCE(lp.last_payment, parent_order.date_created_gmt, 0) {$query_order}";
 
 		return $pieces;
 	}
@@ -1841,7 +1839,7 @@ class WCS_Admin_Post_Types {
 				WHERE order_meta.meta_key = '_subscription_renewal'
 				GROUP BY order_meta.meta_value) lp
 			ON {$order_table}.id = lp.meta_value
-			LEFT JOIN {$order_table} orders on {$order_table}.parent_order_id = orders.ID";
+			LEFT JOIN {$order_table} as parent_order on {$order_table}.parent_order_id = parent_order.ID";
 
 		return $pieces;
 	}
@@ -1866,24 +1864,22 @@ class WCS_Admin_Post_Types {
 		$table_name = substr( "{$wpdb->prefix}tmp_{$session}_lastpayment", 0, 64 );
 
 		// Create a temporary table, drop the previous one.
-		$wpdb->query( $wpdb->prepare( 'DROP TEMPORARY TABLE IF EXISTS %s', $table_name ) );
+		//phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DROP TEMPORARY TABLE IF EXISTS {$table_name}" );
 
 		$wpdb->query(
-			$wpdb->prepare(
-				"CREATE TEMPORARY TABLE %s (id INT PRIMARY KEY, last_payment DATETIME) AS
-				SELECT order_meta.meta_value as id, MAX( orders.date_created_gmt ) as last_payment FROM %s order_meta
-				LEFT JOIN %s as orders ON orders.id = order_meta.order_id
-				WHERE order_meta.meta_key = '_subscription_renewal'
-				GROUP BY order_meta.meta_value",
-				$table_name,
-				$meta_table,
-				$order_table
-			)
+			"CREATE TEMPORARY TABLE {$table_name} (id INT PRIMARY KEY, last_payment DATETIME) AS
+			SELECT order_meta.meta_value as id, MAX( orders.date_created_gmt ) as last_payment
+			FROM {$meta_table} as order_meta
+			LEFT JOIN {$order_table} as orders ON orders.id = order_meta.order_id
+			WHERE order_meta.meta_key = '_subscription_renewal'
+			GROUP BY order_meta.meta_value"
 		);
+		//phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-		$pieces['join'] .= "LEFT JOIN {$table_name} lp
+		$pieces['join'] .= "LEFT JOIN {$table_name} as lp
 			ON {$order_table}.id = lp.id
-			LEFT JOIN {$order_table} orders on {$order_table}.parent_order_id = orders.id";
+			LEFT JOIN {$order_table} as parent_order on {$order_table}.parent_order_id = parent_order.id";
 
 		return $pieces;
 	}

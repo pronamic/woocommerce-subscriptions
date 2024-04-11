@@ -57,6 +57,8 @@ class WC_Subscriptions_Manager {
 
 		// Do the same thing for WordPress networks
 		add_action( 'wpmu_delete_user', __CLASS__ . '::trash_users_subscriptions_for_network' );
+
+		add_filter( 'woocommerce_cancel_unpaid_order', [ __CLASS__, 'exclude_subscription_from_order_cleanup' ], 10, 2 );
 	}
 
 	/**
@@ -603,6 +605,22 @@ class WC_Subscriptions_Manager {
 		$subscription->add_order_note( __( 'Pending subscription created.', 'woocommerce-subscriptions' ) );
 
 		do_action( 'pending_subscription_created_for_order', $order, $product_id );
+	}
+
+	/**
+	 * Excludes subscriptions from the order cleanup process.
+	 *
+	 * @param bool     $should_cancel Whether the order should be cancelled.
+	 * @param WC_Order $order         The order object.
+	 *
+	 * @return bool Whether the order should be cancelled.
+	 */
+	public static function exclude_subscription_from_order_cleanup( $should_cancel, $order ) {
+		if ( $should_cancel && 'shop_subscription' === $order->get_type() ) {
+			$should_cancel = false;
+		}
+
+		return $should_cancel;
 	}
 
 	/**

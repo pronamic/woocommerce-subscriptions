@@ -107,6 +107,12 @@ class WCS_Switch_Totals_Calculator {
 						$this->reset_prorated_price( $switch_item );
 
 						$upgrade_cost = $this->calculate_upgrade_cost( $switch_item );
+
+						// If a negative upgrade cost has been calculated. Have the customer pay a full price minus what they are owed and set the next payment to be the new products first payment date.
+						if ( $upgrade_cost < 0 ) {
+							$upgrade_cost = $this->calculate_fully_reduced_upgrade_cost( $cart_item_key, $switch_item );
+						}
+
 						$this->set_upgrade_cost( $switch_item, $upgrade_cost );
 					}
 				}
@@ -512,6 +518,32 @@ class WCS_Switch_Totals_Calculator {
 	 */
 	protected function get_first_payment_timestamp( $cart_item_key ) {
 		return $this->cart->cart_contents[ $cart_item_key ]['subscription_switch']['first_payment_timestamp'];
+	}
+
+	/**
+	 * Calculates the cost of the upgrade when the customer pays the new product's full price minus the amount paid and still owing.
+	 *
+	 * This function is used when a switch results in a negative upgrade cost which typically occurs when stores use the `wcs_switch_proration_switch_type` filter to change the default switch type.
+	 * For example, if a customer is switching from a monthly subscription to a yearly subscription, they will pay the yearly product's full price minus whatever is still owed on the monthly product's price.
+	 *
+	 * eg $20/month switched to a $200 yearly product. The upgrade cost would be 200 - ((20/30) * days-left-in-the-current-billing-term).
+	 * Switching on the first day of the month would result in the following calculation: 200 - ((20/30) * 30) = 200 - 20 = 180. The full $20 is owed.
+	 * Switching halfway through the month would result in the following calculation: 200 - ((20/30) * 15) = 200 - 10 = 190. The customer is owed $10 or half what they paid.
+	 *
+	 * @param string              $cart_item_key The switch item's cart item key.
+	 * @param WCS_Switch_Cart_Item $switch_item  The switch item.
+	 *
+	 * @return float The upgrade cost.
+	 */
+	protected function calculate_fully_reduced_upgrade_cost( $cart_item_key, $switch_item ) {
+		// When a customer pays the full new product price minus the amount already paid, we need to reduce the prepaid term and the subscription's next payment is 1 billing cycle away.
+		$this->cart->cart_contents[ $cart_item_key ]['subscription_switch']['first_payment_timestamp'] = WC_Subscriptions_Product::get_first_renewal_payment_time( $switch_item->product );
+
+		// The customer is owed whatever they didn't use. If they paid $100 for a monthly subscription and are switching half way through the month, they are owed $50.
+		$remaining_amount_not_consumed = ( $switch_item->get_total_paid_for_current_period() / $switch_item->get_days_in_old_cycle() ) * $switch_item->get_days_until_next_payment();
+
+		// The customer pays the full price of the new product minus the amount they didn't use.
+		return ( WC_Subscriptions_Product::get_price( $switch_item->product ) * $switch_item->cart_item['quantity'] ) - ( $remaining_amount_not_consumed );
 	}
 
 	/** Helpers */
