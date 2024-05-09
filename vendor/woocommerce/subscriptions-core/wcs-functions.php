@@ -105,7 +105,7 @@ function wcs_create_subscription( $args = array() ) {
 	$order = ( isset( $args['order_id'] ) ) ? wc_get_order( $args['order_id'] ) : null;
 
 	$default_args = array(
-		'status'             => '',
+		'status'             => apply_filters( 'woocommerce_default_subscription_status', 'pending' ),
 		'order_id'           => 0,
 		'customer_note'      => null,
 		'customer_id'        => null,
@@ -190,12 +190,11 @@ function wcs_create_subscription( $args = array() ) {
 
 	/**
 	 * Filter the newly created subscription object.
-	 * We need to fetch the subscription from the database as the current object state doesn't match the loaded state.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.22
 	 * @param WC_Subscription $subscription
 	 */
-	$subscription = apply_filters( 'wcs_created_subscription', wcs_get_subscription( $subscription ) );
+	$subscription = apply_filters( 'wcs_created_subscription', $subscription );
 
 	/**
 	 * Triggered after a new subscription is created.

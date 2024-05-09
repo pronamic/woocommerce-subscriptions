@@ -117,7 +117,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			// translators: placeholder is trial period validation message if passed an invalid value (e.g. "Trial period can not exceed 4 weeks")
 			'description'   => sprintf( _x( 'An optional period of time to wait before charging the first recurring payment. Any sign up fee will still be charged at the outset of the subscription. %s', 'Trial period dropdown\'s description in pricing fields', 'woocommerce-subscriptions' ), self::get_trial_period_validation_message() ),
 			'desc_tip'      => true,
-			'value'         => WC_Subscriptions_Product::get_trial_period( $variation->get_id() ), // Explicity set value in to ensure backward compatibility
+			'value'         => WC_Subscriptions_Product::get_trial_period( $variation->get_id() ), // Explicitly set value in to ensure backward compatibility
 			)
 		);?>
 	</td>

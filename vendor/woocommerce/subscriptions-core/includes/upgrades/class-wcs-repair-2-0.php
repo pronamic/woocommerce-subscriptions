@@ -171,7 +171,7 @@ class WCS_Repair_2_0 {
 	}
 
 	/**
-	 * If the subscription does not have a subscription key for whatever reason (probably becuase the product_id was missing), then this one
+	 * If the subscription does not have a subscription key for whatever reason (probably because the product_id was missing), then this one
 	 * fills in the blank.
 	 *
 	 * @param  array $subscription data about the subscription
@@ -601,10 +601,10 @@ class WCS_Repair_2_0 {
 		if ( false === $next_date_timestamp ) {
 			// set it to 0 as default
 			$formatted_date = 0;
-			WCS_Upgrade_Logger::add( sprintf( '-- For order %d: Repairing date type "%s": fetch of date unsuccessfull: no action present. Date is 0.', $subscription['order_id'], $type ) );
+			WCS_Upgrade_Logger::add( sprintf( '-- For order %d: Repairing date type "%s": fetch of date unsuccessful: no action present. Date is 0.', $subscription['order_id'], $type ) );
 		} else {
 			$formatted_date = gmdate( 'Y-m-d H:i:s', $next_date_timestamp );
-			WCS_Upgrade_Logger::add( sprintf( '-- For order %d: Repairing date type "%s": fetch of date successfull. New date is %s', $subscription['order_id'], $type, $formatted_date ) );
+			WCS_Upgrade_Logger::add( sprintf( '-- For order %d: Repairing date type "%s": fetch of date successful. New date is %s', $subscription['order_id'], $type, $formatted_date ) );
 		}
 
 		return $formatted_date;

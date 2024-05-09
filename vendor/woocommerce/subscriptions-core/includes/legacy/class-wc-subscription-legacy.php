@@ -453,7 +453,7 @@ class WC_Subscription_Legacy extends WC_Subscription {
 
 	/**
 	 * Helper function to make sure when WC_Subscription calls get_prop() from
-	 * it's new getters that the property is both retreived from the legacy class
+	 * it's new getters that the property is both retrieved from the legacy class
 	 * property and done so from post meta.
 	 *
 	 * For inherited dates props, like date_created, date_modified, date_paid,

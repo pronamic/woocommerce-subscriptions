@@ -174,7 +174,7 @@ class WC_Product_Variable_Subscription_Legacy extends WC_Product_Variable_Subscr
 
 	/**
 	 * Create unique cache key based on the tax location (affects displayed/cached prices), product version and active price filters.
-	 * DEVELOPERS should filter this hash if offering conditonal pricing to keep it unique.
+	 * DEVELOPERS should filter this hash if offering conditional pricing to keep it unique.
 	 *
 	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 * @param  WC_Product
@@ -208,7 +208,7 @@ class WC_Product_Variable_Subscription_Legacy extends WC_Product_Variable_Subscr
 	}
 
 	/**
-	 * Sync variable product prices with the childs lowest/highest prices.
+	 * Sync variable product prices with the children lowest/highest prices.
 	 *
 	 * @access public
 	 * @return void

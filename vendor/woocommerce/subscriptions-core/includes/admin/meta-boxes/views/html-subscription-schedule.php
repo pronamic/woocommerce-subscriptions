@@ -57,7 +57,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<strong><?php echo esc_html( $date_label ); ?>:</strong>
 		<input type="hidden" name="<?php echo esc_attr( $date_key ); ?>_timestamp_utc" id="<?php echo esc_attr( $date_key ); ?>_timestamp_utc" value="<?php echo esc_attr( $the_subscription->get_time( $internal_date_key, 'gmt' ) ); ?>"/>
 		<?php if ( $the_subscription->can_date_be_updated( $internal_date_key ) ) : ?>
-			<?php echo wp_kses( wcs_date_input( $the_subscription->get_time( $internal_date_key, 'site' ), array( 'name_attr' => $date_key ) ), array( 'input' => array( 'type' => array(), 'class' => array(), 'placeholder' => array(), 'name' => array(), 'id' => array(), 'maxlength' => array(), 'size' => array(), 'value' => array(), 'patten' => array() ), 'div' => array( 'class' => array() ), 'span' => array(), 'br' => array() ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound ?>
+			<?php echo wp_kses( wcs_date_input( $the_subscription->get_time( $internal_date_key, 'site' ), array( 'name_attr' => $date_key ) ), array( 'input' => array( 'type' => array(), 'class' => array(), 'placeholder' => array(), 'name' => array(), 'id' => array(), 'maxlength' => array(), 'size' => array(), 'value' => array(), 'pattern' => array() ), 'div' => array( 'class' => array() ), 'span' => array(), 'br' => array() ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound ?>
 		<?php else : ?>
 			<?php echo esc_html( $the_subscription->get_date_to_display( $internal_date_key ) ); ?>
 		<?php endif; ?>

@@ -54,7 +54,7 @@ class WCS_Admin_Product_Import_Export_Manager {
 			if ( 'subscription_variation' === $product_type ) {
 				$export_subscription_variations = true;
 
-				// All variation products are exported with the 'variation' key so remove the uneeded `subscription_variation`.
+				// All variation products are exported with the 'variation' key so remove the unneeded `subscription_variation`.
 				// Further filtering by product type will be handled by the query args (see below).
 				unset( $args['type'][ $index ] );
 			} elseif ( 'variation' === $product_type ) {
@@ -88,7 +88,7 @@ class WCS_Admin_Product_Import_Export_Manager {
 	}
 
 	/**
-	 * Filters product import data so subcription variations are imported correctly (as variations).
+	 * Filters product import data so subscription variations are imported correctly (as variations).
 	 *
 	 * Subscription variations are the exact same as standard variations. What sets them apart is the fact they are linked
 	 * to a variable subscription parent rather than a standard variable product. With that in mind, we need to import them just

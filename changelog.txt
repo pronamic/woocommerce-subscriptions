@@ -1,4 +1,28 @@
-*** Woo Subscriptions Changelog ***
+*** WooCommerce Subscriptions Changelog ***
+
+2024-05-09 - version 6.3.1
+* Fix: Resolved an issue that caused "WC_DateTime could not be converted to int" warnings to occur on non-hpos sites while editing a subscription.
+
+2024-05-09 - version 6.3.0
+* Fix: Uncaught exception from 'WCS_Related_Order_Store_Cached_CPT::delete_relations' when order is not an instance of WC_Order.
+* Fix: Include subscription sign-up fees on orders created via the REST API.
+* Fix: Add check to prevent fatal error in rsort and array_sum.
+* Fix: Use `add_to_cart_ajax_redirect` instead of the deprecated `redirect_ajax_add_to_cart` function as callback.
+* Fix: Filtered order links in subscription reports returns all the orders when HPOS is enabled.
+* Fix: Typo in confirmation alert when users remove an item from a subscription.
+* Fix: Ensure the scheduled sale price for subscription products ends at the end of the "to" day set in product settings.
+* Fix: Subscription table is empty in mobile view when HPOS is enabled.
+* Fix: WooCommerce page header is hidden when HPOS is enabled.
+* Fix: Subscription updated messages missing on the Edit Subscription page when HPOS is enabled.
+* Fix: Resolved an issue that prevented bulk actions from running on the Subscriptions list table when the table was filtered by date, payment method, product or customer.
+* Fix: Subscriptions created via the POST `/wc/v3/orders/{order_id}/subscriptions` endpoint shouldn't include sign-up fees and/or $0 trial periods in line item totals.
+* Update: Update the shipping method styling to apply borders to the highlighted shipping option in the Checkout block.
+* Update: Include a full stack trace in failed scheduled action logs to improve troubleshooting issues.
+* Update: Show notice about product being removed from the cart when a subscription is for disabled mixed checkout setting.
+* Update: Change plugin name back to WooCommerce Subscriptions.
+* Dev: Calling wcs_create_subscription() will no longer attempt to fetch a fresh instance of the subscription at the end. This is to prevent loading the subscription from the database potentially unnecessarily.
+* Dev: Updated subscriptions-core to 7.1.0.
+* Dev: Bump WooCommerce minimum required version to 7.9.0.
 
 2024-04-11 - version 6.2.0
 * Add: Declare WooCommerce as a plugin dependency in the plugin header.

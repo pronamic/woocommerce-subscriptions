@@ -16,7 +16,7 @@ class WC_Subscriptions_Core_Plugin {
 	 * The version of subscriptions-core library.
 	 * @var string
 	 */
-	protected $library_version = '7.0.0'; // WRCS: DEFINED_VERSION.
+	protected $library_version = '7.1.1'; // WRCS: DEFINED_VERSION.
 
 	/**
 	 * The subscription scheduler instance.
@@ -94,7 +94,7 @@ class WC_Subscriptions_Core_Plugin {
 	}
 
 	/**
-	 * Defines WC Subscriptions contants.
+	 * Defines WC Subscriptions constants.
 	 */
 	protected function define_constants() {
 		define( 'WCS_INIT_TIMESTAMP', gmdate( 'U' ) );
@@ -531,7 +531,7 @@ class WC_Subscriptions_Core_Plugin {
 	public function load_plugin_textdomain() {
 		$plugin_rel_path = apply_filters( 'woocommerce_subscriptions_translation_file_rel_path', $this->get_subscriptions_core_directory() . '/languages' );
 
-		// Then check for a language file in /wp-content/plugins/woocommerce-subscriptions/languages/ (this will be overriden by any file already loaded)
+		// Then check for a language file in /wp-content/plugins/woocommerce-subscriptions/languages/ (this will be overridden by any file already loaded)
 		load_plugin_textdomain( 'woocommerce-subscriptions', false, $plugin_rel_path );
 	}
 

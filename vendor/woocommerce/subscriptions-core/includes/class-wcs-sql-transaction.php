@@ -1,6 +1,6 @@
 <?php
 /**
- * A SQL Transaction Handler to assist with starting, commiting and rolling back transactions.
+ * A SQL Transaction Handler to assist with starting, committing and rolling back transactions.
  * This class also closes off an active transaction before shutdown to allow for shutdown processes to write to the database.
  *
  * @package  WooCommerce Subscriptions
@@ -61,7 +61,7 @@ class WCS_SQL_Transaction {
 	}
 
 	/**
-	 * Starts a MYSQL Transction.
+	 * Starts a MYSQL Transaction.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
@@ -71,7 +71,7 @@ class WCS_SQL_Transaction {
 	}
 
 	/**
-	 * Commits the MYSQL Transction.
+	 * Commits the MYSQL Transaction.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
@@ -81,7 +81,7 @@ class WCS_SQL_Transaction {
 	}
 
 	/**
-	 * Rolls back any changes made during the MYSQL Transction.
+	 * Rolls back any changes made during the MYSQL Transaction.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */
@@ -93,8 +93,8 @@ class WCS_SQL_Transaction {
 	/**
 	 * Closes out an active transaction depending on the type of shutdown.
 	 *
-	 * Shutdowns caused by a fatal will be rolledback or commited @see $this->on_fatal.
-	 * Shutdowns caused by a natural PHP termination (no error) will be rolledback or commited. @see $this->on_shutdown.
+	 * Shutdowns caused by a fatal will be rolledback or committed @see $this->on_fatal.
+	 * Shutdowns caused by a natural PHP termination (no error) will be rolledback or committed. @see $this->on_shutdown.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 */

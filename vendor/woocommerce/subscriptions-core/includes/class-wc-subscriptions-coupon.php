@@ -727,7 +727,7 @@ class WC_Subscriptions_Coupon {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param string $coupon_type The coupon's type.
-	 * @return bool Whether the coupon is a recuring cart virtual coupon.
+	 * @return bool Whether the coupon is a recurring cart virtual coupon.
 	 */
 	public static function is_renewal_cart_coupon( $coupon_type ) {
 		return isset( self::$renewal_coupons[ $coupon_type ] );
@@ -739,7 +739,7 @@ class WC_Subscriptions_Coupon {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *
 	 * @param string $coupon_type The coupon's type.
-	 * @return bool Whether the coupon is a recuring cart virtual coupon.
+	 * @return bool Whether the coupon is a recurring cart virtual coupon.
 	 */
 	public static function is_recurring_coupon( $coupon_type ) {
 		return isset( self::$recurring_coupons[ $coupon_type ] );
@@ -933,7 +933,7 @@ class WC_Subscriptions_Coupon {
 
 		if ( ! empty( self::$removed_coupons ) ) {
 
-			// Can't use $cart->add_dicount here as it calls calculate_totals()
+			// Can't use $cart->add_discount here as it calls calculate_totals()
 			$cart->applied_coupons = array_merge( $cart->applied_coupons, self::$removed_coupons );
 
 			if ( isset( $cart->coupons ) ) { // WC 2.3+

@@ -267,8 +267,8 @@ class WCS_Staging {
 	/**
 	 * Gets the sites WordPress or Subscriptions URL.
 	 *
-	 * WordPress - This is typically the URL the current site is accessable via.
-	 * Subscriptions is the URL Subscritpions considers to be the URL to process live payments on. It may differ to the WP URL if the site has moved.
+	 * WordPress - This is typically the URL the current site is accessible via.
+	 * Subscriptions is the URL Subscriptions considers to be the URL to process live payments on. It may differ to the WP URL if the site has moved.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
 	 *

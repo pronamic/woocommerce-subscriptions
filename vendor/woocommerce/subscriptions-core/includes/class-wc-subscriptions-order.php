@@ -608,7 +608,7 @@ class WC_Subscriptions_Order {
 	/* Edit Order Page Content */
 
 	/**
-	 * Returns all parent subscription orders for a user, specificed with $user_id
+	 * Returns all parent subscription orders for a user, specified with $user_id
 	 *
 	 * @return array An array of order IDs.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
@@ -787,7 +787,7 @@ class WC_Subscriptions_Order {
 	}
 
 	/**
-	 * Filters the arguments to be pased to `wc_get_orders()` under the Woocommerce -> Orders screen.
+	 * Filters the arguments to be passed to `wc_get_orders()` under the Woocommerce -> Orders screen.
 	 *
 	 * @since 6.3.0
 	 *
@@ -947,7 +947,7 @@ class WC_Subscriptions_Order {
 	 * against the line item on the original order for that subscription.
 	 *
 	 * In v2.0, this data was moved to a distinct subscription object which had its own line items for those amounts.
-	 * This function bridges the two data structures to support deprecated functions used to retreive a subscription's
+	 * This function bridges the two data structures to support deprecated functions used to retrieve a subscription's
 	 * meta data from the original order rather than the subscription itself.
 	 *
 	 * @param WC_Order $order A WC_Order object
@@ -985,7 +985,7 @@ class WC_Subscriptions_Order {
 	 * against the line item on the original order for that subscription.
 	 *
 	 * In v2.0, this data was moved to a distinct subscription object which had its own line items for those amounts.
-	 * This function bridges the two data structures to support deprecated functions used to retreive a subscription's
+	 * This function bridges the two data structures to support deprecated functions used to retrieve a subscription's
 	 * meta data from the original order rather than the subscription itself.
 	 *
 	 * @param WC_Order $order A WC_Order object
@@ -1388,7 +1388,7 @@ class WC_Subscriptions_Order {
 	}
 
 	/**
-	 * Checks if an order contains an in active subscription and if it does, denies download acces
+	 * Checks if an order contains an in active subscription and if it does, denies download access
 	 * to files purchased on the order.
 	 *
 	 * @return bool False if the order contains a subscription that has expired or is cancelled/on-hold, otherwise, the original value of $download_permitted
@@ -2157,7 +2157,7 @@ class WC_Subscriptions_Order {
 	/**
 	 * Returns the amount outstanding on a subscription product.
 	 *
-	 * Deprecated because the subscription oustanding balance on a subscription is no longer added and an order can contain more
+	 * Deprecated because the subscription outstanding balance on a subscription is no longer added and an order can contain more
 	 * than one subscription.
 	 *
 	 * @param WC_Order $order The WC_Order object of the order for which you want to determine the number of failed payments.
@@ -2170,9 +2170,9 @@ class WC_Subscriptions_Order {
 
 		$failed_payment_count = self::get_failed_payment_count( $order, $product_id );
 
-		$oustanding_balance = $failed_payment_count * self::get_recurring_total( $order, $product_id );
+		$outstanding_balance = $failed_payment_count * self::get_recurring_total( $order, $product_id );
 
-		return $oustanding_balance;
+		return $outstanding_balance;
 	}
 
 	/**

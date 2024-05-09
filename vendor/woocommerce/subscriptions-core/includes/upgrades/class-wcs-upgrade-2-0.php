@@ -858,7 +858,7 @@ class WCS_Upgrade_2_0 {
 
 	/**
 	 * The '_switched_subscription_key' and '_switched_subscription_new_order' post meta values are no longer used to relate orders
-	 * and switched subscriptions, instead, we need to set a '_subscription_switch' value on the switch order and depreacted the old
+	 * and switched subscriptions, instead, we need to set a '_subscription_switch' value on the switch order and deprecated the old
 	 * meta keys by prefixing them with '_wcs_migrated'.
 	 *
 	 * Subscriptions also sets a '_switched_subscription_item_id' value on the new line item of for the switched item and a item meta

@@ -437,7 +437,7 @@ class WC_Subscriptions_Renewal_Order {
 	 * @param string $product_id The ID of the subscription product in the order which needs to be added to the new order.
 	 * @param array $args (optional) An array of name => value flags:
 	 *         'new_order_role' string A flag to indicate whether the new order should become the master order for the subscription. Accepts either 'parent' or 'child'. Defaults to 'parent' - replace the existing order.
-	 *         'checkout_renewal' bool Indicates if invoked from an interactive cart/checkout session and certain order items are not set, like taxes, shipping as they need to be set in teh calling function, like @see WC_Subscriptions_Checkout::filter_woocommerce_create_order(). Default false.
+	 *         'checkout_renewal' bool Indicates if invoked from an interactive cart/checkout session and certain order items are not set, like taxes, shipping as they need to be set in the calling function, like @see WC_Subscriptions_Checkout::filter_woocommerce_create_order(). Default false.
 	 *         'failed_order_id' int For checkout_renewal true, indicates order id being replaced
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0

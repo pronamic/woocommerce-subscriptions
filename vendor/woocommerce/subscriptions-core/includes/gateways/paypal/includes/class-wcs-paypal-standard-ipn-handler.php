@@ -570,7 +570,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	 *
 	 * This function expects a generic payload, in any serialization format. It looks for an 'order key' code. This
 	 * function uses regular expressions and looks for 'order key'. WooCommerce allows plugins to modify the order
-	 * keys through filtering, unfortunatelly we only check for the original
+	 * keys through filtering, unfortunately we only check for the original
 	 *
 	 * @param string $payload PayPal payload data
 	 *

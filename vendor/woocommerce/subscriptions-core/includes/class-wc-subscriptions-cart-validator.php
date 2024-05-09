@@ -46,8 +46,10 @@ class WC_Subscriptions_Cart_Validator {
 			$product        = wc_get_product( $product_id );
 
 			// If the product is sold individually or if the cart doesn't already contain this product, empty the cart.
-			if ( ( $product && $product->is_sold_individually() ) || ! WC()->cart->find_product_in_cart( $cart_item_id ) ) {
+			if ( ! WC()->cart->is_empty() && ( ( $product && $product->is_sold_individually() ) || ! WC()->cart->find_product_in_cart( $cart_item_id ) ) ) {
+				$message = $cart_contains_subscription ? __( 'A subscription has been removed from your cart. Only one subscription product can be purchased at a time.', 'woocommerce-subscriptions' ) : __( 'Products have been removed from your cart. Products and subscriptions can not be purchased at the same time.', 'woocommerce-subscriptions' );
 				WC()->cart->empty_cart();
+				wc_add_notice( $message, 'notice' );
 			}
 		} elseif ( $is_subscription && wcs_cart_contains_renewal() && ! $multiple_subscriptions_possible && ! $manual_renewals_enabled ) {
 
@@ -68,7 +70,7 @@ class WC_Subscriptions_Cart_Validator {
 			wc_add_notice( __( 'A subscription has been removed from your cart. Products and subscriptions can not be purchased at the same time.', 'woocommerce-subscriptions' ), 'notice' );
 
 			// Redirect to cart page to remove subscription & notify shopper
-			add_filter( 'woocommerce_add_to_cart_fragments', array( __CLASS__, 'redirect_ajax_add_to_cart' ) );
+			add_filter( 'woocommerce_add_to_cart_fragments', array( __CLASS__, 'add_to_cart_ajax_redirect' ) );
 		}
 
 		return $valid;
@@ -107,7 +109,7 @@ class WC_Subscriptions_Cart_Validator {
 				wc_add_notice( __( 'Your cart has been emptied of subscription products. Only one subscription product can be purchased at a time.', 'woocommerce-subscriptions' ), 'notice' );
 
 				// Redirect to cart page to remove subscription & notify shopper
-				add_filter( 'woocommerce_add_to_cart_fragments', array( __CLASS__, 'redirect_ajax_add_to_cart' ) );
+				add_filter( 'woocommerce_add_to_cart_fragments', array( __CLASS__, 'add_to_cart_ajax_redirect' ) );
 
 				break;
 			}
@@ -137,7 +139,7 @@ class WC_Subscriptions_Cart_Validator {
 	 *
 	 * Attached by @see WC_Subscriptions_Cart_Validator::validate_cart_contents_for_mixed_checkout() and
 	 * @see WC_Subscriptions_Cart_Validator::maybe_empty_cart() when the store has multiple subscription
-	 * purcahses disabled, the cart already contains products and the customer adds a new item or logs in
+	 * purchases disabled, the cart already contains products and the customer adds a new item or logs in
 	 * causing a cart merge.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0

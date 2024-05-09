@@ -46,7 +46,7 @@ var jstz = (function () {
                 'Australia/Sydney':     ['Australia/Lord_Howe'],
                 'Asia/Tokyo':           ['Asia/Yakutsk'],
                 'Asia/Dhaka':           ['Asia/Omsk'],
-                // In the real world Yerevan is not ambigous for Baku... but Windows.
+                // In the real world Yerevan is not ambiguous for Baku... but Windows.
                 'Asia/Baku':            ['Asia/Yerevan'],
                 'Australia/Brisbane':   ['Asia/Vladivostok'],
                 'Pacific/Noumea':       ['Asia/Vladivostok'],
@@ -332,7 +332,7 @@ var jstz = (function () {
          * Builds up the current timezones DST rules for the years defined
          * in the jstz.olson.dst_rules.years array.
          *
-         * If there are no DST occurences for those years, immediately returns
+         * If there are no DST occurrences for those years, immediately returns
          * the preliminary timezone. Otherwise proceeds and tries to solve
          * ambiguities.
          *

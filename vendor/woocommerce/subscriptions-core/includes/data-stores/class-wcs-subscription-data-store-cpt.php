@@ -216,10 +216,10 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 */
 	public function update( &$subscription ) {
 
-		// We don't want to call parent here becuase WC_Order_Data_Store_CPT includes a JIT setting of the paid date which is not needed for subscriptions, and also very resource intensive
+		// We don't want to call parent here because WC_Order_Data_Store_CPT includes a JIT setting of the paid date which is not needed for subscriptions, and also very resource intensive
 		Abstract_WC_Order_Data_Store_CPT::update( $subscription );
 
-		// We used to call parent::update() above, which triggered this hook, so we trigger it manually here for backward compatibilty (and to improve compatibility with 3rd party code which may run validation or additional operations on it which should also be applied to a subscription)
+		// We used to call parent::update() above, which triggered this hook, so we trigger it manually here for backward compatibility (and to improve compatibility with 3rd party code which may run validation or additional operations on it which should also be applied to a subscription)
 		do_action( 'woocommerce_update_order', $subscription->get_id(), $subscription );
 
 		do_action( 'woocommerce_update_subscription', $subscription->get_id(), $subscription );

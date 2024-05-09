@@ -56,7 +56,7 @@ class WCS_My_Account_Payment_Methods {
 					 * Allow third-party gateways to override whether the token delete button should be removed.
 					 *
 					 * Some gateways, like Bambora, don't allow customers to add a new card with the same card number but different expiry or cvv.
-					 * This means customers updating their expiring card need to delete the exisitng card first before adding the new one. This
+					 * This means customers updating their expiring card need to delete the existing card first before adding the new one. This
 					 * isn't possible however because we prevent deleting tokens linked to active subscriptions.
 					 *
 					 * Gateways can use this filter to make their own checks to allow deletion.

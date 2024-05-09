@@ -17,7 +17,7 @@ class WCS_Post_Meta_Cache_Manager_Many_To_One extends WCS_Post_Meta_Cache_Manage
 	/**
 	 * When post meta is updated, check if this class instance cares about updating its cache
 	 * to reflect the change. Always pass the previous value, to make sure that any existing
-	 * relationships are also deleted because we know the data should not allow realtionships
+	 * relationships are also deleted because we know the data should not allow relationships
 	 * with multiple other values. e.g. a subscription can only belong to one customer.
 	 *
 	 * @param int $meta_id The ID of the post meta row in the database.

@@ -628,7 +628,7 @@ function wcs_is_custom_order_tables_data_sync_enabled() {
 /**
  * Sets the address on an order or subscription using WC 7.1 functions if they exist.
  *
- * For stores pre WC 7.1, use the individual addresss type and key setter i.e. `set_billing_address_1()` method.
+ * For stores pre WC 7.1, use the individual address type and key setter i.e. `set_billing_address_1()` method.
  *
  * @since 5.2.0
  *

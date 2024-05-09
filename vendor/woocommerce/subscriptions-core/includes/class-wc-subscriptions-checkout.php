@@ -476,7 +476,7 @@ class WC_Subscriptions_Checkout {
 	}
 
 	/**
-	 * Enables the 'registeration required' (guest checkout) setting when purchasing subscriptions.
+	 * Enables the 'registration required' (guest checkout) setting when purchasing subscriptions.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 	 *

@@ -120,7 +120,7 @@ class WCS_Download_Handler {
 	 * download permissions stored on the subscription rather than the original order as the URL would have the wrong order
 	 * key. This function takes the same parameters, but queries the database again for download ids belonging to all the
 	 * subscriptions that were in the original order. Then for all subscriptions, it checks all items, and if the item
-	 * passed in here is in that subscription, it creates the correct download link to be passsed to the email.
+	 * passed in here is in that subscription, it creates the correct download link to be passed to the email.
 	 *
 	 * @param array $files List of files already included in the list
 	 * @param array $item An item (you get it by doing $order->get_items())
@@ -196,7 +196,7 @@ class WCS_Download_Handler {
 	}
 
 	/**
-	 * Remove download permissions attached to a subscription when it is permenantly deleted.
+	 * Remove download permissions attached to a subscription when it is permanently deleted.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 *
@@ -209,7 +209,7 @@ class WCS_Download_Handler {
 	}
 
 	/**
-	 * Remove download permissions attached to a subscription when it is permenantly deleted.
+	 * Remove download permissions attached to a subscription when it is permanently deleted.
 	 *
 	 * @since 5.2.0
 	 *

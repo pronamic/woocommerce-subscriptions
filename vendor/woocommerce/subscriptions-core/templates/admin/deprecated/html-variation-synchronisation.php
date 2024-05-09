@@ -51,7 +51,7 @@ global $wp_locale;
 			'options'       => $wp_locale->month,
 			'description'   => WC_Subscriptions_Synchroniser::$sync_description_year,
 			'desc_tip'      => true,
-			'value'         => $payment_month, // Explicity set value in to ensure backward compatibility
+			'value'         => $payment_month, // Explicitly set value in to ensure backward compatibility
 		) );
 		?>
 	</td>

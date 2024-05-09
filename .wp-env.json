@@ -1,0 +1,18 @@
+{
+  "plugins": [
+    "https://downloads.wordpress.org/plugin/woocommerce.zip",
+    "https://downloads.wordpress.org/plugin/email-log.zip",
+    ".",
+    "./tests/e2e/test-configuration-plugin"
+  ],
+  "themes": [
+    "https://downloads.wordpress.org/theme/storefront.zip"
+  ],
+  "env": {
+    "tests": {
+      "mappings": {
+        "wp-cli.yml": "./tests/e2e/bin/wp-cli.yml"
+      }
+    }
+  }
+}

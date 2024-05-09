@@ -652,7 +652,7 @@ function wcs_is_datetime_mysql_format( $time ) {
  * GMT/UTC offset for that timezone, so for example, when 3rd party code has set the servers
  * timezone using date_default_timezone_set( 'America/Los_Angeles' ) doing something like
  * gmdate( "Y-m-d H:i:s", strtotime( gmdate( "Y-m-d H:i:s" ) ) ) will actually add 7 hours to
- * the date even though it is a date in UTC timezone because the timezone wasn't specificed.
+ * the date even though it is a date in UTC timezone because the timezone wasn't specified.
  *
  * This makes sure the date is never converted.
  *

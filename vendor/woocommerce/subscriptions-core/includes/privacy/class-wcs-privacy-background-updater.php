@@ -97,7 +97,7 @@ class WCS_Privacy_Background_Updater {
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param int The order ID.
-	 * @return bool Wether the order has a scheduled anonymization action.
+	 * @return bool Whether the order has a scheduled anonymization action.
 	 */
 	protected function order_anonymization_is_scheduled( $order_id ) {
 		return false !== as_next_scheduled_action( $this->order_anonymization_hook, array( 'order_id' => intval( $order_id ) ) );

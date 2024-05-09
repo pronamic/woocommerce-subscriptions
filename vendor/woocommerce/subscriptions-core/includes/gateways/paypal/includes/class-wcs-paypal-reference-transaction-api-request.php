@@ -188,7 +188,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * @link https://developer.paypal.com/docs/classic/express-checkout/integration-guide/ECReferenceTxns/#id094UM0DA0HS
 	 * @link https://developer.paypal.com/docs/classic/api/merchant/DoReferenceTransaction_API_Operation_NVP/
 	 *
-	 * @param string $reference_id the ID of a refrence object, e.g. billing agreement ID.
+	 * @param string $reference_id the ID of a reference object, e.g. billing agreement ID.
 	 * @param WC_Order $order order object
 	 * @param array $args {
 	 *     @type string 'payment_type'         (Optional) Specifies type of PayPal payment you require for the billing agreement. It is one of the following values. 'Any' or 'InstantOnly'. Echeck is not supported for DoReferenceTransaction requests.

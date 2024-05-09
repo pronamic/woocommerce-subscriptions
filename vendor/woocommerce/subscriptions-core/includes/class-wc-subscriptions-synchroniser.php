@@ -292,7 +292,7 @@ class WC_Subscriptions_Synchroniser {
 					'options'     => self::get_billing_period_ranges( $subscription_period ),
 					'description' => self::$sync_description,
 					'desc_tip'    => true,
-					'value'       => $payment_day, // Explicity set value in to ensure backward compatibility
+					'value'       => $payment_day, // Explicitly set value in to ensure backward compatibility
 				)
 			);
 
@@ -603,7 +603,7 @@ class WC_Subscriptions_Synchroniser {
 	 *
 	 * @param WC_Product $product A subscription product.
 	 * @param string $type (optional) The format to return the first payment date in, either 'mysql' or 'timestamp'. Default 'mysql'.
-	 * @param string $from_date (optional) The date to calculate the first payment from in GMT/UTC timzeone. If not set, it will use the current date. This should not include any trial period on the product.
+	 * @param string $from_date (optional) The date to calculate the first payment from in GMT/UTC timezone. If not set, it will use the current date. This should not include any trial period on the product.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5
 	 */
 	public static function calculate_first_payment_date( $product, $type = 'mysql', $from_date = '' ) {
@@ -1312,7 +1312,7 @@ class WC_Subscriptions_Synchroniser {
 	 * Gets the number of sign-up grace period days.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.6
-	 * @return int The number of days in the grace period. 0 will be returned if the stroe isn't charging the full recurring price on sign-up -- a prerequiste for setting a grace period.
+	 * @return int The number of days in the grace period. 0 will be returned if the store isn't charging the full recurring price on sign-up -- a prerequisite for setting a grace period.
 	 */
 	private static function get_number_of_grace_period_days() {
 		return get_option( self::$setting_id_proration, 'no' ) === 'recurring' ? get_option( self::$setting_id_days_no_fee ) : 0;
@@ -1483,7 +1483,7 @@ class WC_Subscriptions_Synchroniser {
 	/**
 	 * Check if a given order included a subscription that is synced to a certain day.
 	 *
-	 * Deprecated becasuse _order_contains_synced_subscription is no longer stored on the order @see self::subscription_contains_synced_product
+	 * Deprecated because _order_contains_synced_subscription is no longer stored on the order @see self::subscription_contains_synced_product
 	 *
 	 * @param int $order_id The ID or a WC_Order item to check.
 	 * @return bool Returns true if the order contains a synced subscription, otherwise, false.

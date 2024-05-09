@@ -89,7 +89,7 @@ abstract class WCS_Background_Updater {
 	 *
 	 * Importantly, the overlap between the next scheduled update and the current batch is also useful for running
 	 * Action Scheduler via WP CLI, because it will allow for continuous execution of updates (i.e. updating a new
-	 * batch as soon as one batch has execeeded the time limit rather than having to run Action Scheduler via WP CLI
+	 * batch as soon as one batch has exceeded the time limit rather than having to run Action Scheduler via WP CLI
 	 * again later).
 	 */
 	public function run_update() {

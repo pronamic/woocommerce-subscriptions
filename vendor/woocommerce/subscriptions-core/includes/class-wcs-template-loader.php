@@ -364,7 +364,7 @@ class WCS_Template_Loader {
 	 * @since 1.4.0
 	 *
 	 * @param string $template
-	 * @param string $tempalte_name
+	 * @param string $template_name
 	 * @param array  $args
 	 * @param string $template_path
 	 * @param

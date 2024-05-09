@@ -1369,7 +1369,7 @@ class WC_Subscriptions_Manager {
 	}
 
 	/**
-	 * A subscription now either has an end date or it doesn't, there is no way to calculate it based on the original subsciption
+	 * A subscription now either has an end date or it doesn't, there is no way to calculate it based on the original subscription
 	 * product (because a WC_Subscription object can have more than one product and syncing length with expiration date was both
 	 * cumbersome and error prone).
 	 *
@@ -1852,9 +1852,9 @@ class WC_Subscriptions_Manager {
 	 */
 	public static function get_amount_from_proportion( $total, $proportion ) {
 
-		$sign_up_fee_proprotion = 1 - $proportion;
+		$sign_up_fee_proportion = 1 - $proportion;
 
-		$sign_up_total    = round( $total * $sign_up_fee_proprotion, 2 );
+		$sign_up_total    = round( $total * $sign_up_fee_proportion, 2 );
 		$recurring_amount = round( $total * $proportion, 2 );
 
 		// Handle any rounding bugs
@@ -2058,7 +2058,7 @@ class WC_Subscriptions_Manager {
 	 * if the amount is for $0 (and therefore, there is no payment to be processed by a gateway, and likely
 	 * no gateway used on the initial order).
 	 *
-	 * If a subscription has a $0 recurring total and is not already active (after being actived by something else
+	 * If a subscription has a $0 recurring total and is not already active (after being activated by something else
 	 * handling the 'scheduled_subscription_payment' with the default priority of 10), then this function will call
 	 * @see self::process_subscription_payment() to reactive the subscription, generate a renewal order etc.
 	 *

@@ -465,7 +465,7 @@ class WCS_Cart_Renewal {
 
 					if ( isset( $item_to_renew['_subtracted_base_location_taxes'] ) ) {
 						$price += array_sum( $item_to_renew['_subtracted_base_location_taxes'] ) * $item_to_renew['qty'];
-					} else {
+					} elseif ( isset( $item_to_renew['taxes']['subtotal'] ) ) {
 						$price += array_sum( $item_to_renew['taxes']['subtotal'] ); // Use the taxes array items here as they contain taxes to a more accurate number of decimals.
 					}
 				}
@@ -927,7 +927,7 @@ class WCS_Cart_Renewal {
 			 * Allow other plugins to remove/add fees of an existing order prior to building the cart without changing the saved order values
 			 * (e.g. payment gateway based fees can remove fees and later can add new fees depending on the actual selected payment gateway)
 			 *
-			 * @param WC_Order $order is renderd by reference - change meta data of this object
+			 * @param WC_Order $order is rendered by reference - change meta data of this object
 			 * @param WC_Cart $cart
 			 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
 			 */
@@ -1835,7 +1835,7 @@ class WCS_Cart_Renewal {
 
 			$order_id = absint( WC()->session->order_awaiting_payment );
 
-			// Guard against infinite loops in WC 3.0+ where default order staus is set in WC_Abstract_Order::__construct()
+			// Guard against infinite loops in WC 3.0+ where default order status is set in WC_Abstract_Order::__construct()
 			remove_filter( 'woocommerce_default_order_status', array( &$this, __FUNCTION__ ), 10 );
 
 			$order = $order_id > 0 ? wc_get_order( $order_id ) : null;

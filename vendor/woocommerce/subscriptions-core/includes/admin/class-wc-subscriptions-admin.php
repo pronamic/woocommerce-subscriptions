@@ -119,6 +119,9 @@ class WC_Subscriptions_Admin {
 		add_filter( 'posts_where', array( __CLASS__, 'filter_orders_and_subscriptions_from_list' ) );
 		add_filter( 'posts_where', array( __CLASS__, 'filter_paid_subscription_orders_for_user' ) );
 
+		// Filter Order and Subscriptions used by Subscription Reports.
+		add_filter( 'woocommerce_orders_table_query_clauses', array( __CLASS__, 'filter_orders_and_subscriptions_from_order_table' ) );
+
 		add_action( 'admin_notices', __CLASS__ . '::display_renewal_filter_notice' );
 
 		add_shortcode( 'subscriptions', __CLASS__ . '::do_subscriptions_shortcode' );
@@ -509,20 +512,17 @@ class WC_Subscriptions_Admin {
 		update_post_meta( $post_id, '_regular_price', $subscription_price );
 		update_post_meta( $post_id, '_sale_price', $sale_price );
 
-		$site_offset = get_option( 'gmt_offset' ) * 3600;
+		$site_offset = wc_timezone_offset();
 
-		// Save the timestamps in UTC time, the way WC does it.
-		$date_from = ( ! empty( $_POST['_sale_price_dates_from'] ) ) ? wcs_date_to_time( $_POST['_sale_price_dates_from'] ) - $site_offset : '';
-		$date_to   = ( ! empty( $_POST['_sale_price_dates_to'] ) ) ? wcs_date_to_time( $_POST['_sale_price_dates_to'] ) - $site_offset : '';
+		// Fetch the timestamps in UTC time to check if the product is currently on sale.
+		$date_from = ! empty( $_POST['_sale_price_dates_from'] ) ? wcs_date_to_time( gmdate( 'Y-m-d 00:00:00', wcs_strtotime_dark_knight( wc_clean( wp_unslash( $_POST['_sale_price_dates_from'] ) ) ) ) ) - $site_offset : '';
+		$date_to   = ! empty( $_POST['_sale_price_dates_to'] ) ? wcs_date_to_time( gmdate( 'Y-m-d 23:59:59', wcs_strtotime_dark_knight( wc_clean( wp_unslash( $_POST['_sale_price_dates_to'] ) ) ) ) ) - $site_offset : '';
 
 		$now = gmdate( 'U' );
 
 		if ( ! empty( $date_to ) && empty( $date_from ) ) {
 			$date_from = $now;
 		}
-
-		update_post_meta( $post_id, '_sale_price_dates_from', $date_from );
-		update_post_meta( $post_id, '_sale_price_dates_to', $date_to );
 
 		// Update price if on sale
 		if ( '' !== $sale_price && ( ( empty( $date_to ) && empty( $date_from ) ) || ( $date_from < $now && ( empty( $date_to ) || $date_to > $now ) ) ) ) {
@@ -1388,6 +1388,86 @@ class WC_Subscriptions_Admin {
 	}
 
 	/**
+	 * Filters the Admin orders and subscriptions table results in HPOS based on a list of IDs returned by a report query.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array $clauses The query clause.
+	 *
+	 * @return array $clauses The query clause with additional `where` clause .
+	 */
+	public static function filter_orders_and_subscriptions_from_order_table( $clauses ) {
+		global $wpdb;
+
+		$query_vars = [
+			'page'                    => '',
+			'_report'                 => '',
+			'_orders_list_key'        => '',
+			'_subscriptions_list_key' => '',
+			'_data_key'               => '',
+		];
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		// Map and sanitize $_GET vars to $query_vars.
+		foreach ( array_keys( $query_vars ) as $var ) {
+			if ( isset( $_GET[ $var ] ) ) {
+				$query_vars[ $var ] = sanitize_text_field( wp_unslash( $_GET[ $var ] ) );
+			}
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		if ( ! ( ! empty( $query_vars['page'] ) && in_array( $query_vars['page'], [ 'wc-orders', 'wc-orders--shop_subscription' ], true ) ) || empty( $query_vars['_report'] ) ) {
+			return $clauses;
+		}
+
+		// Map the order or subscription type to their respective keys and type key.
+		$object_type      = ! empty( $query_vars['_orders_list_key'] ) ? 'order' : ( ! empty( $query_vars['_subscriptions_list_key'] ) ? 'subscription' : '' );
+		$cache_report_key = ! empty( $query_vars[ "_{$object_type}s_list_key" ] ) ? $query_vars[ "_{$object_type}s_list_key" ] : '';
+
+		// If the report key or report arg is empty exit early.
+		if ( empty( $cache_report_key ) || empty( $query_vars['_report'] ) ) {
+			$clauses['where'] .= " AND {$wpdb->posts}.ID = 0";
+			return $clauses;
+		}
+
+		$cache = get_transient( $query_vars['_report'] );
+
+		// Display an admin notice if we cannot find the report data requested.
+		if ( ! isset( $cache[ $cache_report_key ] ) ) {
+			$admin_notice = new WCS_Admin_Notice( 'error' );
+			$admin_notice->set_simple_content(
+				sprintf(
+				/* translators: Placeholders are opening and closing link tags. */
+					__( 'We weren\'t able to locate the set of report results you requested. Please regenerate the link from the %1$sSubscription Reports screen%2$s.', 'woocommerce-subscriptions' ),
+					'<a href="' . esc_url( admin_url( 'admin.php?page=wc-reports&tab=subscriptions&report=subscription_events_by_date' ) ) . '">',
+					'</a>'
+				)
+			);
+			$admin_notice->display();
+
+			$clauses['where'] .= " AND {$wpdb->posts}.ID = 0";
+			wc_get_logger()->warning( 'returning 2 $clauses-- ' . wp_json_encode( $clauses ) );
+
+			return $clauses;
+		}
+
+		$results = $cache[ $cache_report_key ];
+
+		// The current subscriptions count report will include the specific result (the subscriptions active on the last day) that should be used to generate the subscription list.
+		if ( ! empty( $query_vars['_data_key'] ) && isset( $results[ (int) $query_vars['_data_key'] ] ) ) {
+			$results = array( $results[ (int) $query_vars['_data_key'] ] );
+		}
+
+		$ids    = explode( ',', implode( ',', wp_list_pluck( $results, "{$object_type}_ids", true ) ) );
+		$format = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$clauses['where'] .= $wpdb->prepare( " AND {$wpdb->prefix}wc_orders.ID IN ($format)", $ids );
+
+		return $clauses;
+	}
+
+	/**
 	 * Filters the Admin orders and subscriptions table results based on a list of IDs returned by a report query.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.2
@@ -1910,7 +1990,7 @@ class WC_Subscriptions_Admin {
 	 * @param string $insert_after_setting_id The setting id to insert the new setting after.
 	 * @param array  $new_setting             The new setting to insert. Can be a single setting or an array of settings.
 	 * @param string $insert_type             The type of insert to perform. Can be 'single_setting' or 'multiple_settings'. Optional. Defaults to a single setting insert.
-	 * @param string $insert_after            The setting type to insert the new settings after. Optional. Default is 'first' - the setting will be inserted after the first occuring setting with the matching ID (no specific type). Pass a setting type (like 'sectionend') to insert after a setting type.
+	 * @param string $insert_after            The setting type to insert the new settings after. Optional. Default is 'first' - the setting will be inserted after the first occurring setting with the matching ID (no specific type). Pass a setting type (like 'sectionend') to insert after a setting type.
 	 */
 	public static function insert_setting_after( &$settings, $insert_after_setting_id, $new_setting, $insert_type = 'single_setting', $insert_after = 'first' ) {
 		if ( ! is_array( $settings ) ) {
@@ -2077,7 +2157,7 @@ class WC_Subscriptions_Admin {
 	}
 
 	/**
-	 * Set a translation safe screen ID for Subcsription
+	 * Set a translation safe screen ID for Subscriptions
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.3
 	 */
@@ -2160,7 +2240,7 @@ class WC_Subscriptions_Admin {
 	 * @return string    $from              Origin type.
 	 * @param string     $to                New type.
 	 *
-	 * @return bool Whehter the variations should be deleted.
+	 * @return bool Whether the variations should be deleted.
 	 */
 	public static function maybe_keep_variations( $delete_variations, $product, $from, $to ) {
 

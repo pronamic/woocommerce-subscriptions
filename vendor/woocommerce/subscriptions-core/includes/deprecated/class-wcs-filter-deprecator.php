@@ -5,7 +5,7 @@
  * When triggering a filter which has a deprecated equivalient from Subscriptions v1.n, check if the old
  * filter had any callbacks attached to it, and if so, log a notice and trigger the old filter with a set
  * of parameters in the deprecated format so that the current return value also has the old filters applied
- * (whereever possible that is).
+ * (wherever possible that is).
  *
  * @package    WooCommerce Subscriptions
  * @subpackage WCS_Hook_Deprecator

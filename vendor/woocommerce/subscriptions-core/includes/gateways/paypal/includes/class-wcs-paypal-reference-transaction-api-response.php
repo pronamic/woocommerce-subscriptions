@@ -58,7 +58,7 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	}
 
 	/**
-	 * Checks if response contains an API error code or message relating to invalid credentails
+	 * Checks if response contains an API error code or message relating to invalid credentials
 	 *
 	 * @link https://developer.paypal.com/docs/classic/api/errorcodes/
 	 *

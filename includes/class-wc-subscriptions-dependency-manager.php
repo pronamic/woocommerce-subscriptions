@@ -153,10 +153,10 @@ class WC_Subscriptions_Dependency_Manager {
 			);
 
 			// translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin
-			$admin_notice_content = sprintf( esc_html__( '%1$sWoo Subscriptions is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for Woo Subscriptions to work. Please %5$sinstall & activate Woo &raquo;%6$s', 'woocommerce-subscriptions' ), '<strong>', '</strong>', '<a href="http://wordpress.org/extend/plugins/woocommerce/">', '</a>', '<a href="' . esc_url( $install_url ) . '">', '</a>' );
+			$admin_notice_content = sprintf( esc_html__( '%1$sWooCommerce Subscriptions is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for WooCommerce Subscriptions to work. Please %5$sinstall & activate WooCommerce &raquo;%6$s', 'woocommerce-subscriptions' ), '<strong>', '</strong>', '<a href="http://wordpress.org/extend/plugins/woocommerce/">', '</a>', '<a href="' . esc_url( $install_url ) . '">', '</a>' );
 		} elseif ( ! $this->is_woocommerce_version_supported() ) {
 			// translators: 1$-2$: opening and closing <strong> tags, 3$: minimum supported WooCommerce version, 4$-5$: opening and closing link tags, leads to plugin admin
-			$admin_notice_content = sprintf( esc_html__( '%1$sWoo Subscriptions is inactive.%2$s This version of Subscriptions requires WooCommerce %3$s or newer. Please %4$supdate WooCommerce to version %3$s or newer &raquo;%5$s', 'woocommerce-subscriptions' ), '<strong>', '</strong>', $this->minimum_supported_wc_version, '<a href="' . esc_url( admin_url( 'plugins.php' ) ) . '">', '</a>' );
+			$admin_notice_content = sprintf( esc_html__( '%1$sWooCommerce Subscriptions is inactive.%2$s This version of Subscriptions requires WooCommerce %3$s or newer. Please %4$supdate WooCommerce to version %3$s or newer &raquo;%5$s', 'woocommerce-subscriptions' ), '<strong>', '</strong>', $this->minimum_supported_wc_version, '<a href="' . esc_url( admin_url( 'plugins.php' ) ) . '">', '</a>' );
 		}
 
 		if ( $admin_notice_content ) {

@@ -197,8 +197,8 @@ class WCS_Upgrade_1_2 {
 
 					// Base price * Quantity
 					$sign_up_fee_line_subtotal     = WC_Subscriptions_Order::get_meta( $order, '_cart_contents_sign_up_fee_total', 0 ) + WC_Subscriptions_Order::get_meta( $order, '_sign_up_fee_discount_cart', 0 );
-					$sign_up_fee_propotion         = ( $sign_up_fee_line_total > 0 ) ? $sign_up_fee_line_subtotal / $sign_up_fee_line_total : 0;
-					$sign_up_fee_line_subtotal_tax = WC_Subscriptions_Manager::get_amount_from_proportion( WC_Subscriptions_Order::get_meta( $order, '_sign_up_fee_tax_total', 0 ), $sign_up_fee_propotion );
+					$sign_up_fee_proportion        = ( $sign_up_fee_line_total > 0 ) ? $sign_up_fee_line_subtotal / $sign_up_fee_line_total : 0;
+					$sign_up_fee_line_subtotal_tax = WC_Subscriptions_Manager::get_amount_from_proportion( WC_Subscriptions_Order::get_meta( $order, '_sign_up_fee_tax_total', 0 ), $sign_up_fee_proportion );
 
 					if ( $has_trial ) { // Set line item totals equal to sign up fee totals
 

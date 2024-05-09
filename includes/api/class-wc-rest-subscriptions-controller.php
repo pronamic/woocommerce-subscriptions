@@ -624,6 +624,10 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 					$subscription_item = $subscription->get_item( $item_id );
 
 					wcs_copy_order_item( $item, $subscription_item );
+
+					// Don't include sign-up fees or $0 trial periods when setting the subscriptions item totals.
+					$this->maybe_set_recurring_item_total( $subscription_item );
+
 					$subscription_item->save();
 
 					// Check if this subscription will need shipping.
@@ -684,8 +688,13 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 					$subscription->add_item( $item );
 				}
 
+
+				/*
+				 * Fetch a fresh instance of the subscription because the current instance has an empty line item cache generated before we had copied the line items.
+				 * Fetching a new instance will ensure the line items are used when calculating totals.
+				 */
+				$subscription = wcs_get_subscription( $subscription->get_id() );
 				$subscription->calculate_totals();
-				$subscription->save();
 
 				/**
 				 * Fires after a single subscription is created or updated via the REST API.
@@ -708,5 +717,42 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		$transaction->commit();
 
 		return rest_ensure_response( $subscriptions );
+	}
+
+	/**
+	 * Set the subscription item total to its recurring product price.
+	 * 
+	 * This function ensures that sign-up fees and/or $0 trial periods are not carried over from the initial order to the subscription.
+	 * Note: If the line item has a custom total set by the merchant, don't override it with the recurring price.
+	 *
+	 * @param WC_Order_Item $item Subscription line item.
+	 *
+	 */
+	private function maybe_set_recurring_item_total( &$item ) {
+		$product = $item->get_product();
+
+		if ( ! $product ) {
+			return;
+		}
+
+		$sign_up_fee  = WC_Subscriptions_Product::get_sign_up_fee( $product );
+		$sign_up_fee  = is_numeric( $sign_up_fee ) ? (float) $sign_up_fee : 0;
+		$trial_length = WC_Subscriptions_Product::get_trial_length( $product );
+
+		$recurring_price = (float) $product->get_price();
+		$initial_price   = $trial_length > 0 ? $sign_up_fee : $recurring_price + $sign_up_fee;
+		$initial_total   = wc_get_price_excluding_tax( $product, [ 'qty' => $item->get_quantity(), 'price' => $initial_price ] );
+
+		// Check if a custom item total was set on the order. If so, don't override it.
+		if ( (float) $item->get_subtotal() !== $initial_total ) {
+			return;
+		}
+
+		$recurring_total = wc_get_price_excluding_tax( $product, [ 'qty' => $item->get_quantity(), 'price' => $recurring_price ] );
+
+		$item->set_props( [
+			'subtotal' => $recurring_total,
+			'total'    => $recurring_total,
+		] );
 	}
 }

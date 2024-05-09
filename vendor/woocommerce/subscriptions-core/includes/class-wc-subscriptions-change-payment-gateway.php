@@ -543,7 +543,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 				wc_add_notice( $message, 'error' );
 			}
 
-			// Add an error notice specific to this error if it hasn't been added yet. This will generate the unique list of errors which occured.
+			// Add an error notice specific to this error if it hasn't been added yet. This will generate the unique list of errors which occurred.
 			$error_message = sprintf(
 				__( '%1$sError:%2$s %3$s', 'woocommerce-subscriptions' ),
 				'<strong>',

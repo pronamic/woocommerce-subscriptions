@@ -40,6 +40,16 @@ class WCS_WC_Admin_Manager {
 			)
 		);
 
+		// WooCommerce > Subscriptions (HPOS)
+		wc_admin_connect_page(
+			array(
+				'id'        => 'woocommerce-custom-orders-subscriptions',
+				'screen_id' => wcs_get_page_screen_id( 'shop_subscription' ),
+				'title'     => __( 'Subscriptions', 'woocommerce-subscriptions' ),
+				'path'      => 'admin.php?page=wc-orders--shop_subscription',
+			)
+		);
+
 		// WooCommerce > Subscriptions > Add New.
 		wc_admin_connect_page(
 			array(

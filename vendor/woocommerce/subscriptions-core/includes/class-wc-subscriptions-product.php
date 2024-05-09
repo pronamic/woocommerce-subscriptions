@@ -883,7 +883,7 @@ class WC_Subscriptions_Product {
 	 * @param string $bulk_action The bulk edit action being performed
 	 * @param array $data An array of data relating to the bulk edit action. $data['value'] represents the new value for the meta.
 	 * @param int $variable_product_id The post ID of the parent variable product.
-	 * @param array $variation_ids An array of post IDs for the variable prodcut's variations.
+	 * @param array $variation_ids An array of post IDs for the variable product's variations.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.29
 	 */
 	public static function bulk_edit_variations( $bulk_action, $data, $variable_product_id, $variation_ids ) {

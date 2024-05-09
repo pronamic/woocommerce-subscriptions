@@ -169,7 +169,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 			// Need to get the original subscription price, not the current price
 			$subscription = wcs_get_subscription( $cart_item[ $this->cart_item_key ]['subscription_id'] );
 			if ( $subscription ) {
-				// Make sure the original subscription terms perisist
+				// Make sure the original subscription terms persist
 				$_product = $cart_item_session_data['data'];
 				wcs_set_objects_property( $_product, 'subscription_period', $subscription->get_billing_period(), 'set_prop_only' );
 				wcs_set_objects_property( $_product, 'subscription_period_interval', $subscription->get_billing_interval(), 'set_prop_only' );
