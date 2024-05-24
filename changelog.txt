@@ -1,5 +1,8 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2024-05-24 - version 6.3.2
+* Fix: Prevent overriding line item totals provided in request data when creating Orders via the REST API.
+
 2024-05-09 - version 6.3.1
 * Fix: Resolved an issue that caused "WC_DateTime could not be converted to int" warnings to occur on non-hpos sites while editing a subscription.
 

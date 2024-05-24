@@ -84,18 +84,29 @@ class WCS_API {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param WC_Order_Item $item Order item object.
+	 * @param WC_Order_Item $item              Order item object.
+	 * @param array         $item_request_data Data posted to the API about the order item.
 	 */
-	public static function add_sign_up_fee_to_order_item( $item ) {
+	public static function add_sign_up_fee_to_order_item( $item, $item_request_data = array() ) {
 		if ( 'line_item' !== $item->get_type() || ! self::is_orders_api_request() ) {
 			return;
 		}
 
-		$product     = $item->get_product();
+		// If the request includes an item subtotal or total, we don't want to override the provided total.
+		if ( isset( $item_request_data['subtotal'] ) || isset( $item_request_data['total'] ) ) {
+			return;
+		}
+
+		$product = $item->get_product();
+
+		if ( ! WC_Subscriptions_Product::is_subscription( $product ) ) {
+			return;
+		}
+
 		$sign_up_fee = WC_Subscriptions_Product::get_sign_up_fee( $product );
 		$sign_up_fee = is_numeric( $sign_up_fee ) ? (float) $sign_up_fee : 0;
 
-		if ( 0 !== $sign_up_fee ) {
+		if ( 0 < $sign_up_fee ) {
 			// Recalculate the totals as in `prepare_line_items`, but including the sign up fee in the price.
 			$trial_length = WC_Subscriptions_Product::get_trial_length( $product );
 
