@@ -210,7 +210,9 @@ class WCS_Related_Order_Store_Cached_CPT extends WCS_Related_Order_Store_CPT imp
 
 		$meta_data = $this->get_related_order_metadata( $subscription, $relation_type );
 
-		return $meta_data ? maybe_unserialize( $meta_data->meta_value ) : '';
+		$related_orders = $meta_data ? maybe_unserialize( $meta_data->meta_value ) : '';
+
+		return is_array( $related_orders ) ? $related_orders : '';
 	}
 
 	/**

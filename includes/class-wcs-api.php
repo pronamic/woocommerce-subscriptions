@@ -54,6 +54,9 @@ class WCS_API {
 			// V1
 			'WC_REST_Subscriptions_V1_Controller',
 			'WC_REST_Subscription_Notes_V1_Controller',
+			// V2
+			'WC_REST_Subscriptions_V2_Controller',
+			'WC_REST_Subscription_Notes_V2_Controller',
 			// V3 (latest)
 			'WC_REST_Subscriptions_Controller',
 			'WC_REST_Subscription_notes_Controller',

@@ -1003,3 +1003,55 @@ function wcs_order_contains_early_renewal( $order ) {
 function wcs_get_subscription_item_grouping_key( $item, $renewal_time = '' ) {
 	return apply_filters( 'woocommerce_subscriptions_item_grouping_key', wcs_get_subscription_grouping_key( $item->get_product(), $renewal_time ), $item );
 }
+
+/**
+ * Sets the order item total to its recurring product price.
+ *
+ * This function takes an order item and checks if its totals have been modified to account for free trials or sign-up fees (i.e. parent orders).
+ * If the totals have been adjusted, the function sets the item's total back to their recurring total.
+ *
+ * Note: If the line item has a custom total that doesn't match the expected price, don't override it.
+ *
+ * @param WC_Order_Item $item Subscription line item.
+ */
+function wcs_set_recurring_item_total( &$item ) {
+	$product = $item->get_product();
+
+	if ( ! $product || ! WC_Subscriptions_Product::is_subscription( $product ) ) {
+		return;
+	}
+
+	$sign_up_fee  = WC_Subscriptions_Product::get_sign_up_fee( $product );
+	$sign_up_fee  = is_numeric( $sign_up_fee ) ? (float) $sign_up_fee : 0;
+	$trial_length = WC_Subscriptions_Product::get_trial_length( $product );
+
+	$recurring_price = (float) $product->get_price();
+	$initial_price   = $trial_length > 0 ? $sign_up_fee : $recurring_price + $sign_up_fee;
+	$initial_total   = wc_get_price_excluding_tax(
+		$product,
+		[
+			'qty'   => $item->get_quantity(),
+			'price' => $initial_price,
+		]
+	);
+
+	// Check if a custom item total was set on the order. If so, don't override it.
+	if ( (float) $item->get_subtotal() !== $initial_total ) {
+		return;
+	}
+
+	$recurring_total = wc_get_price_excluding_tax(
+		$product,
+		[
+			'qty'   => $item->get_quantity(),
+			'price' => $recurring_price,
+		]
+	);
+
+	$item->set_props(
+		[
+			'subtotal' => $recurring_total,
+			'total'    => $recurring_total,
+		]
+	);
+}

@@ -1,82 +1,77 @@
 <?php
 /**
- * REST API Subscriptions controller
+ * REST API Subscriptions V2 Controller
  *
- * Handles requests to the /subscriptions endpoint.
+ * Handles requests to the wc/v2/subscriptions and wc/v2/orders/ID/subscriptions endpoint.
  *
+ * @since 6.4.0
  * @package WooCommerce Subscriptions\Rest Api
- * @since   3.1.0
  */
-
 defined( 'ABSPATH' ) || exit;
 
-class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
+class WC_REST_Subscriptions_V2_Controller extends WC_REST_Orders_V2_Controller {
 
 	/**
-	 * Route base.
-	 *
-	 * @var string
+	 * @var string Route base.
 	 */
 	protected $rest_base = 'subscriptions';
 
 	/**
-	 * The post type.
-	 *
-	 * @var string
+	 * @var string The post type.
 	 */
 	protected $post_type = 'shop_subscription';
 
 	/**
 	 * Register the routes for the subscriptions endpoint.
 	 *
-	 * -- Inherited --
-	 * GET|POST /subscriptions
+	 * GET|POST       /subscriptions
 	 * GET|PUT|DELETE /subscriptions/<subscription_id>
+	 * GET            /subscriptions/status
+	 * GET            /subscriptions/<subscription_id>/orders
+	 * POST           /orders/<order_id>/subscriptions
 	 *
-	 * -- Subscription specific --
-	 * GET /subscriptions/status
-	 * GET /subscriptions/<subscription_id>/orders
-	 *
-	 * @since 3.1.0
+	 * @since 6.4.0
 	 */
 	public function register_routes() {
 		parent::register_routes();
 
-		register_rest_route( $this->namespace, "/{$this->rest_base}/statuses", array( // nosemgrep: audit.php.wp.security.rest-route.permission-callback.return-true  -- /subscriptions/statuses is a public endpoint and doesn't need any permission checks.
-			array(
+		register_rest_route( $this->namespace, "/{$this->rest_base}/statuses", [ // nosemgrep: audit.php.wp.security.rest-route.permission-callback.return-true  -- /subscriptions/statuses is a public endpoint and doesn't need any permission checks.
+			[
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_statuses' ),
+				'callback'            => [ $this, 'get_statuses' ],
 				'permission_callback' => '__return_true',
-			),
-			'schema' => array( $this, 'get_public_item_schema' ),
-		) );
+			],
+			'schema' => [ $this, 'get_statuses_schema' ],
+		] );
 
-		register_rest_route( $this->namespace, "/{$this->rest_base}/(?P<id>[\d]+)/orders", array(
-			array(
+		register_rest_route( $this->namespace, "/{$this->rest_base}/(?P<id>[\d]+)/orders", [
+			[
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_subscription_orders' ),
-				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'callback'            => [ $this, 'get_subscription_orders' ],
+				'permission_callback' => [ $this, 'get_items_permissions_check' ],
 				'args'                => $this->get_collection_params(),
-			),
-			'schema' => array( $this, 'get_public_item_schema' ),
-		) );
+			],
+			'schema' => [ $this, 'get_subscription_orders_schema' ],
+		] );
 
-		register_rest_route( $this->namespace, "/orders/(?P<id>[\d]+)/{$this->rest_base}", array(
-			array(
+		register_rest_route( $this->namespace, "/orders/(?P<id>[\d]+)/{$this->rest_base}", [
+			[
 				'methods'             => WP_REST_Server::CREATABLE,
-				'callback'            => array( $this, 'create_subscriptions_from_order' ),
-				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'callback'            => [ $this, 'create_subscriptions_from_order' ],
+				'permission_callback' => [ $this, 'create_item_permissions_check' ],
 				'args'                => $this->get_collection_params(),
-			),
-			'schema' => array( $this, 'get_public_item_schema' ),
-		) );
+			],
+			'schema' => [ $this, 'create_subscriptions_from_order_schema' ],
+		] );
 	}
 
 	/**
 	 * Gets the request object. Return false if the ID is not a subscription.
 	 *
-	 * @since  3.1.0
-	 * @param  int $id Object ID.
+	 * @since 6.4.0
+	 *
+	 * @param int $id Object ID.
+	 *
 	 * @return WC_Subscription|bool
 	 */
 	protected function get_object( $id ) {
@@ -92,10 +87,11 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	/**
 	 * Prepare a single subscription output for response.
 	 *
-	 * @since  3.1.0
+	 * @since 6.4.0
 	 *
-	 * @param  WC_Data         $object  Subscription object.
-	 * @param  WP_REST_Request $request Request object.
+	 * @param WC_Data         $object  Subscription object.
+	 * @param WP_REST_Request $request Request object.
+	 *
 	 * @return WP_REST_Response
 	 */
 	public function prepare_object_for_response( $object, $request ) {
@@ -112,6 +108,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 
 		foreach ( wcs_get_subscription_date_types() as $date_type => $date_name ) {
 			$date = $object->get_date( wcs_normalise_date_type_key( $date_type ) );
+			$response->data[ $date_type . '_date' ]     = ( ! empty( $date ) ) ? wc_rest_prepare_date_response( $date, false ) : '';
 			$response->data[ $date_type . '_date_gmt' ] = ( ! empty( $date ) ) ? wc_rest_prepare_date_response( $date ) : '';
 		}
 
@@ -127,7 +124,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		$response->data['resubscribed_subscription'] = strval( reset( $resubscribed_subscriptions ) ); // Subscriptions can only be resubscribed to once so return the first and only element.
 
 		// Include the removed line items.
-		$response->data['removed_line_items'] = array();
+		$response->data['removed_line_items'] = [];
 
 		foreach ( $object->get_items( 'line_item_removed' ) as $item ) {
 			$response->data['removed_line_items'][] = $this->get_order_item_data( $item );
@@ -143,7 +140,8 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	/**
 	 * Gets the /subscriptions/statuses response.
 	 *
-	 * @since 3.1.0
+	 * @since 6.4.0
+	 *
 	 * @return WP_REST_Response The response object.
 	 */
 	public function get_statuses() {
@@ -153,27 +151,28 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	/**
 	 * Gets the /subscriptions/[id]/orders response.
 	 *
-	 * @since 3.1.0
+	 * @since 6.4.0
 	 *
 	 * @param WP_REST_Request            $request  The request object.
+	 *
 	 * @return WP_Error|WP_REST_Response $response The response or an error if one occurs.
 	 */
 	public function get_subscription_orders( $request ) {
 		$id = absint( $request['id'] );
 
 		if ( empty( $id ) || ! wcs_is_subscription( $id ) ) {
-			return new WP_Error( 'woocommerce_rest_invalid_shop_subscription_id', __( 'Invalid subscription ID.', 'woocommerce-subscriptions' ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_rest_invalid_shop_subscription_id', __( 'Invalid subscription ID.', 'woocommerce-subscriptions' ), [ 'status' => 404 ] );
 		}
 
 		$subscription = wcs_get_subscription( $id );
 
 		if ( ! $subscription ) {
-			return new WP_Error( 'woocommerce_rest_invalid_shop_subscription_id', sprintf( __( 'Failed to load subscription object with the ID %d.', 'woocommerce-subscriptions' ), $id ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_rest_invalid_shop_subscription_id', sprintf( __( 'Failed to load subscription object with the ID %d.', 'woocommerce-subscriptions' ), $id ), [ 'status' => 404 ] );
 		}
 
-		$orders = array();
+		$orders = [];
 
-		foreach ( array( 'parent', 'renewal', 'switch' ) as $order_type ) {
+		foreach ( [ 'parent', 'renewal', 'switch' ] as $order_type ) {
 			foreach ( $subscription->get_related_orders( 'ids', $order_type ) as $order_id ) {
 
 				if ( ! wc_rest_check_post_permissions( 'shop_order', 'read', $order_id ) ) {
@@ -187,7 +186,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 					continue;
 				}
 
-				$response = $this->prepare_object_for_response( $order, $request );
+				$response = parent::prepare_object_for_response( $order, $request );
 
 				// Add the order's relationship to the response.
 				$response->data['order_type'] = $order_type . '_order';
@@ -204,14 +203,15 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	}
 
 	/**
-	 * Overrides WC_REST_Orders_Controller::get_order_statuses() so that subscription statuses are
+	 * Overrides WC_REST_Orders_V2_Controller::get_order_statuses() so that subscription statuses are
 	 * validated correctly.
 	 *
-	 * @since 3.1.0
+	 * @since 6.4.0
+	 *
 	 * @return array An array of valid subscription statuses.
 	 */
 	protected function get_order_statuses() {
-		$subscription_statuses = array();
+		$subscription_statuses = [];
 
 		foreach ( wcs_get_subscription_statuses() as $status => $status_name ) {
 			$subscription_statuses[] = str_replace( 'wc-', '', $status );
@@ -223,23 +223,24 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	/**
 	 * Prepares a single subscription for creation or update.
 	 *
-	 * @since 3.1.0
+	 * @since 6.4.0
 	 *
 	 * @param WP_REST_Request $request  Request object.
 	 * @param bool            $creating If the request is for creating a new object.
+	 *
 	 * @return WP_Error|WC_Subscription
 	 */
 	public function prepare_object_for_database( $request, $creating = false ) {
 		$id           = isset( $request['id'] ) ? absint( $request['id'] ) : 0;
 		$subscription = new WC_Subscription( $id );
 		$schema       = $this->get_item_schema();
-		$data_keys    = array_keys( array_filter( $schema['properties'], array( $this, 'filter_writable_props' ) ) );
+		$data_keys    = array_keys( array_filter( $schema['properties'], [ $this, 'filter_writable_props' ] ) );
 
 		// Prepare variables for properties which need to be saved late (like status) or in a group (dates and payment data).
 		$status         = '';
 		$payment_method = '';
-		$payment_meta   = array();
-		$dates          = array();
+		$payment_meta   = [];
+		$dates          = [];
 
 		// Both setting (set_status()) and updating (update_status()) are valid ways for requests to set a subscription's status.
 		$status_transition = 'set';
@@ -305,7 +306,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 					}
 					break;
 				default:
-					if ( is_callable( array( $subscription, "set_{$key}" ) ) ) {
+					if ( is_callable( [ $subscription, "set_{$key}" ] ) ) {
 						$subscription->{"set_{$key}"}( $value );
 					}
 					break;
@@ -354,10 +355,16 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	/**
 	 * Adds additional item schema information for subscription requests.
 	 *
-	 * @since 3.1.0
+	 * @since 6.4.0
+	 *
 	 * @return array
 	 */
 	public function get_item_schema() {
+		// If this is a request for a subscription's orders, return the subscription orders schema.
+		if ( $this->request instanceof WP_REST_Request && preg_match( "#/{$this->rest_base}/(?P<id>[\d]+)/orders#", $this->request->get_route() ) ) {
+			return $this->get_subscription_orders_schema();
+		}
+
 		$schema = parent::get_item_schema();
 
 		// Base order schema overrides.
@@ -378,67 +385,67 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		unset( $schema['properties']['cart_hash'] );
 
 		// Add subscription schema.
-		$schema['properties'] += array(
-			'transition_status' => array(
+		$schema['properties'] += [
+			'transition_status' => [
 				'description' => __( 'The status to transition a subscription to.', 'woocommerce-subscriptions' ),
 				'type'        => 'string',
-				'context'     => array( 'edit' ),
+				'context'     => [ 'edit' ],
 				'enum'        => $this->get_order_statuses(),
-			),
-			'billing_interval' => array(
+			],
+			'billing_interval' => [
 				'description' => __( 'The number of billing periods between subscription renewals.', 'woocommerce-subscriptions' ),
 				'type'        => 'integer',
-				'context'     => array( 'view', 'edit' ),
-			),
-			'billing_period' => array(
+				'context'     => [ 'view', 'edit' ],
+			],
+			'billing_period' => [
 				'description' => __( 'Billing period for the subscription.', 'woocommerce-subscriptions' ),
 				'type'        => 'string',
 				'enum'        => array_keys( wcs_get_subscription_period_strings() ),
-				'context'     => array( 'view', 'edit' ),
-			),
-			'payment_details' => array(
+				'context'     => [ 'view', 'edit' ],
+			],
+			'payment_details' => [
 				'description' => __( 'Subscription payment details.', 'woocommerce-subscriptions' ),
 				'type'        => 'object',
-				'context'     => array( 'edit' ),
-				'properties' => array(
-					'post_meta' => array(
+				'context'     => [ 'edit' ],
+				'properties' => [
+					'post_meta' => [
 						'description' => __( 'Payment method meta and token in a post_meta_key: token format.', 'woocommerce-subscriptions' ),
 						'type'        => 'object',
-						'context'     => array( 'edit' ),
-					),
-					'user_meta' => array(
+						'context'     => [ 'edit' ],
+					],
+					'user_meta' => [
 						'description' => __( 'Payment method meta and token in a user_meta_key : token format.', 'woocommerce-subscriptions' ),
 						'type'        => 'object',
-						'context'     => array( 'view' ),
-					),
-				),
-			),
-			'start_date' => array(
+						'context'     => [ 'view' ],
+					],
+				],
+			],
+			'start_date' => [
 				'description' => __( "The subscription's start date, as GMT.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
-				'context'     => array( 'view', 'edit' ),
-			),
-			'trial_end_date' => array(
+				'context'     => [ 'view', 'edit' ],
+			],
+			'trial_end_date' => [
 				'description' => __( "The subscription's trial end date, as GMT.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
-				'context'     => array( 'view', 'edit' ),
-			),
-			'next_payment_date' => array(
+				'context'     => [ 'view', 'edit' ],
+			],
+			'next_payment_date' => [
 				'description' => __( "The subscription's next payment date, as GMT.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
-				'context'     => array( 'view', 'edit' ),
-			),
-			'cancelled_date' => array(
+				'context'     => [ 'view', 'edit' ],
+			],
+			'cancelled_date' => [
 				'description' => __( "The subscription's cancelled date, as GMT.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
-				'context'     => array( 'view', 'edit' ),
-			),
-			'end_date' => array(
+				'context'     => [ 'view', 'edit' ],
+			],
+			'end_date' => [
 				'description' => __( "The subscription's end date, as GMT.", 'woocommerce-subscriptions' ),
 				'type'        => 'date-time',
-				'context'     => array( 'view', 'edit' ),
-			),
-		);
+				'context'     => [ 'view', 'edit' ],
+			],
+		];
 
 		return $schema;
 	}
@@ -446,7 +453,8 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	/**
 	 * Get the query params for collections.
 	 *
-	 * @since 3.1.0
+	 * @since 6.4.0
+	 *
 	 * @return array
 	 */
 	public function get_collection_params() {
@@ -460,23 +468,24 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	/**
 	 * Gets an object's links to include in the response.
 	 *
-	 * Because this class also handles retreiving order data, we need
+	 * Because this class also handles retrieving order data, we need
 	 * to edit the links generated so the correct REST API href is included
 	 * when its generated for an order.
 	 *
-	 * @since 3.1.0
+	 * @since 6.4.0
 	 *
 	 * @param WC_Data         $object  Object data.
 	 * @param WP_REST_Request $request Request object.
+	 *
 	 * @return array                   Links for the given object.
 	 */
 	protected function prepare_links( $object, $request ) {
 		$links = parent::prepare_links( $object, $request );
 
 		if ( isset( $links['self'] ) && wcs_is_order( $object ) ) {
-			$links['self'] = array(
+			$links['self'] = [
 				'href' => rest_url( sprintf( '/%s/%s/%d', $this->namespace, 'orders', $object->get_id() ) ),
-			);
+			];
 		}
 
 		return $links;
@@ -485,11 +494,13 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	/**
 	 * Updates a subscription's payment method and meta from data provided in a REST API request.
 	 *
-	 * @since 3.1.0
+	 * @since 6.4.0
 	 *
 	 * @param WC_Subscription $subscription   The subscription to update.
 	 * @param string          $payment_method The ID of the payment method to set.
 	 * @param array           $payment_meta   The payment method meta.
+	 *
+	 * @return void
 	 */
 	public function update_payment_method( $subscription, $payment_method, $payment_meta ) {
 		$updating_subscription = (bool) $subscription->get_id();
@@ -501,11 +512,11 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 			}
 
 			// Format the payment meta in the way payment gateways expect so it can be validated.
-			$payment_method_meta = array();
+			$payment_method_meta = [];
 
 			foreach ( $payment_meta as $table => $meta ) {
 				foreach ( $meta as $meta_key => $value ) {
-					$payment_method_meta[ $table ][ $meta_key ] = array( 'value' => $value );
+					$payment_method_meta[ $table ][ $meta_key ] = [ 'value' => $value ];
 				}
 			}
 
@@ -521,28 +532,31 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	/**
 	 * Creates subscriptions from an order.
 	 *
+	 * @since 6.4.0
+	 *
 	 * @param WP_REST_Request $request
+	 *
 	 * @return array Subscriptions created from the order.
 	 */
 	public function create_subscriptions_from_order( $request ) {
 		$order_id = absint( $request->get_param( 'id' ) );
 
 		if ( empty( $order_id ) ) {
-			return new WP_Error( 'woocommerce_rest_order_invalid_id', __( 'Invalid order ID.', 'woocommerce-subscriptions' ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_rest_order_invalid_id', __( 'Invalid order ID.', 'woocommerce-subscriptions' ), [ 'status' => 404 ] );
 		}
 
 		$order = wc_get_order( $order_id );
 
 		if ( ! $order || ! wcs_is_order( $order ) ) {
-			return new WP_Error( 'woocommerce_rest_order_invalid_id', sprintf( __( 'Failed to load order object with the ID %d.', 'woocommerce-subscriptions' ), $order_id ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_rest_order_invalid_id', sprintf( __( 'Failed to load order object with the ID %d.', 'woocommerce-subscriptions' ), $order_id ), [ 'status' => 404 ] );
 		}
 
 		if ( ! $order->get_customer_id() ) {
-			return new WP_Error( 'woocommerce_rest_invalid_order', __( 'Order does not have a customer associated with it. Subscriptions require a customer.', 'woocommerce-subscriptions' ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_rest_invalid_order', __( 'Order does not have a customer associated with it. Subscriptions require a customer.', 'woocommerce-subscriptions' ), [ 'status' => 404 ] );
 		}
 
 		if ( wcs_order_contains_subscription( $order, 'any' ) ) {
-			return new WP_Error( 'woocommerce_rest_invalid_order', __( 'Order already has subscriptions associated with it.', 'woocommerce-subscriptions' ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_rest_invalid_order', __( 'Order already has subscriptions associated with it.', 'woocommerce-subscriptions' ), [ 'status' => 404 ] );
 		}
 
 		$subscription_groups = [];
@@ -598,11 +612,11 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 				wcs_copy_order_address( $order, $subscription );
 
 				$subscription->update_dates(
-					array(
+					[
 						'trial_end'    => WC_Subscriptions_Product::get_trial_expiration_date( $product, $start_date ),
 						'next_payment' => WC_Subscriptions_Product::get_first_renewal_payment_date( $product, $start_date ),
 						'end'          => WC_Subscriptions_Product::get_expiration_date( $product, $start_date ),
-					)
+					]
 				);
 
 				$subscription->set_payment_method( $order->get_payment_method() );
@@ -675,14 +689,14 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 
 					$item = new WC_Order_Item_Fee();
 					$item->set_props(
-						array(
+						[
 							'name'      => $fee_item->get_name(),
 							'tax_class' => $fee_item->get_tax_class(),
 							'amount'    => $fee_item->get_amount(),
 							'total'     => $fee_item->get_total(),
 							'total_tax' => $fee_item->get_total_tax(),
 							'taxes'     => $fee_item->get_taxes(),
-						)
+						]
 					);
 
 					$subscription->add_item( $item );
@@ -710,12 +724,64 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 			}
 		} catch ( Exception $e ) {
 			$transaction->rollback();
-			return new WP_Error( 'woocommerce_rest_invalid_subscription_data', $e->getMessage(), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_rest_invalid_subscription_data', $e->getMessage(), [ 'status' => 404 ] );
 		}
 
 		// If we got here, the subscription was created without problems
 		$transaction->commit();
 
 		return rest_ensure_response( $subscriptions );
+	}
+
+	/**
+	 * Subscriptions statuses schema, conforming to JSON Schema.
+	 *
+	 * @return array
+	 */
+	public function get_statuses_schema() {
+		$schema = [
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'shop_subscription statuses', // Use a unique title for the schema so that CLI commands aren't overridden.
+			'type'       => 'object',
+			'properties' => [],
+		];
+
+		// Add the subscription statuses to the schema.
+		foreach ( wcs_get_subscription_statuses() as $status => $status_name ) {
+			$schema['properties'][ $status ] = [
+				'type'        => 'string',
+				'description' => sprintf( __( 'Subscription status: %s', 'woocommerce-subscription' ), $status_name ),
+			];
+		}
+
+		return $schema;
+	}
+
+	/**
+	 * Subscriptions orders schema, conforming to JSON Schema.
+	 *
+	 * @return array
+	 */
+	public function get_subscription_orders_schema() {
+		$schema = parent::get_item_schema(); // Fetch the order schema.
+		$schema['title']                    = 'shop_subscription orders'; // Use a unique title for the schema so that CLI commands aren't overridden.
+		$schema['properties']['order_type'] = [
+			'type'        => 'string',
+			'description' => __( 'The type of order related to the subscription.', 'woocommerce-subscriptions' ),
+		];
+
+		return $schema;
+	}
+
+	/**
+	 * Subscriptions schema, conforming to JSON Schema.
+	 *
+	 * @return array
+	 */
+	public function create_subscriptions_from_order_schema() {
+		$schema = $this->get_public_item_schema();
+		$schema['title'] = 'shop_order subscriptions'; // Use a unique title for the schema so that CLI commands aren't overridden and we can target this endpoint specifically.
+
+		return $schema;
 	}
 }

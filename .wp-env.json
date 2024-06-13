@@ -2,6 +2,7 @@
   "plugins": [
     "https://downloads.wordpress.org/plugin/woocommerce.zip",
     "https://downloads.wordpress.org/plugin/email-log.zip",
+    "https://github.com/woocommerce/woocommerce-gateway-dummy/releases/download/1.0.8/woocommerce-gateway-dummy.zip",
     ".",
     "./tests/e2e/test-configuration-plugin"
   ],

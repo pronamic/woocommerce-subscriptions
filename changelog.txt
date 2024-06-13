@@ -1,5 +1,14 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2024-06-13 - version 6.4.0
+* Add: New WP CLI support to manage subscriptions via command line.
+* Add: Introduce wc/v2 subscription REST API endpoints.
+* Fix: label improvement on my subscription page template.
+* Fix: Regenerate subscriptions related order caches (renewal, resubscribe, switch) if it's stored as an invalid value to prevent fatal errors.
+* Update: Show "FREE" instead of 0 when there is no shipping cost in the recurring totals section of the Cart and Checkout blocks (requires WooCommerce 9.0+).
+* Dev: New function wcs_set_recurring_item_total() to set line item totals that have been copied from an initial order to their proper recurring totals (i.e. remove sign-up fees).
+* Dev: Updated subscriptions-core to 7.2.0.
+
 2024-05-24 - version 6.3.2
 * Fix: Prevent overriding line item totals provided in request data when creating Orders via the REST API.
 

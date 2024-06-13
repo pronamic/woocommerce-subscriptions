@@ -20,8 +20,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * This method simply creates an order with the same post meta, order items and order item meta as the subscription
  * passed to it.
  *
- * @param  int | WC_Subscription $subscription Post ID of a 'shop_subscription' post, or instance of a WC_Subscription object
- * @return WC_Order | WP_Error
+ * @param  int|WC_Subscription $subscription Post ID of a 'shop_subscription' post, or instance of a WC_Subscription object
+ * @return WC_Order|WP_Error
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_create_renewal_order( $subscription ) {
@@ -41,7 +41,8 @@ function wcs_create_renewal_order( $subscription ) {
 /**
  * Check if a given order is a subscription renewal order.
  *
- * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
+ * @param  WC_Order|int $order The WC_Order object or ID of a WC_Order order.
+ * @return bool Whether the order contains renewal.
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_order_contains_renewal( $order ) {
@@ -64,8 +65,7 @@ function wcs_order_contains_renewal( $order ) {
 /**
  * Checks the cart to see if it contains a subscription product renewal.
  *
- * @param  bool | Array The cart item containing the renewal, else false.
- * @return string
+ * @return bool|array The cart item containing the renewal, else false.
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_cart_contains_renewal() {
@@ -111,6 +111,7 @@ function wcs_cart_contains_failed_renewal_order_payment() {
  * Get the subscription/s to which a resubscribe order relates.
  *
  * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
+ * @return WC_Subscription[] Subscription details in post_id => WC_Subscription form.
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscriptions_for_renewal_order( $order ) {
@@ -146,7 +147,7 @@ function wcs_get_last_non_early_renewal_order( $subscription ) {
  * Checks if manual renewals are required - automatic renewals are disabled.
  *
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
- * @return bool Weather manual renewal are required.
+ * @return bool Whether manual renewal is required.
  */
 function wcs_is_manual_renewal_required() {
 	return class_exists( 'WCS_Manual_Renewal_Manager' ) ? WCS_Manual_Renewal_Manager::is_manual_renewal_required() : false;
@@ -156,7 +157,7 @@ function wcs_is_manual_renewal_required() {
  * Checks if manual renewals are enabled.
  *
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
- * @return bool Weather manual renewal are enabled.
+ * @return bool Whether manual renewal is enabled.
  */
 function wcs_is_manual_renewal_enabled() {
 	return class_exists( 'WCS_Manual_Renewal_Manager' ) ? WCS_Manual_Renewal_Manager::is_manual_renewal_enabled() : false;

@@ -33,6 +33,10 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 		WCS_Subscriber_Role_Manager::init();
 		WCS_Upgrade_Notice_Manager::init();
 
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			new WC_Subscriptions_CLI();
+		}
+
 		add_action( 'admin_enqueue_scripts', array( $this, 'maybe_show_welcome_message' ) );
 	}
 

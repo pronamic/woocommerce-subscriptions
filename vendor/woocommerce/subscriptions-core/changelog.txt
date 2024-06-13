@@ -1,5 +1,11 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 7.2.0 - 2024-06-13 =
+* Fix - label improvement on my subscription page template.
+* Fix - Regenerate subscriptions related order caches (renewal, resubscribe, switch) if it's stored as an invalid value to prevent fatal errors.
+* Update - Show "FREE" instead of 0 when there is no shipping cost in the recurring totals section of the Cart and Checkout blocks (requires WooCommerce 9.0+).
+* Dev - New function wcs_set_recurring_item_total() to set line item totals that have been copied from an initial order to their proper recurring totals (i.e. remove sign-up fees).
+
 = 7.1.1 - 2024-05-09 =
 * Fix - Resolved an issue that caused "WC_DateTime could not be converted to int" warnings to occur on non-hpos sites while editing a subscription.
 
