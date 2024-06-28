@@ -151,4 +151,23 @@ class WCS_API {
 
 		return (bool) preg_match( '/\/wc\/v[1-3]\/orders\b/', $GLOBALS['wp']->query_vars['rest_route'] );
 	}
+
+	/**
+	 * Fetches WooCommerce API endpoint data in a WooCommerce version compatible way.
+	 *
+	 * This method is a wrapper for the WooCommerce API get_endpoint_data method. In WooCommerce 9.0.0 and later, the
+	 * WC()->api was deprecated in favor of the new Automattic\WooCommerce\Utilities\RestApiUtil class.
+	 *
+	 * @since 6.4.1
+	 *
+	 * @param string $endpoint The endpoint to get data for.
+	 * @return array|\WP_Error The endpoint data or WP_Error if the request fails.
+	 */
+	public static function get_wc_api_endpoint_data( $endpoint ) {
+		if ( wcs_is_woocommerce_pre( '9.0.0' ) ) {
+			return WC()->api->get_endpoint_data( $endpoint );
+		}
+
+		return wc_get_container()->get( Automattic\WooCommerce\Utilities\RestApiUtil::class )->get_endpoint_data( $endpoint );
+	}
 }

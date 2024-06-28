@@ -1,5 +1,8 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2024-06-28 - version 6.4.1
+* Fix: Resolved errors preventing subscription-related webhooks from sending on WC 9.0 stores.
+
 2024-06-13 - version 6.4.0
 * Add: New WP CLI support to manage subscriptions via command line.
 * Add: Introduce wc/v2 subscription REST API endpoints.
