@@ -1,5 +1,13 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2024-07-16 - version 6.5.0
+* Add: Include trial_period, suspension_count, and requires_manual_renewal in the REST API response for subscriptions.
+* Update: When a renewal order's payment is skipped, include the order's current status in the note to help troubleshooting.
+* Fix: Label improvements on subscription and order page templates.
+* Fix: Fixed an issue with subscriptions containing multiple renewal orders to mark a random item as processing, instead of the last order.
+* Fix: Prevent errors from invalid subscription objects during customer payment method updates.
+* Dev: Updated subscriptions-core to 7.3.0.
+
 2024-06-28 - version 6.4.1
 * Fix: Resolved errors preventing subscription-related webhooks from sending on WC 9.0 stores.
 

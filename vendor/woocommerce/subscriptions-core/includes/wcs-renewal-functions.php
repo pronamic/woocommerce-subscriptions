@@ -63,6 +63,18 @@ function wcs_order_contains_renewal( $order ) {
 }
 
 /**
+ * Determines if a given order is the subscription's latest renewal order.
+ *
+ * @param $order WC_Order The order object.
+ * @param $subscription WC_Subscription The subscription object.
+ * @return bool Whether the order is the latest renewal order of the provided subscription.
+ */
+function wcs_is_order_last_renewal_of_subscription( $order, $subscription ) {
+	$last_renewal_order = wcs_get_last_renewal_order( $subscription );
+	return $last_renewal_order && $last_renewal_order->get_id() === $order->get_id();
+}
+
+/**
  * Checks the cart to see if it contains a subscription product renewal.
  *
  * @return bool|array The cart item containing the renewal, else false.
@@ -128,10 +140,7 @@ function wcs_get_subscriptions_for_renewal_order( $order ) {
  */
 function wcs_get_last_non_early_renewal_order( $subscription ) {
 	$last_non_early_renewal = false;
-	$renewal_orders         = $subscription->get_related_orders( 'all', 'renewal' );
-
-	// We need the orders sorted by the date they were created, with the newest first.
-	wcs_sort_objects( $renewal_orders, 'date_created', 'descending' );
+	$renewal_orders         = wcs_get_renewal_orders_sorted_by( $subscription, 'date_created' );
 
 	foreach ( $renewal_orders as $renewal_order ) {
 		if ( ! wcs_order_contains_early_renewal( $renewal_order ) ) {
@@ -141,6 +150,34 @@ function wcs_get_last_non_early_renewal_order( $subscription ) {
 	}
 
 	return $last_non_early_renewal;
+}
+
+/**
+ * Get the last renewal order (early renewals included).
+ *
+ * @param WC_Subscription $subscription The subscription object.
+ * @return WC_Order|bool The last non-early renewal order, otherwise false.
+ */
+function wcs_get_last_renewal_order( $subscription ) {
+	$renewal_orders = wcs_get_renewal_orders_sorted_by( $subscription, 'date_created' );
+	return $renewal_orders ? reset( $renewal_orders ) : false;
+}
+
+/**
+ * Gets the renewal orders for a subscription, sorted by the specified property.
+ *
+ * @param WC_Subscription $subscription The subscription object.
+ * @param string          $sort_by      The subscription property to sort by.
+ * @param string          $order        Optional. The sort order to sort by. Default is 'descending'.
+ *
+ * @return WC_Order[] The subscriptions renewal orders sorted.
+ */
+function wcs_get_renewal_orders_sorted_by( $subscription, $sort_by, $order = 'descending' ) {
+	$renewal_orders = $subscription->get_related_orders( 'all', 'renewal' );
+
+	wcs_sort_objects( $renewal_orders, $sort_by, $order );
+
+	return $renewal_orders;
 }
 
 /**

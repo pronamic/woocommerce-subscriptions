@@ -107,8 +107,11 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		}
 
 		// Add subscription specific data to the base order response data.
-		$response->data['billing_period']   = $object->get_billing_period();
-		$response->data['billing_interval'] = $object->get_billing_interval();
+		$response->data['billing_period']          = $object->get_billing_period();
+		$response->data['billing_interval']        = $object->get_billing_interval();
+		$response->data['trial_period']            = $object->get_trial_period();
+		$response->data['suspension_count']        = $object->get_suspension_count();
+		$response->data['requires_manual_renewal'] = $object->get_requires_manual_renewal();
 
 		foreach ( wcs_get_subscription_date_types() as $date_type => $date_name ) {
 			$date = $object->get_date( wcs_normalise_date_type_key( $date_type ) );
@@ -394,6 +397,22 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 				'description' => __( 'Billing period for the subscription.', 'woocommerce-subscriptions' ),
 				'type'        => 'string',
 				'enum'        => array_keys( wcs_get_subscription_period_strings() ),
+				'context'     => array( 'view', 'edit' ),
+			),
+			'trial_period' => array(
+				'description' => __( 'Trial period for the subscription.', 'woocommerce-subscriptions' ),
+				'type'        => 'string',
+				'enum'        => array_keys( wcs_get_subscription_period_strings() ),
+				'context'     => array( 'view', 'edit' ),
+			),
+			'suspension_count' => array(
+				'description' => __( 'The number of times the subscription has been suspended since the last payment.', 'woocommerce-subscriptions' ),
+				'type'        => 'integer',
+				'context'     => array( 'view', 'edit' ),
+			),
+			'requires_manual_renewal' => array(
+				'description' => __( 'Whether the subscription requires manual renewal.', 'woocommerce-subscriptions' ),
+				'type'        => 'boolean',
 				'context'     => array( 'view', 'edit' ),
 			),
 			'payment_details' => array(

@@ -130,7 +130,8 @@ class WC_Subscriptions_Renewal_Order {
 				$is_failed_renewal_order = 'failed' === $orders_old_status || wc_string_to_bool( $order->get_meta( WC_Subscription::RENEWAL_FAILED_META_KEY, true ) );
 				$is_failed_renewal_order = apply_filters( 'woocommerce_subscriptions_is_failed_renewal_order', $is_failed_renewal_order, $order_id, $orders_old_status );
 
-				if ( $order_needed_payment ) {
+				// Subscription will be activated only if this is the last renewal order of the subscription.
+				if ( $order_needed_payment && wcs_is_order_last_renewal_of_subscription( $order, $subscription ) ) {
 					$subscription->payment_complete();
 					$was_activated = true;
 				}

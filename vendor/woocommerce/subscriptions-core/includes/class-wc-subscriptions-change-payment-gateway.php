@@ -419,6 +419,11 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			}
 
 			$user_subscription = wcs_get_subscription( $subscription_id );
+
+			if ( ! $user_subscription instanceof WC_Subscription ) {
+				continue;
+			}
+
 			// Skip if subscription's current payment method is not supported
 			if ( ! $user_subscription->payment_method_supports( 'subscription_cancellation' ) ) {
 				continue;

@@ -1,5 +1,10 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 7.3.0 - 2024-07-16 =
+* Fix - Label improvements on subscription and order page templates.
+* Fix - Fixed an issue with subscriptions containing multiple renewal orders to mark a random item as processing, instead of the last order.
+* Fix - Prevent errors from invalid subscription objects during customer payment method updates.
+
 = 7.2.0 - 2024-06-13 =
 * Fix - label improvement on my subscription page template.
 * Fix - Regenerate subscriptions related order caches (renewal, resubscribe, switch) if it's stored as an invalid value to prevent fatal errors.
