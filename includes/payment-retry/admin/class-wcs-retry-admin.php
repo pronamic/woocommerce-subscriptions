@@ -165,7 +165,7 @@ class WCS_Retry_Admin {
 				'default'  => 'no',
 				'type'     => 'checkbox',
 				// translators: 1,2: opening/closing link tags (to documentation).
-				'desc_tip' => sprintf( __( 'Attempt to recover recurring revenue that would otherwise be lost due to payment methods being declined only temporarily. %1$sLearn more%2$s.', 'woocommerce-subscriptions' ), '<a href="https://docs.woocommerce.com/document/subscriptions/failed-payment-retry/">', '</a>' ),
+				'desc_tip' => sprintf( __( 'Attempt to recover recurring revenue that would otherwise be lost due to payment methods being declined only temporarily. %1$sLearn more%2$s.', 'woocommerce-subscriptions' ), '<a href="https://woocommerce.com/document/subscriptions/failed-payment-retry/">', '</a>' ),
 			),
 		) );
 

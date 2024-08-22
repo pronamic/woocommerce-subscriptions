@@ -24,7 +24,7 @@ class WCS_Switch_Cart_Item {
 
 	/**
 	 * The existing subscription line item being switched.
-	 * @var WC_Order_Item_Product
+	 * @var WC_Order_Item
 	 */
 	public $existing_item;
 
@@ -117,9 +117,9 @@ class WCS_Switch_Cart_Item {
 	 *
 	 * @since 2.6.0
 	 *
-	 * @param array $cart_item                     The cart item.
-	 * @param WC_Subscription $subscription        The subscription being switched.
-	 * @param WC_Order_Item_Product $existing_item The subscription line item being switched.
+	 * @param array $cart_item              The cart item.
+	 * @param WC_Subscription $subscription The subscription being switched.
+	 * @param WC_Order_Item $existing_item  The subscription line item being switched.
 	 *
 	 * @throws Exception If WC_Subscriptions_Product::get_expiration_date() returns an invalid date.
 	 */
@@ -263,7 +263,7 @@ class WCS_Switch_Cart_Item {
 	public function get_total_paid_for_current_period() {
 
 		if ( ! isset( $this->total_paid_for_current_period ) ) {
-			// If the last order was a switch with a fully reduced pre-paid term, the amount the cutomer has paid is just the total in that order.
+			// If the last order was a switch with a fully reduced pre-paid term, the amount the customer has paid is just the total in that order.
 			if ( $this->is_switch_after_fully_reduced_prepaid_term() ) {
 				$this->total_paid_for_current_period = WC_Subscriptions_Switcher::calculate_total_paid_since_last_order( $this->subscription, $this->existing_item, 'exclude_sign_up_fees', array( $this->get_last_switch_order() ) );
 			} else {
@@ -271,7 +271,7 @@ class WCS_Switch_Cart_Item {
 			}
 		}
 
-		return $this->total_paid_for_current_period;
+		return apply_filters( 'wcs_switch_total_paid_for_current_period', $this->total_paid_for_current_period, $this->subscription, $this->existing_item );
 	}
 
 	/**
@@ -446,7 +446,7 @@ class WCS_Switch_Cart_Item {
 		static $switch_order = null;
 
 		if ( ! $switch_order ) {
-			$switch_order = $this->subscription->get_last_order( 'all', 'switch' );
+			$switch_order = $this->subscription->get_last_order( 'all', 'switch', [ 'checkout-draft' ] );
 		}
 
 		return $switch_order;
@@ -459,12 +459,12 @@ class WCS_Switch_Cart_Item {
 	 *
 	 * For example:
 	 * - Original purchase of a $70 / week subscription.
-	 * - 5 days into the subscription the customer switches to a $120 / 3 days. The lower freqency triggers the pre-paid term to be reduced.
+	 * - 5 days into the subscription the customer switches to a $120 / 3 days. The lower frequency triggers the pre-paid term to be reduced.
 	 * - The $70 paid at $40 a day only entitles the customer to 1.75 days.
 	 * - Because they are already 5 days into the subscription, that $70 is fully absorbed at the new price and no time is 'owed'.
 	 * - The subscription starts today and the customer pays full price.
 	 *
-	 * @see https://docs.woocommerce.com/document/subscriptions/switching-guide/#section-11
+	 * @see https://woocommerce.com/document/subscriptions/switching-guide/switching-process-and-costs/#upgrades
 	 * @see WCS_Switch_Totals_Calculator::reduce_prepaid_term()
 	 *
 	 * @since 3.0.7
@@ -482,7 +482,7 @@ class WCS_Switch_Cart_Item {
 
 			$switch_paid_date = $last_switch_order->get_date_paid();
 
-			// If the last switch order occured after the last payment order (parent or renewal)
+			// If the last switch order occurred before the last payment order (parent or renewal), then the last order wasn't a switch.
 			if ( $switch_paid_date->getTimestamp() < $this->get_last_order_paid_time() ) {
 				$this->is_switch_after_fully_reduced_prepaid_term = false;
 				return false;

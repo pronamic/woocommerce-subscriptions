@@ -1,5 +1,15 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2024-08-22 - version 6.6.0
+* Fix: Resolve duplicate subscription creation and PHP warning when switching subscriptions with Prepaid for WooCommerce Subscriptions plugin active.
+* Fix: Switch calculations now exclude previous switch orders with a checkout-draft status.
+* Dev: Introduce new parameter to WC_Subscription::get_last_order() to enable filtering out orders with specific statuses.
+* Update: Schedule subscription-related events with a priority of 1 to allow for earlier execution within the Action Scheduler.
+* Fix: Ensure admin notices are displayed after performing bulk actions on subscriptions when HPOS is enabled.
+* Fix: Add a year to the next renewal date billing interval is 12 months or more for a synced subscription.
+* Dev: Added filter to enable overriding the total paid for current switch period.
+* Dev: Updated subscriptions-core to 7.4.1.
+
 2024-07-16 - version 6.5.0
 * Add: Include trial_period, suspension_count, and requires_manual_renewal in the REST API response for subscriptions.
 * Update: When a renewal order's payment is skipped, include the order's current status in the note to help troubleshooting.

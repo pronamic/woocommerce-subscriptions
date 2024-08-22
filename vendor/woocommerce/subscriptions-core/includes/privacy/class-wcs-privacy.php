@@ -124,7 +124,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 	 */
 	public static function handle_privacy_bulk_actions( $redirect_url, $action, $subscription_ids ) {
 		if ( 'wcs_remove_personal_data' !== $action ) {
-			return;
+			return $redirect_url;
 		}
 
 		$changed       = 0;
@@ -146,8 +146,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 		$sendback_args['changed'] = $changed;
 		$sendback                 = add_query_arg( $sendback_args, $redirect_url );
 
-		wp_safe_redirect( esc_url_raw( $sendback ) );
-		exit();
+		return esc_url_raw( $sendback );
 	}
 
 	/**
@@ -178,7 +177,10 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 		$subscription_ids  = array_map( 'absint', (array) $_REQUEST['post'] );
 		$base_redirect_url = wp_get_referer() ? wp_get_referer() : '';
 
-		self::handle_privacy_bulk_actions( $base_redirect_url, $action, $subscription_ids );
+		$redirect_url = self::handle_privacy_bulk_actions( $base_redirect_url, $action, $subscription_ids );
+
+		wp_safe_redirect( $redirect_url );
+		exit();
 	}
 
 	/**

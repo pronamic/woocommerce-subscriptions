@@ -60,7 +60,7 @@ class WCS_Admin_Reports {
 					// translators: placeholders $1 and $2 are opening <a> tags linking to the WooCommerce documentation on HPOS and data synchronization. Placeholder $3 is a closing link (<a>) tag.
 					__( 'Subscription reports are incompatible with the %1$sWooCommerce data storage features%3$s enabled on your store. Please enable %2$stable synchronization%3$s if you wish to use subscription reports.', 'woocommerce-subscriptions' ),
 					'<a href="https://woocommerce.com/document/high-performance-order-storage/">',
-					'<a href="https://woocommerce.com/document/high-performance-order-storage/#section-4">',
+					'<a href="https://woocommerce.com/document/high-performance-order-storage/#synchronization">',
 					'</a>'
 				)
 			)

@@ -683,29 +683,54 @@ class WC_Subscriptions_Order {
 		}
 
 		// Skip checks if order total is greater than zero, or
-		// recurring total is zero, or
 		// order status isn't valid for payment.
-		if ( $order->get_total() > 0 || self::get_recurring_total( $order ) <= 0 || ! $order->has_status( $valid_order_statuses ) ) {
+		if ( $order->get_total() > 0 || ! $order->has_status( $valid_order_statuses ) ) {
 			return $needs_payment;
 		}
 
-		// Check that there is at least 1 subscription with a next payment that would require a payment method.
-		$has_next_payment = false;
+		// Skip checks if manual renewal is required.
+		if ( wcs_is_manual_renewal_required() ) {
+			return $needs_payment;
+		}
 
+		// Check if there's a subscription attached to this order that will require a payment method.
 		foreach ( wcs_get_subscriptions_for_order( $order ) as $subscription ) {
+			$has_next_payment                 = false;
+			$contains_expiring_limited_coupon = false;
+			$contains_free_trial              = false;
+			$contains_synced                  = false;
+
+			// Check if there's a subscription with a recurring total that would require a payment method.
+			$recurring_total = (float) $subscription->get_total();
+
+			// Check that there is at least 1 subscription with a next payment that would require a payment method.
 			if ( $subscription->get_time( 'next_payment' ) ) {
 				$has_next_payment = true;
-				break;
 			}
-		}
 
-		if ( ! $has_next_payment ) {
-			return $needs_payment;
-		}
+			// Check if there's a subscription with a limited recurring coupon that is expiring that would require a payment method after the coupon expires.
+			if ( class_exists( 'WCS_Limited_Recurring_Coupon_Manager' ) && WCS_Limited_Recurring_Coupon_Manager::order_has_limited_recurring_coupon( $subscription ) ) {
+				$contains_expiring_limited_coupon = true;
+			}
 
-		// If manual renewals are not required.
-		if ( ! wcs_is_manual_renewal_required() ) {
-			$needs_payment = true;
+			// Check if there's a subscription with a free trial that would require a payment method after the trial ends.
+			if ( $subscription->get_time( 'trial_end' ) ) {
+				$contains_free_trial = true;
+			}
+
+			// Check if there's a subscription with a synced product that would require a payment method.
+			if ( WC_Subscriptions_Synchroniser::subscription_contains_synced_product( $subscription ) ) {
+				$contains_synced = true;
+			}
+
+			/**
+			 * We need to collect a payment method if there's a subscription with a recurring total or a limited recurring coupon that is expiring and
+			 * there's a next payment date or a free trial or a synced product.
+			 */
+			if ( ( $contains_expiring_limited_coupon || $recurring_total > 0 ) && ( $has_next_payment || $contains_free_trial || $contains_synced ) ) {
+				$needs_payment = true;
+				break; // We've found a subscription that requires a payment method.
+			}
 		}
 
 		return $needs_payment;

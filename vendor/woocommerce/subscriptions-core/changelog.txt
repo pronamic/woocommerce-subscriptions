@@ -1,9 +1,18 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 7.4.1 - 2024-08-21 =
+* Fix - Add a year to the next renewal date billing interval is 12 months or more for a synced subscription.
+
+= 7.4.0 - 2024-08-16 =
+* Dev - Introduce new parameter to WC_Subscription::get_last_order() to enable filtering out orders with specific statuses.
+* Update - Schedule subscription-related events with a priority of 1 to allow for earlier execution within the Action Scheduler.
+* Fix - Ensure admin notices are displayed after performing bulk actions on subscriptions when HPOS is enabled.
+
 = 7.3.0 - 2024-07-16 =
 * Fix - Label improvements on subscription and order page templates.
 * Fix - Fixed an issue with subscriptions containing multiple renewal orders to mark a random item as processing, instead of the last order.
 * Fix - Prevent errors from invalid subscription objects during customer payment method updates.
+* Fix - Resolved an error when purchasing subscription products on the block checkout with a limited recurring coupon.
 
 = 7.2.0 - 2024-06-13 =
 * Fix - label improvement on my subscription page template.

@@ -145,6 +145,8 @@ class WC_Subscriptions_Switcher {
 
 		// Override the add to cart text when switch args are present.
 		add_filter( 'woocommerce_product_single_add_to_cart_text', array( __CLASS__, 'display_switch_add_to_cart_text' ), 10, 1 );
+
+		add_filter( 'woocommerce_subscriptions_calculated_total', [ __CLASS__, 'remove_handled_switch_recurring_carts' ], 100, 1 );
 	}
 
 	/**
@@ -382,7 +384,7 @@ class WC_Subscriptions_Switcher {
 				'name' => __( 'Switching', 'woocommerce-subscriptions' ),
 				'type' => 'title',
 				// translators: placeholders are opening and closing link tags
-				'desc' => sprintf( __( 'Allow subscribers to switch (upgrade or downgrade) between different subscriptions. %1$sLearn more%2$s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'http://docs.woocommerce.com/document/subscriptions/switching-guide/' ) . '">', '</a>' ),
+				'desc' => sprintf( __( 'Allow subscribers to switch (upgrade or downgrade) between different subscriptions. %1$sLearn more%2$s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'https://woocommerce.com/document/subscriptions/switching-guide/' ) . '">', '</a>' ),
 				'id'   => WC_Subscriptions_Admin::$option_prefix . '_switch_settings',
 			),
 			array(
@@ -1105,7 +1107,15 @@ class WC_Subscriptions_Switcher {
 						}
 					}
 
-					$switch_order_data[ $subscription->get_id() ]['switches'][ $cart_item['subscription_switch']['order_line_item_id'] ] = $switched_item_data;
+					// Obtain the new order item id from the cart item switch data.
+					if ( isset( $cart_item['subscription_switch']['order_line_item_id'] ) ) {
+						$new_order_item_id = $cart_item['subscription_switch']['order_line_item_id'];
+					} else {
+						$new_order_item_id = wc_get_order_item_meta( $cart_item['subscription_switch']['item_id'], '_switched_subscription_new_item_id', true );
+					}
+
+					// Store the switching data for this item.
+					$switch_order_data[ $subscription->get_id() ]['switches'][ $new_order_item_id ] = $switched_item_data;
 
 					// If the old subscription has just one item, we can safely update its billing schedule
 					if ( $can_update_existing_subscription ) {
@@ -2981,5 +2991,73 @@ class WC_Subscriptions_Switcher {
 			include( WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory( 'includes/admin/meta-boxes/views/html-related-orders-row.php' ) );
 		}
 
+	}
+
+	/**
+	 * Removes subscription items from recurring carts which have been handled.
+	 *
+	 * It's possible that after we've processed the subscription switches and removed any recurring carts that shouldn't lead to new subscriptions,
+	 * that someone could call WC()->cart->calculate_totals() and that would lead us to recreate all the recurring carts after we've already processed them.
+	 *
+	 * This method runs after subscription recurring carts have been created and removes any recurring carts which have been handled.
+	 *
+	 * @param float $total The total amount of the cart.
+	 * @return float $total. The total amount of the cart. This is a pass-through method and doesn't modify the total.
+	 */
+	public static function remove_handled_switch_recurring_carts( $total ) {
+		if ( ! isset( WC()->cart->recurring_carts ) ) {
+			return $total;
+		}
+
+		// We only want to remove the recurring cart if the switch order has been processed.
+		if ( ! did_action( 'woocommerce_subscription_checkout_switch_order_processed' ) ) {
+			return $total;
+		}
+
+		foreach ( WC()->cart->recurring_carts as $recurring_cart_key => $recurring_cart ) {
+
+			// Remove any items from the recurring cart which have been handled.
+			foreach ( $recurring_cart->get_cart() as $cart_item_key => $cart_item ) {
+				if ( ! isset( $cart_item['subscription_switch'] ) ) {
+					continue;
+				}
+
+				$subscription = wcs_get_subscription( $cart_item['subscription_switch']['subscription_id'] );
+				$switch_order = $subscription->get_last_order( 'all', 'switch' );
+
+				if ( empty( $switch_order ) ) {
+					continue;
+				}
+
+				$switch_order_data = wcs_get_objects_property( $switch_order, 'subscription_switch_data' );
+
+				// Skip if the switch order data is not set.
+				if ( ! isset( $switch_order_data[ $subscription->get_id() ]['switches'] ) ) {
+					continue;
+				}
+
+				$subscription_switch_data      = $switch_order_data[ $subscription->get_id() ]['switches'];
+				$switched_subscription_item_id = $cart_item['subscription_switch']['item_id'];
+
+				foreach ( $subscription_switch_data as $switch_data ) {
+
+					// We're only interested in cases where there's a straight swap of items. ie there's a remove and an add.
+					if ( ! isset( $switch_data['remove_line_item'], $switch_data['add_line_item'] ) ) {
+						continue;
+					}
+
+					if ( $switch_data['remove_line_item'] === $switched_subscription_item_id ) {
+						unset( WC()->cart->recurring_carts[ $recurring_cart_key ]->cart_contents[ $cart_item_key ] );
+					}
+				}
+			}
+
+			// If the recurring cart is now empty, remove it.
+			if ( empty( WC()->cart->recurring_carts[ $recurring_cart_key ]->cart_contents ) ) {
+				unset( WC()->cart->recurring_carts[ $recurring_cart_key ] );
+			}
+		}
+
+		return $total;
 	}
 }

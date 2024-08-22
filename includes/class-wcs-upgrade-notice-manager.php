@@ -86,7 +86,7 @@ class WCS_Upgrade_Notice_Manager {
 				'description' => sprintf(
 					// translators: 1-3: opening/closing <a> tags - link to documentation.
 					__( 'Webhook and REST API users can now use v3 subscription endpoints. Click here to %1$slearn more%2$s about the REST API and check out the technical API docs %3$shere%2$s.', 'woocommerce-subscriptions' ),
-					'<a href="https://docs.woocommerce.com/document/woocommerce-rest-api/">',
+					'<a href="https://woocommerce.com/document/woocommerce-rest-api/">',
 					'</a>',
 					'<a href="https://woocommerce.github.io/subscriptions-rest-api-docs/">'
 				),
@@ -96,7 +96,7 @@ class WCS_Upgrade_Notice_Manager {
 				'description' => sprintf(
 					// translators: 1-2: opening/closing <a> tags - link to documentation.
 					__( 'Subscriptions is now compatible with the WooCommerce cart and checkout blocks. You can learn more about the compatibility status of the cart & checkout blocks %1$shere%2$s.', 'woocommerce-subscriptions' ),
-					'<a href="https://docs.woocommerce.com/document/cart-checkout-blocks-support-status/">', '</a>'
+					'<a href="https://woocommerce.com/document/woocommerce-store-editing/customizing-cart-and-checkout/#compatible-extensions">', '</a>'
 				),
 			),
 		);

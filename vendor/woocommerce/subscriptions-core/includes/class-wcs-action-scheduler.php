@@ -11,6 +11,16 @@
 class WCS_Action_Scheduler extends WCS_Scheduler {
 
 	/**
+	 * The action scheduler group to use for scheduled subscription events.
+	 */
+	const ACTION_GROUP = 'wc_subscription_scheduled_event';
+
+	/**
+	 * The priority of the subscription-related scheduled action.
+	 */
+	const ACTION_PRIORITY = 1;
+
+	/**
 	 * An internal cache of action hooks and corresponding date types.
 	 *
 	 * This variable has been deprecated and will be removed completely in the future. You should use WCS_Action_Scheduler::get_scheduled_action_hook() and WCS_Action_Scheduler::get_date_types_to_schedule() instead.
@@ -55,7 +65,7 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 
 					// Only schedule it if it's valid. It's active, it's a payment retry or it's pending cancelled and the end date being updated.
 					if ( 'payment_retry' === $date_type || $subscription->has_status( 'active' ) || ( $subscription->has_status( 'pending-cancel' ) && 'end' === $date_type ) ) {
-						as_schedule_single_action( $timestamp, $action_hook, $action_args );
+						$this->schedule_action( $timestamp, $action_hook, $action_args );
 					}
 				}
 			}
@@ -110,7 +120,7 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 					}
 
 					if ( 0 != $event_time && $event_time > current_time( 'timestamp', true ) && $next_scheduled !== $event_time ) {
-						as_schedule_single_action( $event_time, $action_hook, $action_args );
+						$this->schedule_action( $event_time, $action_hook, $action_args );
 					}
 				}
 
@@ -139,7 +149,7 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 
 				// The end date was set in WC_Subscriptions::update_dates() to the appropriate value, so we can schedule our action for that time
 				if ( $end_time > current_time( 'timestamp', true ) && $next_scheduled !== $end_time ) {
-					as_schedule_single_action( $end_time, 'woocommerce_scheduled_subscription_end_of_prepaid_term', $action_args );
+					$this->schedule_action( $end_time, 'woocommerce_scheduled_subscription_end_of_prepaid_term', $action_args );
 				}
 				break;
 			case 'on-hold':
@@ -225,5 +235,37 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 	 */
 	protected function unschedule_actions( $action_hook, $action_args ) {
 		as_unschedule_all_actions( $action_hook, $action_args );
+	}
+
+	/**
+	 * Gets the priority of the subscription-related scheduled action.
+	 *
+	 * @return int The priority of the subscription-related scheduled action.
+	 */
+	public function get_action_priority( $action_hook ) {
+		return apply_filters( 'woocommerce_subscriptions_scheduled_action_priority', self::ACTION_PRIORITY, $action_hook );
+	}
+
+	/**
+	 * Schedule an subscription-related action with the Action Scheduler.
+	 *
+	 * Subscription events are scheduled with a priority of 1 (see self::ACTION_PRIORITY) and the
+	 * group 'wc_subscription_scheduled_event' (see self::ACTION_GROUP).
+	 *
+	 * @param int    $timestamp Unix timestamp of when the action should run.
+	 * @param string $action_hook Name of event used as the hook for the scheduled action.
+	 * @param array  $action_args Array of name => value pairs stored against the scheduled action.
+	 *
+	 * @return int The action ID.
+	 */
+	protected function schedule_action( $timestamp, $action_hook, $action_args ) {
+		$as_version = ActionScheduler_Versions::instance()->latest_version();
+
+		// On older versions of Action Scheduler, we cannot specify a priority.
+		if ( version_compare( $as_version, '3.6.0', '<' ) ) {
+			return as_schedule_single_action( $timestamp, $action_hook, $action_args, self::ACTION_GROUP );
+		}
+
+		return as_schedule_single_action( $timestamp, $action_hook, $action_args, self::ACTION_GROUP, false, $this->get_action_priority( $action_hook ) );
 	}
 }

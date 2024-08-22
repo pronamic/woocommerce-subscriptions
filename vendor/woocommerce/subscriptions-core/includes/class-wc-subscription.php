@@ -2077,9 +2077,10 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * @param string $return_fields The columns to return, either 'all' or 'ids'
 	 * @param array $order_types Can include any combination of 'parent', 'renewal', 'switch' or 'any' which will return the latest renewal order of any type. Defaults to 'parent' and 'renewal'.
+	 * @param array $exclude_statuses An array of statuses to exclude from the search. Defaults to an empty array.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
-	public function get_last_order( $return_fields = 'ids', $order_types = array( 'parent', 'renewal' ) ) {
+	public function get_last_order( $return_fields = 'ids', $order_types = array( 'parent', 'renewal' ), $exclude_statuses = [] ) {
 
 		$return_fields  = ( 'ids' == $return_fields ) ? $return_fields : 'all';
 		$order_types    = ( 'any' == $order_types ) ? array( 'parent', 'renewal', 'switch' ) : (array) $order_types;
@@ -2096,6 +2097,16 @@ class WC_Subscription extends WC_Order {
 					$related_orders = array_merge( $related_orders, $this->get_related_order_ids( $order_type ) );
 					break;
 			}
+		}
+
+		if ( ! empty( $exclude_statuses ) ) {
+			$related_orders = array_filter(
+				$related_orders,
+				function( $order_id ) use ( $exclude_statuses ) {
+					$order = wc_get_order( $order_id );
+					return $order && ! $order->has_status( $exclude_statuses );
+				}
+			);
 		}
 
 		if ( empty( $related_orders ) ) {
