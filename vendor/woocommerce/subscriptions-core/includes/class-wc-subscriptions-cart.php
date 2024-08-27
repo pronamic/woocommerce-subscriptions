@@ -48,6 +48,16 @@ class WC_Subscriptions_Cart {
 	private static $cached_recurring_cart = null;
 
 	/**
+	 * A stack of recurring cart keys being calculated.
+	 *
+	 * Before calculating a cart's totals, we set the recurring cart key and calculation type to match that cart's key and type. @see self::set_recurring_cart_key_before_calculate_totals()
+	 * After a cart's totals have been calculated, we restore the recurring cart key and calculation type. @see self::update_recurring_cart_key_after_calculate_totals()
+	 *
+	 * @var array
+	 */
+	private static $recurring_totals_calculation_stack = [];
+
+	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
@@ -113,6 +123,10 @@ class WC_Subscriptions_Cart {
 
 		// Redirect the user immediately to the checkout page after clicking "Sign Up Now" buttons to encourage immediate checkout
 		add_filter( 'woocommerce_add_to_cart_redirect', array( __CLASS__, 'add_to_cart_redirect' ) );
+
+		// Set the recurring cart being calculated.
+		add_action( 'woocommerce_before_calculate_totals', [ __CLASS__, 'set_recurring_cart_key_before_calculate_totals' ], 1 );
+		add_action( 'woocommerce_after_calculate_totals', [ __CLASS__, 'update_recurring_cart_key_after_calculate_totals' ], 1 );
 	}
 
 	/**
@@ -227,6 +241,37 @@ class WC_Subscriptions_Cart {
 	}
 
 	/**
+	 * Sets the recurring cart key and calculation type before calculating a carts totals.
+	 *
+	 * @param WC_Cart $cart The cart object being calculated.
+	 */
+	public static function set_recurring_cart_key_before_calculate_totals( $cart ) {
+		$recurring_cart_key = ! empty( $cart->recurring_cart_key ) ? $cart->recurring_cart_key : 'none';
+
+		// Store the recurring cart key in the stack.
+		array_unshift( self::$recurring_totals_calculation_stack, $recurring_cart_key );
+
+		// Set the current recurring cart key and calculation type.
+		self::set_recurring_cart_key( $recurring_cart_key );
+		self::set_calculation_type( 'none' === $recurring_cart_key ? 'none' : 'recurring_total' );
+	}
+
+	/**
+	 * Updates the recurring cart key and calculation type after calculating a carts totals.
+	 *
+	 * @param WC_Cart $cart The cart object that finished calculating it's totals.
+	 */
+	public static function update_recurring_cart_key_after_calculate_totals( $cart ) {
+		// Remove the recurring cart key from the stack. It has finished calculating.
+		array_shift( self::$recurring_totals_calculation_stack );
+
+		$recurring_cart_key = empty( self::$recurring_totals_calculation_stack ) ? 'none' : reset( self::$recurring_totals_calculation_stack );
+
+		self::set_recurring_cart_key( $recurring_cart_key );
+		self::set_calculation_type( 'none' === $recurring_cart_key ? 'none' : 'recurring_total' );
+	}
+
+	/**
 	 * Calculate the initial and recurring totals for all subscription products in the cart.
 	 *
 	 * We need to group subscriptions by billing schedule to make the display and creation of recurring totals sane,
@@ -243,9 +288,21 @@ class WC_Subscriptions_Cart {
 	 * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function calculate_subscription_totals( $total, $cart ) {
-		if ( ! self::cart_contains_subscription() && ! wcs_cart_contains_resubscribe() ) { // cart doesn't contain subscription
+		// If the cart doesn't contain a subscription, skip calculating recurring totals.
+		if ( ! self::cart_contains_subscription() && ! wcs_cart_contains_resubscribe() ) {
 			return $total;
-		} elseif ( 'none' != self::$calculation_type ) { // We're in the middle of a recalculation, let it run
+		}
+
+		// We're in the middle of a recalculation, let it run.
+		if ( 'none' !== self::$calculation_type ) {
+			return $total;
+		}
+
+		/**
+		 * If we're in the middle of calculating recurring totals, skip this calculation to avoid infinite loops.
+		 * We use whether there's a recurring cart key in the calculation stack (ie has started but hasn't finished) to determine if we're in the middle calculating recurring totals.
+		 */
+		if ( ! empty( array_diff( self::$recurring_totals_calculation_stack, [ 'none' ] ) ) ) {
 			return $total;
 		}
 

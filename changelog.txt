@@ -1,5 +1,9 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2024-08-27 - version 6.6.1
+* Fix: Resolved an issue where simple product prices were incorrectly set to $0 when purchasing subscriptions and simple products with a coupon in WC 9.2.
+* Dev: Update subscriptions-core to 7.4.2.
+
 2024-08-22 - version 6.6.0
 * Fix: Resolve duplicate subscription creation and PHP warning when switching subscriptions with Prepaid for WooCommerce Subscriptions plugin active.
 * Fix: Switch calculations now exclude previous switch orders with a checkout-draft status.
