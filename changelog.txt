@@ -1,5 +1,9 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2024-09-05 - version 6.6.2
+* Fix: Prevent errors during checkout when a customer is switching their subscription product and does not require payment.
+* Dev: Update subscriptions-core to 7.4.3.
+
 2024-08-27 - version 6.6.1
 * Fix: Resolved an issue where simple product prices were incorrectly set to $0 when purchasing subscriptions and simple products with a coupon in WC 9.2.
 * Dev: Update subscriptions-core to 7.4.2.

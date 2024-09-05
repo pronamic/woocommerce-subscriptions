@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the WooCommerce Subscriptions plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 6.6.1\n"
+"Project-Id-Version: WooCommerce Subscriptions 6.6.2\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-08-27T01:02:31+00:00\n"
+"POT-Creation-Date: 2024-09-05T03:31:47+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.9.0\n"
 "X-Domain: woocommerce-subscriptions\n"
@@ -464,7 +464,7 @@ msgstr ""
 
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:781
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:195
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:216
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:222
 #: vendor/woocommerce/subscriptions-core/includes/admin/meta-boxes/views/html-related-orders-table.php:20
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/related-orders.php:23
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/related-orders.php:48
@@ -473,7 +473,7 @@ msgstr ""
 
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:785
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:199
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:220
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:226
 msgid "Export CSV"
 msgstr ""
 
@@ -532,7 +532,7 @@ msgstr ""
 
 #. translators: %s: renewal count.
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:121
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:98
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:104
 msgid "%s renewal orders"
 msgstr ""
 
@@ -584,44 +584,44 @@ msgid "Recovered Renewal Revenue"
 msgstr ""
 
 #. translators: %s: formatted amount.
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:91
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:97
 msgid "%s renewal income in this period"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:92
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:98
 msgid "The sum of all the upcoming renewal orders, including items, fees, tax and shipping, for currently active subscriptions."
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:99
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:105
 msgid "The number of upcoming renewal orders, for currently active subscriptions."
 msgstr ""
 
 #. translators: %s: formatted amount.
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:105
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:111
 msgid "%s average renewal amount"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:186
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:192
 msgid "Next 12 Months"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:187
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:193
 msgid "Next 30 Days"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:188
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:194
 msgid "Next Month"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:189
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:195
 msgid "Next 7 Days"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:254
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:260
 msgid "Renewals count"
 msgstr ""
 
-#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:263
+#: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:269
 msgid "Renewals amount"
 msgstr ""
 

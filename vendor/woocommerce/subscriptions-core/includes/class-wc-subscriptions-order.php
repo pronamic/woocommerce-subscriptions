@@ -694,7 +694,7 @@ class WC_Subscriptions_Order {
 		}
 
 		// Check if there's a subscription attached to this order that will require a payment method.
-		foreach ( wcs_get_subscriptions_for_order( $order ) as $subscription ) {
+		foreach ( wcs_get_subscriptions_for_order( $order, [ 'order_type' => 'parent' ] ) as $subscription ) {
 			$has_next_payment                 = false;
 			$contains_expiring_limited_coupon = false;
 			$contains_free_trial              = false;

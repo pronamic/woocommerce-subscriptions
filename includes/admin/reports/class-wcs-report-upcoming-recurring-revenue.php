@@ -48,6 +48,10 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 					$scheduled_ends[ $key ] = date( 'Y-m-d', strtotime( $scheduled_ends[ $key ] ) );
 				}
 
+				if ( ! isset( $billing_intervals[ $key ] ) || ! isset( $billing_periods[ $key ] ) || ! in_array( $billing_periods[ $key ], array_keys( wcs_get_subscription_period_strings() ), true ) ) {
+					continue;
+				}
+
 				// Keep calculating all the new payments until we hit the end date of the search
 				do {
 
@@ -69,7 +73,9 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 							$this->order_ids_recurring_totals[ $update_key ]->recurring_total += $subscription_totals[ $key ];
 						}
 					}
-				} while ( $next_payment_timestamp <= $this->end_date && isset( $scheduled_ends[ $key ] ) && ( 0 == $scheduled_ends[ $key ] || $next_payment_timestamp < strtotime( $scheduled_ends[ $key ] ) ) );
+				} while ( $next_payment_timestamp > 0 && $next_payment_timestamp <= $this->end_date
+					&& isset( $key, $scheduled_ends[ $key ] )
+					&& ( 0 == $scheduled_ends[ $key ] || $next_payment_timestamp < strtotime( $scheduled_ends[ $key ] ) ) );
 			}
 		}
 
