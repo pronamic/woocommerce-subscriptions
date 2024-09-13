@@ -16,7 +16,7 @@ class WC_Subscriptions_Core_Plugin {
 	 * The version of subscriptions-core library.
 	 * @var string
 	 */
-	protected $library_version = '7.4.3'; // WRCS: DEFINED_VERSION.
+	protected $library_version = '7.5.0'; // WRCS: DEFINED_VERSION.
 
 	/**
 	 * The subscription scheduler instance.
@@ -569,8 +569,8 @@ class WC_Subscriptions_Core_Plugin {
 		}
 
 		$update_notice = '<div class="wc_plugin_upgrade_notice">';
-		// translators: placeholders are opening and closing tags. Leads to docs on version 2
-		$update_notice .= sprintf( __( 'Warning! Version 2.0 is a major update to the WooCommerce Subscriptions extension. Before updating, please create a backup, update all WooCommerce extensions and test all plugins, custom code and payment gateways with version 2.0 on a staging site. %1$sLearn more about the changes in version 2.0 &raquo;%2$s', 'woocommerce-subscriptions' ), '<a href="http://docs.woocommerce.com/document/subscriptions/version-2/">', '</a>' );
+		// translators: placeholders are opening and closing tags. Leads to docs on upgrading WooCommerce Subscriptions
+		$update_notice .= sprintf( __( 'Warning! Version 2.0 is a major update to the WooCommerce Subscriptions extension. Before updating, please create a backup, update all WooCommerce extensions and test all plugins, custom code and payment gateways with version 2.0 on a staging site. %1$sLearn more about updating older versions of WooCommerce Subscriptions &raquo;%2$s', 'woocommerce-subscriptions' ), '<a href="https://woocommerce.com/document/upgrade-instructions/">', '</a>' );
 		$update_notice .= '</div> ';
 
 		echo wp_kses_post( $update_notice );

@@ -1,5 +1,14 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 7.5.0 - 2024-09-12 =
+* Dev - Removing the unused method `maybe_remove_formatted_order_total_filter` hooked to `woocommerce_get_formatted_order_total` which was deprecated.
+* Fix - Resolved two issues preventing the correct display of the "Subscription items can no longer be edited." message on the Edit Subscription page.
+* Fix - Checks for the existence of `wc_get_page_screen_id` before calling it on `wcs_get_page_screen_id`, and for the admin context before calling `list_table_primary_column` to prevent fatal errors.
+* Fix - Blocks the reactivation of a subscription when the end date is in the past.
+* Fix - Ensure a subscription's modified date is updated when its related order cache is updated on non-HPOS sites.
+* Fix - Ensure trial period form data is set before use to prevent fatal errors when the data is missing.
+* Fix - Resolved an error with coupon discount calculations for manual or early renewal orders on stores with tax-inclusive pricing.
+
 = 7.4.3 - 2024-09-05 =
 * Fix - Prevent errors during checkout when a customer is switching their subscription product and does not require payment.
 

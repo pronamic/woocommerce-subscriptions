@@ -29,7 +29,7 @@ if ( defined( 'WC_LOG_HANDLER' ) && 'WC_Log_Handler_DB' === WC_LOG_HANDLER ) {
 			count( $failed_scheduled_actions ),
 			'woocommerce-subscriptions'
 		) ),
-		'<a href="https://docs.woocommerce.com/document/subscriptions/scheduled-action-errors/" target="_blank">',
+		'<a href="https://woocommerce.com/document/subscriptions/scheduled-action-errors/" target="_blank">',
 		'</a>'
 	)?>
 </p>

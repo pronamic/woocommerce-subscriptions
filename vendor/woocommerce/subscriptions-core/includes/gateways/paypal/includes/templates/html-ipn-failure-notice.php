@@ -15,24 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php
 	// translators: $1 and $2 are opening link tags, $3 is a closing link tag.
 	printf(
-		esc_html__( 'A fatal error has occurred while processing a recent subscription payment with PayPal. Please %1$sopen a new ticket at WooCommerce Support%3$s immediately to get this resolved. %2$sLearn more &raquo;%3$s', 'woocommerce-subscriptions' ),
-		'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">',
-		'<a href="https://docs.woocommerce.com/document/debug-subscriptions-paypal-ipn-issues/#section-1">',
+		esc_html__( 'A fatal error has occurred while processing a recent subscription payment with PayPal. Please %1$sopen a new ticket at WooCommerce Support%3$s immediately to get this resolved. See our documentation on %2$sdebugging IPN issues in PayPal Standard to Learn more &raquo;%3$s', 'woocommerce-subscriptions' ),
+		'<a href="https://woocommerce.com/my-account/contact-support/?form=ticket" target="_blank">',
+		'<a href="https://woocommerce.com/document/debug-subscriptions-paypal-ipn-issues/">',
 		'</a>'
 	);
 	?>
 </p>
-<p>
-	<?php
-	// translators: $1 and $2 are opening link tags, $3 is a closing link tag.
-	printf(
-		esc_html__( 'To resolve this as quickly as possible, please create a %1$stemporary administrator account%3$s with the user email woologin@woocommerce.com and share the credentials with us via %2$sQuickForget.com%3$s.', 'woocommerce-subscriptions' ),
-		'<a href="https://docs.woocommerce.com/document/create-new-admin-account-wordpress/" target="_blank">',
-		'<a href="https://quickforget.com/" target="_blank">',
-		'</a>'
-	);
-	?>
-</p>
+
 <?php esc_html_e( 'Last recorded error:', 'woocommerce-subscriptions' ); ?>
 <code>
 <?php

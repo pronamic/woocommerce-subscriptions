@@ -48,7 +48,7 @@ class WCS_Dependent_Hook_Manager {
 		foreach ( self::$dependent_callbacks['woocommerce'] as $wc_version => $operators ) {
 			foreach ( $operators as $operator => $callbacks ) {
 
-				if ( ! version_compare( WC_VERSION, $wc_version, $operator ) ) {
+				if ( ! defined( 'WC_VERSION' ) || ! version_compare( WC_VERSION, $wc_version, $operator ) ) {
 					continue;
 				}
 

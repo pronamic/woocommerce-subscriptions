@@ -1186,7 +1186,7 @@ class WCS_Admin_Post_Types {
 	 */
 	public function list_table_primary_column( $default, $screen_id ) {
 
-		if ( in_array( $screen_id, [ wcs_get_page_screen_id( 'shop_subscription' ), 'edit-shop_subscription' ], true ) ) {
+		if ( is_admin() && in_array( $screen_id, [ wcs_get_page_screen_id( 'shop_subscription' ), 'edit-shop_subscription' ], true ) ) {
 			$default = 'order_title';
 		}
 

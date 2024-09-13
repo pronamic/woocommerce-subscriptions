@@ -158,7 +158,7 @@ class WCS_Admin_System_Status {
 				$debug_data['wcs_theme_overrides'] += array(
 					'mark_icon' => 'warning',
 					// translators: placeholders are opening/closing tags linking to documentation on outdated templates.
-					'note'      => sprintf( __( '%1$sLearn how to update%2$s', 'woocommerce-subscriptions' ), '<a href="https://docs.woocommerce.com/document/fix-outdated-templates-woocommerce/" target="_blank">', '</a>' ),
+					'note'      => sprintf( __( '%1$sLearn how to update%2$s', 'woocommerce-subscriptions' ), '<a href="https://developer.woocommerce.com/docs/how-to-fix-outdated-woocommerce-templates/" target="_blank">', '</a>' ),
 				);
 			}
 		}

@@ -550,7 +550,7 @@ class WC_Subscriptions_Switcher {
 
 		$switch_url     = esc_url( self::get_switch_url( $item_id, $item, $subscription ) );
 		$switch_text    = apply_filters( 'woocommerce_subscriptions_switch_link_text', get_option( WC_Subscriptions_Admin::$option_prefix . '_switch_button_text', __( 'Upgrade or Downgrade', 'woocommerce-subscriptions' ) ), $item_id, $item, $subscription );
-		$switch_classes = apply_filters( 'woocommerce_subscriptions_switch_link_classes', array( 'wcs-switch-link', 'button' ), $item_id, $item, $subscription );
+		$switch_classes = apply_filters( 'woocommerce_subscriptions_switch_link_classes', array( 'wcs-switch-link', 'button', wc_wp_theme_get_element_class_name( 'button' ) ), $item_id, $item, $subscription );
 
 		$switch_link    = sprintf( '<a href="%s" class="%s">%s</a>', $switch_url, implode( ' ', (array) $switch_classes ), $switch_text );
 

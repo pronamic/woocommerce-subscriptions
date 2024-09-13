@@ -340,7 +340,13 @@ class WC_Subscription extends WC_Order {
 			case 'completed': // core WC order status mapped internally to avoid exceptions
 			case 'active':
 				if ( $this->payment_method_supports( 'subscription_reactivation' ) && $this->has_status( 'on-hold' ) ) {
-					$can_be_updated = true;
+					// If the subscription's end date is in the past, it cannot be reactivated.
+					$end_time = $this->get_time( 'end' );
+					if ( 0 !== $end_time && $end_time < gmdate( 'U' ) ) {
+						$can_be_updated = false;
+					} else {
+						$can_be_updated = true;
+					}
 				} elseif ( $this->has_status( 'pending' ) ) {
 					$can_be_updated = true;
 				} elseif ( $this->has_status( 'pending-cancel' ) && $this->get_time( 'end' ) > gmdate( 'U' ) && ( $this->is_manual() || ( false === $this->payment_method_supports( 'gateway_scheduled_payments' ) && $this->payment_method_supports( 'subscription_date_changes' ) && $this->payment_method_supports( 'subscription_reactivation' ) ) ) ) {
@@ -364,7 +370,7 @@ class WC_Subscription extends WC_Order {
 					$can_be_updated = false;
 				}
 				break;
-			case 'pending-cancel' :
+			case 'pending-cancel':
 				// Only active subscriptions can be given the "pending cancellation" status, because it is used to account for a prepaid term
 				if ( $this->payment_method_supports( 'subscription_cancellation' ) ) {
 					if ( $this->has_status( 'active' ) ) {

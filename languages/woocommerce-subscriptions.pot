@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the WooCommerce Subscriptions plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 6.6.2\n"
+"Project-Id-Version: WooCommerce Subscriptions 6.7.0\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-09-05T03:31:47+00:00\n"
+"POT-Creation-Date: 2024-09-13T00:40:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.9.0\n"
 "X-Domain: woocommerce-subscriptions\n"
@@ -50,8 +50,8 @@ msgstr ""
 #: includes/admin/class-wcs-admin-reports.php:81
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:922
 #: includes/api/class-wc-rest-subscriptions-settings.php:29
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1030
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1182
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1027
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1179
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-system-status.php:59
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:38
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:48
@@ -99,14 +99,14 @@ msgid "Report Cache Enabled"
 msgstr ""
 
 #: includes/admin/reports/class-wcs-report-cache-manager.php:316
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1724
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1793
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1721
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1790
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-system-status.php:98
 msgid "Yes"
 msgstr ""
 
 #: includes/admin/reports/class-wcs-report-cache-manager.php:316
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1724
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1721
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-system-status.php:98
 msgid "No"
 msgstr ""
@@ -1939,70 +1939,70 @@ msgstr ""
 msgid "Invalid relation type: %1$s. Order relationship type must be one of: %2$s."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:214
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:211
 msgid "Simple subscription"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:215
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:212
 msgid "Variable subscription"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:236
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:233
 msgid "Downloadable"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:237
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:234
 msgid "Virtual"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:301
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:298
 msgid "Choose the subscription price, billing interval and period."
 msgstr ""
 
 #. translators: placeholder is trial period validation message if passed an invalid value (e.g. "Trial period can not exceed 4 weeks")
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:303
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:300
 msgctxt "Trial period field tooltip on Edit Product administration screen"
 msgid "An optional period of time to wait before charging the first recurring payment. Any sign up fee will still be charged at the outset of the subscription. %s"
 msgstr ""
 
 #. translators: %s: currency symbol.
 #. translators: placeholder is a currency symbol / code
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:317
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:314
 #: vendor/woocommerce/subscriptions-core/templates/admin/html-variation-price.php:44
 msgid "Subscription price (%s)"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:321
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:318
 msgctxt "example price"
 msgid "e.g. 5.90"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:322
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:319
 msgid "Subscription interval"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:328
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:484
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:325
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:481
 msgid "Subscription period"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:344
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:485
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:341
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:482
 #: vendor/woocommerce/subscriptions-core/templates/admin/html-variation-price.php:66
 msgid "Stop renewing after"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:347
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:344
 msgid "Automatically stop renewing the subscription after this length of time. This length is in addition to any free trial or amount of time provided before a synchronised first renewal date."
 msgstr ""
 
 #. translators: %s is a currency symbol / code
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:358
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:355
 #: vendor/woocommerce/subscriptions-core/templates/admin/html-variation-price.php:20
 msgid "Sign-up fee (%s)"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:359
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:356
 #: vendor/woocommerce/subscriptions-core/templates/admin/deprecated/html-variation-price.php:31
 #: vendor/woocommerce/subscriptions-core/templates/admin/deprecated/html-variation-price.php:86
 #: vendor/woocommerce/subscriptions-core/templates/admin/html-variation-price.php:21
@@ -2011,90 +2011,90 @@ msgctxt "example price"
 msgid "e.g. 9.90"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:360
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:357
 msgid "Optionally include an amount to be charged at the outset of the subscription. The sign-up fee will be charged immediately, even if the product has a free trial or the payment dates are synced."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:374
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:371
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-cart.php:2479
 #: vendor/woocommerce/subscriptions-core/templates/admin/html-variation-price.php:25
 msgid "Free trial"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:377
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:374
 #: vendor/woocommerce/subscriptions-core/templates/admin/deprecated/html-variation-price.php:115
 msgid "Subscription Trial Period"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:417
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:414
 msgid "One time shipping"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:418
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:415
 msgid "Shipping for subscription products is normally charged on the initial order and all renewal orders. Enable this to only charge shipping once on the initial order. Note: for this setting to be enabled the subscription must not have a free trial or a synced renewal date."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:481
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:478
 msgid "Subscription pricing"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:482
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:479
 msgid "Subscription sign-up fee"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:483
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:480
 msgid "Subscription billing interval"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:486
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:483
 msgid "Free trial length"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:487
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:484
 msgid "Free trial period"
 msgstr ""
 
 #. translators: %s: subscription status.
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:810
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:807
 msgid "Unable to change subscription status to \"%s\". Please assign a customer to the subscription to activate it."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:864
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:861
 msgid "Trashing this order will also trash the subscriptions purchased with the order."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:877
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:874
 msgid "Enter the new period, either day, week, month or year:"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:878
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:875
 msgid "Enter a new length (e.g. 5):"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:879
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:876
 msgid "Enter a new interval as a single number (e.g. to charge every 2nd month, enter 2):"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:880
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:877
 msgid "Delete all variations without a subscription"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:886
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:883
 msgid "An error occurred determining if that variation can be deleted. Please try again."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:887
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:884
 msgid "That variation can not be removed because it is associated with active subscriptions. To remove this variation, please cancel and delete the subscriptions for it."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:892
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:889
 msgid ""
 "You are about to trash one or more orders which contain a subscription.\n"
 "\n"
 "Trashing the orders will also trash the subscriptions purchased with these orders."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:900
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:897
 msgid ""
 "WARNING: Bad things are about to happen!\n"
 "\n"
@@ -2103,179 +2103,179 @@ msgid ""
 "Changes to the billing period, recurring discount, recurring tax or recurring total may not be reflected in the amount charged by the payment gateway."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:901
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:898
 msgid "You are deleting a subscription item. You will also need to manually cancel and trash the subscription on the Manage Subscriptions screen."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:908
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:905
 msgid ""
 "Warning: Deleting a user will also delete the user's subscriptions. The user's orders will remain but be reassigned to the 'Guest' user.\n"
 "\n"
 "Do you want to continue to delete this user and any associated subscriptions?"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:912
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:909
 msgid "PayPal Standard has a number of limitations and does not support all subscription features."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:912
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:909
 msgid "Because of this, it is not recommended as a payment method for Subscriptions unless it is the only available option for your country."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:915
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:912
 msgid "This action cannot be reversed. Are you sure you wish to erase personal data from the selected subscriptions?"
 msgstr ""
 
 #. translators: placeholders are for HTML tags. They are 1$: "<h3>", 2$: "</h3>", 3$: "<p>", 4$: "<em>", 5$: "</em>", 6$: "<em>", 7$: "</em>", 8$: "</p>"
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:932
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:929
 msgctxt "used in admin pointer script params in javascript as type pointer content"
 msgid "%1$sChoose Subscription%2$s%3$sThe WooCommerce Subscriptions extension adds two new subscription product types - %4$sSimple subscription%5$s and %6$sVariable subscription%7$s.%8$s"
 msgstr ""
 
 #. translators: placeholders are for HTML tags. They are 1$: "<h3>", 2$: "</h3>", 3$: "<p>", 4$: "</p>"
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:934
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:931
 msgctxt "used in admin pointer script params in javascript as price pointer content"
 msgid "%1$sSet a Price%2$s%3$sSubscription prices are a little different to other product prices. For a subscription, you can set a billing period, length, sign-up fee and free trial.%4$s"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:960
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:957
 msgid "Active subscriber?"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1004
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1001
 msgid "Manage Subscriptions"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1008
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1005
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:381
 msgid "Search Subscriptions"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1234
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1231
 msgctxt "options section heading"
 msgid "Miscellaneous"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1241
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1238
 msgid "Mixed Checkout"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1242
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1239
 msgid "Allow multiple subscriptions and products to be purchased simultaneously."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1246
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1243
 msgid "Allow a subscription product to be purchased with other products and subscriptions in the same transaction."
 msgstr ""
 
 #. translators: placeholder is a number
 #. translators: placeholder is a subscription ID.
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1348
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1590
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1345
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1587
 msgid "We can't find a subscription with ID #%d. Perhaps it was deleted?"
 msgstr ""
 
 #. translators: Placeholders are opening and closing link tags.
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1441
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1503
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1438
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1500
 msgid "We weren't able to locate the set of report results you requested. Please regenerate the link from the %1$sSubscription Reports screen%2$s."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1558
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1555
 msgid "We can't find a paid subscription order for this user."
 msgstr ""
 
 #. translators: placeholders are opening link tag, ID of sub, and closing link tag
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1597
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1594
 msgid "Showing orders for %1$sSubscription %2$s%3$s"
 msgstr ""
 
 #. translators: number of 1$: days, 2$: weeks, 3$: months, 4$: years
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1620
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1617
 msgid "The trial period can not exceed: %1$s, %2$s, %3$s or %4$s."
 msgstr ""
 
 #. translators: placeholder is a time period (e.g. "4 weeks")
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1625
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1622
 msgid "The trial period can not exceed %s."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1650
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1647
 msgid "Please log in to your account to view your subscriptions."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1687
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1684
 msgid "No subscriptions found for that customer."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1689
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1686
 msgid "You do not have permission to view those subscriptions."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1723
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1720
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-system-status.php:96
 msgctxt "label that indicates whether debugging is turned on for the plugin"
 msgid "WCS_DEBUG"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1729
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1726
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-system-status.php:110
 msgctxt "Live or Staging, Label on WooCommerce -> System Status page"
 msgid "Subscriptions Mode"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1730
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1727
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-system-status.php:112
 msgctxt "refers to staging site"
 msgid "Staging"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1730
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1727
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-system-status.php:112
 msgctxt "refers to live site"
 msgid "Live"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1760
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1757
 msgid "Automatic Recurring Payments"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1793
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1790
 msgid "Supports automatic renewal payments."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1891
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1871
 msgid "Subscription items can no longer be edited."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1895
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1876
 msgid "This subscription is no longer editable because the payment gateway does not allow modification of recurring amounts."
 msgstr ""
 
 #. translators: $1-2: opening and closing tags of a link that takes to Woo marketplace / Stripe product page
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1914
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1895
 msgid "No payment gateways capable of processing automatic subscription payments are enabled. If you would like to process automatic payments, we recommend the %1$sfree Stripe extension%2$s."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1921
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1902
 msgid "Recurring Payments"
 msgstr ""
 
 #. translators: placeholders are opening and closing link tags
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1929
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1910
 msgid "Payment gateways which don't support automatic recurring payments can be used to process %1$smanual subscription renewal payments%2$s."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:2049
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:2030
 msgid "Note that purchasing a subscription still requires an account."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:2063
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:2044
 msgid "The product type can not be changed because this product is associated with subscriptions."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:2120
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:2121
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:2101
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:2102
 msgid "Allow subscription customers to create an account during checkout"
 msgstr ""
 
@@ -2540,7 +2540,7 @@ msgstr[1] ""
 #. translators: placeholder is the display name of a payment gateway a subscription was paid by
 #. translators: %s: payment method.
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-post-types.php:652
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2158
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2164
 msgid "Via %s"
 msgstr ""
 
@@ -2608,7 +2608,7 @@ msgid "None"
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-post-types.php:1174
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2140
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2146
 #: vendor/woocommerce/subscriptions-core/includes/class-wcs-change-payment-method-admin.php:170
 msgid "Manual Renewal"
 msgstr ""
@@ -2959,7 +2959,7 @@ msgid "Error: unable to find timezone of your browser."
 msgstr ""
 
 #. Translators: The %1 placeholder is the translated order relationship ("Parent Order"), %2 placeholder is a <br> HTML tag.
-#: vendor/woocommerce/subscriptions-core/includes/admin/meta-boxes/views/html-unknown-related-orders-row.php:24
+#: vendor/woocommerce/subscriptions-core/includes/admin/meta-boxes/views/html-unknown-related-orders-row.php:25
 msgid "This %1$s couldn't be loaded from the database. %1$s Click to learn more."
 msgstr ""
 
@@ -2968,139 +2968,139 @@ msgid "Read more"
 msgstr ""
 
 #. translators: %s: subscription status.
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:437
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:443
 msgid "Unable to change subscription status to \"%s\"."
 msgstr ""
 
 #. translators: 1: subscription status, 2: error message.
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:560
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:566
 msgid "Unable to change subscription status to \"%1$s\". Exception: %2$s"
 msgstr ""
 
 #. translators: 1: old subscription status 2: new subscription status
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:593
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:599
 msgid "Status changed from %1$s to %2$s."
 msgstr ""
 
 #. translators: %s: new order status
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:607
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:613
 msgid "Status set to %s."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:621
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:627
 msgid "Error during subscription status transition."
 msgstr ""
 
 #. translators: placeholder is human time diff (e.g. "3 weeks")
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1308
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1314
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-manager.php:2405
 msgid "In %s"
 msgstr ""
 
 #. translators: placeholder is human time diff (e.g. "3 weeks")
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1311
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1317
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:246
 msgid "%s ago"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1318
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1324
 msgid "Not yet ended"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1321
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1327
 msgid "Not cancelled"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1326
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1332
 msgctxt "original denotes there is no date to display"
 msgid "-"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1434
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1440
 msgid "The creation date of a subscription can not be deleted, only updated."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1437
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1443
 msgid "The start date of a subscription can not be deleted, only updated."
 msgstr ""
 
 #. translators: %s: date type (e.g. "trial_end").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1442
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1448
 msgid "The %s date of a subscription can not be deleted. You must delete the order."
 msgstr ""
 
 #. translators: %d: subscription ID.
 #. translators: %d: order ID.
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1451
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2581
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1457
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2587
 msgid "Subscription #%d: "
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1865
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1871
 msgid "Payment status marked complete."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1907
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1913
 msgid "Payment failed."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1912
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1918
 msgid "Subscription Cancelled: maximum number of failed payments reached."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2022
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2028
 msgid "The \"all\" value for $order_type parameter is deprecated. It was a misnomer, as it did not return resubscribe orders. It was also inconsistent with order type values accepted by wcs_get_subscription_orders(). Use array( \"parent\", \"renewal\", \"switch\" ) to maintain previous behaviour, or \"any\" to receive all order types, including switch and resubscribe."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2237
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2243
 #: vendor/woocommerce/subscriptions-core/wcs-functions.php:834
 msgid "Payment method meta must be an array."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2473
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2479
 msgid "Invalid format. First parameter needs to be an array."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2477
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2483
 msgid "Invalid data. First parameter was empty when passed to update_dates()."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2484
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2490
 msgid "Invalid data. First parameter has a date that is not in the registered date types."
 msgstr ""
 
 #. translators: placeholder is date type (e.g. "end", "next_payment"...)
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2511
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2517
 msgctxt "appears in an error message if date is wrong format"
 msgid "Invalid %s date. The date must be of the format: \"Y-m-d H:i:s\"."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2549
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2555
 msgid "The %s date must occur after the cancellation date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2555
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2561
 msgid "The %s date must occur after the last payment date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2560
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2566
 msgid "The %s date must occur after the next payment date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2566
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2572
 msgid "The %s date must occur after the trial end date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "next_payment").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2571
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2577
 msgid "The %s date must occur after the start date."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2601
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2607
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-checkout.php:348
 msgid "Backordered"
 msgstr ""
@@ -3455,9 +3455,9 @@ msgstr ""
 msgid "Support"
 msgstr ""
 
-#. translators: placeholders are opening and closing tags. Leads to docs on version 2
+#. translators: placeholders are opening and closing tags. Leads to docs on upgrading WooCommerce Subscriptions
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:573
-msgid "Warning! Version 2.0 is a major update to the WooCommerce Subscriptions extension. Before updating, please create a backup, update all WooCommerce extensions and test all plugins, custom code and payment gateways with version 2.0 on a staging site. %1$sLearn more about the changes in version 2.0 &raquo;%2$s"
+msgid "Warning! Version 2.0 is a major update to the WooCommerce Subscriptions extension. Before updating, please create a backup, update all WooCommerce extensions and test all plugins, custom code and payment gateways with version 2.0 on a staging site. %1$sLearn more about updating older versions of WooCommerce Subscriptions &raquo;%2$s"
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-coupon.php:134
@@ -4207,7 +4207,7 @@ msgctxt "Used in WooCommerce by removed item notification: \"_All linked subscri
 msgid "All linked subscription items were"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wcs-cart-renewal.php:1543
+#: vendor/woocommerce/subscriptions-core/includes/class-wcs-cart-renewal.php:1548
 msgctxt "The place order button text while renewing a subscription"
 msgid "Renew subscription"
 msgstr ""
@@ -5117,18 +5117,14 @@ msgid "PayPal API error - credentials are incorrect."
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/includes/gateways/paypal/includes/templates/html-ipn-failure-notice.php:18
-msgid "A fatal error has occurred while processing a recent subscription payment with PayPal. Please %1$sopen a new ticket at WooCommerce Support%3$s immediately to get this resolved. %2$sLearn more &raquo;%3$s"
+msgid "A fatal error has occurred while processing a recent subscription payment with PayPal. Please %1$sopen a new ticket at WooCommerce Support%3$s immediately to get this resolved. See our documentation on %2$sdebugging IPN issues in PayPal Standard to Learn more &raquo;%3$s"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/gateways/paypal/includes/templates/html-ipn-failure-notice.php:29
-msgid "To resolve this as quickly as possible, please create a %1$stemporary administrator account%3$s with the user email woologin@woocommerce.com and share the credentials with us via %2$sQuickForget.com%3$s."
-msgstr ""
-
-#: vendor/woocommerce/subscriptions-core/includes/gateways/paypal/includes/templates/html-ipn-failure-notice.php:36
+#: vendor/woocommerce/subscriptions-core/includes/gateways/paypal/includes/templates/html-ipn-failure-notice.php:26
 msgid "Last recorded error:"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/gateways/paypal/includes/templates/html-ipn-failure-notice.php:46
+#: vendor/woocommerce/subscriptions-core/includes/gateways/paypal/includes/templates/html-ipn-failure-notice.php:36
 msgid "To see the full error, view the %1$s log file from the %2$sWooCommerce logs screen.%3$s."
 msgstr ""
 

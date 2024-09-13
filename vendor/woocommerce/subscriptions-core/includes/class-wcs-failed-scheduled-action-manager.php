@@ -230,7 +230,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 			),
 			array(
 				'name'  => __( 'Learn more', 'woocommerce-subscriptions' ),
-				'url'   => 'https://docs.woocommerce.com/document/subscriptions/scheduled-action-errors/',
+				'url'   => 'https://woocommerce.com/document/subscriptions/scheduled-action-errors/',
 				'class' => 'button button-primary',
 			),
 		) );

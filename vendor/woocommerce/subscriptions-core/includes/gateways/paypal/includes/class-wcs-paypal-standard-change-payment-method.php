@@ -4,7 +4,7 @@
  *
  * Handles the process of a customer changing the payment method on a subscription via their My Account page from or to PayPal Standard.
  *
- * @link http://docs.woocommerce.com/document/subscriptions/customers-view/#section-5
+ * @link https://woocommerce.com/document/subscriptions/customers-view/
  *
  * @package     WooCommerce Subscriptions
  * @subpackage  Gateways/PayPal

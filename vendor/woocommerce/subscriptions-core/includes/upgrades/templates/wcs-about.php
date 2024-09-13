@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	<p class="woocommerce-actions">
 		<a href="<?php echo esc_url( $settings_page ); ?>" class="button button-primary"><?php esc_html_e( 'Settings', 'woocommerce-subscriptions' ); ?></a>
-		<a class="docs button button-primary" href="<?php echo esc_url( apply_filters( 'woocommerce_docs_url', 'http://docs.woocommerce.com/document/subscriptions/', 'woocommerce-subscriptions' ) ); ?>"><?php echo esc_html_x( 'Documentation', 'short for documents', 'woocommerce-subscriptions' ); ?></a>
+		<a class="docs button button-primary" href="<?php echo esc_url( apply_filters( 'woocommerce_docs_url', 'https://woocommerce.com/document/subscriptions/', 'woocommerce-subscriptions' ) ); ?>"><?php echo esc_html_x( 'Documentation', 'short for documents', 'woocommerce-subscriptions' ); ?></a>
 		<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://docs.woocommerce.com/document/subscriptions/version-2-1/" data-text="I just updated to WooCommerce Subscriptions v2.1, woot!" data-via="WooCommerce" data-size="large" data-hashtags="WooCommerce">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 	</p>
@@ -52,7 +52,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<p><?php esc_html_e( 'Prior to Subscriptions 2.1, they were not easy to answer. Subscriptions 2.1 introduces new reports to answer these questions, and many more.', 'woocommerce-subscriptions' ); ?></p>
 				<p class="woocommerce-actions">
 					<a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=wc-reports&tab=subscriptions' ) ); ?>" ><?php esc_html_e( 'View Reports', 'woocommerce-subscriptions' ); ?></a>
-					<a class="button" href="http://docs.woocommerce.com/document/subscriptions/reports/"><?php echo esc_html_x( 'Learn More', 'learn more link to subscription reports documentation', 'woocommerce-subscriptions' ); ?></a>
+					<a class="button" href="https://woocommerce.com/document/subscriptions/store-manager-guide/reports/"><?php echo esc_html_x( 'Learn More', 'learn more link to subscription reports documentation', 'woocommerce-subscriptions' ); ?></a>
 				</p>
 			</div>
 		</div>
@@ -76,7 +76,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<p><?php esc_html_e( 'The retry system is disabled by default. To enable it, visit the Subscriptions settings administration screen.', 'woocommerce-subscriptions' ); ?></p>
 				<p class="woocommerce-actions">
 					<a class="button button-primary" href="<?php echo esc_url( $settings_page ); ?>" ><?php esc_html_e( 'Enable Automatic Retry', 'woocommerce-subscriptions' ); ?></a>
-					<a class="button" href="http://docs.woocommerce.com/document/subscriptions/failed-payment-retry/"><?php echo esc_html_x( 'Learn More', 'learn more link to failed payment retry documentation', 'woocommerce-subscriptions' ); ?></a>
+					<a class="button" href="https://woocommerce.com/document/subscriptions/failed-payment-retry/"><?php echo esc_html_x( 'Learn More', 'learn more link to failed payment retry documentation', 'woocommerce-subscriptions' ); ?></a>
 				</p>
 			</div>
 		</div>
@@ -97,7 +97,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<p><?php printf( esc_html__( 'These emails can be enabled, disabled and customised under the %sWooCommerce > Settings > Emails%s administration screen.', 'woocommerce-subscriptions' ), '<strong>', '</strong>' ); ?></p>
 				<p class="woocommerce-actions">
 					<a class="button button-primary" href="<?php echo esc_url( $settings_page ); ?>" ><?php esc_html_e( 'View Email Settings', 'woocommerce-subscriptions' ); ?></a>
-					<a class="button" href="https://docs.woocommerce.com/document/subscriptions/store-manager-guide/#section-8"><?php echo esc_html_x( 'Learn More', 'learn more link to subscription emails documentation', 'woocommerce-subscriptions' ); ?></a>
+					<a class="button" href="https://woocommerce.com/document/subscriptions/subscription-emails/"><?php echo esc_html_x( 'Learn More', 'learn more link to subscription emails documentation', 'woocommerce-subscriptions' ); ?></a>
 				</p>
 			</div>
 		</div>
@@ -167,7 +167,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</p>
 				<p><?php
 					// translators: placeholders are opening and closing anchor tags linking to documentation
-					printf( esc_html__( '%sLearn more &raquo;%s', 'woocommerce-subscriptions' ), '<a href="http://docs.woocommerce.com/document/subscriptions/develop/failed-payment-retry/">', '</a>' ); ?>
+					printf( esc_html__( '%sLearn more &raquo;%s', 'woocommerce-subscriptions' ), '<a href="https://woocommerce.com/document/subscriptions/develop/failed-payment-retry/">', '</a>' ); ?>
 				</p>
 			</div>
 			<div class="col">
@@ -203,7 +203,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</p>
 				<p><?php
 					// translators: placeholders are opening and closing <a> tags
-					printf( esc_html__( 'Subscriptions also now uses the renewal order to setup the cart for %smanual renewals%s, making it easier to add products or discounts to a single renewal paid manually.', 'woocommerce-subscriptions' ), '<a href="https://docs.woocommerce.com/document/subscriptions/renewal-process/">', '</a>' ); ?>
+					printf( esc_html__( 'Subscriptions also now uses the renewal order to setup the cart for %smanual renewals%s, making it easier to add products or discounts to a single renewal paid manually.', 'woocommerce-subscriptions' ), '<a href="https://woocommerce.com/document/subscriptions/renewal-process/">', '</a>' ); ?>
 				</p>
 			</div>
 	</div>

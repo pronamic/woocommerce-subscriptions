@@ -132,9 +132,6 @@ class WC_Subscriptions_Admin {
 
 		add_action( 'woocommerce_payment_gateways_setting_column_renewals', array( __CLASS__, 'payment_gateways_renewal_support' ) );
 
-		// Do not display formatted order total on the Edit Order administration screen
-		add_filter( 'woocommerce_get_formatted_order_total', __CLASS__ . '::maybe_remove_formatted_order_total_filter', 0, 2 );
-
 		add_action( 'woocommerce_payment_gateways_settings', __CLASS__ . '::add_recurring_payment_gateway_information', 10, 1 );
 
 		// Change text for when order items cannot be edited
@@ -536,9 +533,9 @@ class WC_Subscriptions_Admin {
 		// Make sure trial period is within allowable range
 		$subscription_ranges = wcs_get_subscription_ranges();
 
-		$max_trial_length = count( $subscription_ranges[ $_POST['_subscription_trial_period'] ] ) - 1;
+		$max_trial_length = ! empty( $_POST['_subscription_trial_period'] ) ? count( $subscription_ranges[ $_POST['_subscription_trial_period'] ] ) - 1 : 0;
 
-		$_POST['_subscription_trial_length'] = absint( $_POST['_subscription_trial_length'] );
+		$_POST['_subscription_trial_length'] = ! empty( $_POST['_subscription_trial_length'] ) ? absint( $_POST['_subscription_trial_length'] ) : 0;
 
 		if ( $_POST['_subscription_trial_length'] > $max_trial_length ) {
 			$_POST['_subscription_trial_length'] = $max_trial_length;
@@ -754,9 +751,9 @@ class WC_Subscriptions_Admin {
 
 		// Make sure trial period is within allowable range
 		$subscription_ranges = wcs_get_subscription_ranges();
-		$max_trial_length    = count( $subscription_ranges[ $_POST['variable_subscription_trial_period'][ $index ] ] ) - 1;
+		$max_trial_length    = ! empty( $_POST['variable_subscription_trial_period'][ $index ] ) ? count( $subscription_ranges[ $_POST['variable_subscription_trial_period'][ $index ] ] ) - 1 : 0;
 
-		$_POST['variable_subscription_trial_length'][ $index ] = absint( $_POST['variable_subscription_trial_length'][ $index ] );
+		$_POST['variable_subscription_trial_length'][ $index ] = ! empty( $_POST['variable_subscription_trial_length'][ $index ] ) ? absint( $_POST['variable_subscription_trial_length'][ $index ] ) : 0;
 
 		if ( $_POST['variable_subscription_trial_length'][ $index ] > $max_trial_length ) {
 			$_POST['variable_subscription_trial_length'][ $index ] = $max_trial_length;
@@ -1829,18 +1826,10 @@ class WC_Subscriptions_Admin {
 	 * Do not display formatted order total on the Edit Order administration screen
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.17
+	 * @deprecated 7.5.0
 	 */
 	public static function maybe_remove_formatted_order_total_filter( $formatted_total, $order ) {
-
-		// Check if we're on the Edit Order screen - get_current_screen() only exists on admin pages so order of operations matters here
-		if ( is_admin() && function_exists( 'get_current_screen' ) ) {
-
-			$screen = get_current_screen();
-
-			if ( is_object( $screen ) && 'shop_order' == $screen->id ) {
-				remove_filter( 'woocommerce_get_formatted_order_total', 'WC_Subscriptions_Order::get_formatted_order_total', 10 );
-			}
-		}
+		wcs_deprecated_function( __METHOD__, '7.5.0' );
 
 		return $formatted_total;
 	}
@@ -1852,12 +1841,8 @@ class WC_Subscriptions_Admin {
 	 */
 	public static function maybe_attach_gettext_callback() {
 
-		if ( is_admin() && function_exists( 'get_current_screen' ) ) {
-			$screen = get_current_screen();
-
-			if ( is_object( $screen ) && 'shop_subscription' === $screen->id ) {
-				add_filter( 'gettext', array( __CLASS__, 'change_order_item_editable_text' ), 10, 3 );
-			}
+		if ( self::is_edit_subscription_page() ) {
+			add_filter( 'gettext', array( __CLASS__, 'change_order_item_editable_text' ), 10, 3 );
 		}
 	}
 
@@ -1868,15 +1853,10 @@ class WC_Subscriptions_Admin {
 	 */
 	public static function maybe_unattach_gettext_callback() {
 
-		if ( is_admin() && function_exists( 'get_current_screen' ) ) {
-			$screen = get_current_screen();
-
-			if ( is_object( $screen ) && 'shop_subscription' === $screen->id ) {
-				remove_filter( 'gettext', array( __CLASS__, 'change_order_item_editable_text' ), 10 );
-			}
+		if ( self::is_edit_subscription_page() ) {
+			remove_filter( 'gettext', array( __CLASS__, 'change_order_item_editable_text' ), 10 );
 		}
 	}
-
 
 	/**
 	* When subscription items not editable (such as due to the payment gateway not supporting modifications),
@@ -1892,6 +1872,7 @@ class WC_Subscriptions_Admin {
 				break;
 
 			case 'To edit this order change the status back to "Pending"':
+			case 'To edit this order change the status back to "Pending payment"':
 				$translated_text = __( 'This subscription is no longer editable because the payment gateway does not allow modification of recurring amounts.', 'woocommerce-subscriptions' );
 				break;
 		}
@@ -1926,7 +1907,7 @@ class WC_Subscriptions_Admin {
 
 				array(
 					// translators: placeholders are opening and closing link tags
-					'desc' => sprintf( __( 'Payment gateways which don\'t support automatic recurring payments can be used to process %1$smanual subscription renewal payments%2$s.', 'woocommerce-subscriptions' ), '<a href="http://docs.woocommerce.com/document/subscriptions/renewal-process/">', '</a>' ),
+					'desc' => sprintf( __( 'Payment gateways which don\'t support automatic recurring payments can be used to process %1$smanual subscription renewal payments%2$s.', 'woocommerce-subscriptions' ), '<a href="https://woocommerce.com/document/subscriptions/renewal-process/">', '</a>' ),
 					'id'   => self::$option_prefix . '_payment_gateways_additional',
 					'type' => 'informational',
 				),
@@ -2249,5 +2230,25 @@ class WC_Subscriptions_Admin {
 		}
 
 		return $delete_variations;
+	}
+
+	/**
+	 * Check if the current page is the Edit Subscription page
+	 *
+	 * @return bool True if the current page is the Edit Subscription page
+	 *
+	 * @since 7.5.0
+	 */
+	private static function is_edit_subscription_page() {
+		if ( ! is_admin() || ! function_exists( 'get_current_screen' ) ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+		if ( ! is_object( $screen ) ) {
+			return false;
+		}
+
+		return wcs_get_page_screen_id( 'shop_subscription' ) === $screen->id;
 	}
 }

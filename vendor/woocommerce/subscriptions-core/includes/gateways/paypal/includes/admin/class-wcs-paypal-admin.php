@@ -112,7 +112,7 @@ class WCS_PayPal_Admin {
 					'type' => 'warning',
 					// translators: placeholders are opening and closing link tags. 1$-2$: to docs on woocommerce, 3$-4$ to gateway settings on the site
 					'text' => sprintf( esc_html__( 'PayPal is inactive for subscription transactions. Please %1$sset up the PayPal IPN%2$s and %3$senter your API credentials%4$s to enable PayPal for Subscriptions.', 'woocommerce-subscriptions' ),
-						'<a href="https://docs.woocommerce.com/document/subscriptions/store-manager-guide/#ipn-setup" target="_blank">',
+						'<a href="https://woocommerce.com/document/subscriptions/payment-gateways/paypal-standard-subscriptions-guide/#ipn-setup" target="_blank">',
 						'</a>',
 						'<a href="' . esc_url( $payment_gateway_tab_url ) . '">',
 						'</a>'
@@ -136,7 +136,7 @@ class WCS_PayPal_Admin {
 				'text' => sprintf( $notice_text,
 					'<strong>',
 					'</strong>',
-					'<a href="https://docs.woocommerce.com/document/subscriptions/faq/paypal-reference-transactions/" target="_blank">',
+					'<a href="https://woocommerce.com/document/subscriptions/payment-gateways/paypal-standard-subscriptions-guide/paypal-standard-reference-transactions/" target="_blank">',
 					'</a>',
 					'</p><p><a class="button" href="' . esc_url( wp_nonce_url( add_query_arg( 'wcs_paypal', 'check_reference_transaction_support' ), __CLASS__ ) ) . '">',
 					'</a>',
@@ -163,7 +163,7 @@ class WCS_PayPal_Admin {
 				'text' => sprintf( esc_html__( 'There is a problem with PayPal. Your API credentials may be incorrect. Please update your %1$sAPI credentials%2$s. %3$sLearn more%4$s.', 'woocommerce-subscriptions' ),
 					'<a href="' . esc_url( $payment_gateway_tab_url ) . '">',
 					'</a>',
-					'<a href="https://docs.woocommerce.com/document/subscriptions-canceled-suspended-paypal/#section-2" target="_blank">',
+					'<a href="https://woocommerce.com/document/subscriptions-canceled-suspended-paypal/#paypal-api-credentials" target="_blank">',
 					'</a>'
 				),
 			);
@@ -174,7 +174,7 @@ class WCS_PayPal_Admin {
 				'type' => 'error',
 				// translators: placeholders are opening and closing link tags. 1$-2$: docs on woocommerce, 3$-4$: dismiss link
 				'text' => sprintf( esc_html__( 'There is a problem with PayPal. Your PayPal account is issuing out-of-date subscription IDs. %1$sLearn more%2$s. %3$sDismiss%4$s.', 'woocommerce-subscriptions' ),
-					'<a href="https://docs.woocommerce.com/document/subscriptions-canceled-suspended-paypal/#section-3" target="_blank">',
+					'<a href="https://woocommerce.com/document/subscriptions-canceled-suspended-paypal/#old-paypal-accounts" target="_blank">',
 					'</a>',
 					'<a href="' . esc_url( add_query_arg( 'wcs_disable_paypal_invalid_profile_id_notice', 'true' ) ) . '">',
 					'</a>'
@@ -322,7 +322,8 @@ class WCS_PayPal_Admin {
 			$setting['description'] = sprintf(
 				/* translators: Placeholders are the opening and closing link tags.*/
 				__( "Before enabling PayPal Standard for Subscriptions, please note, when using PayPal Standard, customers are locked into using PayPal Standard for the life of their subscription, and PayPal Standard has a number of limitations. Please read the guide on %1\$swhy we don't recommend PayPal Standard%2\$s for Subscriptions before choosing to enable this option.", 'woocommerce-subscriptions' ),
-				'<a href="https://docs.woocommerce.com/document/subscriptions/payment-gateways/#paypal-limitations">', '</a>'
+				'<a href="https://woocommerce.com/document/limitations-of-paypal-standard/">',
+				'</a>'
 			);
 		}
 

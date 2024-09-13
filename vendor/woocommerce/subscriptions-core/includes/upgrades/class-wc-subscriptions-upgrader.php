@@ -967,7 +967,7 @@ class WC_Subscriptions_Upgrader {
 				'<code>' . WC_Subscriptions_Core_Plugin::instance()->get_library_version() . '</code>',
 				'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">',
 				'</a>',
-				'<a href="https://docs.woocommerce.com/document/subscriptions/upgrade-instructions/#section-12" target="_blank">',
+				'<a href="https://woocommerce.com/document/subscriptions/upgrade-instructions/#section-12" target="_blank">',
 				'</a>'
 			)
 		);
