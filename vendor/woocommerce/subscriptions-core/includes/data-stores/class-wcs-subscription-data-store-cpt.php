@@ -305,7 +305,7 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 
 		$total = 0;
 
-		foreach ( $subscription->get_related_orders() as $order ) {
+		foreach ( $subscription->get_related_orders( 'all' ) as $order ) {
 			$total += parent::get_total_tax_refunded( $order );
 		}
 

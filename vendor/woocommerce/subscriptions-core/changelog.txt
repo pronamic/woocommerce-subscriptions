@@ -1,5 +1,12 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 7.6.0 - 2024-10-14 =
+* Fix - Correctly updates a subscription status to `cancelled` during a payment failure call when the current status is `pending-cancel`.
+* Fix - Clear the `cancelled_email_sent` meta when a subscription is reactivated to allow the customer to receive future cancellation emails.
+* Fix - Prevent deprecation notices after updating to WooCommerce 9.3.
+* Fix - Prevent PHP fatal error that occurs when calculating the total tax refunded on a subscription.
+* Dev - Only initialise the `WCS_WC_Admin_Manager` class on stores running WC 9.2 or older. This class handled integration with the Woo Navigation feature that was removed in WC 9.3.
+
 = 7.5.0 - 2024-09-12 =
 * Dev - Removing the unused method `maybe_remove_formatted_order_total_filter` hooked to `woocommerce_get_formatted_order_total` which was deprecated.
 * Fix - Resolved two issues preventing the correct display of the "Subscription items can no longer be edited." message on the Edit Subscription page.

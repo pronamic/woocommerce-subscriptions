@@ -247,7 +247,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 	public function get_total_tax_refunded( $subscription ) {
 		$total = 0;
 
-		foreach ( $subscription->get_related_orders() as $order ) {
+		foreach ( $subscription->get_related_orders( 'all' ) as $order ) {
 			$total += parent::get_total_tax_refunded( $order );
 		}
 

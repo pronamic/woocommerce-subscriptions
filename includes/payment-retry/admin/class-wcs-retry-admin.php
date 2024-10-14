@@ -36,6 +36,9 @@ class WCS_Retry_Admin {
 			// Display the number of retries in the Orders list table
 			add_action( 'manage_shop_order_posts_custom_column', __CLASS__ . '::add_column_content', 20, 2 );
 
+			// HPOS - Display the number of retries in the Orders list table
+			add_action( 'woocommerce_shop_order_list_table_custom_column', __CLASS__ . '::add_column_content_list_table', 10, 2 );
+
 			add_filter( 'wcs_system_status', array( $this, 'add_system_status_content' ) );
 		}
 	}
@@ -140,6 +143,21 @@ class WCS_Retry_Admin {
 
 				echo '<br /><span class="payment_retry tips" data-tip="' . esc_attr( $tool_tip ) . '"></span>';
 			}
+		}
+	}
+
+	/**
+	 * Display the number of retries on a renewal order in the Orders list table,
+	 * for HPOS-enabled stores.
+	 *
+	 * @param string   $column The column name
+	 * @param WC_Order $order  The order object
+	 *
+	 * @return null
+	 */
+	public static function add_column_content_list_table( string $column, WC_Order $order ) {
+		if ( 'subscription_relationship' === $column ) {
+			self::add_column_content( $column, $order->get_id() );
 		}
 	}
 

@@ -16,7 +16,7 @@ class WC_Subscriptions_Core_Plugin {
 	 * The version of subscriptions-core library.
 	 * @var string
 	 */
-	protected $library_version = '7.5.0'; // WRCS: DEFINED_VERSION.
+	protected $library_version = '7.6.0'; // WRCS: DEFINED_VERSION.
 
 	/**
 	 * The subscription scheduler instance.
@@ -148,7 +148,6 @@ class WC_Subscriptions_Core_Plugin {
 		add_action( 'init', array( 'WC_Subscriptions_Synchroniser', 'init' ) );
 		add_action( 'after_setup_theme', array( 'WC_Subscriptions_Upgrader', 'init' ), 11 );
 		add_action( 'init', array( 'WC_PayPal_Standard_Subscriptions', 'init' ), 11 );
-		add_action( 'init', array( 'WCS_WC_Admin_Manager', 'init' ), 11 );
 
 		// Attach the callback to load version dependant classes.
 		add_action( 'plugins_loaded', array( $this, 'init_version_dependant_classes' ) );
@@ -211,6 +210,11 @@ class WC_Subscriptions_Core_Plugin {
 		// Only load privacy handling on WC applicable versions.
 		if ( class_exists( 'WC_Abstract_Privacy' ) ) {
 			new WCS_Privacy();
+		}
+
+		// Loads Subscriptions support for the WooCommerce Navigation feature. This feature was removed in WC 9.3.
+		if ( wcs_is_woocommerce_pre( '9.3' ) ) {
+			add_action( 'init', array( 'WCS_WC_Admin_Manager', 'init' ), 11 );
 		}
 	}
 

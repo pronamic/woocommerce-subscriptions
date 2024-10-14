@@ -16,6 +16,9 @@ class WCS_WC_Admin_Manager {
 
 	/**
 	 * Initialise the class and attach hook callbacks.
+	 *
+	 * WooCommerce 9.3 removed the new Navigation feature making this class obsolete.
+	 * This class will only be inited on stores running WooCommerce 9.2 or older.
 	 */
 	public static function init() {
 		if ( ! defined( 'WC_ADMIN_PLUGIN_FILE' ) ) {

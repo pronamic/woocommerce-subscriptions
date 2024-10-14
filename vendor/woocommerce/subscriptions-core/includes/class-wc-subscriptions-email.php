@@ -26,6 +26,8 @@ class WC_Subscriptions_Email {
 
 		add_action( 'woocommerce_subscriptions_email_order_details', __CLASS__ . '::order_download_details', 10, 4 );
 		add_action( 'woocommerce_subscriptions_email_order_details', __CLASS__ . '::order_details', 10, 4 );
+
+		add_action( 'woocommerce_subscription_status_pending-cancel_to_active', __CLASS__ . '::maybe_clear_cancelled_email_flag', 10, 4 );
 	}
 
 	/**
@@ -344,6 +346,17 @@ class WC_Subscriptions_Email {
 		if ( is_callable( array( 'WC_Emails', 'order_downloads' ) ) ) {
 			WC_Emails::instance()->order_downloads( $order, $sent_to_admin, $plain_text, $email );
 		}
+	}
+
+	/**
+	 * If the subscription was cancelled before, reset the cancelled email sent flag so the customer can be notified of a future cancellation.
+	 *
+	 * @param $subscription WC_Subscription The subscription object.
+	 * @return void
+	 */
+	public static function maybe_clear_cancelled_email_flag( $subscription ) {
+		$subscription->set_cancelled_email_sent( 'false' );
+		$subscription->save();
 	}
 
 	/**

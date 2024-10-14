@@ -2,16 +2,16 @@
 # This file is distributed under the same license as the WooCommerce Subscriptions plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 6.7.0\n"
+"Project-Id-Version: WooCommerce Subscriptions 6.8.0\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-09-13T00:40:26+00:00\n"
+"POT-Creation-Date: 2024-10-14T07:54:53+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.9.0\n"
+"X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: woocommerce-subscriptions\n"
 
 #. Plugin Name of the plugin
@@ -53,11 +53,11 @@ msgstr ""
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1027
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1179
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-system-status.php:59
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:38
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:48
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:90
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:372
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:385
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:41
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:51
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:93
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:376
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:389
 #: vendor/woocommerce/subscriptions-core/includes/class-wcs-query.php:108
 #: vendor/woocommerce/subscriptions-core/includes/class-wcs-query.php:133
 #: vendor/woocommerce/subscriptions-core/includes/class-wcs-query.php:289
@@ -1076,7 +1076,7 @@ msgid "Add a Subscription Product"
 msgstr ""
 
 #: includes/class-wc-subscriptions-plugin.php:227
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:548
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:552
 #: vendor/woocommerce/subscriptions-core/includes/upgrades/templates/wcs-about-2-0.php:35
 #: vendor/woocommerce/subscriptions-core/includes/upgrades/templates/wcs-about.php:34
 msgid "Settings"
@@ -1441,79 +1441,79 @@ msgstr ""
 msgid "Find new gateways that %1$ssupport automatic subscription payments%2$s in the official %3$sWooCommerce Marketplace%4$s."
 msgstr ""
 
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:64
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:67
 msgid "Automatic Failed Payment Retries"
 msgstr ""
 
 #. translators: %d: retry count.
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:118
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:121
 msgid "%d Pending Payment Retry"
 msgid_plural "%d Pending Payment Retries"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: retry count.
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:122
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:125
 msgid "%d Processing Payment Retry"
 msgid_plural "%d Processing Payment Retries"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: retry count.
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:126
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:129
 msgid "%d Failed Payment Retry"
 msgid_plural "%d Failed Payment Retries"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: retry count.
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:130
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:133
 msgid "%d Successful Payment Retry"
 msgid_plural "%d Successful Payment Retries"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: retry count.
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:134
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:137
 msgid "%d Cancelled Payment Retry"
 msgid_plural "%d Cancelled Payment Retries"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:162
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:180
 msgid "Retry Failed Payments"
 msgstr ""
 
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:163
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:181
 msgid "Enable automatic retry of failed recurring payments"
 msgstr ""
 
 #. translators: 1,2: opening/closing link tags (to documentation).
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:168
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:186
 msgid "Attempt to recover recurring revenue that would otherwise be lost due to payment methods being declined only temporarily. %1$sLearn more%2$s."
 msgstr ""
 
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:190
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:208
 msgctxt "label for the system status page"
 msgid "Custom Retry Rules"
 msgstr ""
 
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:198
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:216
 msgctxt "label for the system status page"
 msgid "Custom Retry Rule Class"
 msgstr ""
 
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:206
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:224
 msgctxt "label for the system status page"
 msgid "Custom Raw Retry Rule"
 msgstr ""
 
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:214
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:232
 msgctxt "label for the system status page"
 msgid "Custom Retry Rule"
 msgstr ""
 
-#: includes/payment-retry/admin/class-wcs-retry-admin.php:222
+#: includes/payment-retry/admin/class-wcs-retry-admin.php:240
 msgctxt "label for the system status page"
 msgid "Retries Migration Status"
 msgstr ""
@@ -1934,6 +1934,46 @@ msgstr ""
 msgid "Want to renew early via the checkout? Click %shere.%s"
 msgstr ""
 
+#: tests/unit/scheduler/scheduler.php:65
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:290
+msgctxt "table heading"
+msgid "Start Date"
+msgstr ""
+
+#: tests/unit/scheduler/scheduler.php:66
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:291
+msgctxt "table heading"
+msgid "Trial End"
+msgstr ""
+
+#: tests/unit/scheduler/scheduler.php:67
+#: vendor/woocommerce/subscriptions-core/templates/myaccount/my-subscriptions.php:43
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:292
+msgctxt "table heading"
+msgid "Next Payment"
+msgstr ""
+
+#: tests/unit/scheduler/scheduler.php:68
+#: vendor/woocommerce/subscriptions-core/templates/emails/cancelled-subscription.php:23
+#: vendor/woocommerce/subscriptions-core/templates/emails/expired-subscription.php:23
+#: vendor/woocommerce/subscriptions-core/templates/emails/on-hold-subscription.php:23
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:293
+msgctxt "table heading"
+msgid "Last Order Date"
+msgstr ""
+
+#: tests/unit/scheduler/scheduler.php:69
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:294
+msgctxt "table heading"
+msgid "Cancelled Date"
+msgstr ""
+
+#: tests/unit/scheduler/scheduler.php:70
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:295
+msgctxt "table heading"
+msgid "End Date"
+msgstr ""
+
 #. translators: 1: relation type, 2: list of valid relation types.
 #: vendor/woocommerce/subscriptions-core/includes/abstracts/abstract-wcs-related-order-store.php:148
 msgid "Invalid relation type: %1$s. Order relationship type must be one of: %2$s."
@@ -2147,7 +2187,7 @@ msgid "Manage Subscriptions"
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wc-subscriptions-admin.php:1005
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:381
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:385
 msgid "Search Subscriptions"
 msgstr ""
 
@@ -2450,7 +2490,7 @@ msgid "Status"
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-post-types.php:469
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:373
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:377
 #: vendor/woocommerce/subscriptions-core/templates/emails/cancelled-subscription.php:21
 #: vendor/woocommerce/subscriptions-core/templates/emails/expired-subscription.php:21
 #: vendor/woocommerce/subscriptions-core/templates/emails/on-hold-subscription.php:21
@@ -2540,7 +2580,7 @@ msgstr[1] ""
 #. translators: placeholder is the display name of a payment gateway a subscription was paid by
 #. translators: %s: payment method.
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-post-types.php:652
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2164
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2168
 msgid "Via %s"
 msgstr ""
 
@@ -2608,7 +2648,7 @@ msgid "None"
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-post-types.php:1174
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2146
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2150
 #: vendor/woocommerce/subscriptions-core/includes/class-wcs-change-payment-method-admin.php:170
 msgid "Manual Renewal"
 msgstr ""
@@ -2754,11 +2794,11 @@ msgctxt "label for the system status page"
 msgid "Country / State"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:59
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:62
 msgid "Add New"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:69
+#: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-wc-admin-manager.php:72
 msgid "Edit Subscription"
 msgstr ""
 
@@ -3032,7 +3072,7 @@ msgstr ""
 #. translators: %d: subscription ID.
 #. translators: %d: order ID.
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:1457
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2587
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2591
 msgid "Subscription #%d: "
 msgstr ""
 
@@ -3048,59 +3088,59 @@ msgstr ""
 msgid "Subscription Cancelled: maximum number of failed payments reached."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2028
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2032
 msgid "The \"all\" value for $order_type parameter is deprecated. It was a misnomer, as it did not return resubscribe orders. It was also inconsistent with order type values accepted by wcs_get_subscription_orders(). Use array( \"parent\", \"renewal\", \"switch\" ) to maintain previous behaviour, or \"any\" to receive all order types, including switch and resubscribe."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2243
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2247
 #: vendor/woocommerce/subscriptions-core/wcs-functions.php:834
 msgid "Payment method meta must be an array."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2479
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2483
 msgid "Invalid format. First parameter needs to be an array."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2483
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2487
 msgid "Invalid data. First parameter was empty when passed to update_dates()."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2490
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2494
 msgid "Invalid data. First parameter has a date that is not in the registered date types."
 msgstr ""
 
 #. translators: placeholder is date type (e.g. "end", "next_payment"...)
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2517
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2521
 msgctxt "appears in an error message if date is wrong format"
 msgid "Invalid %s date. The date must be of the format: \"Y-m-d H:i:s\"."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2555
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2559
 msgid "The %s date must occur after the cancellation date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2561
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2565
 msgid "The %s date must occur after the last payment date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2566
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2570
 msgid "The %s date must occur after the next payment date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2572
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2576
 msgid "The %s date must occur after the trial end date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "next_payment").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2577
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2581
 msgid "The %s date must occur after the start date."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2607
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscription.php:2611
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-checkout.php:348
 msgid "Backordered"
 msgstr ""
@@ -3364,53 +3404,53 @@ msgstr ""
 msgid "Purchasing a subscription product requires an account. Please go to the %1$sMy Account%2$s page to login or contact us if you need assistance."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:374
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:378
 msgctxt "custom post type setting"
 msgid "Add Subscription"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:375
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:379
 msgctxt "custom post type setting"
 msgid "Add New Subscription"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:376
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:380
 msgctxt "custom post type setting"
 msgid "Edit"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:377
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:381
 msgctxt "custom post type setting"
 msgid "Edit Subscription"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:378
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:382
 msgctxt "custom post type setting"
 msgid "New Subscription"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:379
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:380
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:383
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:384
 msgctxt "custom post type setting"
 msgid "View Subscription"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:383
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:387
 msgctxt "custom post type setting"
 msgid "No Subscriptions found in trash"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:384
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:388
 msgctxt "custom post type setting"
 msgid "Parent Subscriptions"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:387
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:391
 msgid "This is where subscriptions are stored."
 msgstr ""
 
 #. translators: placeholder is a post count.
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:445
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:449
 msgctxt "post status label including post count"
 msgid "Active <span class=\"count\">(%s)</span>"
 msgid_plural "Active <span class=\"count\">(%s)</span>"
@@ -3418,7 +3458,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholder is a post count.
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:447
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:451
 msgctxt "post status label including post count"
 msgid "Switched <span class=\"count\">(%s)</span>"
 msgid_plural "Switched <span class=\"count\">(%s)</span>"
@@ -3426,7 +3466,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholder is a post count.
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:449
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:453
 msgctxt "post status label including post count"
 msgid "Expired <span class=\"count\">(%s)</span>"
 msgid_plural "Expired <span class=\"count\">(%s)</span>"
@@ -3434,29 +3474,29 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholder is a post count.
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:451
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:455
 msgctxt "post status label including post count"
 msgid "Pending Cancellation <span class=\"count\">(%s)</span>"
 msgid_plural "Pending Cancellation <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:500
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:504
 msgid "Variable Subscription"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:549
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:553
 #: vendor/woocommerce/subscriptions-core/includes/upgrades/templates/wcs-about-2-0.php:36
 msgctxt "short for documents"
 msgid "Docs"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:550
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:554
 msgid "Support"
 msgstr ""
 
 #. translators: placeholders are opening and closing tags. Leads to docs on upgrading WooCommerce Subscriptions
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:573
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-core-plugin.php:577
 msgid "Warning! Version 2.0 is a major update to the WooCommerce Subscriptions extension. Before updating, please create a backup, update all WooCommerce extensions and test all plugins, custom code and payment gateways with version 2.0 on a staging site. %1$sLearn more about updating older versions of WooCommerce Subscriptions &raquo;%2$s"
 msgstr ""
 
@@ -6420,14 +6460,6 @@ msgctxt "table headings in notification email"
 msgid "Price"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/templates/emails/cancelled-subscription.php:23
-#: vendor/woocommerce/subscriptions-core/templates/emails/expired-subscription.php:23
-#: vendor/woocommerce/subscriptions-core/templates/emails/on-hold-subscription.php:23
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:293
-msgctxt "table heading"
-msgid "Last Order Date"
-msgstr ""
-
 #: vendor/woocommerce/subscriptions-core/templates/emails/cancelled-subscription.php:24
 msgctxt "table headings in notification email"
 msgid "End of Prepaid Term"
@@ -6716,12 +6748,6 @@ msgstr ""
 msgid "View subscription number %s"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/templates/myaccount/my-subscriptions.php:43
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:292
-msgctxt "table heading"
-msgid "Next Payment"
-msgstr ""
-
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/my-subscriptions.php:49
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/related-orders.php:54
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/related-subscriptions.php:43
@@ -6904,26 +6930,6 @@ msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/wcs-functions.php:264
 msgid "Can not get address type display name. Address type is not a string."
-msgstr ""
-
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:290
-msgctxt "table heading"
-msgid "Start Date"
-msgstr ""
-
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:291
-msgctxt "table heading"
-msgid "Trial End"
-msgstr ""
-
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:294
-msgctxt "table heading"
-msgid "Cancelled Date"
-msgstr ""
-
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:295
-msgctxt "table heading"
-msgid "End Date"
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/wcs-functions.php:330

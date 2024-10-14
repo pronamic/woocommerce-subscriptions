@@ -1,5 +1,13 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2024-10-14 - version 6.8.0
+* Fix: Restore Retry icon in Orders table for HPOS-enabled stores.
+* Fix: Correctly updates a subscription status to `cancelled` during a payment failure call when the current status is `pending-cancel`.
+* Fix: Clear the `cancelled_email_sent` meta when a subscription is reactivated to allow the customer to receive future cancellation emails.
+* Fix: Prevent deprecation notices after updating to WooCommerce 9.3.
+* Fix: Prevent PHP fatal error that occurs when calculating the total tax refunded on a subscription.
+* Dev: Only initialise the `WCS_WC_Admin_Manager` class on stores running WC 9.2 or older. This class handled integration with the Woo Navigation feature that was removed in WC 9.3.
+
 2024-09-13 - version 6.7.0
 * Fix: Resolved two issues preventing the correct display of the "Subscription items can no longer be edited." message on the Edit Subscription page.
 * Fix: Checks for the existence of `wc_get_page_screen_id` before calling it on `wcs_get_page_screen_id`, and for the admin context before calling `list_table_primary_column` to prevent fatal errors.
