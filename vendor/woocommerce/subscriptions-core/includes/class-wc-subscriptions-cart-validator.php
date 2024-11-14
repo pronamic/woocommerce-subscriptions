@@ -18,7 +18,7 @@ class WC_Subscriptions_Cart_Validator {
 
 		add_filter( 'woocommerce_add_to_cart_validation', array( __CLASS__, 'maybe_empty_cart' ), 10, 5 );
 		add_filter( 'woocommerce_cart_loaded_from_session', array( __CLASS__, 'validate_cart_contents_for_mixed_checkout' ), 10 );
-		add_filter( 'woocommerce_add_to_cart_validation', array( __CLASS__, 'can_add_subscription_product_to_cart' ), 10, 6 );
+		add_filter( 'woocommerce_add_to_cart_validation', array( __CLASS__, 'can_add_product_to_cart' ), 10, 6 );
 
 	}
 
@@ -119,15 +119,23 @@ class WC_Subscriptions_Cart_Validator {
 	}
 
 	/**
-	 * Don't allow new subscription products to be added to the cart if it contains a subscription renewal already.
+	 * Don't allow products to be added to the cart if it contains a subscription renewal already.
 	 *
-	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
+	 * @since 7.7.0
+	 *
+	 * @param bool   $can_add     Whether the product can be added to the cart.
+	 * @param int    $product_id  The product ID.
+	 * @param int    $quantity    The quantity of the product being added.
+	 * @param int    $variation_id The variation ID.
+	 * @param array  $variations  The variations of the product being added.
+	 * @param array  $item_data   The item data.
+	 *
+	 * @return bool Whether the product can be added to the cart.
 	 */
-	public static function can_add_subscription_product_to_cart( $can_add, $product_id, $quantity, $variation_id = '', $variations = array(), $item_data = array() ) {
+	public static function can_add_product_to_cart( $can_add, $product_id, $quantity, $variation_id = '', $variations = array(), $item_data = array() ) {
+		if ( $can_add && ! isset( $item_data['subscription_renewal'] ) && wcs_cart_contains_renewal() ) {
+			wc_add_notice( __( 'That product can not be added to your cart as it already contains a subscription renewal.', 'woocommerce-subscriptions' ), 'error' );
 
-		if ( $can_add && ! isset( $item_data['subscription_renewal'] ) && wcs_cart_contains_renewal() && WC_Subscriptions_Product::is_subscription( $product_id ) ) {
-
-			wc_add_notice( __( 'That subscription product can not be added to your cart as it already contains a subscription renewal.', 'woocommerce-subscriptions' ), 'error' );
 			$can_add = false;
 		}
 
@@ -157,5 +165,22 @@ class WC_Subscriptions_Cart_Validator {
 		do_action( 'wc_ajax_add_to_cart' );
 
 		return $fragments;
+	}
+
+	/**
+	 * Don't allow new subscription products to be added to the cart if it contains a subscription renewal already.
+	 *
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
+	 * @deprecated 3.0.0
+	 */
+	public static function can_add_subscription_product_to_cart( $can_add, $product_id, $quantity, $variation_id = '', $variations = array(), $item_data = array() ) {
+		wcs_deprecated_function( __METHOD__, '6.9.0', 'WC_Subscriptions_Cart_Validator::can_add_product_to_cart' );
+		if ( $can_add && ! isset( $item_data['subscription_renewal'] ) && wcs_cart_contains_renewal() && WC_Subscriptions_Product::is_subscription( $product_id ) ) {
+			wc_add_notice( __( 'That subscription product can not be added to your cart as it already contains a subscription renewal.', 'woocommerce-subscriptions' ), 'error' );
+
+			$can_add = false;
+		}
+
+		return $can_add;
 	}
 }

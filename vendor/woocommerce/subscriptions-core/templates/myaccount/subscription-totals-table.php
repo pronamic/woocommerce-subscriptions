@@ -76,7 +76,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<?php
 			}
 
-			$purchase_note = get_post_meta( $_product->get_id(), '_purchase_note', true );
+			$purchase_note = $_product->get_purchase_note();
 			if ( $subscription->has_status( array( 'completed', 'processing' ) ) && $purchase_note ) {
 				?>
 				<tr class="product-purchase-note">

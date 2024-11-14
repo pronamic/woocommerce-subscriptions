@@ -20,14 +20,13 @@ class WCS_Retry_Email {
 	 * @since 2.1
 	 */
 	public static function init() {
+		add_action( 'woocommerce_email_classes', array( __CLASS__, 'add_emails' ), 12, 1 );
 
-		add_action( 'woocommerce_email_classes', __CLASS__ . '::add_emails', 12, 1 );
+		add_action( 'woocommerce_subscriptions_after_apply_retry_rule', array( __CLASS__, 'send_email' ), 0, 2 );
 
-		add_action( 'woocommerce_subscriptions_after_apply_retry_rule', __CLASS__ . '::send_email', 0, 2 );
+		add_action( 'woocommerce_order_status_failed', array( __CLASS__, 'maybe_detach_email' ), 9 );
 
-		add_action( 'woocommerce_order_status_failed', __CLASS__ . '::maybe_detach_email', 9 );
-
-		add_action( 'woocommerce_order_status_changed', __CLASS__ . '::maybe_reattach_email', 100, 3 );
+		add_action( 'woocommerce_order_status_changed', array( __CLASS__, 'maybe_reattach_email' ), 100, 3 );
 	}
 
 	/**
@@ -47,8 +46,8 @@ class WCS_Retry_Email {
 	 *
 	 * Attached to 'woocommerce_subscriptions_after_apply_retry_rule' with a low priority.
 	 *
-	 * @param WCS_Retry_Rule The retry rule applied.
-	 * @param WC_Order The order to which the retry rule was applied.
+	 * @param WCS_Retry_Rule $retry_rule The retry rule applied.
+	 * @param WC_Order $last_order       The order to which the retry rule was applied.
 	 * @since 2.1
 	 */
 	public static function send_email( $retry_rule, $last_order ) {
@@ -60,7 +59,7 @@ class WCS_Retry_Email {
 				$email_class = $retry_rule->get_email_template( $recipient );
 				if ( class_exists( $email_class ) ) {
 					$email = new $email_class();
-					$email->trigger( wcs_get_objects_property( $last_order, 'id' ), $last_order );
+					$email->trigger( $last_order->get_id(), $last_order );
 				}
 			}
 		}

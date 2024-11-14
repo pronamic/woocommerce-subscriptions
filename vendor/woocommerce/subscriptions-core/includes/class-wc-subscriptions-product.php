@@ -126,12 +126,9 @@ class WC_Subscriptions_Product {
 		$contains_subscription = false;
 
 		foreach ( $grouped_product->get_children() as $child_product_id ) {
-
+			$child_product = wc_get_product( $child_product_id );
 			if ( self::is_subscription( $child_product_id ) ) {
-
 				$contains_subscription = true;
-
-				$child_product = wc_get_product( $child_product_id );
 
 				$tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
 				$child_price      = 'incl' == $tax_display_mode ? wcs_get_price_including_tax( $child_product, array( 'price' => $child_product->get_price() ) ) : wcs_get_price_excluding_tax( $child_product, array( 'price' => $child_product->get_price() ) );
@@ -146,11 +143,8 @@ class WC_Subscriptions_Product {
 				}
 
 				$child_prices[] = $child_price;
-
 			} else {
-
-				$child_prices[] = get_post_meta( $child_product_id, '_price', true );
-
+				$child_prices[] = $child_product->get_price();
 			}
 		}
 
@@ -934,7 +928,8 @@ class WC_Subscriptions_Product {
 			$value    = wc_clean( $data['value'] );
 
 			foreach ( $variation_ids as $variation_id ) {
-				$subscription_price = get_post_meta( $variation_id, '_subscription_price', true );
+				$variation          = wc_get_product( $variation_id );
+				$subscription_price = $variation->get_meta( '_subscription_price', true );
 
 				if ( '%' === substr( $value, -1 ) ) {
 					$percent = wc_format_decimal( substr( $value, 0, -1 ) );

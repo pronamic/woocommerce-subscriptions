@@ -139,7 +139,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 		if ( isset( $transaction_details['txn_id'] ) ) {
 
 			// Make sure the IPN request has not already been handled
-			$handled_transactions = get_post_meta( $subscription->get_id(), '_paypal_ipn_tracking_ids', true );
+			$handled_transactions = $subscription->get_meta( '_paypal_ipn_tracking_ids', true );
 
 			if ( empty( $handled_transactions ) ) {
 				$handled_transactions = array();
@@ -190,13 +190,13 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 			$transaction_order = wc_get_order( substr( $transaction_details['invoice'], strrpos( $transaction_details['invoice'], '-' ) + 1 ) );
 
 			// check if the failed signup has been previously recorded
-			if ( wcs_get_objects_property( $transaction_order, 'id' ) != get_post_meta( $subscription->get_id(), '_paypal_failed_sign_up_recorded', true ) ) {
+			if ( wcs_get_objects_property( $transaction_order, 'id' ) !== $subscription->get_meta( '_paypal_failed_sign_up_recorded', true ) ) {
 				$is_renewal_sign_up_after_failure = true;
 			}
 		}
 
 		// If the invoice ID doesn't match the default invoice ID and contains the string '-wcscpm-', the IPN is for a subscription payment method change
-		if ( 'subscr_signup' == $transaction_details['txn_type'] && false !== strpos( $transaction_details['invoice'], '-wcscpm-' ) ) {
+		if ( 'subscr_signup' === $transaction_details['txn_type'] && false !== strpos( $transaction_details['invoice'], '-wcscpm-' ) ) {
 			$is_payment_change = true;
 		} else {
 			$is_payment_change = false;
@@ -268,8 +268,8 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 					WC_Subscriptions_Change_Payment_Gateway::update_payment_method( $subscription, 'paypal' );
 
 					// We need to cancel the subscription now that the method has been changed successfully
-					if ( 'paypal' == get_post_meta( $subscription->get_id(), '_old_payment_method', true ) ) {
-						self::cancel_subscription( $subscription, get_post_meta( $subscription->get_id(), '_old_paypal_subscriber_id', true ) );
+					if ( 'paypal' === $subscription->get_meta( '_old_payment_method', true ) ) {
+						self::cancel_subscription( $subscription, $subscription->get_meta( '_old_paypal_subscriber_id', true ) );
 					}
 
 					$this->add_order_note( _x( 'IPN subscription payment method changed to PayPal.', 'when it is a payment change, and there is a subscr_signup message, this will be a confirmation message that PayPal accepted it being the new payment method', 'woocommerce-subscriptions' ), $subscription, $transaction_details );
@@ -353,7 +353,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 						update_post_meta( $subscription->get_id(), '_paypal_first_ipn_ignored_for_pdt', 'true' );
 
 					// Ignore the first IPN message if the PDT should have handled it (if it didn't handle it, it will have been dealt with as first payment), but set a flag to make sure we only ignore it once
-					} elseif ( $subscription->get_payment_count() == 1 && '' !== WCS_PayPal::get_option( 'identity_token' ) && 'true' != get_post_meta( $subscription->get_id(), '_paypal_first_ipn_ignored_for_pdt', true ) && false === $is_renewal_sign_up_after_failure ) {
+					} elseif ( $subscription->get_payment_count() === 1 && '' !== WCS_PayPal::get_option( 'identity_token' ) && 'true' !== $subscription->get_meta( '_paypal_first_ipn_ignored_for_pdt', true ) && false === $is_renewal_sign_up_after_failure ) {
 
 						WC_Gateway_Paypal::log( 'IPN subscription payment ignored for subscription ' . $subscription->get_id() . ' due to PDT previously handling the payment.' );
 
@@ -367,9 +367,8 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 							update_post_meta( $subscription->get_id(), '_paypal_failed_sign_up_recorded', wcs_get_objects_property( $transaction_order, 'id' ) );
 
 							// We need to cancel the old subscription now that the method has been changed successfully
-							if ( 'paypal' == get_post_meta( $subscription->get_id(), '_old_payment_method', true ) ) {
-
-								$profile_id = get_post_meta( $subscription->get_id(), '_old_paypal_subscriber_id', true );
+							if ( 'paypal' === $subscription->get_meta( '_old_payment_method', true ) ) {
+								$profile_id = $subscription->get_meta( '_old_paypal_subscriber_id' );
 
 								// Make sure we don't cancel the current profile
 								if ( $profile_id !== $transaction_details['subscr_id'] ) {

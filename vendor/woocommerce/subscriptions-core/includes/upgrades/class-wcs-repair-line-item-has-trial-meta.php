@@ -22,6 +22,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * @deprecated
+ */
 class WCS_Repair_Line_Item_Has_Trial_Meta extends WCS_Background_Repairer {
 
 	/**

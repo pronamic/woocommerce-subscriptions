@@ -46,7 +46,8 @@ $is_parent_order       = wcs_order_contains_subscription( $order, 'parent' );
 	<?php endforeach; ?>
 </tbody>
 </table>
-<?php if ( $has_automatic_renewal && ! $is_admin_email && $subscription->get_time( 'next_payment' ) > 0 ) {
+<?php
+if ( $has_automatic_renewal && ! $is_admin_email && $subscription->get_time( 'next_payment' ) > 0 && ! $skip_my_account_link ) {
 	if ( count( $subscriptions ) === 1 ) {
 		$subscription   = reset( $subscriptions );
 		$my_account_url = $subscription->get_view_order_url();
@@ -55,12 +56,22 @@ $is_parent_order       = wcs_order_contains_subscription( $order, 'parent' );
 	}
 
 	// Translators: Placeholders are opening and closing My Account link tags.
-	printf( '<small>%s</small>', wp_kses_post( sprintf( _n(
-		'This subscription is set to renew automatically using your payment method on file. You can manage or cancel this subscription from your %smy account page%s.',
-		'These subscriptions are set to renew automatically using your payment method on file. You can manage or cancel your subscriptions from your %smy account page%s.',
-		count( $subscriptions ),
-		'woocommerce-subscriptions'
-	), '<a href="' . $my_account_url . '">', '</a>' ) ) );
-}?>
+	printf(
+		'<small>%s</small>',
+		wp_kses_post(
+			sprintf(
+				_n(
+					'This subscription is set to renew automatically using your payment method on file. You can manage or cancel this subscription from your %1$smy account page%2$s.',
+					'These subscriptions are set to renew automatically using your payment method on file. You can manage or cancel your subscriptions from your %1$smy account page%2$s.',
+					count( $subscriptions ),
+					'woocommerce-subscriptions'
+				),
+				'<a href="' . $my_account_url . '">',
+				'</a>'
+			)
+		)
+	);
+}
+?>
 </div>
 

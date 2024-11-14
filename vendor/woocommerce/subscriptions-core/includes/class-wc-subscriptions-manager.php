@@ -2028,16 +2028,13 @@ class WC_Subscriptions_Manager {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.2
 	 */
 	public static function maybe_process_failed_renewal_for_repair( $subscription_id ) {
-
-		if ( 'true' == get_post_meta( $subscription_id, '_wcs_repaired_2_0_2_needs_failed_payment', true ) ) {
-
-			$subscription = wcs_get_subscription( $subscription_id );
-
+		$subscription = wcs_get_subscription( $subscription_id );
+		if ( 'true' === $subscription->get_meta( '_wcs_repaired_2_0_2_needs_failed_payment', true ) ) {
 			// Always put the subscription on hold in case something goes wrong while trying to process renewal
 			$subscription->update_status( 'on-hold', _x( 'Subscription renewal payment due:', 'used in order note as reason for why subscription status changed', 'woocommerce-subscriptions' ) );
 
 			// Create a renewal order to record the failed payment which can then be used by the customer to reactivate the subscription
-			$renewal_order = wcs_create_renewal_order( $subscription );
+			wcs_create_renewal_order( $subscription );
 
 			// Mark the payment as failed so the customer can login to fix up the failed payment
 			$subscription->payment_failed();

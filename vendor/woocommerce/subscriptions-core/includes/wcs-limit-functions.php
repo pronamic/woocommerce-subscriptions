@@ -60,13 +60,13 @@ function wcs_is_product_limited_for_user( $product, $user_id = 0 ) {
 		// If the product is limited for any status, there exists a chance that the customer has cancelled subscriptions which cannot be resubscribed to as they have no completed payments.
 		if ( 'any' === $product_limitation && $is_limited_for_user ) {
 			$is_limited_for_user = false;
-			$user_subscriptions  = wcs_get_subscriptions( array(
-				'subscriptions_per_page' => -1,
-				'customer_id'            => $user_id,
-				'product_id'             => $product->get_id(),
-			) );
 
-			foreach ( $user_subscriptions as $subscription ) {
+			foreach ( wcs_get_users_subscriptions( $user_id ) as $subscription ) {
+				// Skip if the subscription is not for the product we are checking.
+				if ( ! $subscription->has_product( $product->get_id() ) ) {
+					continue;
+				}
+
 				if ( ! $subscription->has_status( 'cancelled' ) || 0 !== $subscription->get_payment_count() ) {
 					$is_limited_for_user = true;
 					break;

@@ -13,6 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+/**
+ * @deprecated
+ */
 class WCS_Upgrade_Subscription_Post_Author extends WCS_Background_Upgrader {
 
 	/**

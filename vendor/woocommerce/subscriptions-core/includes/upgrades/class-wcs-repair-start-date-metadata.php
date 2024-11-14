@@ -13,6 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * @deprecated
+ */
 class WCS_Repair_Start_Date_Metadata extends WCS_Background_Upgrader {
 
 	/**

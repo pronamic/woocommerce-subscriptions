@@ -191,7 +191,7 @@ class WCS_Admin_Notice {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
 	public function print_dismiss_url() {
-		echo esc_attr( $this->dismiss_url );
+		echo esc_url( $this->dismiss_url );
 	}
 
 	/* Getters */

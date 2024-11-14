@@ -741,7 +741,7 @@ class WC_Subscriptions_Order {
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5
 	 */
-	public static function add_sub_info_email( $order, $is_admin_email, $plaintext = false ) {
+	public static function add_sub_info_email( $order, $is_admin_email, $plaintext = false, $skip_my_account_link = false ) {
 
 		$subscriptions = wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'any' ) );
 
@@ -753,9 +753,10 @@ class WC_Subscriptions_Order {
 			wc_get_template(
 				$template,
 				array(
-					'order'          => $order,
-					'subscriptions'  => $subscriptions,
-					'is_admin_email' => $is_admin_email,
+					'order'                => $order,
+					'subscriptions'        => $subscriptions,
+					'is_admin_email'       => $is_admin_email,
+					'skip_my_account_link' => $skip_my_account_link,
 				),
 				'',
 				$template_base

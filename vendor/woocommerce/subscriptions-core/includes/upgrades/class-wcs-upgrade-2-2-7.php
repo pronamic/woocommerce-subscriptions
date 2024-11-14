@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+/**
+ * @deprecated
+ */
 class WCS_Upgrade_2_2_7 {
 
 	private static $cron_hook  = 'wcs_repair_end_of_prepaid_term_actions';

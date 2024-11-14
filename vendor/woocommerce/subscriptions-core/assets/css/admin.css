@@ -877,6 +877,10 @@ span.product-type.variable-subscription::before {
 	width: 400px;
 	margin-bottom: 1em;
 }
+table.form-table input#woocommerce_subscriptions_customer_notifications_offset {
+	/* Aligns with .woocommerce table.form-table select */
+	line-height: 32px;
+}
 
 /* Reports Page */
 .woocommerce-reports-wide .postbox .chart-legend li a {

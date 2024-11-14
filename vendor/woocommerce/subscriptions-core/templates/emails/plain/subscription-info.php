@@ -40,7 +40,7 @@ foreach ( $subscriptions as $subscription ) {
 
 	echo "\n\n";
 }
-if ( $has_automatic_renewal && ! $is_admin_email && $subscription->get_time( 'next_payment' ) > 0 ) {
+if ( $has_automatic_renewal && ! $is_admin_email && $subscription->get_time( 'next_payment' ) > 0 && ! $skip_my_account_link ) {
 	if ( count( $subscriptions ) === 1 ) {
 		$subscription   = reset( $subscriptions );
 		$my_account_url = $subscription->get_view_order_url();
@@ -49,10 +49,15 @@ if ( $has_automatic_renewal && ! $is_admin_email && $subscription->get_time( 'ne
 	}
 
 	// Translators: Placeholder is the My Account URL.
-	echo wp_kses_post( sprintf( _n(
-		'This subscription is set to renew automatically using your payment method on file. You can manage or cancel this subscription from your my account page. %s',
-		'These subscriptions are set to renew automatically using your payment method on file. You can manage or cancel your subscriptions from your my account page. %s',
-		count( $subscriptions ),
-		'woocommerce-subscriptions'
-	), $my_account_url ) );
+	echo wp_kses_post(
+		sprintf(
+			_n(
+				'This subscription is set to renew automatically using your payment method on file. You can manage or cancel this subscription from your my account page. %s',
+				'These subscriptions are set to renew automatically using your payment method on file. You can manage or cancel your subscriptions from your my account page. %s',
+				count( $subscriptions ),
+				'woocommerce-subscriptions'
+			),
+			$my_account_url
+		)
+	);
 }

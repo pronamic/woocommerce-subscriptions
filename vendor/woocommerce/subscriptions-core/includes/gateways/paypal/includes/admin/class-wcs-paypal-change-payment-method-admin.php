@@ -43,7 +43,7 @@ class WCS_PayPal_Change_Payment_Method_Admin {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function add_payment_meta_details( $payment_meta, $subscription ) {
-		$subscription_id = get_post_meta( $subscription->get_id(), '_paypal_subscription_id', true );
+		$subscription_id = $subscription->get_meta( '_paypal_subscription_id', true );
 
 		if ( wcs_is_paypal_profile_a( $subscription_id, 'billing_agreement' ) || empty( $subscription_id ) ) {
 			$label = 'PayPal Billing Agreement ID';

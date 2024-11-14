@@ -263,7 +263,8 @@ class WC_Subscriptions_Synchroniser {
 		if ( self::is_syncing_enabled() ) {
 
 			// Set month as the default billing period
-			if ( ! $subscription_period = get_post_meta( $post->ID, '_subscription_period', true ) ) {
+			$subscription_period = get_post_meta( $post->ID, '_subscription_period', true );
+			if ( ! $subscription_period ) {
 				$subscription_period = 'month';
 			}
 
@@ -857,6 +858,7 @@ class WC_Subscriptions_Synchroniser {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function products_first_renewal_payment_time( $first_renewal_timestamp, $product_id, $from_date, $timezone ) {
+		$unmodified_first_renewal_timestamp = $first_renewal_timestamp;
 
 		if ( self::is_product_synced( $product_id ) ) {
 
@@ -871,7 +873,18 @@ class WC_Subscriptions_Synchroniser {
 			}
 		}
 
-		return $first_renewal_timestamp;
+		/**
+		 * Filter the first renewal payment date string for a product.
+		 *
+		 * @since 7.7.0
+		 *
+		 * @param int    $first_renewal_timestamp            The timestamp of the first renewal payment date.
+		 * @param int    $product_id                         The product ID.
+		 * @param string $from_date                          The date to calculate the first payment from in GMT/UTC timezone.
+		 * @param string $timezone                           The timezone to use for the first payment date.
+		 * @param int    $unmodified_first_renewal_timestamp The unmodified timestamp of the first renewal payment date.
+		 */
+		return apply_filters( 'woocommerce_subscriptions_synced_first_renewal_payment_timestamp', $first_renewal_timestamp, $product_id, $from_date, $timezone, $unmodified_first_renewal_timestamp );
 	}
 
 	/**
@@ -1495,10 +1508,12 @@ class WC_Subscriptions_Synchroniser {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::subscription_contains_synced_product()' );
 
 		if ( is_object( $order_id ) ) {
-			$order_id = wcs_get_objects_property( $order_id, 'id' );
+			$order = $order_id;
+		} else {
+			$order = wc_get_order( $order_id );
 		}
 
-		return 'true' == get_post_meta( $order_id, '_order_contains_synced_subscription', true );
+		return 'true' === $order->get_meta( '_order_contains_synced_subscription', true );
 	}
 
 	/**

@@ -16,6 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * @deprecated
+ */
 class WCS_Repair_Subscription_Address_Indexes extends WCS_Background_Upgrader {
 
 	/**

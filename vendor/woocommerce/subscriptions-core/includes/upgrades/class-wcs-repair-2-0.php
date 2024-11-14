@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+/**
+ * @deprecated
+ */
 class WCS_Repair_2_0 {
 
 	/**
@@ -392,7 +395,8 @@ class WCS_Repair_2_0 {
 	public static function repair_start_date( $subscription, $item_id, $item_meta ) {
 		global $wpdb;
 
-		$start_date = get_post_meta( $subscription['order_id'], '_paid_date', true );
+		$order      = wc_get_order( $subscription['order_id'] );
+		$start_date = $order->get_meta( '_paid_date', true );
 
 		WCS_Upgrade_Logger::add( sprintf( 'Repairing start_date for order %d: Trying to use the _paid date for start date.', $subscription['order_id'] ) );
 

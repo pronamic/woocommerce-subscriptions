@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			// translators: placeholder is a currency symbol / code
 			'label'         => sprintf( __( 'Subscription Price (%s)', 'woocommerce-subscriptions' ), get_woocommerce_currency_symbol() ),
 			'placeholder'   => _x( 'e.g. 9.90', 'example price', 'woocommerce-subscriptions' ),
-			'value'         => get_post_meta( $variation->get_id(), '_subscription_price', true ),
+			'value'         => $variation->get_meta( '_subscription_price', true ),
 			'type'          => 'number',
 			'custom_attributes' => array(
 					'step' => 'any',
@@ -45,7 +45,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			'wrapper_class' => '_subscription_period_interval_field',
 			'label'         => __( 'Subscription Periods', 'woocommerce-subscriptions' ),
 			'options'       => wcs_get_subscription_period_interval_strings(),
-			'value'         => get_post_meta( $variation->get_id(), '_subscription_period_interval', true ),
+			'value'         => $variation->get_meta( '_subscription_period_interval', true ),
 			)
 		);
 
@@ -68,7 +68,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			'wrapper_class' => '_subscription_length_field',
 			'label'         => __( 'Subscription Length', 'woocommerce-subscriptions' ),
 			'options'       => wcs_get_subscription_ranges( $subscription_period ),
-			'value'         => get_post_meta( $variation->get_id(), '_subscription_length', true ),
+			'value'         => $variation->get_meta( '_subscription_length', true ),
 			)
 		);
 ?>
@@ -84,7 +84,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			'wrapper_class' => '_subscription_sign_up_fee_field',
 			'label'         => sprintf( __( 'Sign-up Fee (%s)', 'woocommerce-subscriptions' ), get_woocommerce_currency_symbol() ),
 			'placeholder'   => _x( 'e.g. 9.90', 'example price', 'woocommerce-subscriptions' ),
-			'value'         => get_post_meta( $variation->get_id(), '_subscription_sign_up_fee', true ),
+			'value'         => $variation->get_meta( '_subscription_sign_up_fee', true ),
 			'type'          => 'number',
 			'custom_attributes' => array(
 					'step' => 'any',
@@ -103,7 +103,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			'wrapper_class' => '_subscription_trial_length_field',
 			'label'         => __( 'Free Trial', 'woocommerce-subscriptions' ),
 			'placeholder'   => _x( 'e.g. 3', 'example number of days / weeks / months', 'woocommerce-subscriptions' ),
-			'value'         => get_post_meta( $variation->get_id(), '_subscription_trial_length', true ),
+			'value'         => $variation->get_meta( '_subscription_trial_length', true ),
 			)
 		);
 

@@ -96,7 +96,7 @@ class WC_Product_Variable_Subscription_Legacy extends WC_Product_Variable_Subscr
 	 * @return string
 	 */
 	public function get_variation_price( $min_or_max = 'min', $display = false ) {
-		$variation_id = get_post_meta( $this->id, '_' . $min_or_max . '_price_variation_id', true );
+		$variation_id = $this->get_meta( '_' . $min_or_max . '_price_variation_id', true );
 
 		if ( $display ) {
 			if ( $variation = wc_get_product( $variation_id ) ) {
@@ -109,7 +109,7 @@ class WC_Product_Variable_Subscription_Legacy extends WC_Product_Variable_Subscr
 				$price = '';
 			}
 		} else {
-			$price = get_post_meta( $variation_id, '_price', true );
+			$price = $this->get_meta( '_price', true );
 		}
 
 		return apply_filters( 'woocommerce_get_variation_price', $price, $this, $min_or_max, $display );
@@ -299,7 +299,7 @@ class WC_Product_Variable_Subscription_Legacy extends WC_Product_Variable_Subscr
 					$price .= wcs_get_price_html_from_text( $this );
 				}
 
-				$variation_id     = get_post_meta( $this->id, '_min_price_variation_id', true );
+				$variation_id     = $this->get_meta( '_min_price_variation_id', true );
 				$variation        = wc_get_product( $variation_id );
 				$tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
 
@@ -358,7 +358,7 @@ class WC_Product_Variable_Subscription_Legacy extends WC_Product_Variable_Subscr
 	 * @return object WC_Product_Subscription or WC_Product_Subscription_Variation
 	 */
 	function get_meta( $meta_key = '', $single = true, $context = 'view' ) {
-		return get_post_meta( $this->get_id(), $meta_key, $single );
+		return $this->get_meta( $meta_key, $single );
 	}
 
 	/**

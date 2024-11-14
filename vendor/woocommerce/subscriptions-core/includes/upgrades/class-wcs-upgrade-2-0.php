@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+/**
+ * @deprecated
+ */
 class WCS_Upgrade_2_0 {
 
 	/* Cache of order item meta keys that were used to store subscription data in v1.5 */
@@ -214,12 +217,13 @@ class WCS_Upgrade_2_0 {
 			}
 
 			if ( ! array_key_exists( $raw_subscription->order_item_id, $subscriptions ) ) {
+				$order = wc_get_order( $raw_subscription->order_id );
 				$subscriptions[ $raw_subscription->order_item_id ] = array(
 					'order_id' => $raw_subscription->order_id,
 					'name'     => $raw_subscription->order_item_name,
 				);
 
-				$subscriptions[ $raw_subscription->order_item_id ]['user_id'] = (int) get_post_meta( $raw_subscription->order_id, '_customer_user', true );
+				$subscriptions[ $raw_subscription->order_item_id ]['user_id'] = (int) $order->get_meta( '_customer_user', true );
 			}
 
 			$meta_key = str_replace( '_subscription', '', $raw_subscription->meta_key );
@@ -610,8 +614,7 @@ class WCS_Upgrade_2_0 {
 		$order_meta = get_post_meta( wcs_get_objects_property( $order, 'id' ) );
 
 		foreach ( $post_meta_with_new_key as $subscription_meta_key => $order_meta_key ) {
-
-			$order_meta_value = get_post_meta( wcs_get_objects_property( $order, 'id' ), $order_meta_key, true );
+			$order_meta_value = $order->get_meta( $order_meta_key, true );
 
 			if ( isset( $order_meta[ $order_meta_key ] ) && '' !== $order_meta[ $order_meta_key ] ) {
 				update_post_meta( $subscription_id, $subscription_meta_key, $order_meta_value );
@@ -838,7 +841,7 @@ class WCS_Upgrade_2_0 {
 		$new_subscription_id  = wcs_get_objects_property( $new_subscription, 'id' );
 
 		// Set the post meta on the new subscription and old order
-		foreach ( get_post_meta( $resubscribe_order_id, '_original_order', false ) as $original_order_id ) {
+		foreach ( $resubscribe_order->get_meta( '_original_order', false ) as $original_order_id ) {
 
 			// Because self::get_subscriptions() orders by order ID, it's safe to use wcs_get_subscriptions_for_order() here because the subscription in the new format will have been created for the original order (because its ID will be < the resubscribe order's ID)
 			foreach ( wcs_get_subscriptions_for_order( $original_order_id ) as $old_subscription ) {
@@ -876,7 +879,7 @@ class WCS_Upgrade_2_0 {
 		global $wpdb;
 
 		// If the order doesn't contain a switch, we don't need to do anything
-		if ( '' == get_post_meta( wcs_get_objects_property( $switch_order, 'id' ), '_switched_subscription_key', true ) ) {
+		if ( '' === $switch_order->get_meta( '_switched_subscription_key', true ) ) {
 			return;
 		}
 

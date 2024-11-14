@@ -1200,7 +1200,7 @@ class WC_Subscriptions_Switcher {
 		WC_Subscriptions_Checkout::add_shipping( $subscription, $recurring_cart );
 
 		// Now update subscription object order_shipping to reflect updated values so it doesn't stay 0
-		$subscription->order_shipping = get_post_meta( $subscription->get_id(), '_order_shipping', true );
+		$subscription->order_shipping = $subscription->get_meta( '_order_shipping', true );
 	}
 
 	/**
@@ -2460,12 +2460,10 @@ class WC_Subscriptions_Switcher {
 	 * @deprecated 2.1
 	 */
 	public static function maybe_set_payment_method( $payment_processing_result, $order_id ) {
-
 		_deprecated_function( __METHOD__, '2.1', __CLASS__ . '::maybe_set_payment_method_after_switch( $order )' );
 
-		if ( wcs_order_contains_switch( $order_id ) && false != get_post_meta( $order_id, '_paid_date', true ) ) {
-
-			$order = wc_get_order( $order_id );
+		$order = wc_get_order( $order_id );
+		if ( wcs_order_contains_switch( $order_id ) && false !== (bool) $order->get_meta( '_paid_date', true ) ) {
 			self::maybe_set_payment_method_after_switch( $order );
 		}
 
@@ -2808,13 +2806,10 @@ class WC_Subscriptions_Switcher {
 		_deprecated_function( __METHOD__, '2.0' );
 
 		$subscription = wcs_get_subscription_from_key( $subscription_key );
-
 		if ( $subscription->has_status( 'active' ) && $subscription->get_parent_id() && wcs_order_contains_switch( $subscription->get_parent_id() ) && 1 >= $subscription->get_payment_count() ) {
-
-			$first_payment_timestamp = get_post_meta( $subscription->get_parent_id(), '_switched_subscription_first_payment_timestamp', true );
-
-			if ( 0 != $first_payment_timestamp ) {
-				$next_payment_date = ( 'mysql' == $type ) ? gmdate( 'Y-m-d H:i:s', $first_payment_timestamp ) : $first_payment_timestamp;
+			$first_payment_timestamp = (int) $subscription->get_meta( '_switched_subscription_first_payment_timestamp', true );
+			if ( 0 !== $first_payment_timestamp ) {
+				$next_payment_date = ( 'mysql' === $type ) ? gmdate( 'Y-m-d H:i:s', $first_payment_timestamp ) : $first_payment_timestamp;
 			}
 		}
 

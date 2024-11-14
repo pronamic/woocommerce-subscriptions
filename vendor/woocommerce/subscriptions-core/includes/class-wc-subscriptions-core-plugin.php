@@ -16,7 +16,7 @@ class WC_Subscriptions_Core_Plugin {
 	 * The version of subscriptions-core library.
 	 * @var string
 	 */
-	protected $library_version = '7.6.0'; // WRCS: DEFINED_VERSION.
+	protected $library_version = '7.7.1'; // WRCS: DEFINED_VERSION.
 
 	/**
 	 * The subscription scheduler instance.
@@ -24,6 +24,13 @@ class WC_Subscriptions_Core_Plugin {
 	 * @var WCS_Action_Scheduler
 	 */
 	protected $scheduler = null;
+
+	/**
+	 * Notification scheduler instance.
+	 *
+	 * @var WCS_Action_Scheduler_Customer_Notifications
+	 */
+	public $notifications_scheduler = null;
 
 	/**
 	 * The plugin's autoloader instance.
@@ -125,6 +132,7 @@ class WC_Subscriptions_Core_Plugin {
 		WC_Subscriptions_Renewal_Order::init();
 		WC_Subscriptions_Checkout::init();
 		WC_Subscriptions_Email::init();
+		WC_Subscriptions_Email_Notifications::init();
 		WC_Subscriptions_Addresses::init();
 		WC_Subscriptions_Change_Payment_Gateway::init();
 		$payment_gateways_handler::init();
@@ -156,9 +164,15 @@ class WC_Subscriptions_Core_Plugin {
 		add_action( 'plugins_loaded', 'WCS_Related_Order_Store::instance' );
 		add_action( 'plugins_loaded', 'WCS_Customer_Store::instance' );
 
+		// Initialise the batch processing controller.
+		add_action( 'init', 'WCS_Batch_Processing_Controller::instance' );
+
 		// Initialise the scheduler.
 		$scheduler_class = apply_filters( 'woocommerce_subscriptions_scheduler', 'WCS_Action_Scheduler' );
 		$this->scheduler = new $scheduler_class();
+
+		// Customer notifications scheduler.
+		$this->notifications_scheduler = new WCS_Action_Scheduler_Customer_Notifications();
 
 		// Initialise the cache.
 		$this->cache = WCS_Cache_Manager::get_instance();
@@ -244,6 +258,8 @@ class WC_Subscriptions_Core_Plugin {
 		add_action( 'init', array( $this, 'activate_plugin' ) );
 
 		add_filter( 'action_scheduler_queue_runner_batch_size', array( $this, 'reduce_multisite_action_scheduler_batch_size' ) );
+
+		add_action( 'init', array( $this, 'init_notification_batch_processor' ) );
 	}
 
 	/**
@@ -517,6 +533,11 @@ class WC_Subscriptions_Core_Plugin {
 				update_option( WC_Subscriptions_admin::$option_prefix . '_paypal_debugging_default_set', 'true' );
 			}
 
+			// Enable customer notifications by default for new stores.
+			if ( '0' === get_option( WC_Subscriptions_Admin::$option_prefix . '_previous_version', '0' ) && 'no' === get_option( WC_Subscriptions_Admin::$option_prefix . WC_Subscriptions_Email_Notifications::$switch_setting_string, 'no' ) ) {
+				update_option( WC_Subscriptions_Admin::$option_prefix . WC_Subscriptions_Email_Notifications::$switch_setting_string, 'yes' );
+			}
+
 			update_option( WC_Subscriptions_Admin::$option_prefix . '_is_active', true );
 
 			set_transient( $this->get_activation_transient(), true, 60 * 60 );
@@ -624,5 +645,16 @@ class WC_Subscriptions_Core_Plugin {
 		}
 
 		return $batch_size;
+	}
+
+	/**
+	 * Initialize batch processing for subscription notifications.
+	 *
+	 * @return void
+	 */
+	public function init_notification_batch_processor() {
+		// Background processing for notifications
+		$notifications_batch_processor      = new WCS_Notifications_Batch_Processor();
+		$notifications_debug_tool_processor = new WCS_Notifications_Debug_Tool_Processor();
 	}
 }

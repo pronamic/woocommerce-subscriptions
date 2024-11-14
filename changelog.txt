@@ -1,5 +1,16 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2024-11-14 - version 6.9.0
+* Add: New Customer Notification feature - sends reminder emails for upcoming subscription renewals, trials ending, and subscription expirations.
+* Fix: Prevent adding products to the cart if a subscription renewal is already present.
+* Update: Improved performance of wcs_get_subscription() when querying by product and customer or order.
+* Update: Improved performance when checking limited subscription product availability.
+* Update: Deprecate upgrading from versions of WooCommerce Subscriptions prior to 3.0.0 (released Jan 2020).
+* Dev: Minor refactoring of `init` method in `WC_Subscriptions_Upgrader` class.
+* Dev: Introduce the filter `woocommerce_subscriptions_synced_first_renewal_payment_timestamp` to enable plugins to modify the first renewal date of synced subscriptions.
+* Dev: Update `get_post_meta()` calls to fetch product meta using CRUD getters.
+* Dev: Update subscriptions-core to 7.7.1
+
 2024-10-14 - version 6.8.0
 * Fix: Restore Retry icon in Orders table for HPOS-enabled stores.
 * Fix: Correctly updates a subscription status to `cancelled` during a payment failure call when the current status is `pending-cancel`.

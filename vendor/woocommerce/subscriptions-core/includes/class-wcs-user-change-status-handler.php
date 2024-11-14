@@ -46,7 +46,7 @@ class WCS_User_Change_Status_Handler {
 	 */
 	public static function change_users_subscription( $subscription, $new_status ) {
 		$subscription = ( ! is_object( $subscription ) ) ? wcs_get_subscription( $subscription ) : $subscription;
-		$changed = false;
+		$changed      = false;
 
 		do_action( 'woocommerce_before_customer_changed_subscription_to_' . $new_status, $subscription );
 

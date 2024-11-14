@@ -150,6 +150,7 @@ class WCS_Retry_Post_Store extends WCS_Retry_Store {
 			'limit'      => -1,
 		) );
 
+		// We need to keep this call to `get_posts` since this is a custom post type (`payment_retry`), not a custom order type.
 		$retry_post_ids = get_posts( array(
 			'posts_per_page' => $args['limit'],
 			'post_type'      => self::$post_type,

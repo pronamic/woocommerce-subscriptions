@@ -295,6 +295,31 @@ class WC_Subscriptions_Email {
 	}
 
 	/**
+	 * Show the subscription details table.
+	 *
+	 * @param WC_Subscription[] $subscriptions        List of subscriptions. Also accepts a single subscription.
+	 * @param WC_Order|null     $order                The order related to the subscription - defaults to parent order.
+	 * @param bool              $sent_to_admin        Whether the email is sent to admin - defaults to false.
+	 * @param bool              $plain_text           Whether the email should use plain text templates - defaults to false.
+	 * @param bool              $skip_my_account_link Whether to skip displaying the My Account link - defaults to false.
+	 */
+	public static function subscription_details( $subscriptions, $order = null, $sent_to_admin = false, $plain_text = false, $skip_my_account_link = false ) {
+		$template = ( $plain_text ) ? 'emails/plain/subscription-info.php' : 'emails/subscription-info.php';
+
+		wc_get_template(
+			$template,
+			array(
+				'order'                => ! $order ? $subscription->get_parent() : $order,
+				'subscriptions'        => is_array( $subscriptions ) ? $subscriptions : [ $subscriptions ],
+				'is_admin_email'       => $sent_to_admin,
+				'skip_my_account_link' => $skip_my_account_link,
+			),
+			'',
+			WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory( 'templates/' )
+		);
+	}
+
+	/**
 	 * Detach WC transactional emails from a specific hook.
 	 *
 	 * @param string Optional. The action hook or filter to detach WC core's transactional emails from. Defaults to the current filter.

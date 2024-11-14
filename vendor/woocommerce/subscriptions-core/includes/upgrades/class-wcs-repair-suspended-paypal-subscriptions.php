@@ -19,6 +19,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * @deprecated
+ */
 class WCS_Repair_Suspended_PayPal_Subscriptions extends WCS_Background_Upgrader {
 
 	/**

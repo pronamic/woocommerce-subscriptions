@@ -129,12 +129,10 @@ function wcs_get_subscription_id_from_key( $subscription_key ) {
 	}
 
 	$order_and_product_id = explode( '_', $subscription_key );
-
-	$subscription_ids = array();
+	$subscription_ids     = array();
 
 	// If we have an order ID and product ID, query based on that
 	if ( ! empty( $order_and_product_id[0] ) && ! empty( $order_and_product_id[1] ) ) {
-
 		$subscription_ids = $wpdb->get_col( $wpdb->prepare( "
 			SELECT DISTINCT order_items.order_id FROM {$wpdb->prefix}woocommerce_order_items as order_items
 				LEFT JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS itemmeta ON order_items.order_item_id = itemmeta.order_item_id
@@ -146,15 +144,16 @@ function wcs_get_subscription_id_from_key( $subscription_key ) {
 		$order_and_product_id[0], $order_and_product_id[1] ) );
 
 	} elseif ( ! empty( $order_and_product_id[0] ) ) {
-
-		$subscription_ids = get_posts( array(
-			'posts_per_page' => 1,
-			'post_parent'    => $order_and_product_id[0],
-			'post_status'    => 'any',
-			'post_type'      => 'shop_subscription',
-			'fields'         => 'ids',
-		) );
-
+		// Not replacing this `get_posts` call with `wc_get_orders`. This is from when subscription object used to be an array of data stored in order meta ({$order_id}_{$product_id}, referred to as a "subscriptions key")
+		$subscription_ids = get_posts(
+			array(
+				'posts_per_page' => 1,
+				'post_parent'    => $order_and_product_id[0],
+				'post_status'    => 'any',
+				'post_type'      => 'shop_subscription',
+				'fields'         => 'ids',
+			)
+		);
 	}
 
 	return ( ! empty( $subscription_ids ) ) ? $subscription_ids[0] : null;

@@ -173,6 +173,10 @@ install_db() {
 	mysqladmin create $DB_NAME $MYSQLADMIN_FLAGS
 }
 
+install_legacy_rest_api() {
+    wp plugin install https://downloads.wordpress.org/plugin/woocommerce-legacy-rest-api.1.0.4.zip --activate
+}
+
 install_woocommerce() {
 	WC_INSTALL_EXTRA=''
 	INSTALLED_WC_VERSION=$(wp plugin get woocommerce --field=version)
@@ -202,4 +206,5 @@ install_wp
 install_db
 configure_wp
 install_test_suite
+install_legacy_rest_api
 install_woocommerce
