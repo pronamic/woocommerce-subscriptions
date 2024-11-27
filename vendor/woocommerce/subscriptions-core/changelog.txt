@@ -1,5 +1,8 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 7.7.2 - 2024-11-26 =
+* Fix - Prevents notices being displayed on WordPress 6.7 due to loading translations too early.
+
 = 7.7.1 - 2024-11-13 =
 * Fix - Only show the individual subscription information in customer notification emails, not all subscriptions purchased in the initial order.
 * Fix - Resolved issues with Customer Notification emails not being sent due to unsupported emoji used in the default email subject.

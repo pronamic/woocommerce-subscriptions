@@ -2,20 +2,20 @@
 # This file is distributed under the same license as the WooCommerce Subscriptions plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 6.9.0\n"
+"Project-Id-Version: WooCommerce Subscriptions 6.9.1\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-11-14T02:05:39+00:00\n"
+"POT-Creation-Date: 2024-11-27T02:14:55+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: woocommerce-subscriptions\n"
 
 #. Plugin Name of the plugin
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:40
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:49
 msgid "WooCommerce Subscriptions"
 msgstr ""
 
@@ -1595,60 +1595,60 @@ msgstr ""
 msgid "Payment retry attempted on renewal order with multiple related subscriptions with no payment method in common."
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:25
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:38
 msgid "Payment retry posts store details about the automatic retry of failed renewal payments."
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:35
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:48
 msgctxt "Post type name"
 msgid "Renewal Payment Retries"
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:36
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:49
 msgid "Renewal Payment Retry"
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:37
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:50
 msgctxt "Admin menu name"
 msgid "Renewal Payment Retries"
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:38
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:51
 msgid "Add"
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:39
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:52
 msgid "Add New Retry"
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:40
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:53
 #: vendor/woocommerce/subscriptions-core/includes/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:156
 #: vendor/woocommerce/subscriptions-core/includes/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:254
 msgid "Edit"
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:41
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:54
 msgid "Edit Retry"
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:42
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:55
 msgid "New Retry"
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:43
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:44
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:56
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:57
 msgid "View Retry"
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:45
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:58
 msgid "Search Renewal Payment Retries"
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:46
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:59
 msgid "No retries found"
 msgstr ""
 
-#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:47
+#: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:60
 msgid "No retries found in trash"
 msgstr ""
 
@@ -3678,7 +3678,7 @@ msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-email-notifications.php:284
 #: vendor/woocommerce/subscriptions-core/includes/emails/class-wcs-email-customer-notification.php:60
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:272
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:281
 msgid "N/A"
 msgstr ""
 
@@ -4653,19 +4653,19 @@ msgstr ""
 msgid "That subscription can not be changed to %s. Please contact us if you need assistance."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-customer-store-cached-cpt.php:80
+#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-customer-store-cached-cpt.php:87
 msgid "Generate Customer Subscription Cache"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-customer-store-cached-cpt.php:80
+#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-customer-store-cached-cpt.php:87
 msgid "This will generate the persistent cache for linking users with subscriptions. The caches will be generated overtime in the background (via Action Scheduler)."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-customer-store-cached-cpt.php:81
+#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-customer-store-cached-cpt.php:88
 msgid "Delete Customer Subscription Cache"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-customer-store-cached-cpt.php:81
+#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-customer-store-cached-cpt.php:88
 msgid "This will clear the persistent cache of all of subscriptions stored against users in your store. Expect slower performance of checkout, renewal and other subscription related functions after taking this action. The caches will be regenerated overtime as queries to find a given user's subscriptions are run."
 msgstr ""
 
@@ -4689,19 +4689,19 @@ msgstr ""
 msgid "Something went wrong when trying to restore subscription %d from the trash. It could not be restored."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-related-order-store-cached-cpt.php:108
+#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-related-order-store-cached-cpt.php:115
 msgid "Generate Related Order Cache"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-related-order-store-cached-cpt.php:108
+#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-related-order-store-cached-cpt.php:115
 msgid "This will generate the persistent cache of all renewal, switch, resubscribe and other order types for all subscriptions in your store. The caches will be generated overtime in the background (via Action Scheduler)."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-related-order-store-cached-cpt.php:109
+#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-related-order-store-cached-cpt.php:116
 msgid "Delete Related Order Cache"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-related-order-store-cached-cpt.php:109
+#: vendor/woocommerce/subscriptions-core/includes/data-stores/class-wcs-related-order-store-cached-cpt.php:116
 msgid "This will clear the persistent cache of all renewal, switch, resubscribe and other order types for all subscriptions in your store. Expect slower performance of checkout, renewal and other subscription related functions after taking this action. The caches will be regenerated overtime as related order queries are run."
 msgstr ""
 
@@ -5522,76 +5522,76 @@ msgstr ""
 msgid "Email Address"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:43
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:44
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:52
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:53
 msgid "Subscriptions Data"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:94
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:103
 msgid "By using WooCommerce Subscriptions, you may be storing personal data and depending on which third-party payment processors you’re using to take subscription payments, you may be sharing personal data with external sources."
 msgstr ""
 
 #. translators: placeholders are opening and closing link tags, linking to additional privacy policy documentation.
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:96
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:105
 msgid "What we collect and store"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:97
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:106
 msgid "For the purposes of processing recurring subscription payments, we store the customer's name, billing address, shipping address, email address, phone number and credit card/payment details."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:98
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:107
 msgid "What we share with others"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:99
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:108
 msgid "What personal information your store shares with external sources depends on which third-party payment processor plugins you are using to collect subscription payments. We recommend that you consult with their privacy policies to inform this section of your privacy policy."
 msgstr ""
 
 #. translators: placeholders are opening and closing link tags, linking to additional privacy policy documentation.
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:101
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:110
 msgid "If you are using PayPal Standard or PayPal Reference transactions please see the %1$sPayPal Privacy Policy%2$s for more details."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:114
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:362
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:123
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:371
 msgid "Cancel and remove personal data"
 msgstr ""
 
 #. translators: %d: number of subscriptions affected.
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:212
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:221
 msgid "Removed personal data from %d subscription."
 msgid_plural "Removed personal data from %d subscriptions."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholders are opening and closing tags.
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:231
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:240
 msgid "%1$sNote:%2$s Orders which are related to subscriptions will not be included in the orders affected by these settings."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:251
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:260
 msgid "account erasure request"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:257
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:266
 msgid "Remove personal data from subscriptions"
 msgstr ""
 
 #. Translators: %s URL to erasure request screen.
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:259
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:268
 msgid "When handling an %s, should personal data within subscriptions be retained or removed?"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:268
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:277
 msgid "Retain ended subscriptions"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:269
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:278
 msgid "Retain ended subscriptions and their related orders for a specified duration before anonymizing the personal data within them."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:313
+#: vendor/woocommerce/subscriptions-core/includes/privacy/class-wcs-privacy.php:322
 msgid "Customers with a subscription are excluded from this setting."
 msgstr ""
 

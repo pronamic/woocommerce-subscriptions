@@ -92,6 +92,8 @@ class WCS_Related_Order_Store_Cached_CPT extends WCS_Related_Order_Store_CPT imp
 
 		$this->object_data_cache_manager->init();
 
+		add_action( 'init', array( $this, 'register_debug_tools' ) );
+
 		// When a subscription is being read from the database, don't load cached related order meta data into subscriptions.
 		add_filter( 'wcs_subscription_data_store_props_to_ignore', array( $this, 'add_related_order_cache_props' ), 10, 2 );
 
@@ -104,7 +106,12 @@ class WCS_Related_Order_Store_Cached_CPT extends WCS_Related_Order_Store_CPT imp
 
 		// When copying meta from a subscription to a renewal order, don't copy cache related order meta keys.
 		add_filter( 'wc_subscriptions_renewal_order_data', array( $this, 'remove_related_order_cache_keys' ), 10, 1 );
+	}
 
+	/**
+	 * Register debug tools for managing the cache.
+	 */
+	public function register_debug_tools() {
 		WCS_Debug_Tool_Factory::add_cache_tool( 'generator', __( 'Generate Related Order Cache', 'woocommerce-subscriptions' ), __( 'This will generate the persistent cache of all renewal, switch, resubscribe and other order types for all subscriptions in your store. The caches will be generated overtime in the background (via Action Scheduler).', 'woocommerce-subscriptions' ), self::instance() );
 		WCS_Debug_Tool_Factory::add_cache_tool( 'eraser', __( 'Delete Related Order Cache', 'woocommerce-subscriptions' ), __( 'This will clear the persistent cache of all renewal, switch, resubscribe and other order types for all subscriptions in your store. Expect slower performance of checkout, renewal and other subscription related functions after taking this action. The caches will be regenerated overtime as related order queries are run.', 'woocommerce-subscriptions' ), self::instance() );
 	}

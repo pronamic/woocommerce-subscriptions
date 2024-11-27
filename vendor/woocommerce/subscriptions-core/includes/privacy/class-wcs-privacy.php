@@ -37,7 +37,16 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 			self::$background_process = new WCS_Privacy_Background_Updater();
 		}
 
-		parent::__construct( __( 'WooCommerce Subscriptions', 'woocommerce-subscriptions' ) );
+		parent::__construct();
+
+		add_action( 'init', array( $this, 'register_erasers_exporters' ) );
+	}
+
+	/**
+	 * Register erasers and exporters.
+	 */
+	public function register_erasers_exporters() {
+		$this->name = __( 'WooCommerce Subscriptions', 'woocommerce-subscriptions' );
 
 		// Add our exporters and erasers.
 		$this->add_exporter( 'woocommerce-subscriptions-data', __( 'Subscriptions Data', 'woocommerce-subscriptions' ), array( 'WCS_Privacy_Exporters', 'subscription_data_exporter' ) );

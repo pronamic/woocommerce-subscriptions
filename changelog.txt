@@ -1,5 +1,9 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2024-11-27 - version 6.9.1
+* Fix: Resolved compatibility issues with WordPress 6.7 caused by translating strings too early.
+* Dev: Update subscriptions-core to 7.7.2
+
 2024-11-14 - version 6.9.0
 * Add: New Customer Notification feature - sends reminder emails for upcoming subscription renewals, trials ending, and subscription expirations.
 * Fix: Prevent adding products to the cart if a subscription renewal is already present.

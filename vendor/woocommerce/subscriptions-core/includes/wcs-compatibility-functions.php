@@ -603,11 +603,7 @@ function wcs_is_wc_feature_enabled( $feature_name ) {
  * @return bool
  */
 function wcs_is_custom_order_tables_usage_enabled() {
-	if ( ! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' ) || ! wcs_is_wc_feature_enabled( 'custom_order_tables' ) ) {
-		return false;
-	}
-
-	return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+	return class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' ) && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
 }
 
 /**

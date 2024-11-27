@@ -19,6 +19,19 @@ class WCS_Retry_Post_Store extends WCS_Retry_Store {
 	 * @return null
 	 */
 	public function init() {
+		if ( did_action( 'init' ) ) {
+			$this->register_payment_retry_post();
+		} else {
+			add_action( 'init', [ $this, 'register_payment_retry_post' ] );
+		}
+	}
+
+	/**
+	 * Registers the custom payment_retry post type.
+	 *
+	 * @return void
+	 */
+	public function register_payment_retry_post() {
 		register_post_type(
 			self::$post_type,
 			array(
