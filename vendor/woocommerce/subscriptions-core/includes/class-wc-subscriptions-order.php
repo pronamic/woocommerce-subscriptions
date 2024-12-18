@@ -339,7 +339,7 @@ class WC_Subscriptions_Order {
 			$subscriptions                = wcs_get_subscriptions_for_order( $order_id, array( 'order_type' => 'any' ) );
 			$subscription_count           = count( $subscriptions );
 			$thank_you_message            = '';
-			$my_account_subscriptions_url = get_permalink( wc_get_page_id( 'myaccount' ) );
+			$my_account_subscriptions_url = wc_get_endpoint_url( 'subscriptions', '', wc_get_page_permalink( 'myaccount' ) );
 
 			if ( $subscription_count ) {
 				foreach ( $subscriptions as $subscription ) {

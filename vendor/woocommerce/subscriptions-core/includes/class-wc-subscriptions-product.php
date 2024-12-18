@@ -127,6 +127,9 @@ class WC_Subscriptions_Product {
 
 		foreach ( $grouped_product->get_children() as $child_product_id ) {
 			$child_product = wc_get_product( $child_product_id );
+			if ( ! $child_product instanceof WC_Product ) {
+				continue;
+			}
 			if ( self::is_subscription( $child_product_id ) ) {
 				$contains_subscription = true;
 

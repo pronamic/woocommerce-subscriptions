@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the WooCommerce Subscriptions plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 6.9.1\n"
+"Project-Id-Version: WooCommerce Subscriptions 7.0.0\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-11-27T02:14:55+00:00\n"
+"POT-Creation-Date: 2024-12-16T23:30:24+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: woocommerce-subscriptions\n"
@@ -905,7 +905,6 @@ msgstr ""
 #. translators: placeholder is an error message.
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:287
 #: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:475
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:781
 msgid "Updating subscription dates errored with message: %s"
 msgstr ""
 
@@ -1111,8 +1110,8 @@ msgstr ""
 #: includes/class-wcs-call-to-action-button-text-manager.php:55
 #: includes/class-wcs-call-to-action-button-text-manager.php:58
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-checkout.php:657
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:1199
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:1231
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:1202
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:1234
 msgid "Sign up now"
 msgstr ""
 
@@ -1338,7 +1337,7 @@ msgstr ""
 #: includes/early-renewal/wcs-early-renewal-functions.php:136
 #: vendor/woocommerce/subscriptions-core/includes/admin/meta-boxes/views/html-related-orders-row.php:18
 #: vendor/woocommerce/subscriptions-core/includes/admin/meta-boxes/views/html-unknown-related-orders-row.php:18
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-renewal-order.php:171
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-renewal-order.php:172
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/my-subscriptions.php:36
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/related-orders.php:45
 #: vendor/woocommerce/subscriptions-core/templates/myaccount/related-subscriptions.php:34
@@ -1386,37 +1385,37 @@ msgstr ""
 msgid "Pay now"
 msgstr ""
 
-#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:57
+#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:61
 msgid "Renew early"
 msgstr ""
 
-#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:73
+#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:77
 #: vendor/woocommerce/subscriptions-core/includes/admin/meta-boxes/views/html-subscription-schedule.php:24
 msgid "Payment:"
 msgstr ""
 
-#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:107
+#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:111
 #: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-change-payment-gateway.php:226
 msgid "There was an error with your request. Please try again."
 msgstr ""
 
-#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:114
+#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:118
 msgid "We were unable to locate that subscription, please try again."
 msgstr ""
 
-#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:119
+#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:123
 msgid "You can't renew the subscription at this time. Please try again."
 msgstr ""
 
-#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:129
+#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:133
 msgid "We couldn't create a renewal order for your subscription, please try again."
 msgstr ""
 
-#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:146
+#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:150
 msgid "Payment for the renewal order was unsuccessful with your payment method on file, please try again."
 msgstr ""
 
-#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:158
+#: includes/early-renewal/class-wcs-early-renewal-modal-handler.php:162
 msgid "Your early renewal order was successful."
 msgstr ""
 
@@ -1804,7 +1803,6 @@ msgstr ""
 
 #: includes/switching/class-wc-subscriptions-switcher.php:450
 #: includes/switching/class-wc-subscriptions-switcher.php:552
-#: includes/switching/class-wc-subscriptions-switcher.php:2691
 msgid "Upgrade or Downgrade"
 msgstr ""
 
@@ -1847,66 +1845,58 @@ msgstr ""
 msgid "There was an error locating the switch details."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1879
+#: includes/switching/class-wc-subscriptions-switcher.php:1846
 msgctxt "a switch type"
 msgid "Downgrade"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1882
+#: includes/switching/class-wc-subscriptions-switcher.php:1849
 msgctxt "a switch type"
 msgid "Upgrade"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1885
+#: includes/switching/class-wc-subscriptions-switcher.php:1852
 msgctxt "a switch type"
 msgid "Crossgrade"
 msgstr ""
 
 #. translators: %1: product subtotal, %2: HTML span tag, %3: direction (upgrade, downgrade, crossgrade), %4: closing HTML span tag
-#: includes/switching/class-wc-subscriptions-switcher.php:1890
+#: includes/switching/class-wc-subscriptions-switcher.php:1857
 msgctxt "product subtotal string"
 msgid "%1$s %2$s(%3$s)%4$s"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2006
+#: includes/switching/class-wc-subscriptions-switcher.php:1973
 msgid "The original subscription item being switched cannot be found."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2008
+#: includes/switching/class-wc-subscriptions-switcher.php:1975
 msgid "The item on the switch order cannot be found."
 msgstr ""
 
 #. translators: 1$: old item, 2$: new item when switching
-#: includes/switching/class-wc-subscriptions-switcher.php:2019
+#: includes/switching/class-wc-subscriptions-switcher.php:1986
 msgctxt "used in order notes"
 msgid "Customer switched from: %1$s to %2$s."
 msgstr ""
 
 #. translators: %s: new item name.
-#: includes/switching/class-wc-subscriptions-switcher.php:2022
+#: includes/switching/class-wc-subscriptions-switcher.php:1989
 msgctxt "used in order notes"
 msgid "Customer added %s."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2417
-#: includes/switching/class-wc-subscriptions-switcher.php:2965
+#: includes/switching/class-wc-subscriptions-switcher.php:2384
 msgid "Switch Order"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2432
-#: includes/switching/class-wc-subscriptions-switcher.php:2980
+#: includes/switching/class-wc-subscriptions-switcher.php:2399
 msgid "Switched Subscription"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2648
+#: includes/switching/class-wc-subscriptions-switcher.php:2581
 msgctxt "add to cart button text while switching a subscription"
 msgid "Switch subscription"
-msgstr ""
-
-#: includes/switching/class-wc-subscriptions-switcher.php:2829
-#: vendor/woocommerce/subscriptions-core/wcs-functions.php:223
-msgctxt "Subscription status"
-msgid "Switched"
 msgstr ""
 
 #: includes/switching/class-wcs-cart-switch.php:180
@@ -2678,12 +2668,12 @@ msgid "Delete Permanently"
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-post-types.php:1406
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:762
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:765
 msgid "Restore this item from the Trash"
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/includes/admin/class-wcs-admin-post-types.php:1408
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:763
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:766
 msgid "Restore"
 msgstr ""
 
@@ -4094,14 +4084,14 @@ msgid "Parent Order"
 msgstr ""
 
 #. translators: %1$s refers to the price. This string is meant to prefix another string below, e.g. "$5 now, and $5 on March 15th each year"
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:287
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:290
 msgid "%1$s now, and "
 msgstr ""
 
 #. translators: 1$: recurring amount string, 2$: day of the week (e.g. "$10 every Wednesday").
 #. translators: 1$: recurring amount string, 2$: day of the week (e.g. "$10 every Wednesday")
 #. translators: %1$: recurring amount (e.g. "$15"), %2$: subscription period (e.g. "month") (e.g. "$15 every 2nd month")
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:296
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:299
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:116
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:201
 msgid "%1$s every %2$s"
@@ -4109,56 +4099,56 @@ msgstr ""
 
 #. translators: 1$: recurring amount string, 2$: period, 3$: day of the week (e.g. "$10 every 2nd week on Wednesday").
 #. translators: 1$: recurring amount string, 2$: period, 3$: day of the week (e.g. "$10 every 2nd week on Wednesday")
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:300
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:303
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:125
 msgid "%1$s every %2$s on %3$s"
 msgstr ""
 
 #. translators: placeholder is recurring amount.
 #. translators: placeholder is recurring amount
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:311
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:314
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:143
 msgid "%s on the last day of each month"
 msgstr ""
 
 #. translators: 1$: recurring amount, 2$: day of the month (e.g. "23rd") (e.g. "$5 every 23rd of each month").
 #. translators: 1$: recurring amount, 2$: day of the month (e.g. "23rd") (e.g. "$5 every 23rd of each month")
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:315
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:318
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:146
 msgid "%1$s on the %2$s of each month"
 msgstr ""
 
 #. translators: 1$: recurring amount, 2$: interval (e.g. "3rd") (e.g. "$10 on the last day of every 3rd month").
 #. translators: 1$: recurring amount, 2$: interval (e.g. "3rd") (e.g. "$10 on the last day of every 3rd month")
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:324
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:327
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:162
 msgid "%1$s on the last day of every %2$s month"
 msgstr ""
 
 #. translators: 1$: <price> on the, 2$: <date> day of every, 3$: <interval> month (e.g. "$10 on the 23rd day of every 2nd month").
 #. translators: 1$: recurring amount, 2$: day of the month (e.g. "23rd") (e.g. "$5 every 23rd of each month")
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:331
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:334
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:165
 msgid "%1$s on the %2$s day of every %3$s month"
 msgstr ""
 
 #. translators: 1$: <price> on, 2$: <date>, 3$: <month> each year (e.g. "$15 on March 15th each year").
 #. translators: 1$: recurring amount, 2$: month (e.g. "March"), 3$: day of the month (e.g. "23rd") (e.g. "$15 on March 15th every 3rd year")
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:343
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:346
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:178
 msgid "%1$s on %2$s %3$s each year"
 msgstr ""
 
 #. translators: 1$: recurring amount, 2$: month (e.g. "March"), 3$: day of the month (e.g. "23rd").
 #. translators: 1$: recurring amount, 2$: month (e.g. "March"), 3$: day of the month (e.g. "23rd") (e.g. "$15 on March 15th every 3rd year")
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:351
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:354
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:187
 msgid "%1$s on %2$s %3$s every %4$s year"
 msgstr ""
 
 #. translators: 1$: recurring amount, 2$: subscription period (e.g. "month" or "3 months") (e.g. "$15 / month" or "$15 every 2nd month").
 #. translators: 1$: recurring amount, 2$: subscription period (e.g. "month" or "3 months") (e.g. "$15 / month" or "$15 every 2nd month")
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:363
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:366
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:198
 msgid "%1$s / %2$s"
 msgid_plural "%1$s every %2$s"
@@ -4166,37 +4156,37 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: billing period (e.g. "every week").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:373
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:376
 msgid "every %s"
 msgstr ""
 
 #. translators: 1$: subscription string (e.g. "$10 up front then $5 on March 23rd every 3rd year"), 2$: length (e.g. "4 years").
 #. translators: 1$: subscription string (e.g. "$10 up front then $5 on March 23rd every 3rd year"), 2$: length (e.g. "4 years")
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:383
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:386
 #: vendor/woocommerce/subscriptions-core/includes/wcs-formatting-functions.php:209
 msgid "%1$s for %2$s"
 msgstr ""
 
 #. translators: 1$: subscription string (e.g. "$15 on March 15th every 3 years for 6 years"), 2$: trial length (e.g.: "with 4 months free trial").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:389
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:392
 msgid "%1$s with %2$s free trial"
 msgstr ""
 
 #. translators: 1$: subscription string (e.g. "$15 on March 15th every 3 years for 6 years with 2 months free trial"), 2$: signup fee price (e.g. "and a $30 sign-up fee").
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:394
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:397
 msgid "%1$s and a %2$s sign-up fee"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:972
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-product.php:975
 msgid "This variation can not be removed because it is associated with existing subscriptions. To remove this variation, please permanently delete any related subscriptions."
 msgstr ""
 
 #. translators: placeholder is order ID
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-renewal-order.php:174
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-renewal-order.php:175
 msgid "Order %s created to record renewal."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-renewal-order.php:194
+#: vendor/woocommerce/subscriptions-core/includes/class-wc-subscriptions-renewal-order.php:195
 msgid "Subscription renewal orders cannot be cancelled."
 msgstr ""
 
@@ -4558,20 +4548,20 @@ msgstr ""
 msgid "You have successfully removed \"%1$s\" from your subscription. %2$sUndo?%3$s"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wcs-remove-item.php:176
+#: vendor/woocommerce/subscriptions-core/includes/class-wcs-remove-item.php:180
 #: vendor/woocommerce/subscriptions-core/includes/class-wcs-user-change-status-handler.php:107
 msgid "Security error. Please contact us if you need assistance."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wcs-remove-item.php:180
+#: vendor/woocommerce/subscriptions-core/includes/class-wcs-remove-item.php:184
 msgid "You cannot modify a subscription that does not belong to you."
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wcs-remove-item.php:184
+#: vendor/woocommerce/subscriptions-core/includes/class-wcs-remove-item.php:188
 msgid "You cannot remove an item that does not exist. "
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/includes/class-wcs-remove-item.php:188
+#: vendor/woocommerce/subscriptions-core/includes/class-wcs-remove-item.php:192
 msgid "The item was not removed because this Subscription's payment method does not support removing an item."
 msgstr ""
 
@@ -7288,11 +7278,11 @@ msgstr ""
 msgid "Actions"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/templates/myaccount/subscription-details.php:101
+#: vendor/woocommerce/subscriptions-core/templates/myaccount/subscription-details.php:107
 msgid "Subscription updates"
 msgstr ""
 
-#: vendor/woocommerce/subscriptions-core/templates/myaccount/subscription-details.php:107
+#: vendor/woocommerce/subscriptions-core/templates/myaccount/subscription-details.php:113
 msgctxt "date on subscription updates list. Will be localized"
 msgid "l jS \\o\\f F Y, h:ia"
 msgstr ""
@@ -7345,6 +7335,11 @@ msgstr ""
 #: vendor/woocommerce/subscriptions-core/wcs-functions.php:221
 msgctxt "Subscription status"
 msgid "On hold"
+msgstr ""
+
+#: vendor/woocommerce/subscriptions-core/wcs-functions.php:223
+msgctxt "Subscription status"
+msgid "Switched"
 msgstr ""
 
 #: vendor/woocommerce/subscriptions-core/wcs-functions.php:225

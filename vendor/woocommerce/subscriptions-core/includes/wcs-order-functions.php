@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *    'product_id' The post ID of a WC_Product_Subscription, WC_Product_Variable_Subscription or WC_Product_Subscription_Variation object
  *    'order_id' The post ID of a shop_order post/WC_Order object which was used to create the subscription
  *    'subscription_status' Any valid subscription status. Can be 'any', 'active', 'cancelled', 'on-hold', 'expired', 'pending' or 'trash'. Defaults to 'any'.
- *    'order_type' Get subscriptions for the any order type in this array. Can include 'any', 'parent', 'renewal' or 'switch', defaults to parent.
+ *    'order_type' Get subscriptions for the any order type in this array. Can include 'any', 'parent', 'renewal', 'resubscribe' or 'switch', defaults to 'parent'.
  * @return WC_Subscription[] Subscription details in post_id => WC_Subscription form.
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */

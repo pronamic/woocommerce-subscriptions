@@ -41,6 +41,7 @@ class WC_Subscriptions_Data_Copier {
 		'_trial_period',
 		'_created_via',
 		'_order_stock_reduced',
+		'id',
 	];
 
 	/**

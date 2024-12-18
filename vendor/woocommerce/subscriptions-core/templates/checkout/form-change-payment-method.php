@@ -111,7 +111,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 			<?php
 			echo wp_kses(
-				apply_filters( 'woocommerce_change_payment_button_html', '<input type="submit" class="button alt" id="place_order" value="' . esc_attr( $pay_order_button_text ) . '" data-value="' . esc_attr( $pay_order_button_text ) . '" />' ),
+				apply_filters( 'woocommerce_change_payment_button_html', '<input type="submit" class="button alt' . esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ) . '" id="place_order" value="' . esc_attr( $pay_order_button_text ) . '" data-value="' . esc_attr( $pay_order_button_text ) . '" />' ),
 				array(
 					'input' => array(
 						'type'       => array(),

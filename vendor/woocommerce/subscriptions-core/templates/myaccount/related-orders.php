@@ -89,7 +89,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 					if ( $actions ) {
 						foreach ( $actions as $key => $action ) {
-							echo wp_kses_post( '<a href="' . esc_url( $action['url'] ) . '" class="woocommerce-button button ' . sanitize_html_class( $key ) . '">' . esc_html( $action['name'] ) . '</a>' );
+							echo wp_kses_post( '<a href="' . esc_url( $action['url'] ) . '" class="woocommerce-button button ' . sanitize_html_class( $key ) . esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ) . '">' . esc_html( $action['name'] ) . '</a>' );
 						}
 					}
 					?>

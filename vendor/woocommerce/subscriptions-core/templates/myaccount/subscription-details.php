@@ -81,11 +81,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<td><?php esc_html_e( 'Actions', 'woocommerce-subscriptions' ); ?></td>
 				<td>
 					<?php foreach ( $actions as $key => $action ) : ?>
-						<?php $classes = [ 'button', sanitize_html_class( $key ) ]; ?>
-						<?php $classes[] = isset( $action['block_ui'] ) && $action['block_ui'] ? 'wcs_block_ui_on_click' : '' ?>
+						<?php
+						$classes   = [ 'woocommerce-button', 'button', sanitize_html_class( $key ) ];
+						$classes[] = isset( $action['block_ui'] ) && $action['block_ui'] ? 'wcs_block_ui_on_click' : '';
+
+						if ( wc_wp_theme_get_element_class_name( 'button' ) ) {
+							$classes[] = wc_wp_theme_get_element_class_name( 'button' );
+						}
+						?>
 						<a
 							href="<?php echo esc_url( $action['url'] ); ?>"
-							class="<?php echo trim( implode( ' ', $classes ) ); ?>"
+							class="<?php echo esc_attr( trim( implode( ' ', $classes ) ) ); ?>"
 						>
 							<?php echo esc_html( $action['name'] ); ?>
 						</a>

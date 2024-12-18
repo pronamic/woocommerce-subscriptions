@@ -223,32 +223,4 @@ class WCS_Admin_Reports {
 			WC_Tracks::record_event( $reports[ $name ], $properties );
 		}
 	}
-
-	/**
-	 * If we hit one of our reports in the WC get_report function, change the path to our dir.
-	 *
-	 * @param string $report_path the parth to the report.
-	 * @param string $name the name of the report.
-	 * @param string $class the class of the report.
-	 *
-	 * @return string  path to the report template.
-	 * @since 2.1
-	 * @deprecated in favor of autoloading
-	 * @access private
-	 */
-	public static function initialize_reports_path( $report_path, $name, $class ) {
-		_deprecated_function( __METHOD__, '2.4.0' );
-		if ( in_array( strtolower( $class ), array(
-			'wc_report_subscription_events_by_date',
-			'wc_report_upcoming_recurring_revenue',
-			'wc_report_retention_rate',
-			'wc_report_subscription_by_product',
-			'wc_report_subscription_by_customer',
-			'wc_report_subscription_payment_retry',
-		) ) ) {
-			$report_path = dirname( __FILE__ ) . '/reports/classwcsreport' . $name . '.php';
-		}
-
-		return $report_path;
-	}
 }

@@ -143,6 +143,10 @@ class WCS_Remove_Item {
 				}
 			}
 
+			// Clear cache after updating subscription items.
+			clean_post_cache( $subscription->get_id() );
+			wc_delete_shop_order_transients( $subscription );
+
 			/**
 			 * In WooCommerce 3.0 the subscription object and its items override the database with their current content,
 			 * so we lost the changes we just did with `wc_update_order_item`. Re-reading the object fixes this problem.

@@ -1,5 +1,13 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2024-12-16 - version 7.0.0
+* Fix: Prevent failing non-recent renewal order from suspending the subscription and marking the most recent renewal order as failed.
+* Fix: Use block theme-styled buttons for subscription and related-orders actions on My Account pages.
+* Fix: Subscription totals not properly updating when customers remove items via the My Account > View Subscription page on some stores with caching enabled.
+* Fix: Resolved unexpected errors during the renewal process when a subscription contains metadata with key "id".
+* Update: Changed the link on the order thank-you page to take customers directly to their "My Account > Subscriptions" page.
+* Dev: Update subscriptions-core to 7.8.0
+
 2024-11-27 - version 6.9.1
 * Fix: Resolved compatibility issues with WordPress 6.7 caused by translating strings too early.
 * Dev: Update subscriptions-core to 7.7.2

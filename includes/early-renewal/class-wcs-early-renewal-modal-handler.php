@@ -39,7 +39,7 @@ class WCS_Early_Renewal_Modal_Handler {
 			'text'       => __( 'Pay now', 'woocommerce-subscriptions' ),
 			'attributes' => array(
 				'id'    => 'early_renewal_modal_submit',
-				'class' => 'button alt ',
+				'class' => 'button alt',
 				'href'  => add_query_arg( array(
 					'subscription_id'       => $subscription->get_id(),
 					'process_early_renewal' => true,
@@ -48,6 +48,10 @@ class WCS_Early_Renewal_Modal_Handler {
 				'data-payment-method' => $subscription->get_payment_method(),
 			),
 		);
+
+		if ( wc_wp_theme_get_element_class_name( 'button' ) ) {
+			$place_order_action['attributes']['class'] .= ' ' . wc_wp_theme_get_element_class_name( 'button' );
+		}
 
 		$callback_args = array(
 			'callback'   => array( __CLASS__, 'output_early_renewal_modal' ),
