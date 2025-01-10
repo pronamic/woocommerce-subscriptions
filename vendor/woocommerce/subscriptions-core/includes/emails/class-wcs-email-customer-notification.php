@@ -118,7 +118,7 @@ class WCS_Email_Customer_Notification extends WC_Email {
 	public function get_content_html() {
 		$subscription = $this->object;
 
-		if ( wcs_can_user_renew_early( $subscription )
+		if ( wcs_can_user_renew_early( $subscription, $subscription->get_customer_id() )
 			&& $subscription->payment_method_supports( 'subscription_date_changes' )
 			&& WCS_Early_Renewal_Manager::is_early_renewal_enabled()
 			&& WCS_Manual_Renewal_Manager::is_manual_renewal_enabled()
@@ -164,7 +164,7 @@ class WCS_Email_Customer_Notification extends WC_Email {
 	public function get_content_plain() {
 		$subscription = $this->object;
 
-		if ( wcs_can_user_renew_early( $subscription )
+		if ( wcs_can_user_renew_early( $subscription, $subscription->get_customer_id() )
 			&& $subscription->payment_method_supports( 'subscription_date_changes' )
 			&& WCS_Early_Renewal_Manager::is_early_renewal_enabled()
 			&& WCS_Manual_Renewal_Manager::is_manual_renewal_enabled()

@@ -16,7 +16,7 @@ class WC_Subscriptions_Core_Plugin {
 	 * The version of subscriptions-core library.
 	 * @var string
 	 */
-	protected $library_version = '7.8.0'; // WRCS: DEFINED_VERSION.
+	protected $library_version = '7.9.0'; // WRCS: DEFINED_VERSION.
 
 	/**
 	 * The subscription scheduler instance.
@@ -200,6 +200,7 @@ class WC_Subscriptions_Core_Plugin {
 		WCS_My_Account_Payment_Methods::init();
 		WCS_My_Account_Auto_Renew_Toggle::init();
 		new WCS_Deprecated_Filter_Hooks();
+		new WC_Subscriptions_Email_Preview();
 
 		// On some loads the WC_Query doesn't exist. To avoid a fatal, only load the WCS_Query class when it exists.
 		if ( class_exists( 'WC_Query' ) ) {

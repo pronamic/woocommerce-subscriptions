@@ -21,6 +21,19 @@ class WC_Subscriptions_Email_Notifications {
 	public static $switch_setting_string = '_customer_notifications_enabled';
 
 	/**
+	 * List of subscription notification email classes.
+	 *
+	 * @var array
+	 */
+	public static $email_classes = [
+		'WCS_Email_Customer_Notification_Manual_Trial_Expiration' => true,
+		'WCS_Email_Customer_Notification_Auto_Trial_Expiration' => true,
+		'WCS_Email_Customer_Notification_Manual_Renewal' => true,
+		'WCS_Email_Customer_Notification_Auto_Renewal'   => true,
+		'WCS_Email_Customer_Notification_Subscription_Expiration' => true,
+	];
+
+	/**
 	 * Init.
 	 */
 	public static function init() {
@@ -107,12 +120,9 @@ class WC_Subscriptions_Email_Notifications {
 	 * Add Subscriptions notifications' email classes.
 	 */
 	public static function add_emails( $email_classes ) {
-
-		$email_classes['WCS_Email_Customer_Notification_Auto_Trial_Expiration']   = new WCS_Email_Customer_Notification_Auto_Trial_Expiration();
-		$email_classes['WCS_Email_Customer_Notification_Manual_Trial_Expiration'] = new WCS_Email_Customer_Notification_Manual_Trial_Expiration();
-		$email_classes['WCS_Email_Customer_Notification_Subscription_Expiration'] = new WCS_Email_Customer_Notification_Subscription_Expiration();
-		$email_classes['WCS_Email_Customer_Notification_Manual_Renewal']          = new WCS_Email_Customer_Notification_Manual_Renewal();
-		$email_classes['WCS_Email_Customer_Notification_Auto_Renewal']            = new WCS_Email_Customer_Notification_Auto_Renewal();
+		foreach ( self::$email_classes as $email_class => $_ ) {
+			$email_classes[ $email_class ] = new $email_class();
+		}
 
 		return $email_classes;
 	}

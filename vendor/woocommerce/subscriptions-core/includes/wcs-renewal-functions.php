@@ -123,11 +123,12 @@ function wcs_cart_contains_failed_renewal_order_payment() {
 }
 
 /**
- * Get the subscription/s to which a resubscribe order relates.
+ * Get the subscription/s to which a renewal order relates.
+ *
+ * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  *
  * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
  * @return WC_Subscription[] Subscription details in post_id => WC_Subscription form.
- * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_subscriptions_for_renewal_order( $order ) {
 	return wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'renewal' ) );

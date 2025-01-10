@@ -65,7 +65,7 @@ function wcs_get_edit_post_link( $post_id ) {
 	$object = wc_get_order( $post_id ); // works for both WC Order and WC Subscription objects.
 
 	if ( ! $object || ! in_array( $object->get_type(), array( 'shop_order', 'shop_subscription' ), true ) ) {
-		return;
+		return '';
 	}
 
 	return apply_filters( 'get_edit_post_link', $object->get_edit_order_url(), $post_id, '' );

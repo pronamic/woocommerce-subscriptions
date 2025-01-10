@@ -66,15 +66,15 @@ function wcs_can_user_renew_early( $subscription, $user_id = 0 ) {
 		! boolval( apply_filters( 'wcs_allow_synced_product_early_renewal', false, $subscription ) )
 	) {
 		$reason = 'subscription_contains_synced_product';
-	}
+	} else {
+		// Make sure all line items still exist.
+		foreach ( $subscription->get_items() as $line_item ) {
+			$product = wc_get_product( wcs_get_canonical_product_id( $line_item ) );
 
-	// Make sure all line items still exist.
-	foreach ( $subscription->get_items() as $line_item ) {
-		$product = wc_get_product( wcs_get_canonical_product_id( $line_item ) );
-
-		if ( false === $product ) {
-			$reason = 'line_item_no_longer_exists';
-			break;
+			if ( false === $product ) {
+				$reason = 'line_item_no_longer_exists';
+				break;
+			}
 		}
 	}
 

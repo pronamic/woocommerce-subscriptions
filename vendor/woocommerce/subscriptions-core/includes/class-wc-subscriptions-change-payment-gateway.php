@@ -294,7 +294,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			$subscription_billing_country  = $subscription->get_billing_country();
 			$subscription_billing_state    = $subscription->get_billing_state();
 			$subscription_billing_postcode = $subscription->get_billing_postcode();
-			$subscription_billing_city     = $subscription->get_billing_postcode();
+			$subscription_billing_city     = $subscription->get_billing_city();
 
 			// Set customer location to order location
 			if ( $subscription_billing_country ) {
@@ -313,6 +313,10 @@ class WC_Subscriptions_Change_Payment_Gateway {
 				$setter = is_callable( array( WC()->customer, 'set_billing_city' ) ) ? 'set_billing_city' : 'set_city';
 				WC()->customer->$setter( $subscription_billing_city );
 			}
+
+			// For each new change payment request, make sure we delete the delayed update payment method meta if it exists.
+			$subscription->delete_meta_data( '_delayed_update_payment_method_all' );
+			$subscription->save_meta_data();
 
 			// Update payment method
 			$new_payment_method = wc_clean( $_POST['payment_method'] );
@@ -433,6 +437,9 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			if ( $user_subscription->get_time( 'next_payment' ) <= 0 || ! $user_subscription->has_status( array( 'active', 'on-hold' ) ) ) {
 				continue;
 			}
+
+			// Clear any stale _delayed_update_payment_method_all meta existing on the users other subscriptions if it exists.
+			$user_subscription->delete_meta_data( '_delayed_update_payment_method_all' );
 
 			self::update_payment_method( $user_subscription, $new_payment_method, $payment_meta_table );
 
