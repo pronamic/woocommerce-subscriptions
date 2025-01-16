@@ -163,7 +163,7 @@ mkdir( $plugins_dir );
 
 $plugin_dir = $plugins_dir . '/woocommerce-subscriptions';
 
-$zip_file = $archives_dir . '/woocommerce-subscriptions-' . $version . '.zip';
+$zip_file = $archives_dir . '/woocommerce-subscriptions.' . $version . '.zip';
 
 /**
  * Download ZIP.
