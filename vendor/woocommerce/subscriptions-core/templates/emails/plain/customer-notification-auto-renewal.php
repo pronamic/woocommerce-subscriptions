@@ -3,7 +3,7 @@
  * Customer Notification: Notify the customer that an automated renewal their subscription is about to happen. Plain text version.
  *
  * @package WooCommerce_Subscriptions/Templates/Emails/Plain
- * @version x.x.x
+ * @version 7.2.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -37,10 +37,11 @@ echo esc_html(
 
 echo "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";
 
-esc_html_e( 'Here are the details:', 'woocommerce-subscriptions' );
-echo "\n";
 // Show subscription details.
 \WC_Subscriptions_Email::subscription_details( $subscription, $order, $sent_to_admin, $plain_text, true );
+
+/** This action is documented in templates/emails/customer-notification-auto-renewal.php */
+do_action( 'woocommerce_subscriptions_email_order_details', $subscription, $sent_to_admin, $plain_text, $email );
 
 esc_html_e( 'You can manage this subscription from your account dashboard: ', 'woocommerce-subscriptions' );
 echo esc_url( wc_get_page_permalink( 'myaccount' ) );

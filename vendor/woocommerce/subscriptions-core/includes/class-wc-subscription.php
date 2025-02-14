@@ -1514,7 +1514,14 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Calculate a given date for the subscription in GMT/UTC.
 	 *
-	 * @param string $date_type 'trial_end', 'next_payment', 'end_of_prepaid_term' or 'end'
+	 * This function is primarily used when the date needs to be recalculated (e.g., after a renewal or if the date has already passed).
+	 * If you need to retrieve the currently scheduled date, use get_date() or get_time() instead.
+	 *
+	 * @see WC_Subscription::calculate_next_payment_date() for more details about how the next payment date is calculated.
+	 *
+	 * @param string $date_type 'trial_end', 'next_payment', 'end_of_prepaid_term' or 'end'.
+	 *
+	 * @return string|int The calculated date in MySQL format (`YYYY-MM-DD HH:MM:SS`), or `0` if undefined.
 	 */
 	public function calculate_date( $date_type ) {
 
@@ -1550,19 +1557,61 @@ class WC_Subscription extends WC_Order {
 				break;
 		}
 
+		/**
+		 * Filter the calculated date for a subscription.
+		 *
+		 * The filter hook is dynamic. 'woocommerce_subscription_calculated_{date_type}_date' where {date_type} is the date type passed to the function.
+		 * For example:
+		 *  - 'woocommerce_subscription_calculated_next_payment_date'
+		 *  - 'woocommerce_subscription_calculated_trial_end_date'
+		 *  - 'woocommerce_subscription_calculated_end_of_prepaid_term_date'
+		 *
+		 * @param string|int      $date         The calculated date in MySQL format (`YYYY-MM-DD HH:MM:SS`), or `0` if undefined.
+		 * @param WC_Subscription $subscription The subscription object.
+		 */
 		return apply_filters( 'woocommerce_subscription_calculated_' . $date_type . '_date', $date, $this );
 	}
 
 	/**
 	 * Calculates the next payment date for a subscription.
 	 *
-	 * Although an inactive subscription does not have a next payment date, this function will still calculate the date
-	 * so that it can be used to determine the date the next payment should be charged for inactive subscriptions.
+	 * This function calculates the next valid renewal date. This could be the currently scheduled next payment date if it's still valid or
+	 * it could be a newly calculated date based on specific conditions. It is primarily used when the next payment date needs to be
+	 * recalculated (e.g., after a renewal or if the next payment date has already passed).
 	 *
-	 * @return int | string Zero if the subscription has no next payment date, or a MySQL formatted date time if there is a next payment date
+	 * How it calculates the next payment date:
+	 * - If the subscription has a trial period, and the trial is still active, the next
+	 *   payment returned is the scheduled trial end date.
+	 * - Otherwise, the function selects a base date and adds {interval} {period} to it. The base date is chosen in this order:
+	 *   1. Current next payment date – Used if the subscription has a trial period and there's no first renewal payment yet or it is synced
+	 *      to a fixed billing day.
+	 *   2. Last payment date – This is the most common case. The last order payment date is used to ensure the customer is given a full
+	 *      billing term after they successfully paid the last order. This is important in cases where the last order payment failed and
+	 *      was paid sometime later.
+	 *        - This can be bypassed using the 'wcs_calculate_next_payment_from_last_payment' filter.
+	 *        - @see https://github.com/woocommerce/woocommerce-subscriptions-preserve-billing-schedule
+	 *   3. Next payment date – Used when the filter above is used and the subscription has a valid next payment date. This preserves the
+	 *      subscriptions current billing date. eg if the subscription's payment date occurs on the 10th of every month, it will continue
+	 *      even if the last payment was received late.
+	 *   4. Subscription start date – Used as a last resort if no valid payment dates exist.
+	 *
+	 * Important notes:
+	 * - If the resulting calculated next payment date is less than 2 hours in the future, it will add an additional billing period
+	 *   until it finds a date a least 2 hours in the future. This was originally necessary to combat daylight savings issues. ie if
+	 *   we added 1 billing period to the previous date but there has been a subsequent daylight savings change, the next payment date
+	 *   could be on the same day as the previous payment.
+	 * - If the subscription has an end date, and the calculated next payment occurs after it, the function returns 0. ie there are no
+	 *   more payments to be made.
+	 * - Although an inactive subscription does not have a public facing next payment date, this function will still calculate the date
+	 *   so it can be used when determining what the next date would be if the subscription were to be reactivated.
+	 *
+	 * Filters:
+	 * - wcs_calculate_next_payment_from_last_payment (bool) – Controls whether the function
+	 *   should use the last payment date as the base for calculation. Default is true.
+	 *
+	 * @return int|string Zero if the subscription has no next payment date, or a MySQL formatted date (YYYY-MM-DD HH:MM:SS) if there is a next payment date.
 	 */
 	protected function calculate_next_payment_date() {
-
 		$next_payment_date = 0;
 
 		// If the subscription is not active, there is no next payment date

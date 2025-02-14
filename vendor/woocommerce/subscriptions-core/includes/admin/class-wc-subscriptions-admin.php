@@ -1893,7 +1893,7 @@ class WC_Subscriptions_Admin {
 
 		if ( ! $payment_gateways_handler::one_gateway_supports( 'subscriptions' ) ) {
 			// translators: $1-2: opening and closing tags of a link that takes to Woo marketplace / Stripe product page
-			$available_gateways_description = sprintf( __( 'No payment gateways capable of processing automatic subscription payments are enabled. If you would like to process automatic payments, we recommend the %1$sfree Stripe extension%2$s.', 'woocommerce-subscriptions' ), '<strong><a href="https://www.woocommerce.com/products/stripe/">', '</a></strong>' );
+			$available_gateways_description = sprintf( __( 'No payment gateways capable of processing automatic subscription payments are enabled. If you would like to process automatic payments, we recommend %1$sWooPayments%2$s.', 'woocommerce-subscriptions' ), '<strong><a href="https://woocommerce.com/payments/">', '</a></strong>' );
 		}
 
 		$recurring_payment_settings = apply_filters(

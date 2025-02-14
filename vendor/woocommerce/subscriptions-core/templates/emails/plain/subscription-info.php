@@ -2,9 +2,8 @@
 /**
  * Subscription information template
  *
- * @author  Brent Shepherd / Chuck Mac
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.4
+ * @version 7.2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

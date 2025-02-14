@@ -129,6 +129,11 @@ class WC_Subscriptions_Upgrader {
 			wp_unschedule_hook( 'wcs_cleanup_big_logs' );
 		}
 
+		if ( version_compare( self::$active_version, '8.0.0', '<' ) ) {
+			// As of Subscriptions 7.2.0 (Core 8.0.0), admin notices are stored one transient per-user.
+			delete_transient( '_wcs_admin_notices' );
+		}
+
 		self::upgrade_complete();
 	}
 

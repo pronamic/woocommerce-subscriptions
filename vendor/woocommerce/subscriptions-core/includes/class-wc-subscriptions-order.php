@@ -756,6 +756,7 @@ class WC_Subscriptions_Order {
 					'order'                => $order,
 					'subscriptions'        => $subscriptions,
 					'is_admin_email'       => $is_admin_email,
+					'plain_text'           => $plaintext,
 					'skip_my_account_link' => $skip_my_account_link,
 				),
 				'',

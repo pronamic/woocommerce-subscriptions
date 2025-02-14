@@ -3,7 +3,7 @@
  * Customer Notification: Free trial of an automatically renewed subscription is about to expire email. Plain text version.
  *
  * @package WooCommerce_Subscriptions/Templates/Emails/Plain
- * @version x.x.x
+ * @version 7.2.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -43,10 +43,11 @@ echo esc_url( wc_get_page_permalink( 'myaccount' ) );
 
 echo "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";
 
-esc_html_e( 'Here are the details:', 'woocommerce-subscriptions' );
-
 // Show subscription details.
 \WC_Subscriptions_Email::subscription_details( $subscription, $order, $sent_to_admin, $plain_text, true );
+
+/** This action is documented in templates/emails/customer-notification-auto-renewal.php */
+do_action( 'woocommerce_subscriptions_email_order_details', $subscription, $sent_to_admin, $plain_text, $email );
 
 echo "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";
 

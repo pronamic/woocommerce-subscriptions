@@ -329,6 +329,7 @@ class WC_Subscriptions_Email {
 				'order'                => $order,
 				'subscriptions'        => $subscriptions,
 				'is_admin_email'       => $sent_to_admin,
+				'plain_text'           => $plain_text,
 				'skip_my_account_link' => $skip_my_account_link,
 			),
 			'',

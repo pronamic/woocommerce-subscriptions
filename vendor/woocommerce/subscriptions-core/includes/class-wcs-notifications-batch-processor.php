@@ -49,6 +49,7 @@ class WCS_Notifications_Batch_Processor implements WCS_Batch_Processor {
 			'active',
 			'pending',
 			'on-hold',
+			'pending-cancel',
 		);
 
 		return array_map( 'wcs_sanitize_subscription_status_key', $allowed_statuses );

@@ -35,7 +35,17 @@ function wcs_create_renewal_order( $subscription ) {
 
 	WCS_Related_Order_Store::instance()->add_relation( $renewal_order, $subscription, 'renewal' );
 
-	return apply_filters( 'wcs_renewal_order_created', $renewal_order, $subscription );
+	/**
+	 * Provides an opportunity to monitor, interact with and replace renewal orders when they
+	 * are first created.
+	 *
+	 * @param WC_Order        $renewal_order The renewal order.
+	 * @param WC_Subscription $subscription  The subscription the renewal is related to.
+	 */
+	$filtered_renewal_order = apply_filters( 'wcs_renewal_order_created', $renewal_order, $subscription );
+
+	// It is possible that a filter function will replace the renewal order with something else entirely.
+	return $filtered_renewal_order instanceof WC_Order ? $filtered_renewal_order : $renewal_order;
 }
 
 /**

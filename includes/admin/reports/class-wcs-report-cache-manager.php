@@ -321,7 +321,7 @@ class WCS_Report_Cache_Manager {
 				'label'   => 'Cache Update Failures',
 				/* translators: %d refers to the number of times we have detected cache update failures */
 				'note'    => sprintf( _n( '%d failures', '%d failure', $failures, 'woocommerce-subscriptions' ), $failures ),
-				'success' => 0 === $failures,
+				'success' => 0 === (int)$failures,
 			),
 		);
 

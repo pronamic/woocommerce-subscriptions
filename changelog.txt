@@ -1,5 +1,24 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-02-13 - version 7.2.1
+* Fix: Revert a change released in 7.2.0 which triggered the "woocommerce_cart_item_name" filter with the wrong number of parameters.
+* Dev: Update subscriptions-core to 8.0.1.
+
+2025-02-13 - version 7.2.0
+* Fix: In the system status report, show correct icon in the Cache Update Failures section when the total failures is 0.
+* Fix: Recommend WooPayments when there is no available payment gateway.
+* Fix: Safeguards added to the Subscriptions Totals template used in the My Account area, to guard against fatal errors that could arise in unusual conditions.
+* Fix: Correctly load product names with HTML on the cart and checkout shipping rates.
+* Fix: Improve our admin notice handling to ensure notices are displayed to the intended admin user.
+* Fix: Improve protections around the pending renewal order-creation process, to prevent uncaught exceptions and other errors from breaking the subscription editor.
+* Fix: Prevent unnecessary subscription object lookups on non-subscription admin pages when global $post is set.
+* Fix: After enabling the Customer Notification feature or changing the reminder timing setting, ensure notifications are correctly scheduled for all subscriptions with pending cancellation status.
+* Update: Improve performance of displaying recurring coupon limits in the admin coupon list table by optimizing coupon object retrieval.
+* Update: Display the subscription items table in all customer notification emails.
+* Update: Subscription notes for unsent customer notification emails now only occurs if WCS_DEBUG is enabled.
+* Dev: Introduces a new `woocommerce_subscription_valid_customer_notification_types` filter to modify which notification types are scheduled in Action Scheduler.
+* Dev: Update subscriptions-core to 8.0.0.
+
 2025-01-10 - version 7.1.0
 * Add: Compatibility with WooCommerce's new preview email feature introduced in 9.6.
 * Fix: Prevents PHP fatal error when wcs_can_user_renew_early() is called with a non-existent subscription ID.

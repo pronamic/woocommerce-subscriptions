@@ -4,7 +4,7 @@
  *
  * @package WooCommerce_Subscription/Templates
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
- * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
+ * @version 7.2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -25,6 +25,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php
 		foreach ( $subscription->get_items() as $item_id => $item ) {
 			$_product = apply_filters( 'woocommerce_subscriptions_order_item_product', $item->get_product(), $item );
+
+			if ( ! is_a( $_product, WC_Product::class ) ) {
+				wc_get_logger()->warning(
+					'A non-product was encountered while summarizing subscription product totals.',
+					array(
+						'backtrace'   => true,
+						'entity'      => $_product,
+						'entity_type' => gettype( $_product ),
+					)
+				);
+			}
+
 			if ( apply_filters( 'woocommerce_order_item_visible', true, $item ) ) {
 				?>
 				<tr class="<?php echo esc_attr( apply_filters( 'woocommerce_order_item_class', 'order_item', $item, $subscription ) ); ?>">
@@ -38,7 +50,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<?php endif; ?>
 					<td class="product-name">
 						<?php
-						if ( $_product && ! $_product->is_visible() ) {
+						if ( is_a( $_product, WC_Product::class ) && ! $_product->is_visible() ) {
 							echo wp_kses_post( apply_filters( 'woocommerce_order_item_name', $item['name'], $item, false ) );
 						} else {
 							echo wp_kses_post( apply_filters( 'woocommerce_order_item_name', sprintf( '<a href="%s">%s</a>', get_permalink( $item['product_id'] ), $item['name'] ), $item, false ) );
@@ -76,7 +88,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<?php
 			}
 
-			$purchase_note = $_product->get_purchase_note();
+			$purchase_note = is_a( $_product, WC_Product::class ) ? $_product->get_purchase_note() : false;
+
 			if ( $subscription->has_status( array( 'completed', 'processing' ) ) && $purchase_note ) {
 				?>
 				<tr class="product-purchase-note">

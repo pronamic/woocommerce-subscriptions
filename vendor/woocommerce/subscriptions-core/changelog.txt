@@ -1,5 +1,20 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 8.0.1 - 2025-02-13 =
+* Fix - Revert a change released in 7.2.0 which triggered the "woocommerce_cart_item_name" filter with the wrong number of parameters.
+
+= 8.0.0 - 2025-02-13 =
+* Fix - Recommend WooPayments when there is no available payment gateway.
+* Fix - Safeguards added to the Subscriptions Totals template used in the My Account area, to guard against fatal errors that could arise in unusual conditions.
+* Fix - Correctly load product names with HTML on the cart and checkout shipping rates.
+* Fix - Improve our admin notice handling to ensure notices are displayed to the intended admin user.
+* Fix - Improve protections around the pending renewal order-creation process, to prevent uncaught exceptions and other errors from breaking the subscription editor.
+* Fix - Prevent unnecessary subscription object lookups on non-subscription admin pages when global $post is set.
+* Fix - After enabling the Customer Notification feature or changing the reminder timer setting, ensure notification emails are scheduled for subscriptions with pending cancellation status.
+* Update - Include subscription items table in all customer notification emails.
+* Update - Subscription notes for unsent customer notification emails now only occurs if WCS_DEBUG is enabled.
+* Dev - Introduces a new `woocommerce_subscription_valid_customer_notification_types` filter to modify which notification types are scheduled in Action Scheduler.
+
 = 7.9.0 - 2025-01-10 =
 * Add - Compatibility with WooCommerce's new preview email feature introduced in 9.6.
 * Fix - Prevent payment gateways that complete Change Payment requests asynchronously from blocking future attempts to update payment methods for all subscriptions.

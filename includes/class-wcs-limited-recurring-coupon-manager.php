@@ -77,28 +77,33 @@ class WCS_Limited_Recurring_Coupon_Manager {
 	 * Get the number of renewals for a limited coupon.
 	 *
 	 * @since 4.0.0
-	 * @param string $code The coupon code.
+	 * @param string|WC_Coupon $coupon The coupon or coupon code.
 	 * @return false|int False for non-recurring coupons, or the limit number for recurring coupons.
 	 *                   A value of 0 is for unlimited usage.
 	 */
-	public static function get_coupon_limit( $code ) {
-		if ( wcs_is_woocommerce_pre( '3.2' ) ) {
+	public static function get_coupon_limit( $coupon ) {
+		// If we have a coupon code, attempt to get the coupon object.
+		if ( is_string( $coupon ) ) {
+			$coupon = new WC_Coupon( $coupon );
+		}
+
+		if ( ! $coupon instanceof WC_Coupon ) {
 			return false;
 		}
 
-		// Retrieve the coupon data.
-		$coupon      = new WC_Coupon( $code );
 		$coupon_type = $coupon->get_discount_type();
 
 		// If we have a virtual coupon, attempt to get the original coupon.
 		if ( WC_Subscriptions_Coupon::is_renewal_cart_coupon( $coupon_type ) ) {
-			$coupon      = WC_Subscriptions_Coupon::map_virtual_coupon( $code );
+			$coupon      = WC_Subscriptions_Coupon::map_virtual_coupon( $coupon->get_code() );
 			$coupon_type = $coupon->get_discount_type();
 		}
 
-		$limited = $coupon->get_meta( self::$coupons_renewals );
+		if ( ! WC_Subscriptions_Coupon::is_recurring_coupon( $coupon_type ) ) {
+			return false;
+		}
 
-		return WC_Subscriptions_Coupon::is_recurring_coupon( $coupon_type ) ? intval( $limited ) : false;
+		return intval( $coupon->get_meta( self::$coupons_renewals ) );
 	}
 
 	/**
@@ -266,11 +271,16 @@ class WCS_Limited_Recurring_Coupon_Manager {
 	 * @param int    $id          The coupon ID.
 	 */
 	public static function add_limit_to_list_table( $column_name, $id ) {
+		global $the_coupon;
+
 		if ( 'usage' !== $column_name ) {
 			return;
 		}
 
-		$limit = self::get_coupon_limit( wc_get_coupon_code_by_id( $id ) );
+		// Confirm the global coupon object is the one we're looking for, otherwise fetch it.
+		$coupon = empty( $the_coupon ) || $the_coupon->get_id() !== $id ? new WC_Coupon( $id ) : $the_coupon;
+		$limit  = self::get_coupon_limit( $coupon );
+
 		if ( false === $limit ) {
 			return;
 		}

@@ -497,7 +497,25 @@ class WCS_Action_Scheduler_Customer_Notifications extends WCS_Scheduler {
 			}
 		}
 
-		return $notifications;
+		/**
+		 * Filter: `woocommerce_subscription_valid_customer_notification_types`.
+		 *
+		 * Allows filtering the list of notification types that will be scheduled for a particular subscription.
+		 *
+		 * Default array format returned:
+		 *
+		 * array(
+		 *     'next_payment', // Exists if the subscription contains a next payment date in the future.
+		 *     'trial_end',    // Exists if the subscription contains a trial end date in the future.
+		 *     'end'           // Exists if the subscription contains an end date in the future.
+		 * )
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param array           $notifications Array of valid notification types.
+		 * @param WC_Subscription $subscription  Subscription object.
+		 */
+		return (array) apply_filters( 'woocommerce_subscription_valid_customer_notification_types', $notifications, $subscription );
 	}
 
 	/**

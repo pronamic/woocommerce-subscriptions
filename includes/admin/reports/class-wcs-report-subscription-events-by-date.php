@@ -473,7 +473,8 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 
 			// Remove this class from the list of classes WC updates on shutdown. Introduced in WC 3.7
 			if ( ! wcs_is_woocommerce_pre( '3.7' ) ) {
-				unset( WC_Admin_Report::$transients_to_update[ strtolower( get_class( $this ) ) ] );
+				$class_name = strtolower( get_class( $this ) );
+				unset( WC_Admin_Report::$transients_to_update[ $class_name ] );
 			}
 		}
 	}

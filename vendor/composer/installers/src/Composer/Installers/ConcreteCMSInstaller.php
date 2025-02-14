@@ -2,7 +2,7 @@
 
 namespace Composer\Installers;
 
-class Concrete5Installer extends BaseInstaller
+class ConcreteCMSInstaller extends BaseInstaller
 {
     /** @var array<string, string> */
     protected $locations = array(

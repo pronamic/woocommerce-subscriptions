@@ -178,7 +178,7 @@ class WC_Subscriptions_Email_Notifications {
 				break;
 		}
 
-		if ( $notification ) {
+		if ( $notification && $notification->is_enabled() ) {
 			$notification->trigger( $subscription_id );
 		}
 	}
