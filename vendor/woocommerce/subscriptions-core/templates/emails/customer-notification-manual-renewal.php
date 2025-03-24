@@ -3,11 +3,12 @@
  * Customer Notification: Manual renewal needed.
  *
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 7.2.0
+ * @version 7.3.0 - Updated for WC core email improvements.
  */
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
-}
+
+defined( 'ABSPATH' ) || exit;
+
+$email_improvements_enabled = wcs_is_wc_feature_enabled( 'email_improvements' );
 
 /**
  * @hooked WC_Emails::email_header() Output the email header.
@@ -16,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 
-	<p>
+<?php echo $email_improvements_enabled ? '<div class="email-introduction">' : ''; ?>
 		<?php
 		echo esc_html(
 			sprintf(
@@ -99,7 +100,9 @@ do_action( 'woocommerce_subscriptions_email_order_details', $subscription, $sent
  * Show user-defined additional content - this is set in each email's settings.
  */
 if ( $additional_content ) {
+	echo $email_improvements_enabled ? '<table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td class="email-additional-content">' : '';
 	echo wp_kses_post( wpautop( wptexturize( $additional_content ) ) );
+	echo $email_improvements_enabled ? '</td></tr></table>' : '';
 }
 
 /**

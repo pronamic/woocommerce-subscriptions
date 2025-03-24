@@ -19,6 +19,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WCS_Email_Payment_Retry extends WC_Email_Failed_Order {
 
 	/**
+	 * The retry object associated with the order.
+	 *
+	 * @var WCS_Retry
+	 */
+	public $retry;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {

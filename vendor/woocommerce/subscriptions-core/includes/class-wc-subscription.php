@@ -1295,18 +1295,29 @@ class WC_Subscription extends WC_Order {
 	 * @param string $date_type 'date_created', 'trial_end', 'next_payment', 'last_order_date_created', 'end' or 'end_of_prepaid_term'
 	 */
 	public function get_date_to_display( $date_type = 'next_payment' ) {
-
-		$date_type = wcs_normalise_date_type_key( $date_type, true );
-
+		$date_type     = wcs_normalise_date_type_key( $date_type, true );
 		$timestamp_gmt = $this->get_time( $date_type, 'gmt' );
 
+		return $this->format_date_to_display( $timestamp_gmt, $date_type );
+	}
+
+	/**
+	 * Formats a subscription date timestamp for display.
+	 *
+	 * @param int    $timestamp The subscription date in a timestamp format.
+	 * @param string $date_type The subscription date type to display. @see WC_Subscription::get_valid_date_types()
+	 *
+	 * @return string The formatted date to display.
+	 */
+	public function format_date_to_display( $timestamp_gmt, $date_type ) {
+		$date_type = wcs_normalise_date_type_key( $date_type, true );
+
 		// Don't display next payment date when the subscription is inactive
-		if ( 'next_payment' == $date_type && ! $this->has_status( 'active' ) ) {
+		if ( 'next_payment' === $date_type && ! $this->has_status( 'active' ) ) {
 			$timestamp_gmt = 0;
 		}
 
 		if ( $timestamp_gmt > 0 ) {
-
 			$time_diff = $timestamp_gmt - current_time( 'timestamp', true );
 
 			if ( $time_diff > 0 && $time_diff < WEEK_IN_SECONDS ) {
@@ -1316,7 +1327,7 @@ class WC_Subscription extends WC_Order {
 				// translators: placeholder is human time diff (e.g. "3 weeks")
 				$date_to_display = sprintf( __( '%s ago', 'woocommerce-subscriptions' ), human_time_diff( current_time( 'timestamp', true ), $timestamp_gmt ) );
 			} else {
-				$date_to_display = date_i18n( wc_date_format(), $this->get_time( $date_type, 'site' ) );
+				$date_to_display = date_i18n( wc_date_format(), $timestamp_gmt + wc_timezone_offset() );
 			}
 		} else {
 			switch ( $date_type ) {
@@ -2074,25 +2085,31 @@ class WC_Subscription extends WC_Order {
 	 * @return array
 	 */
 	public function get_related_orders( $return_fields = 'ids', $order_types = array( 'parent', 'renewal', 'switch' ) ) {
-
-		$return_fields = ( 'ids' == $return_fields ) ? $return_fields : 'all';
+		$return_fields  = ( 'ids' === $return_fields ) ? $return_fields : 'all';
+		$related_orders = [];
 
 		if ( 'all' === $order_types ) {
 			wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'The "all" value for $order_type parameter is deprecated. It was a misnomer, as it did not return resubscribe orders. It was also inconsistent with order type values accepted by wcs_get_subscription_orders(). Use array( "parent", "renewal", "switch" ) to maintain previous behaviour, or "any" to receive all order types, including switch and resubscribe.', 'woocommerce-subscriptions' ), __CLASS__ ) );
 			$order_types = array( 'parent', 'renewal', 'switch' );
 		} elseif ( ! is_array( $order_types ) ) {
-			// Accept either an array or string (to make it more convenient for singular types, like 'parent' or 'any')
+			// Accept either an array or string (to make it more convenient for singular types, like 'parent' or 'any').
 			$order_types = array( $order_types );
 		}
 
-		$related_orders = array();
-		foreach ( $order_types as $order_type ) {
-			$related_orders_for_order_type = array();
-			foreach ( $this->get_related_order_ids( $order_type ) as $order_id ) {
-				if ( 'all' === $return_fields && $order = wc_get_order( $order_id ) ) {
-					$related_orders_for_order_type[ $order_id ] = $order;
-				} elseif ( 'ids' === $return_fields ) {
+		foreach ( $this->get_related_order_ids( $order_types, 'grouped' ) as $order_type => $order_ids ) {
+			$related_orders_for_order_type = [];
+
+			foreach ( $order_ids as $order_id ) {
+				if ( 'ids' === $return_fields ) {
 					$related_orders_for_order_type[ $order_id ] = $order_id;
+					continue;
+				}
+
+				// Handle the "all" return type by fetching the order object.
+				$order = wc_get_order( $order_id );
+
+				if ( $order ) {
+					$related_orders_for_order_type[ $order_id ] = $order;
 				}
 			}
 
@@ -2107,25 +2124,42 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Get the related order IDs for a subscription based on an order type.
 	 *
-	 * @param string $order_type Can include 'any', 'parent', 'renewal', 'resubscribe' and/or 'switch'. Defaults to 'any'.
-	 * @return array List of related order IDs.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
+	 * @since 7.2.1 - The $order_type parameter can now be an array of order types and the $return_type parameter was added.
+	 *
+	 * @param string|array $order_type  Can include 'any', 'parent', 'renewal', 'resubscribe' and/or 'switch'. Defaults to 'any'.
+	 * @param string       $return_type The format to return the related order IDs in. Can be 'flat' or 'grouped'. Defaults to 'flat'.
+	 *
+	 * @return array List of related order IDs.
 	 */
-	protected function get_related_order_ids( $order_type = 'any' ) {
+	protected function get_related_order_ids( $order_type = 'any', $return_type = 'flat' ) {
+		$order_types       = is_array( $order_type ) ? $order_type : [ $order_type ];
+		$related_order_ids = [];
 
-		$related_order_ids = array();
-
-		if ( in_array( $order_type, array( 'any', 'parent' ) ) && $this->get_parent_id() ) {
-			$related_order_ids[ $this->get_parent_id() ] = $this->get_parent_id();
+		// For backwards compatibility, replace 'any' with the actual order types.
+		if ( in_array( 'any', $order_types, true ) ) {
+			$order_types = array_diff( $order_types, [ 'any' ] ); // Remove 'any'.
+			$order_types = array_unique( array_merge( $order_types, [ 'parent', 'renewal', 'resubscribe', 'switch' ] ) ); // Add the 'any' order types.
 		}
 
-		if ( 'parent' !== $order_type ) {
+		// Get the parent order ID first.
+		if ( in_array( 'parent', $order_types, true ) ) {
+			// Remove the parent order type from the list of order types.
+			$order_types = array_diff( $order_types, [ 'parent' ] );
+			$parent_id   = $this->get_parent_id();
 
-			$relation_types = ( 'any' === $order_type ) ? array( 'renewal', 'resubscribe', 'switch' ) : array( $order_type );
+			// Because the call requested the parent order, if there is no parent ID, we need to return an empty array.
+			$related_order_ids['parent'] = $parent_id ? [ $parent_id ] : [];
+		}
 
-			foreach ( $relation_types as $relation_type ) {
-				$related_order_ids = array_merge( $related_order_ids, WCS_Related_Order_Store::instance()->get_related_order_ids( $this, $relation_type ) );
-			}
+		if ( ! empty( $order_types ) ) {
+			// Get the related order IDs based on the remaining order types.
+			$related_order_ids += WCS_Related_Order_Store::instance()->get_related_order_ids_by_types( $this, $order_types );
+		}
+
+		if ( 'flat' === $return_type && ! empty( $related_order_ids ) ) {
+			// Flatten the grouped order IDs into a single array.
+			$related_order_ids = array_merge( ...array_values( $related_order_ids ) );
 		}
 
 		return $related_order_ids;

@@ -872,6 +872,11 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 		global $wpdb;
 
 		$wpdb->delete( self::get_meta_table_name(), [ 'meta_key' => $meta_key ], [ '%s' ] ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+
+		// If custom order tables is enabled and data syncing is enabled, delete the meta from the custom order tables.
+		if ( wcs_is_custom_order_tables_usage_enabled() && wcs_is_custom_order_tables_data_sync_enabled() ) {
+			$this->get_cpt_data_store_instance()->delete_all_metadata_by_key( $meta_key );
+		}
 	}
 
 	/**

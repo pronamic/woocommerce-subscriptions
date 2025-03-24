@@ -49,7 +49,13 @@ class WC_Subscriptions_Email_Preview {
 			case 'WCS_Email_Customer_Notification_Auto_Renewal':
 				$email->set_object( $this->get_dummy_subscription() );
 				break;
+			case 'WCS_Email_Customer_Payment_Retry':
+			case 'WCS_Email_Payment_Retry':
+				$email->retry = $this->get_dummy_retry( $email->object );
+				break;
 		}
+
+		$this->add_placeholders( $email );
 
 		add_filter( 'woocommerce_mail_content', [ $this, 'clean_up_filters' ] );
 
@@ -140,12 +146,54 @@ class WC_Subscriptions_Email_Preview {
 	}
 
 	/**
+	 * Creates a dummy retry for use when previewing failed subscription payment retry emails.
+	 *
+	 * @param WC_Order $order The order object to create a dummy retry for.
+	 * @return WCS_Retry The dummy retry object.
+	 */
+	private function get_dummy_retry( $order ) {
+
+		if ( ! class_exists( 'WCS_Retry_Manager' ) ) {
+			return null;
+		}
+
+		$order_id   = is_a( $order, 'WC_Order' ) ? $order->get_id() : 12345;
+		$retry_rule = WCS_Retry_Manager::rules()->get_rule( 1, $order_id );
+
+		if ( is_a( $retry_rule, 'WCS_Retry_Rule' ) ) {
+			$interval       = $retry_rule->get_retry_interval();
+			$raw_retry_rule = $retry_rule->get_raw_data();
+		} else {
+			// If the retry rule is not found, use a default interval of 12 hours and an empty raw rule.
+			$interval       = 12 * HOUR_IN_SECONDS;
+			$raw_retry_rule = [];
+		}
+
+		return new WCS_Retry(
+			[
+				'status'   => 'pending',
+				'order_id' => $order_id,
+				'date_gmt' => gmdate( 'Y-m-d H:i:s', time() + $interval ),
+				'rule_raw' => $raw_retry_rule,
+			]
+		);
+	}
+
+	/**
 	 * Check if the email being previewed is a subscription email.
 	 *
-	 * @return bool
+	 * Subscription emails include:
+	 * - WC_Subscriptions_Email::$email_classes - core subscription emails.
+	 * - WC_Subscriptions_Email_Notifications::$email_classes - subscription notification emails (pre-renewal emails).
+	 * - WCS_Email_Customer_Payment_Retry - customer payment retry emails.
+	 * - WCS_Email_Payment_Retry - admin payment retry emails.
+	 *
+	 * @return bool Whether the email being previewed is a subscription email.
 	 */
 	private function is_subscription_email() {
-		return isset( WC_Subscriptions_Email::$email_classes[ $this->email_type ] ) || isset( WC_Subscriptions_Email_Notifications::$email_classes[ $this->email_type ] );
+		return isset( WC_Subscriptions_Email::$email_classes[ $this->email_type ] )
+			|| isset( WC_Subscriptions_Email_Notifications::$email_classes[ $this->email_type ] )
+			|| in_array( $this->email_type, [ 'WCS_Email_Customer_Payment_Retry', 'WCS_Email_Payment_Retry' ], true );
 	}
 
 	/**
@@ -204,4 +252,52 @@ class WC_Subscriptions_Email_Preview {
 
 		return $can_renew_early;
 	}
+
+	/**
+	 * Adds custom placeholders for subscription emails.
+	 *
+	 * @param WC_Email $email The email object.
+	 */
+	private function add_placeholders( $email ) {
+		if ( ! isset( $email->placeholders ) ) {
+			return;
+		}
+
+		$placeholders = [];
+
+		switch ( $this->email_type ) {
+			case 'WCS_Email_Customer_Notification_Subscription_Expiration':
+			case 'WCS_Email_Customer_Notification_Manual_Trial_Expiration':
+			case 'WCS_Email_Customer_Notification_Auto_Trial_Expiration':
+			case 'WCS_Email_Customer_Notification_Manual_Renewal':
+			case 'WCS_Email_Customer_Notification_Auto_Renewal':
+				// Pull the real values from the email object (Order or Subscription) if available.
+				if ( is_a( $email->object, 'WC_Subscription' ) ) {
+					$time_until_renewal  = $email->get_time_until_date( $email->object, 'next_payment' );
+					$customer_first_name = $email->object->get_billing_first_name();
+				} else {
+					$time_until_renewal  = human_time_diff( time(), time() + WEEK_IN_SECONDS );
+					$customer_first_name = 'John';
+				}
+
+				$placeholders['{time_until_renewal}']   = $time_until_renewal;
+				$placeholders['{customers_first_name}'] = $customer_first_name;
+				break;
+			case 'WCS_Email_Customer_Payment_Retry':
+			case 'WCS_Email_Payment_Retry':
+				$retry_time = is_a( $email->retry, 'WCS_Retry' )
+					? $email->retry->get_time()
+					: time() + ( 12 * HOUR_IN_SECONDS );
+
+				$placeholders['{retry_time}'] = wcs_get_human_time_diff( $retry_time );
+				break;
+		}
+
+		// Merge placeholders without overriding existing ones, and only adding those in the email.
+		$email->placeholders = wp_parse_args(
+			$placeholders,
+			$email->placeholders
+		);
+	}
 }
+

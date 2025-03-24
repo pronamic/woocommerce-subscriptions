@@ -2,18 +2,21 @@
 /**
  * Cancelled Subscription email
  *
- * @author  Prospress
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
+ * @version 7.3.0 - Updated for WC core email improvements.
  */
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
-}
+defined( 'ABSPATH' ) || exit;
 
-do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
+$email_improvements_enabled = wcs_is_wc_feature_enabled( 'email_improvements' );
 
-<?php /* translators: $1: customer's billing first name and last name */ ?>
-<p><?php printf( esc_html__( 'A subscription belonging to %1$s has expired. Their subscription\'s details are as follows:', 'woocommerce-subscriptions' ), esc_html( $subscription->get_formatted_billing_full_name() ) );?></p>
+do_action( 'woocommerce_email_header', $email_heading, $email );
+
+echo $email_improvements_enabled ? '<div class="email-introduction">' : '';
+
+/* translators: $1: customer's billing first name and last name */ ?>
+<p><?php printf( esc_html__( 'A subscription belonging to %1$s has expired. Their subscription\'s details are as follows:', 'woocommerce-subscriptions' ), esc_html( $subscription->get_formatted_billing_full_name() ) ); ?></p>
+
+<?php echo $email_improvements_enabled ? '</div>' : ''; ?>
 
 <table class="td" cellspacing="0" cellpadding="6" style="width: 100%; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;" border="1">
 	<thead>
@@ -60,7 +63,9 @@ do_action( 'woocommerce_email_customer_details', $subscription, $sent_to_admin, 
  * Show user-defined additional content - this is set in each email's settings.
  */
 if ( $additional_content ) {
+	echo $email_improvements_enabled ? '<table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td class="email-additional-content">' : '';
 	echo wp_kses_post( wpautop( wptexturize( $additional_content ) ) );
+	echo $email_improvements_enabled ? '</td></tr></table>' : '';
 }
 
 do_action( 'woocommerce_email_footer', $email );

@@ -19,24 +19,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_order_contains_switch( $order ) {
+	$is_switch_order = false;
 
 	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
 		$order = wc_get_order( $order );
 	}
 
-	if ( ! wcs_is_order( $order ) || wcs_order_contains_renewal( $order ) ) {
-
-		$is_switch_order = false;
-
-	} else {
-
-		$switched_subscriptions = wcs_get_subscriptions_for_switch_order( $order );
-
-		if ( ! empty( $switched_subscriptions ) ) {
-			$is_switch_order = true;
-		} else {
-			$is_switch_order = false;
-		}
+	if ( $order ) {
+		$related_subscription_ids = wcs_get_subscription_ids_for_order( $order, 'switch' );
+		$is_switch_order          = ! empty( $related_subscription_ids );
 	}
 
 	return apply_filters( 'woocommerce_subscriptions_is_switch_order', $is_switch_order, $order );

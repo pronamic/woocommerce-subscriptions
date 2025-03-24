@@ -56,20 +56,18 @@ function wcs_create_renewal_order( $subscription ) {
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_order_contains_renewal( $order ) {
+	$is_renewal_order = false;
 
 	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
 		$order = wc_get_order( $order );
 	}
 
-	$related_subscriptions = wcs_get_subscriptions_for_renewal_order( $order );
-
-	if ( wcs_is_order( $order ) && ! empty( $related_subscriptions ) ) {
-		$is_renewal = true;
-	} else {
-		$is_renewal = false;
+	if ( $order ) {
+		$related_subscription_ids = wcs_get_subscription_ids_for_order( $order, 'renewal' );
+		$is_renewal_order         = ! empty( $related_subscription_ids );
 	}
 
-	return apply_filters( 'woocommerce_subscriptions_is_renewal_order', $is_renewal, $order );
+	return apply_filters( 'woocommerce_subscriptions_is_renewal_order', $is_renewal_order, $order );
 }
 
 /**

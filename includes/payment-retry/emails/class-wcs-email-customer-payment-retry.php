@@ -16,6 +16,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WCS_Email_Customer_Payment_Retry extends WCS_Email_Customer_Renewal_Invoice {
 
 	/**
+	 * The retry object.
+	 *
+	 * @var WCS_Retry
+	 */
+	public $retry;
+
+	/**
 	 * Constructor
 	 */
 	function __construct() {

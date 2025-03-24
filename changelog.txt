@@ -1,5 +1,27 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-03-24 - version 7.3.0
+* Tweak: Adjust the warning that appears on the reports page when HPOS is enabled but Compatibility Mode is disabled (provide a direct link to the relevant settings).
+* Update: Improved subscription search performance for WP Post stores by removing unnecessary _order_key and _billing_email meta queries.
+* Update: Make it possible to dispatch the Cancelled Subscription email more than once (when initially set to pending-cancellation, and again when it reaches final cancellation).
+* Update: Reduced duplicate queries when fetching multiple subscription related orders types.
+* Update: Removed unnecessary get_time() calls to reduce redundant get_last_order() queries in the Subscriptions list table.
+* Update: Improved performance on the Orders list table when rendering the Subscription Relationship column.
+* Update: Improved performance of the Generate Related Order Cache tool found under WooCommerce > Status > Tools.
+* Fix: Do not schedule updates to the report data cache if reporting is not available (ie, if HPOS is enabled but Compatibility Mode is not).
+* Fix: Resolved deprecated dynamic property warnings in WCS_Email_Payment_Retry and WCS_Email_Customer_Payment_Retry.
+* Fix: Added support for previewing payment retry emails in WooCommerce email settings.
+* Fix: Updated subscription email item table template to align with WooCommerce 9.7 email improvements.
+* Fix: Prevent PHP warning on cart page shipping method updates by removing unused method: maybe_restore_shipping_methods.
+* Fix: Removed unnecessary setting of renewal order paid date on status transition, relying on WooCommerce core behavior instead.
+* Fix: Ensure the order_awaiting_payment session arg is restored when loading a renewal cart from the session to prevent duplicate orders.
+* Fix: Ensure custom placeholders (time_until_renewal, customers_first_name) are included in customer notification email previews.
+* Fix: For stores with HPOS + compatibility mode enabled, using the bulk delete related orders cache tool was not correctly deleting the meta from the WP Posts table.
+* Fix: Prevent empty strings being saved in related orders cache ID meta when backfilling order data to the WP Posts table.
+* Fix: Correctly load product names with HTML on the cart and checkout shipping rates.
+* Dev: Fix Node version mismatch between package.json and .nvmrc (both are now set to v16.17.1).
+* Dev: Update subscriptions-core to 8.1.0
+
 2025-02-13 - version 7.2.1
 * Fix: Revert a change released in 7.2.0 which triggered the "woocommerce_cart_item_name" filter with the wrong number of parameters.
 * Dev: Update subscriptions-core to 8.0.1.

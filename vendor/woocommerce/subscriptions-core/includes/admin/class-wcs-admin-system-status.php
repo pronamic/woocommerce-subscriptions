@@ -17,6 +17,35 @@ class WCS_Admin_System_Status {
 	const WCS_PRODUCT_ID = 27147;
 
 	/**
+	 * Contains pre-determined SSR report data.
+	 *
+	 * @var array
+	 */
+	private static $report_data = [];
+
+	/**
+	 * Used to cache the result of the comparatively expensive queries executed by
+	 * the get_subscriptions_by_gateway() method.
+	 *
+	 * This cache is short-lived by design, as we don't necessarily want to cache this
+	 * across requests (in some troubleshooting/debug scenarios, that could be confusing
+	 * for the troubleshooter), which is why a transient or WP caching functions are not
+	 * used.
+	 *
+	 * @var null|array
+	 */
+	private static $statuses_by_gateway = null;
+
+	/**
+	 * Used to cache the subscriptions-by-status counts.
+	 *
+	 * As with with self::$statuses_by_gateway, the cache is deliberately short-lived.
+	 *
+	 * @var null|array
+	 */
+	private static $subscription_status_counts = null;
+
+	/**
 	 * Attach callbacks
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
@@ -28,9 +57,21 @@ class WCS_Admin_System_Status {
 	/**
 	 * Renders the Subscription information in the WC status page
 	 *
-	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
+	 * @since 1.0.0 Migrated from WooCommerce Subscriptions v2.3.0
+	 * @since 7.2.0 Uses supplied report data if available.
+	 *
+	 * @param mixed $report Pre-determined SSR report data.
 	 */
-	public static function render_system_status_items() {
+	public static function render_system_status_items( $report = null ) {
+		/**
+		 * From WooCommerce 9.8.0, we will be supplied with SSR data fetched via a (programmatic)
+		 * REST API request. Using this when available can help prevent duplicated work.
+		 *
+		 * @see WC_REST_Subscription_System_Status_Manager::add_subscription_fields_to_response()
+		 */
+		if ( is_array( $report ) && is_array( $report['subscriptions'] ) && ! empty( $report['subscriptions'] ) ) {
+			self::$report_data = $report['subscriptions'];
+		}
 
 		$store_data                            = [];
 		$subscriptions_data                    = [];
@@ -118,10 +159,15 @@ class WCS_Admin_System_Status {
 	 * @param array $debug_data
 	 */
 	private static function set_live_site_url( &$debug_data ) {
+		// Use pre-determined SSR data if possible.
+		$site_url = isset( self::$report_data['live_url'] )
+			? self::$report_data['live_url']
+			: WCS_Staging::get_site_url_from_source( 'subscriptions_install' );
+
 		$debug_data['wcs_live_site_url'] = array(
 			'name'      => _x( 'Subscriptions Live URL', 'Live URL, Label on WooCommerce -> System Status page', 'woocommerce-subscriptions' ),
 			'label'     => 'Subscriptions Live URL',
-			'note'      => '<a href="' . esc_url( WCS_Staging::get_site_url_from_source( 'subscriptions_install' ) ) . '">' . esc_html( WCS_Staging::get_site_url_from_source( 'subscriptions_install' ) ) . '</a>',
+			'note'      => '<a href="' . esc_url( $site_url ) . '">' . esc_html( $site_url ) . '</a>',
 			'mark'      => '',
 			'mark_icon' => '',
 		);
@@ -222,7 +268,6 @@ class WCS_Admin_System_Status {
 	 * Add a breakdown of Subscriptions per status.
 	 */
 	private static function set_subscription_statuses( &$debug_data ) {
-
 		$debug_data['wcs_subscriptions_by_status'] = array(
 			'name'      => _x( 'Subscription Statuses', 'label for the system status page', 'woocommerce-subscriptions' ),
 			'label'     => 'Subscription Statuses',
@@ -281,7 +326,11 @@ class WCS_Admin_System_Status {
 	private static function set_subscriptions_by_payment_gateway( &$debug_data ) {
 		$gateways = WC()->payment_gateways->get_available_payment_gateways();
 
-		foreach ( self::get_subscriptions_by_gateway() as $payment_method => $status_counts ) {
+		$subscriptions_by_gateway = isset( self::$report_data['subscriptions_by_payment_gateway'] )
+			? self::$report_data['subscriptions_by_payment_gateway']
+			: self::get_subscriptions_by_gateway();
+
+		foreach ( $subscriptions_by_gateway as $payment_method => $status_counts ) {
 			if ( isset( $gateways[ $payment_method ] ) ) {
 				$payment_method_name  = $gateways[ $payment_method ]->method_title;
 				$payment_method_label = $gateways[ $payment_method ]->method_title;
@@ -361,10 +410,17 @@ class WCS_Admin_System_Status {
 	/**
 	 * Gets the store's subscription broken down by payment gateway and status.
 	 *
-	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
+	 * @since 1.0.0 Migrated from WooCommerce Subscriptions v3.1.0.
+	 * @since 7.2.0 Information is cached per request.
+	 *
 	 * @return array The subscription gateway and status data array( 'gateway_id' => array( 'status' => count ) );
 	 */
 	public static function get_subscriptions_by_gateway() {
+		// Return cached result if possible.
+		if ( isset( self::$statuses_by_gateway ) ) {
+			return self::$statuses_by_gateway;
+		}
+
 		global $wpdb;
 		$subscription_gateway_data = [];
 		$is_hpos_in_use            = wcs_is_custom_order_tables_usage_enabled();
@@ -408,6 +464,7 @@ class WCS_Admin_System_Status {
 			$subscription_gateway_data[ $result['payment_method'] ][ $result[ $order_status_column_name ] ] = $result['count'];
 		}
 
+		self::$statuses_by_gateway = $subscription_gateway_data;
 		return $subscription_gateway_data;
 	}
 
@@ -418,7 +475,9 @@ class WCS_Admin_System_Status {
 	 * @return array
 	 */
 	public static function get_subscription_statuses() {
-		$subscriptions_by_status        = WC_Data_Store::load( 'subscription' )->get_subscriptions_count_by_status();
+		// We don't look inside self::$report_data here, because the REST API report itself
+		// also uses self::get_subscription_status_counts().
+		$subscriptions_by_status        = self::get_subscription_status_counts();
 		$subscriptions_by_status_output = array();
 
 		foreach ( $subscriptions_by_status as $status => $count ) {
@@ -428,5 +487,37 @@ class WCS_Admin_System_Status {
 		}
 
 		return $subscriptions_by_status_output;
+	}
+
+	/**
+	 * Returns a cached array of subscription statuses along with the corresponding number
+	 * of subscriptions for each (the values).
+	 *
+	 * Example:
+	 *
+	 *     [
+	 *         'wc-active'    => 100,
+	 *         'wc-cancelled' => 200,
+	 *         '...'          => 300,
+	 *     ]
+	 *
+	 * @param bool $fresh If cached results should be discarded.
+	 *
+	 * @return array
+	 */
+	public static function get_subscription_status_counts( bool $fresh = false ): array {
+		// Return cached result if possible.
+		if ( ! $fresh && isset( self::$subscription_status_counts ) ) {
+			return self::$subscription_status_counts;
+		}
+
+		try {
+			self::$subscription_status_counts = WC_Data_Store::load( 'subscription' )->get_subscriptions_count_by_status();
+		} catch ( Exception $e ) {
+			// If an exception was raised, don't cache the result.
+			return [];
+		}
+
+		return self::$subscription_status_counts;
 	}
 }

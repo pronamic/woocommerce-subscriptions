@@ -1,6 +1,15 @@
 jQuery( function ( $ ) {
+	let observer = null;
+
 	if ( arePointersEnabled() ) {
-		setTimeout( showSubscriptionPointers, 800 ); // give TinyMCE a chance to finish loading
+		observer = new MutationObserver( showSubscriptionPointers );
+	 
+	 	observer.observe( document.getElementById( 'poststuff' ), {
+			attributes: true,
+			childList: true,
+			characterData: false,
+			subtree:true,
+		} );
 	}
 
 	$( 'select#product-type' ).on( 'change', function () {
@@ -62,5 +71,9 @@ jQuery( function ( $ ) {
 			pointer: 'wcs_pointer',
 			action: 'dismiss-wp-pointer',
 		} );
+
+		if ( observer ) {
+			observer.disconnect();
+		}
 	}
 } );

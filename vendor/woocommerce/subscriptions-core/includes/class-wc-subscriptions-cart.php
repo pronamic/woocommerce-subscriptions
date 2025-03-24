@@ -368,7 +368,6 @@ class WC_Subscriptions_Cart {
 			}
 
 			$recurring_cart->fee_total = 0;
-			self::maybe_restore_shipping_methods();
 			$recurring_cart->calculate_totals();
 
 			// Store this groups cart details
@@ -384,9 +383,6 @@ class WC_Subscriptions_Cart {
 
 		// Reset flags when we're done processing recurring carts.
 		self::$calculation_type = self::$recurring_cart_key = 'none';
-
-		// We need to reset the packages and totals stored in WC()->shipping too
-		self::maybe_restore_shipping_methods();
 
 		// Only calculate the initial order cart shipping if we need to show shipping.
 		if ( WC()->cart->show_shipping() ) {
@@ -952,68 +948,6 @@ class WC_Subscriptions_Cart {
 		}
 
 		return $needs_payment;
-	}
-
-	/**
-	 * Restore shipping method, as well as cost and tax estimate when on the cart page.
-	 *
-	 * The WC_Shortcode_Cart actually calculates shipping when the "Calculate Shipping" form is submitted on the
-	 * cart page. Because of that, our own @see self::calculate_totals() method calculates incorrect values on
-	 * the cart page because it triggers the method multiple times for multiple different pricing structures.
-	 * This uses the same logic found in WC_Shortcode_Cart::output() to determine the correct estimate.
-	 *
-	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.10
-	 */
-	private static function maybe_restore_shipping_methods() {
-		WC()->shipping->reset_shipping();
-
-		if ( ! empty( $_POST['calc_shipping'] ) && wp_verify_nonce( $_POST['_wpnonce'], 'woocommerce-cart' ) && function_exists( 'WC' ) ) {
-
-			try {
-				$country  = wc_clean( $_POST['calc_shipping_country'] );
-				$state    = isset( $_POST['calc_shipping_state'] ) ? wc_clean( $_POST['calc_shipping_state'] ) : '';
-				$postcode = apply_filters( 'woocommerce_shipping_calculator_enable_postcode', true ) ? wc_clean( $_POST['calc_shipping_postcode'] ) : '';
-				$city     = apply_filters( 'woocommerce_shipping_calculator_enable_city', false ) ? wc_clean( $_POST['calc_shipping_city'] ) : '';
-
-				if ( $postcode && ! WC_Validation::is_postcode( $postcode, $country ) ) {
-					throw new Exception( __( 'Please enter a valid postcode/ZIP.', 'woocommerce-subscriptions' ) );
-				} elseif ( $postcode ) {
-					$postcode = wc_format_postcode( $postcode, $country );
-				}
-
-				if ( $country ) {
-					WC()->customer->set_location( $country, $state, $postcode, $city );
-					WC()->customer->set_shipping_location( $country, $state, $postcode, $city );
-				} else {
-					WC()->customer->set_to_base();
-					WC()->customer->set_shipping_to_base();
-				}
-
-				WC()->customer->calculated_shipping( true );
-
-				do_action( 'woocommerce_calculated_shipping' );
-
-			} catch ( Exception $e ) {
-				if ( ! empty( $e ) ) {
-					wc_add_notice( $e->getMessage(), 'error' );
-				}
-			}
-		}
-
-		// If we had one time shipping in the carts, we may have wiped the WC chosen shippings. Restore them.
-		self::maybe_restore_chosen_shipping_method();
-
-		if ( isset( $_POST['shipping_method'] ) && is_array( $_POST['shipping_method'] ) ) {
-
-			// Now make sure the correct shipping method is set
-			$chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods', array() );
-
-			foreach ( $_POST['shipping_method'] as $i => $value ) {
-				$chosen_shipping_methods[ $i ] = wc_clean( $value );
-			}
-
-			WC()->session->set( 'chosen_shipping_methods', $chosen_shipping_methods );
-		}
 	}
 
 	/**
@@ -2353,8 +2287,11 @@ class WC_Subscriptions_Cart {
 	 * WC()->shipping->reset() on it, which will wipe the preferences saved. That can cause the chosen shipping method for the one
 	 * time shipping feature to be lost, and the first default to be applied instead. To counter that, we save the chosen shipping
 	 * method to a key that's not going to get wiped by WC's method, and then later restore it.
+	 *
+	 * @deprecated 7.3.0  - no longer in use internally
 	 */
 	public static function maybe_restore_chosen_shipping_method() {
+		wcs_deprecated_function( __METHOD__, '7.3.0', 'The use of this function is no longer recommended and will be removed in a future version.' );
 		$chosen_shipping_method_cache = WC()->session->get( 'wcs_shipping_methods', false );
 
 		if ( false !== $chosen_shipping_method_cache ) {

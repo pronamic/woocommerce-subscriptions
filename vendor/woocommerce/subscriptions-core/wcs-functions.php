@@ -342,7 +342,7 @@ function wcs_get_date_meta_key( $date_type ) {
  * deprecated date type key.
  *
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
- * @param string $date_type_key String referring to a valid date type, can be: 'date_created', 'trial_end', 'next_payment', 'last_order_date_created' or 'end', or any other value returned by @see this->get_valid_date_types()
+ * @param string $date_type_key String referring to a valid date type, can be: 'date_created', 'trial_end', 'next_payment', 'last_order_date_created' or 'end', or any other value returned by @see WC_Subscription::get_valid_date_types()
  * @return string
  */
 function wcs_normalise_date_type_key( $date_type_key, $display_deprecated_notice = false ) {

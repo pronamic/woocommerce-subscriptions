@@ -68,19 +68,67 @@ function wcs_get_subscriptions_for_order( $order, $args = array() ) {
 
 	$all_relation_types = WCS_Related_Order_Store::instance()->get_relation_types();
 	$relation_types     = $get_all ? $all_relation_types : array_intersect( $all_relation_types, $args['order_type'] );
+	$subscription_ids   = wcs_get_subscription_ids_for_order( $order, $relation_types );
 
-	foreach ( $relation_types as $relation_type ) {
-
-		$subscription_ids = WCS_Related_Order_Store::instance()->get_related_subscription_ids( $order, $relation_type );
-
-		foreach ( $subscription_ids as $subscription_id ) {
-			if ( wcs_is_subscription( $subscription_id ) ) {
-				$subscriptions[ $subscription_id ] = wcs_get_subscription( $subscription_id );
-			}
+	foreach ( $subscription_ids as $subscription_id ) {
+		if ( wcs_is_subscription( $subscription_id ) ) {
+			$subscriptions[ $subscription_id ] = wcs_get_subscription( $subscription_id );
 		}
 	}
 
 	return $subscriptions;
+}
+
+/**
+ * Get the subscription IDs for an order.
+ *
+ * @param WC_Order     $order       The order to get the subscription IDs for.
+ * @param string|array $order_types The order types to get the subscription IDs for. Defaults to 'any' which will return all subscription IDs linked to the order.
+ *
+ * @return array The subscription IDs.
+ */
+function wcs_get_subscription_ids_for_order( $order, $order_types = [ 'any' ] ) {
+	$subscription_ids = [];
+
+	if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
+		$order = wc_get_order( $order );
+	}
+
+	if ( ! wcs_is_order( $order ) ) {
+		return $subscription_ids;
+	}
+
+	if ( ! is_array( $order_types ) ) {
+		$order_types = [ $order_types ];
+	}
+
+	$get_all           = in_array( 'any', $order_types, true );
+	$relation_types    = WCS_Related_Order_Store::instance()->get_relation_types();
+	$valid_order_types = $get_all ? $relation_types : array_intersect( $relation_types, $order_types );
+
+	foreach ( $valid_order_types as $order_type ) {
+		$subscription_ids = array_merge( $subscription_ids, WCS_Related_Order_Store::instance()->get_related_subscription_ids( $order, $order_type ) );
+	}
+
+	if ( $get_all || in_array( 'parent', $order_types, true ) ) {
+		$subscription_ids_for_parent_order = wc_get_orders(
+			[
+				'parent' => $order->get_id(),
+				'type'   => 'shop_subscription',
+				'status' => 'any',
+				'limit'  => -1,
+				'return' => 'ids',
+			]
+		);
+
+		if ( is_array( $subscription_ids_for_parent_order ) ) {
+			$subscription_ids = array_merge( $subscription_ids, $subscription_ids_for_parent_order );
+		}
+	}
+
+	rsort( $subscription_ids );
+
+	return $subscription_ids;
 }
 
 /**
@@ -365,10 +413,7 @@ function wcs_order_contains_subscription( $order, $order_type = array( 'parent',
 	$contains_subscription = false;
 	$get_all               = in_array( 'any', $order_type, true );
 
-	if ( ( in_array( 'parent', $order_type, true ) || $get_all ) && count( wcs_get_subscriptions_for_order( $order->get_id(), array( 'order_type' => 'parent' ) ) ) > 0 ) {
-		$contains_subscription = true;
-
-	} elseif ( ( in_array( 'renewal', $order_type, true ) || $get_all ) && wcs_order_contains_renewal( $order ) ) {
+	if ( ( in_array( 'renewal', $order_type, true ) || $get_all ) && wcs_order_contains_renewal( $order ) ) {
 		$contains_subscription = true;
 
 	} elseif ( ( in_array( 'resubscribe', $order_type, true ) || $get_all ) && wcs_order_contains_resubscribe( $order ) ) {
@@ -377,6 +422,8 @@ function wcs_order_contains_subscription( $order, $order_type = array( 'parent',
 	} elseif ( ( in_array( 'switch', $order_type, true ) || $get_all ) && wcs_order_contains_switch( $order ) ) {
 		$contains_subscription = true;
 
+	} elseif ( ( in_array( 'parent', $order_type, true ) || $get_all ) && wcs_order_contains_parent( $order ) ) {
+		$contains_subscription = true;
 	}
 
 	return $contains_subscription;
@@ -1054,4 +1101,42 @@ function wcs_set_recurring_item_total( &$item ) {
 			'total'    => $recurring_total,
 		]
 	);
+}
+
+/**
+ * Checks if an order is a Subscriptions parent/initial order.
+ *
+ * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
+ *
+ * @return bool Whether the order contains a parent.
+ */
+function wcs_order_contains_parent( $order ) {
+	$order = ! is_object( $order ) ? wc_get_order( $order ) : $order;
+
+	if ( ! $order || ! wcs_is_order( $order ) ) {
+		return false;
+	}
+
+	// Check if the order ID is the parent of a subscription.
+	$is_parent_order = wc_get_orders(
+		[
+			'parent' => $order->get_id(),
+			'type'   => 'shop_subscription',
+			'status' => 'any',
+			'limit'  => 1,
+			'return' => 'ids',
+		]
+	);
+
+	/**
+	 * Allow third-parties to filter whether this order should be considered a parent order.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param bool     $is_parent_order True if parent meta was found on the order, otherwise false.
+	 * @param WC_Order $order           The WC_Order object.
+	 *
+	 * @return bool True if the order contains a parent, otherwise false.
+	 */
+	return apply_filters( 'woocommerce_subscriptions_is_parent_order', ! empty( $is_parent_order ), $order );
 }

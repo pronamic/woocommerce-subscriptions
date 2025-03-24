@@ -96,27 +96,9 @@ class WC_Subscriptions_Renewal_Order {
 		$order_needed_payment = in_array( $orders_old_status, apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'on-hold', 'failed' ), $order ) );
 
 		if ( $order_completed && $order_needed_payment ) {
-
-			if ( wcs_is_woocommerce_pre( '3.0' ) ) {
-				$update_post_data  = array(
-					'ID'            => $order_id,
-					'post_date'     => current_time( 'mysql', 0 ),
-					'post_date_gmt' => current_time( 'mysql', 1 ),
-				);
-
-				wp_update_post( $update_post_data );
-				update_post_meta( $order_id, '_paid_date', current_time( 'mysql' ) );
-			} else {
-
-				$current_time = current_time( 'timestamp', 1 );
-
-				// Prior to WC 3.0, we need to update the post date (i.e. the date created) to have a reliable representation of the paid date (both because it was in GMT and because it was always set). That's not needed in WC 3.0, but some plugins and store owners still rely on it being updated, so we want to make it possible to update it with 3.0 also.
-				if ( apply_filters( 'wcs_renewal_order_payment_update_date_created', false, $order, $subscriptions ) ) {
-					$order->set_date_created( $current_time );
-				}
-
-				// In WC 3.0, only the paid date prop represents the paid date, the post date isn't used anymore, also the paid date is stored and referenced as a MySQL date string in site timezone and a GMT timestamp
-				$order->set_date_paid( $current_time );
+			// Prior to WC 3.0, we need to update the post date (i.e. the date created) to have a reliable representation of the paid date (both because it was in GMT and because it was always set). That's not needed in WC 3.0, but some plugins and store owners still rely on it being updated, so we want to make it possible to update it with 3.0 also.
+			if ( apply_filters( 'wcs_renewal_order_payment_update_date_created', false, $order, $subscriptions ) ) {
+				$order->set_date_created( time() );
 				$order->save();
 			}
 		}

@@ -148,4 +148,22 @@ abstract class WCS_Related_Order_Store {
 			throw new InvalidArgumentException( sprintf( __( 'Invalid relation type: %1$s. Order relationship type must be one of: %2$s.', 'woocommerce-subscriptions' ), $relation_type, implode( ', ', $this->get_relation_types() ) ) );
 		}
 	}
+
+	/**
+	 * Get related order IDs grouped by relation type.
+	 *
+	 * @param WC_Order $subscription  The subscription to find related orders.
+	 * @param array    $relation_type An array of relation types to fetch. Must be an array containing 'renewal', 'switch' or 'resubscribe' unless custom relationships are implemented.
+	 *
+	 * @return array An associative array where keys are relation types and values are arrays of related order IDs.
+	 */
+	public function get_related_order_ids_by_types( WC_Order $subscription, $relation_types ) {
+		$related_orders = [];
+
+		foreach ( $relation_types as $relation_type ) {
+			$related_orders[ $relation_type ] = $this->get_related_order_ids( $subscription, $relation_type );
+		}
+
+		return $related_orders;
+	}
 }

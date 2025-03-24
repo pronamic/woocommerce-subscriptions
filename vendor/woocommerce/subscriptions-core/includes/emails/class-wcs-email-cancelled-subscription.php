@@ -37,12 +37,29 @@ class WCS_Email_Cancelled_Subscription extends WC_Email {
 		add_action( 'cancelled_subscription_notification', array( $this, 'trigger' ) );
 
 		parent::__construct();
+		$this->add_always_send_field();
 
 		$this->recipient = $this->get_option( 'recipient' );
 
 		if ( ! $this->recipient ) {
 			$this->recipient = get_option( 'admin_email' );
 		}
+	}
+
+	/**
+	 * For the cancellation email, we add an extra setting to let the merchant decide if
+	 * they should *always* received cancellation emails (the default being to send them
+	 * only once, when they are first set to Pending Cancellation or Cancelled).
+	 *
+	 * @return void
+	 */
+	private function add_always_send_field() {
+		$this->form_fields['always_send'] = [
+			'title'   => __( 'Always Send', 'woocommerce-subscriptions' ),
+			'type'    => 'checkbox',
+			'label'   => __( 'Send this email whenever a subscription is updated to "Pending Cancellation" or "Cancelled".', 'woocommerce-subscriptions' ),
+			'default' => 'no',
+		];
 	}
 
 	/**
@@ -79,7 +96,13 @@ class WCS_Email_Cancelled_Subscription extends WC_Email {
 			$subscription = wcs_get_subscription_from_key( $subscription );
 		}
 
-		if ( ! $this->is_enabled() || ! $this->get_recipient() ) {
+		if ( ! $this->is_enabled() || ! $this->get_recipient() || ! $subscription->has_status( array( 'pending-cancel', 'cancelled' ) ) ) {
+			return;
+		}
+
+		// Unless the merchant has requested that these emails should always be sent, avoid sending them twice for the same subscription
+		// (which would otherwise happen once when the subscription is sent to 'pending-cancel', and again when it finally cancels).
+		if ( 'yes' !== $this->get_option( 'always_send' ) && 'true' === $subscription->get_cancelled_email_sent() ) {
 			return;
 		}
 

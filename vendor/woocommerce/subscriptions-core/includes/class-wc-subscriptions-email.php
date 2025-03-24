@@ -117,15 +117,12 @@ class WC_Subscriptions_Email {
 	/**
 	 * Init the mailer and call for the cancelled email notification hook.
 	 *
-	 * @param $subscription WC Subscription
+	 * @param WC_Subscription $subscription The subscription being examined.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function send_cancelled_email( $subscription ) {
 		WC()->mailer();
-
-		if ( $subscription->has_status( array( 'pending-cancel', 'cancelled' ) ) && 'true' !== $subscription->get_cancelled_email_sent() ) {
-			do_action( 'cancelled_subscription_notification', $subscription );
-		}
+		do_action( 'cancelled_subscription_notification', $subscription );
 	}
 
 	/**
@@ -244,25 +241,23 @@ class WC_Subscriptions_Email {
 			$order = wc_get_order( $order );
 		}
 
-		if ( is_a( $order, 'WC_Abstract_Order' ) ) {
-			$show_download_links_callback = ( isset( $args['show_download_links'] ) && $args['show_download_links'] ) ? '__return_true' : '__return_false';
-			$show_purchase_note_callback  = ( isset( $args['show_purchase_note'] ) && $args['show_purchase_note'] ) ? '__return_true' : '__return_false';
-
-			unset( $args['show_download_links'] );
-			unset( $args['show_purchase_note'] );
-
-			add_filter( 'woocommerce_order_is_download_permitted', $show_download_links_callback );
-			add_filter( 'woocommerce_order_is_paid', $show_purchase_note_callback );
-
-			if ( function_exists( 'wc_get_email_order_items' ) ) { // WC 3.0+
-				$items_table = wc_get_email_order_items( $order, $args );
-			} else {
-				$items_table = $order->email_order_items_table( $args );
-			}
-
-			remove_filter( 'woocommerce_order_is_download_permitted', $show_download_links_callback );
-			remove_filter( 'woocommerce_order_is_paid', $show_purchase_note_callback );
+		if ( ! is_a( $order, 'WC_Abstract_Order' ) ) {
+			return $items_table;
 		}
+
+		$show_download_links_callback = ( isset( $args['show_download_links'] ) && $args['show_download_links'] ) ? '__return_true' : '__return_false';
+		$show_purchase_note_callback  = ( isset( $args['show_purchase_note'] ) && $args['show_purchase_note'] ) ? '__return_true' : '__return_false';
+
+		unset( $args['show_download_links'] );
+		unset( $args['show_purchase_note'] );
+
+		add_filter( 'woocommerce_order_is_download_permitted', $show_download_links_callback );
+		add_filter( 'woocommerce_order_is_paid', $show_purchase_note_callback );
+
+		$items_table = wc_get_email_order_items( $order, $args );
+
+		remove_filter( 'woocommerce_order_is_download_permitted', $show_download_links_callback );
+		remove_filter( 'woocommerce_order_is_paid', $show_purchase_note_callback );
 
 		return $items_table;
 	}
@@ -277,13 +272,14 @@ class WC_Subscriptions_Email {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 */
 	public static function order_details( $order, $sent_to_admin = false, $plain_text = false, $email = '' ) {
-
-		$order_items_table_args = array(
+		$email_improvements_enabled = wcs_is_wc_feature_enabled( 'email_improvements' );
+		$image_size                 = $email_improvements_enabled ? 48 : 32; // These image sizes are defaults for WC core emails. @see wc_get_email_order_items().
+		$order_items_table_args     = array(
 			'show_download_links' => ( $sent_to_admin ) ? false : $order->is_download_permitted(),
 			'show_sku'            => $sent_to_admin,
 			'show_purchase_note'  => ( $sent_to_admin ) ? false : $order->has_status( apply_filters( 'woocommerce_order_is_paid_statuses', array( 'processing', 'completed' ) ) ),
-			'show_image'          => '',
-			'image_size'          => '',
+			'show_image'          => $email_improvements_enabled,
+			'image_size'          => array( $image_size, $image_size ),
 			'plain_text'          => $plain_text,
 		);
 

@@ -78,6 +78,11 @@ class WCS_Report_Cache_Manager {
 	 * @since 2.1
 	 */
 	public function __construct() {
+		// Our reports integration does not work if A) HPOS is enabled and B) compatibility mode is disabled.
+		// In these cases, there is no reason to cache report data/to update data that was already cached.
+		if ( wcs_is_custom_order_tables_usage_enabled() && ! wcs_is_custom_order_tables_data_sync_enabled() ) {
+			return;
+		}
 
 		// Use the old hooks
 		if ( wcs_is_woocommerce_pre( '3.0' ) ) {

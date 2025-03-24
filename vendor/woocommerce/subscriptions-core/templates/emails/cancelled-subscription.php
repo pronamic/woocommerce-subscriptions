@@ -2,18 +2,36 @@
 /**
  * Cancelled Subscription email
  *
- * @author  Prospress
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
+ * @version 7.3.0 - Updated for WC core email improvements.
  */
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
-}
+
+defined( 'ABSPATH' ) || exit;
+
+$email_improvements_enabled = wcs_is_wc_feature_enabled( 'email_improvements' );
 
 do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 
-<?php /* translators: $1: customer's billing first name and last name */ ?>
-<p><?php printf( esc_html__( 'A subscription belonging to %1$s has been cancelled. Their subscription\'s details are as follows:', 'woocommerce-subscriptions' ), esc_html( $subscription->get_formatted_billing_full_name() ) );?></p>
+<?php echo $email_improvements_enabled ? '<div class="email-introduction">' : ''; ?>
+<p>
+	<?php
+	if ( 'pending-cancel' === $subscription->get_status() ) {
+		printf(
+			/* translators: $1$s customer's billing first name and last name %2$s: date on which the subscription ends. */
+			esc_html__( 'A subscription belonging to %1$s is now pending cancellation, and will end on %2$s. Their subscription\'s details are as follows:', 'woocommerce-subscriptions' ),
+			esc_html( $subscription->get_formatted_billing_full_name() ),
+			esc_html( date_i18n( wc_date_format(), $subscription->get_time( 'end', 'site' ) ) )
+		);
+	} else {
+		printf(
+			/* translators: $1$s customer's billing first name and last name. */
+			esc_html__( 'A subscription belonging to %1$s has been cancelled. Their subscription\'s details are as follows:', 'woocommerce-subscriptions' ),
+			esc_html( $subscription->get_formatted_billing_full_name() )
+		);
+	}
+	?>
+</p>
+<?php echo $email_improvements_enabled ? '</div>' : ''; ?>
 
 <table class="td" cellspacing="0" cellpadding="6" style="width: 100%; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;" border="1">
 	<thead>
@@ -59,7 +77,9 @@ do_action( 'woocommerce_email_customer_details', $subscription, $sent_to_admin, 
  * Show user-defined additional content - this is set in each email's settings.
  */
 if ( $additional_content ) {
+	echo $email_improvements_enabled ? '<table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td class="email-additional-content">' : '';
 	echo wp_kses_post( wpautop( wptexturize( $additional_content ) ) );
+	echo $email_improvements_enabled ? '</td></tr></table>' : '';
 }
 
 do_action( 'woocommerce_email_footer', $email );

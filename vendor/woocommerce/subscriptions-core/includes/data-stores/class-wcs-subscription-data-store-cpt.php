@@ -78,6 +78,13 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	);
 
 	/**
+	 * The data store instance for the custom order tables.
+	 *
+	 * @var WCS_Orders_Table_Subscription_Data_Store
+	 */
+	protected $orders_table_data_store;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -535,12 +542,16 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 
 		$subscription_ids = array();
 
-		$search_fields = array_map( 'wc_clean', apply_filters( 'woocommerce_shop_subscription_search_fields', array(
-			'_order_key',
-			'_billing_address_index',
-			'_shipping_address_index',
-			'_billing_email',
-		) ) );
+		$search_fields = array_map(
+			'wc_clean',
+			apply_filters(
+				'woocommerce_shop_subscription_search_fields',
+				[
+					'_billing_address_index',
+					'_shipping_address_index',
+				]
+			)
+		);
 
 		if ( is_numeric( $term ) ) {
 			$subscription_ids[] = absint( $term );
@@ -611,6 +622,11 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 		$meta_value = null; // Delete any values.
 		$delete_all = true;
 		delete_metadata( 'post', $id, $meta_key, $meta_value, $delete_all );
+
+		// If custom order tables is not enabled, but Data Syncing is enabled, delete the meta from the custom order tables.
+		if ( ! wcs_is_custom_order_tables_usage_enabled() && wcs_is_custom_order_tables_data_sync_enabled() ) {
+			$this->get_cot_data_store_instance()->delete_all_metadata_by_key( $meta_key );
+		}
 	}
 
 	/**
@@ -711,7 +727,10 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 */
 	public function set_renewal_order_ids_cache( $subscription, $renewal_order_ids ) {
 		$this->cleanup_backfill_related_order_cache_duplicates( $subscription, 'renewal' );
-		update_post_meta( $subscription->get_id(), '_subscription_renewal_order_ids_cache', $renewal_order_ids );
+
+		if ( '' !== $renewal_order_ids ) {
+			update_post_meta( $subscription->get_id(), '_subscription_renewal_order_ids_cache', $renewal_order_ids );
+		}
 	}
 
 	/**
@@ -725,7 +744,10 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 */
 	public function set_resubscribe_order_ids_cache( $subscription, $resubscribe_order_ids ) {
 		$this->cleanup_backfill_related_order_cache_duplicates( $subscription, 'resubscribe' );
-		update_post_meta( $subscription->get_id(), '_subscription_resubscribe_order_ids_cache', $resubscribe_order_ids );
+
+		if ( '' !== $resubscribe_order_ids ) {
+			update_post_meta( $subscription->get_id(), '_subscription_resubscribe_order_ids_cache', $resubscribe_order_ids );
+		}
 	}
 
 	/**
@@ -739,7 +761,10 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	 */
 	public function set_switch_order_ids_cache( $subscription, $switch_order_ids ) {
 		$this->cleanup_backfill_related_order_cache_duplicates( $subscription, 'switch' );
-		update_post_meta( $subscription->get_id(), '_subscription_switch_order_ids_cache', $switch_order_ids );
+
+		if ( '' !== $switch_order_ids ) {
+			update_post_meta( $subscription->get_id(), '_subscription_switch_order_ids_cache', $switch_order_ids );
+		}
 	}
 
 	/**
@@ -762,5 +787,18 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 		if ( ! wcs_is_woocommerce_pre( '8.1' ) && wcs_is_woocommerce_pre( '8.4' ) ) {
 			delete_post_meta( $subscription->get_id(), "_subscription_{$relationship_type}_order_ids_cache" );
 		}
+	}
+
+	/**
+	 * Get the data store instance for Order Tables data store.
+	 *
+	 * @return WCS_Orders_Table_Subscription_Data_Store
+	 */
+	public function get_cot_data_store_instance() {
+		if ( ! isset( $this->orders_table_data_store ) ) {
+			$this->orders_table_data_store = new WCS_Orders_Table_Subscription_Data_Store();
+		}
+
+		return $this->orders_table_data_store;
 	}
 }

@@ -54,7 +54,7 @@ class WC_REST_Subscription_System_Status_Manager {
 	 * @return WP_REST_Response
 	 */
 	public static function add_subscription_fields_to_response( $response ) {
-		$count_by_status = array_filter( (array) WC_Data_Store::load( 'subscription' )->get_subscriptions_count_by_status() );
+		$count_by_status = WCS_Admin_System_Status::get_subscription_status_counts();
 
 		$response->data['subscriptions'] = array(
 			'wcs_debug'                        => defined( 'WCS_DEBUG' ) ? WCS_DEBUG : false,

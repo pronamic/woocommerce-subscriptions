@@ -113,6 +113,7 @@ class WCS_Cart_Renewal {
 		// Make sure renewal meta data persists between sessions
 		add_filter( 'woocommerce_get_cart_item_from_session', array( &$this, 'get_cart_item_from_session' ), 10, 3 );
 		add_action( 'woocommerce_cart_loaded_from_session', array( &$this, 'cart_items_loaded_from_session' ), 10 );
+		add_action( 'woocommerce_cart_loaded_from_session', array( $this, 'restore_order_awaiting_payment' ), 10 );
 
 		// Make sure fees are added to the cart
 		add_action( 'woocommerce_cart_calculate_fees', array( &$this, 'maybe_add_fees' ), 10, 1 );
@@ -248,14 +249,28 @@ class WCS_Cart_Renewal {
 	 * @internal Core checkout uses order_awaiting_payment, Blocks checkout uses store_api_draft_order. Both validate the
 	 * cart hash to ensure the order matches the cart.
 	 *
-	 * @param int $order_id The order ID that is awaiting payment, or 0 to unset it.
+	 * @param int|WC_Order $order_id The order that is awaiting payment, or 0 to unset it.
 	 */
 	protected function set_order_awaiting_payment( $order_id ) {
+		$order = null;
+
+		if ( is_a( $order_id, 'WC_Abstract_Order' ) ) {
+			$order    = $order_id;
+			$order_id = $order->get_id();
+		} elseif ( ! empty( $order_id ) ) {
+			$order = wc_get_order( $order_id );
+		}
+
+		// Only ever set the order awaiting payment to 0 or an Order ID - not a subscription.
+		if ( $order && ! wcs_is_order( $order ) ) {
+			return;
+		}
+
 		WC()->session->set( 'order_awaiting_payment', $order_id );
 		WC()->session->set( 'store_api_draft_order', $order_id );
 
 		if ( $order_id ) {
-			$this->set_cart_hash( $order_id );
+			$this->set_cart_hash( $order );
 		}
 	}
 
@@ -1652,6 +1667,40 @@ class WCS_Cart_Renewal {
 		}
 
 		return $has_status;
+	}
+
+	/**
+	 * Restores the order awaiting payment session args if the cart contains a subscription-related order.
+	 *
+	 * It's possible the that order_awaiting_payment and store_api_draft_order session args are not set if those session args are lost due
+	 * to session destruction.
+	 *
+	 * This function checks the cart that is being loaded from the session and if the cart contains a subscription-related order and if the
+	 * current user has permission to pay for it. If so, it restores the order awaiting payment session args.
+	 *
+	 * @param WC_Cart $cart The cart object.
+	 */
+	public function restore_order_awaiting_payment( $cart ) {
+		if ( ! is_a( $cart, WC_Cart::class ) ) {
+			return;
+		}
+
+		foreach ( $cart->get_cart() as $cart_item ) {
+			$order = $this->get_order( $cart_item );
+
+			if ( ! $order ) {
+				continue;
+			}
+
+			// If the current user has permission to pay for the order, restore the order awaiting payment session arg.
+			if ( wcs_is_order( $order ) && $this->validate_current_user( $order ) ) {
+				$this->set_order_awaiting_payment( $order );
+			}
+
+			// Once we found an order, exit even if the user doesn't have permission to pay for it.
+			return;
+
+		}
 	}
 
 	/* Deprecated */
