@@ -1,5 +1,9 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-03-31 - version 7.3.1
+* Update: Display the subscription parent order icon in the WooCommerce Orders list table by default.
+* Dev: Update subscriptions-core to 8.1.1
+
 2025-03-24 - version 7.3.0
 * Tweak: Adjust the warning that appears on the reports page when HPOS is enabled but Compatibility Mode is disabled (provide a direct link to the relevant settings).
 * Update: Improved subscription search performance for WP Post stores by removing unnecessary _order_key and _billing_email meta queries.

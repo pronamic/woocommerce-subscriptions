@@ -2455,7 +2455,7 @@ class WC_Subscriptions_Order {
 			echo '<span class="subscription_renewal_order tips" data-tip="' . esc_attr__( 'Renewal Order', 'woocommerce-subscriptions' ) . '"></span>';
 		} elseif ( wcs_order_contains_resubscribe( $order ) ) {
 			echo '<span class="subscription_resubscribe_order tips" data-tip="' . esc_attr__( 'Resubscribe Order', 'woocommerce-subscriptions' ) . '"></span>';
-		} elseif ( apply_filters( 'woocommerce_subscriptions_orders_list_render_parent_order_relation', false, $order ) && wcs_order_contains_parent( $order ) ) {
+		} elseif ( apply_filters( 'woocommerce_subscriptions_orders_list_render_parent_order_relation', true, $order ) && wcs_order_contains_parent( $order ) ) {
 			echo '<span class="subscription_parent_order tips" data-tip="' . esc_attr__( 'Parent Order', 'woocommerce-subscriptions' ) . '"></span>';
 		} else {
 			echo '<span class="normal_order">&ndash;</span>';

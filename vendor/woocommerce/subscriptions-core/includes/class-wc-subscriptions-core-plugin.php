@@ -16,7 +16,7 @@ class WC_Subscriptions_Core_Plugin {
 	 * The version of subscriptions-core library.
 	 * @var string
 	 */
-	protected $library_version = '8.1.0'; // WRCS: DEFINED_VERSION.
+	protected $library_version = '8.1.1'; // WRCS: DEFINED_VERSION.
 
 	/**
 	 * The subscription scheduler instance.

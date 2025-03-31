@@ -1,5 +1,8 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 8.1.1 - 2025-03-30 =
+* Update - Display the subscriptions parent order icon in the WooCommerce Orders list table by default.
+
 = 8.1.0 - 2025-03-24 =
 * Update - Improved subscription search performance for WP Post stores by removing unnecessary _order_key and _billing_email meta queries.
 * Update - Make it possible to dispatch the Cancelled Subscription email more than once (when initially set to pending-cancellation, and again when it reaches final cancellation).
