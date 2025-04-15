@@ -1,5 +1,13 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-04-14 - version 7.4.0
+* Update: Increase the number of args accepted by wcs_get_subscriptions(), to bring about parity with wc_get_orders().
+* Dev: Update wcs_maybe_prefix_key() and wcs_maybe_unprefix_key() to support an array of keys.
+* Fix: Prevent sending renewal reminders for orders with a 0 total.
+* Fix: Ensure the second parameter passed to the 'get_edit_post_link' filter is an integer.
+* Fix: Prevent WooCommerce Subscriptions buttons from overflowing in the View subscription page
+* Dev: Update subscriptions-core to 8.2.0
+
 2025-03-31 - version 7.3.1
 * Update: Display the subscription parent order icon in the WooCommerce Orders list table by default.
 * Dev: Update subscriptions-core to 8.1.1

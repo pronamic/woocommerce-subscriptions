@@ -396,7 +396,7 @@ jQuery( function ( $ ) {
 					// Add the subscription price fields above the standard price fields
 					$( this ).insertBefore( $regularPriceRow );
 
-					$trialSignUpRow.insertBefore( $( this ) );
+					$trialSignUpRow.insertAfter( $( this ) );
 
 					// Replace the regular price field with the trial period field
 					$regularPriceRow

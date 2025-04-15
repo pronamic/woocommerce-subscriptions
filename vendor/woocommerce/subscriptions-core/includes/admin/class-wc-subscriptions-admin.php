@@ -316,7 +316,8 @@ class WC_Subscriptions_Admin {
 				?>
 			</label>
 			<span class="wrap">
-				<input type="text" id="_subscription_price" name="_subscription_price" class="wc_input_price wc_input_subscription_price" placeholder="<?php echo esc_attr_x( 'e.g. 5.90', 'example price', 'woocommerce-subscriptions' ); ?>" step="any" min="0" value="<?php echo esc_attr( wc_format_localized_price( $chosen_price ) ); ?>" />
+				<?php // Translators: %s: formatted example price value. ?>
+				<input type="text" id="_subscription_price" name="_subscription_price" class="wc_input_price wc_input_subscription_price" placeholder="<?php echo esc_attr( sprintf( _x( 'e.g. %s', 'example price', 'woocommerce-subscriptions' ), wc_format_localized_price( '5.90' ) ) ); ?>" step="any" min="0" value="<?php echo esc_attr( wc_format_localized_price( $chosen_price ) ); ?>" />
 				<label for="_subscription_period_interval" class="wcs_hidden_label"><?php esc_html_e( 'Subscription interval', 'woocommerce-subscriptions' ); ?></label>
 				<select id="_subscription_period_interval" name="_subscription_period_interval" class="wc_input_subscription_period_interval wc-enhanced-select">
 				<?php foreach ( wcs_get_subscription_period_interval_strings() as $value => $label ) { ?>
@@ -354,7 +355,8 @@ class WC_Subscriptions_Admin {
 					'class'             => 'wc_input_subscription_intial_price wc_input_subscription_initial_price wc_input_price  short',
 					// translators: %s is a currency symbol / code
 					'label'             => sprintf( __( 'Sign-up fee (%s)', 'woocommerce-subscriptions' ), get_woocommerce_currency_symbol() ),
-					'placeholder'       => _x( 'e.g. 9.90', 'example price', 'woocommerce-subscriptions' ),
+					'placeholder'       => // translators: %s the formatted example price value.
+						esc_attr( sprintf( _x( 'e.g. %s', 'example price', 'woocommerce-subscriptions' ), wc_format_localized_price( '5.90' ) ) ),
 					'description'       => __( 'Optionally include an amount to be charged at the outset of the subscription. The sign-up fee will be charged immediately, even if the product has a free trial or the payment dates are synced.', 'woocommerce-subscriptions' ),
 					'desc_tip'          => true,
 					'type'              => 'text',

@@ -393,50 +393,58 @@ function wcs_sanitize_subscription_status_key( $status_key ) {
 /**
  * Gets a list of subscriptions that match a certain set of query arguments.
  *
- * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.
+ * @since 1.0.0 Migrated from WooCommerce Subscriptions v2.0.
+ * @since 7.3.0 Any additional arguments are passed across to WooCommerce for use in the final query.
  *
  * @param array $args {
  *     A set of name value pairs to query for subscriptions - similar to args supported by wc_get_orders().
+ *     You can also provide other keys, such as but not limited to those supported by WooCommerce order queries.
  *
- *     @type string $subscriptions_per_page The number of subscriptions to return. Set to -1 for unlimited. Default 10.
- *     @type int    $paged                  The page of subscriptions to return. Default 1.
- *     @type int    $offset                 An optional number of subscription to displace or pass over. Default 0.
- *     @type string $orderby                The field which the subscriptions should be ordered by. Can be 'start_date', 'trial_end_date', 'end_date', 'status' or 'order_id'. Defaults to 'start_date'.
- *     @type string $order                  The direction to order subscriptions by. Can be 'ASC' or 'DESC'. Defaults to 'DESC'.
- *     @type int    $customer_id            The ID of the customer whose subscriptions should be returned. Default 0 - No customer restriction.
- *     @type int    $product_id             To restrict subscriptions to those which contain a certain product ID. Default 0 - No product restriction.
- *     @type int    $variation_id           To restrict subscriptions to those which contain a certain product variation ID. Default 0 - No variation restriction.
- *     @type int    $order_id               To restrict subscriptions to those which have a certain parent order ID. Default 0 - No parent order restriction.
- *     @type string $subscription_status    The status of the subscriptions to return. Can be 'any', 'active', 'on-hold', 'pending', 'cancelled', 'expired', 'trash', 'pending-cancel'. Default 'any'.
+ *     @type int             $subscriptions_per_page The number of subscriptions to return. Set to -1 for unlimited. Default 10.
+ *     @type int             $paged                  The page of subscriptions to return. Default 1.
+ *     @type int             $offset                 An optional number of subscription to displace or pass over. Default 0.
+ *     @type string          $orderby                The field which the subscriptions should be ordered by. Can be 'start_date', 'trial_end_date', 'end_date', 'status' or 'order_id'. Defaults to 'start_date'.
+ *     @type string          $order                  The direction to order subscriptions by. Can be 'ASC' or 'DESC'. Defaults to 'DESC'.
+ *     @type int             $customer_id            The ID of the customer whose subscriptions should be returned. Default 0 - No customer restriction.
+ *     @type int             $product_id             To restrict subscriptions to those which contain a certain product ID. Default 0 - No product restriction.
+ *     @type int             $variation_id           To restrict subscriptions to those which contain a certain product variation ID. Default 0 - No variation restriction.
+ *     @type int             $order_id               To restrict subscriptions to those which have a certain parent order ID. Default 0 - No parent order restriction.
+ *     @type string|string[] $subscription_status    The status of the subscriptions to return. Can be 'any', 'active', 'on-hold', 'pending', 'cancelled', 'expired', 'trash', 'pending-cancel'. Default 'any'.
  * }
  *
  * @return WC_Subscription[] An array of WC_Subscription objects keyed by their ID matching the query args.
  */
 function wcs_get_subscriptions( $args ) {
-	$args = wp_parse_args(
-		$args,
-		array(
-			'subscriptions_per_page' => 10,
-			'paged'                  => 1,
-			'offset'                 => 0,
-			'orderby'                => 'start_date',
-			'order'                  => 'DESC',
-			'customer_id'            => 0,
-			'product_id'             => 0,
-			'variation_id'           => 0,
-			'order_id'               => 0,
-			'subscription_status'    => array( 'any' ),
-			'meta_query_relation'    => 'AND',
-		)
+	$default_args = array(
+		'subscriptions_per_page' => 10,
+		'paged'                  => 1,
+		'offset'                 => 0,
+		'orderby'                => 'start_date',
+		'order'                  => 'DESC',
+		'customer_id'            => 0,
+		'product_id'             => 0,
+		'variation_id'           => 0,
+		'order_id'               => 0,
+		'subscription_status'    => array( 'any' ),
+		'meta_query_relation'    => 'AND',
 	);
 
+	$provided_args = wp_parse_args( $args );
+	$working_args  = array_merge( $default_args, $provided_args );
+	$extra_args    = array_diff_key( $provided_args, $default_args );
+
 	// If the order ID arg is not a shop_order then there's no need to proceed with the query.
-	if ( 0 !== $args['order_id'] && 'shop_order' !== WC_Data_Store::load( 'order' )->get_order_type( $args['order_id'] ) ) {
+	if ( 0 !== $working_args['order_id'] && 'shop_order' !== WC_Data_Store::load( 'order' )->get_order_type( $working_args['order_id'] ) ) {
 		return array();
 	}
 
-	// Ensure subscription_status is an array.
-	$args['subscription_status'] = $args['subscription_status'] ? (array) $args['subscription_status'] : [];
+	// Support the direct use of 'status'.
+	if ( isset( $extra_args['status'] ) ) {
+		$working_args['subscription_status'] = $extra_args['status'];
+	}
+
+	// Ensure the status argument is an array.
+	$working_args['subscription_status'] = $working_args['subscription_status'] ? (array) $working_args['subscription_status'] : [];
 
 	// Grab the native post stati, removing pending and adding any.
 	$builtin = get_post_stati( [ '_builtin' => true ] );
@@ -444,7 +452,7 @@ function wcs_get_subscriptions( $args ) {
 	$builtin['any'] = 'any';
 
 	// Make sure statuses start with 'wc-'.
-	foreach ( $args['subscription_status'] as &$status ) {
+	foreach ( $working_args['subscription_status'] as &$status ) {
 		if ( isset( $builtin[ $status ] ) ) {
 			continue;
 		}
@@ -455,23 +463,25 @@ function wcs_get_subscriptions( $args ) {
 	// Prepare the args for WC_Order_Query.
 	$query_args = array(
 		'type'       => 'shop_subscription',
-		'status'     => $args['subscription_status'],
-		'limit'      => $args['subscriptions_per_page'],
-		'page'       => $args['paged'],
-		'offset'     => $args['offset'] > 0 ? $args['offset'] : null,
-		'order'      => $args['order'],
+		'status'     => $working_args['subscription_status'],
+		'limit'      => $working_args['limit'] ?? $working_args['subscriptions_per_page'],
+		'offset'     => $working_args['offset'] > 0 ? $working_args['offset'] : null,
+		'order'      => $working_args['order'],
 		'return'     => 'ids',
 		// just in case we need to filter or order by meta values later
-		'meta_query' => isset( $args['meta_query'] ) ? $args['meta_query'] : array(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		'meta_query' => isset( $working_args['meta_query'] ) ? $working_args['meta_query'] : array(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 	);
 
+	// Remove Subscriptions-specific args which exist as aliases of regular order query args.
+	unset( $query_args['subscription_status'], $query_args['subscriptions_per_page'] );
+
 	// Maybe only get subscriptions created by a certain order
-	if ( 0 !== $args['order_id'] && is_numeric( $args['order_id'] ) ) {
-		$query_args['parent'] = $args['order_id'];
+	if ( 0 !== $working_args['order_id'] && is_numeric( $working_args['order_id'] ) ) {
+		$query_args['parent'] = $working_args['order_id'];
 	}
 
 	// Map subscription specific orderby values to internal keys.
-	switch ( $args['orderby'] ) {
+	switch ( $working_args['orderby'] ) {
 		case 'status':
 			wcs_deprecated_argument( __FUNCTION__, 'subscriptions-core 5.0.0', 'The "status" orderby value is deprecated.' );
 			break;
@@ -481,8 +491,8 @@ function wcs_get_subscriptions( $args ) {
 		case 'trial_end_date':
 		case 'end_date':
 			// We need to orderby post meta value: http://www.paulund.co.uk/order-meta-query
-			$date_type  = str_replace( '_date', '', $args['orderby'] );
-			$query_args = array_merge( $query_args, array(
+			$date_type                  = str_replace( '_date', '', $working_args['orderby'] );
+			$query_args                 = array_merge( $query_args, array(
 				'orderby'   => 'meta_value',
 				'meta_key'  => wcs_get_date_meta_key( $date_type ),
 				'meta_type' => 'DATETIME',
@@ -494,51 +504,56 @@ function wcs_get_subscriptions( $args ) {
 			);
 			break;
 		default:
-			$query_args['orderby'] = $args['orderby'];
+			$query_args['orderby'] = $working_args['orderby'];
 			break;
 	}
 
 	// Maybe filter to a specific customer.
-	if ( 0 !== $args['customer_id'] && is_numeric( $args['customer_id'] ) ) {
+	if ( 0 !== $working_args['customer_id'] && is_numeric( $working_args['customer_id'] ) ) {
 		// When HPOS is disabled, fetch subscriptions by customer_id using the user's subscription cache and query by post__in for improved performance.
 		if ( ! wcs_is_custom_order_tables_usage_enabled() ) {
-			$users_subscription_ids = WCS_Customer_Store::instance()->get_users_subscription_ids( $args['customer_id'] );
+			$users_subscription_ids = WCS_Customer_Store::instance()->get_users_subscription_ids( $working_args['customer_id'] );
 			$query_args             = WCS_Admin_Post_Types::set_post__in_query_var( $query_args, $users_subscription_ids );
 		} else {
-			$query_args['customer_id'] = $args['customer_id'];
+			$query_args['customer_id'] = $working_args['customer_id'];
 		}
 	}
 
 	// It's more efficient to filter the results by product ID or variation ID rather than querying for via a "post__in" clause.
 	// This can only work where we know that the results will be sufficiently limited by the other query args. ie when we're querying by customer_id or order_id.
 	// We store the filters in a separate array so that we can apply them after the query has been run.
-	$query_controller = new WC_Subscription_Query_Controller( $args );
+	$query_controller = new WC_Subscription_Query_Controller( $working_args );
 
 	// We need to restrict subscriptions to those which contain a certain product/variation.
 	if ( $query_controller->has_product_query() ) {
 		if ( $query_controller->should_filter_query_results() ) {
 			// We will filter the results and apply any paging, limit and offset after the query has been run.
-			unset( $args['product_id'], $args['variation_id'], $query_args['limit'], $query_args['paged'], $query_args['offset'] );
+			unset( $working_args['product_id'], $working_args['variation_id'], $query_args['limit'], $query_args['paged'], $query_args['offset'] );
 
 			// We need to get all subscriptions otherwise the limit could be filled with subscriptions that don't contain the product.
 			$query_args['limit'] = -1;
 		} else {
-			$subscriptions_for_product = wcs_get_subscriptions_for_product( array( $args['product_id'], $args['variation_id'] ) );
+			$subscriptions_for_product = wcs_get_subscriptions_for_product( array( $working_args['product_id'], $working_args['variation_id'] ) );
 			$query_args                = WCS_Admin_Post_Types::set_post__in_query_var( $query_args, $subscriptions_for_product );
 		}
 	}
 
 	if ( ! empty( $query_args['meta_query'] ) ) {
-		$query_args['meta_query']['relation'] = $args['meta_query_relation'];
+		$query_args['meta_query']['relation'] = $working_args['meta_query_relation'];
 	}
+
+	// We add any extra args, that are not specific to Subscriptions-queries, to the final set of query args.
+	// Merge order is important to prevent callers from overriding fields such as 'type', or where they might
+	// interfere with clever things we are doing re pagination.
+	$query_args = array_merge( $extra_args, $query_args );
 
 	/**
 	 * Filters the query arguments used to retrieve subscriptions in wcs_get_subscriptions().
 	 *
 	 * @param array $query_args The query arguments used to retrieve subscriptions.
-	 * @param array $args       The original wcs_get_subscription() $args parameter.
+	 * @param array $working_args The original wcs_get_subscription() $args parameter.
 	 */
-	$query_args    = apply_filters( 'woocommerce_get_subscriptions_query_args', $query_args, $args );
+	$query_args    = apply_filters( 'woocommerce_get_subscriptions_query_args', $query_args, $working_args );
 	$subscriptions = array();
 
 	foreach ( wcs_get_orders_with_meta_query( $query_args ) as $subscription_id ) {
@@ -551,7 +566,7 @@ function wcs_get_subscriptions( $args ) {
 		$subscriptions = $query_controller->paginate_results( $subscriptions );
 	}
 
-	return apply_filters( 'woocommerce_got_subscriptions', $subscriptions, $args );
+	return apply_filters( 'woocommerce_got_subscriptions', $subscriptions, $working_args );
 }
 
 /**

@@ -1,7 +1,14 @@
 *** WooCommerce Subscriptions Core Changelog ***
 
+= 8.2.0 - 2025-04-14 =
+* Update - Increase the number of args accepted by wcs_get_subscriptions(), to bring about parity with wc_get_orders().
+* Dev - Update wcs_maybe_prefix_key() and wcs_maybe_unprefix_key() to support an array of keys.
+* Fix - Prevent sending renewal reminders for orders with a 0 total.
+* Fix - Ensure the second parameter passed to the 'get_edit_post_link' filter is an integer.
+* Fix - Prevent WooCommerce Subscriptions buttons from overflowing in the View subscription page
+
 = 8.1.1 - 2025-03-30 =
-* Update - Display the subscriptions parent order icon in the WooCommerce Orders list table by default.
+* Update - Display the subscriptions parent order icon in the WooCommerce Orders list table by default
 
 = 8.1.0 - 2025-03-24 =
 * Update - Improved subscription search performance for WP Post stores by removing unnecessary _order_key and _billing_email meta queries.
@@ -20,6 +27,7 @@
 * Fix - Prevent empty strings being saved in related orders cache ID meta when backfilling order data to the WP Posts table.
 * Fix - Correctly load product names with HTML on the cart and checkout shipping rates.
 * Dev - Fix Node version mismatch between package.json and .nvmrc (both are now set to v16.17.1).
+* Add - Hooks to add more columns to the Related Orders table on admin
 
 = 8.0.1 - 2025-02-13 =
 * Fix - Revert a change released in 7.2.0 which triggered the "woocommerce_cart_item_name" filter with the wrong number of parameters.

@@ -148,7 +148,7 @@ class WCS_Early_Renewal_Modal_Handler {
 		if ( $renewal_order->needs_payment() ) {
 			$renewal_order->delete( true );
 			wc_add_notice( __( 'Payment for the renewal order was unsuccessful with your payment method on file, please try again.', 'woocommerce-subscriptions' ), 'error' );
-			wp_redirect( wcs_get_early_renewal_url( $subscription ) );
+			wp_safe_redirect( wcs_get_early_renewal_url( $subscription ) );
 			exit();
 		}
 
@@ -191,7 +191,7 @@ class WCS_Early_Renewal_Modal_Handler {
 	 * @since 2.6.0
 	 */
 	private static function redirect() {
-		wp_redirect( remove_query_arg( array( 'process_early_renewal', 'subscription_id', 'wcs_nonce' ) ) );
+		wp_safe_redirect( remove_query_arg( array( 'process_early_renewal', 'subscription_id', 'wcs_nonce' ) ) );
 		exit();
 	}
 

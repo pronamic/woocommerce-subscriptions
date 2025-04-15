@@ -282,9 +282,15 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 			}
 		}
 
+		$statuses                 = wcs_maybe_prefix_key( $args['order_status'], 'wc-' );
+		$order_types              = wc_get_order_types( 'order-count' );
+		$status_placeholders      = implode( ', ', array_fill( 0, count( $args['order_status'] ), '%s' ) );
+		$order_types_placeholders = implode( ', ', array_fill( 0, count( $order_types ), '%s' ) );
+
 		/*
 		 * New subscription orders
 		 */
+		// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Ignored for allowing interpolation in the IN statements.
 		$query = $wpdb->prepare(
 			"SELECT SUM(subscriptions.count) as count,
 				order_posts.post_date as post_date,
@@ -304,23 +310,27 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 			) AS subscriptions ON subscriptions.order_id = order_posts.ID
 			LEFT JOIN {$wpdb->postmeta} AS order_total_post_meta
 				ON order_posts.ID = order_total_post_meta.post_id
-			WHERE  order_posts.post_type IN ( '" . implode( "','", wc_get_order_types( 'order-count' ) ) . "' )
-				AND order_posts.post_status IN ( 'wc-" . implode( "','wc-", $args['order_status'] ) . "' )
+			WHERE  order_posts.post_type IN ( {$order_types_placeholders} )
+				AND order_posts.post_status IN ( {$status_placeholders} )
 				AND order_posts.post_date >= %s
 				AND order_posts.post_date < %s
 				AND order_total_post_meta.meta_key = '_order_total'
 			GROUP BY YEAR(order_posts.post_date), MONTH(order_posts.post_date), DAY(order_posts.post_date)
 			ORDER BY post_date ASC",
-			date( 'Y-m-d', $this->start_date ),
-			$query_end_date,
-			date( 'Y-m-d', $this->start_date ),
-			$query_end_date
+			array_merge(
+				[ date( 'Y-m-d', $this->start_date ), $query_end_date ],
+				$order_types,
+				$statuses,
+				[ date( 'Y-m-d', $this->start_date ), $query_end_date ]
+			)
 		);
+		// phpcs:enable WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		$query_hash = md5( $query );
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_subscription_events_sign_up_data', (array) $wpdb->get_results( $query ), $args );
 			$update_cache = true;
 		}
@@ -364,7 +374,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 				) searchdate,
 					{$wpdb->posts} AS wcsubs,
 					{$wpdb->postmeta} AS wcsmeta
-					WHERE wcsubs.ID = wcsmeta.post_id AND wcsmeta.meta_key = '%s'
+					WHERE wcsubs.ID = wcsmeta.post_id AND wcsmeta.meta_key = %s
 						AND DATE( wcsubs.post_date ) <= searchdate.Date
 						AND wcsubs.post_type IN ( 'shop_subscription' )
 						AND wcsubs.post_status NOT IN( 'auto-draft' )
@@ -386,6 +396,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_subscription_events_subscriber_count_data', (array) $wpdb->get_results( $query ), $args );
 			$update_cache = true;
 		}
@@ -397,7 +408,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		 * Subscription cancellations
 		 */
 		$query = $wpdb->prepare(
-			"SELECT COUNT( DISTINCT wcsubs.ID ) as count, CONVERT_TZ( wcsmeta_cancel.meta_value, '+00:00', '{$site_timezone}' ) as cancel_date, GROUP_CONCAT( DISTINCT wcsubs.ID ) as subscription_ids
+			"SELECT COUNT( DISTINCT wcsubs.ID ) as count, CONVERT_TZ( wcsmeta_cancel.meta_value, '+00:00', %s ) as cancel_date, GROUP_CONCAT( DISTINCT wcsubs.ID ) as subscription_ids
 				FROM {$wpdb->posts} as wcsubs
 				JOIN {$wpdb->postmeta} AS wcsmeta_cancel
 					ON wcsubs.ID = wcsmeta_cancel.post_id
@@ -406,6 +417,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 				GROUP BY YEAR( cancel_date ), MONTH( cancel_date ), DAY( cancel_date )
 				HAVING cancel_date BETWEEN %s AND %s
 				ORDER BY wcsmeta_cancel.meta_value ASC",
+			$site_timezone,
 			wcs_get_date_meta_key( 'cancelled' ),
 			date( 'Y-m-d', $this->start_date ),
 			$query_end_date
@@ -415,6 +427,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_subscription_events_cancel_count_data', (array) $wpdb->get_results( $query ), $args );
 			$update_cache = true;
 		}
@@ -427,7 +440,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 		 * Subscriptions ended
 		 */
 		$query = $wpdb->prepare(
-			"SELECT COUNT( DISTINCT wcsubs.ID ) as count, CONVERT_TZ( wcsmeta_end.meta_value, '+00:00', '{$site_timezone}' ) as end_date, GROUP_CONCAT( DISTINCT wcsubs.ID ) as subscription_ids
+			"SELECT COUNT( DISTINCT wcsubs.ID ) as count, CONVERT_TZ( wcsmeta_end.meta_value, '+00:00', %s ) as end_date, GROUP_CONCAT( DISTINCT wcsubs.ID ) as subscription_ids
 				FROM {$wpdb->posts} as wcsubs
 				JOIN {$wpdb->postmeta} AS wcsmeta_end
 					ON wcsubs.ID = wcsmeta_end.post_id
@@ -436,6 +449,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 				GROUP BY YEAR( end_date ), MONTH( end_date ), DAY( end_date )
 				HAVING end_date BETWEEN %s AND %s
 				ORDER BY wcsmeta_end.meta_value ASC",
+			$site_timezone,
 			wcs_get_date_meta_key( 'end' ),
 			date( 'Y-m-d', $this->start_date ),
 			$query_end_date
@@ -445,6 +459,7 @@ class WCS_Report_Subscription_Events_By_Date extends WC_Admin_Report {
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_subscription_events_ended_count_data', (array) $wpdb->get_results( $query ), $args );
 			$update_cache = true;
 		}

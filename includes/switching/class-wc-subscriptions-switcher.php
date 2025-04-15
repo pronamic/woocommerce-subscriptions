@@ -183,12 +183,13 @@ class WC_Subscriptions_Switcher {
 		if ( isset( $_GET['switch-subscription'] ) && isset( $_GET['item'] ) ) {
 
 			$subscription = wcs_get_subscription( absint( $_GET['switch-subscription'] ) );
-			$line_item    = wcs_get_order_item( absint( $_GET['item'] ), $subscription );
+			$line_item    = $subscription ? wcs_get_order_item( absint( $_GET['item'] ), $subscription ) : false;
+			$nonce        = ! empty( $_GET['_wcsnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wcsnonce'] ) ) : false;
 
 			// Visiting a switch link for someone elses subscription or if the switch link doesn't contain a valid nonce
-			if ( ! is_object( $subscription ) || empty( $_GET['_wcsnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wcsnonce'] ) ), 'wcs_switch_request' ) || empty( $line_item ) || ! self::can_item_be_switched_by_user( $line_item, $subscription ) ) {
+			if ( ! is_object( $subscription ) || empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wcs_switch_request' ) || empty( $line_item ) || ! self::can_item_be_switched_by_user( $line_item, $subscription ) ) {
 
-				wp_redirect( remove_query_arg( array( 'switch-subscription', 'auto-switch', 'item', '_wcsnonce' ) ) );
+				wp_safe_redirect( remove_query_arg( array( 'switch-subscription', 'auto-switch', 'item', '_wcsnonce' ) ) );
 				exit();
 
 			} else {
@@ -238,7 +239,7 @@ class WC_Subscriptions_Switcher {
 			if ( $removed_item_count > 0 ) {
 				wc_add_notice( _n( 'Your cart contained an invalid subscription switch request. It has been removed.', 'Your cart contained invalid subscription switch requests. They have been removed.', $removed_item_count, 'woocommerce-subscriptions' ), 'error' );
 
-				wp_redirect( wc_get_cart_url() );
+				wp_safe_redirect( wc_get_cart_url() );
 				exit();
 			}
 		} elseif ( is_product() && $product = wc_get_product( $post ) ) { // Automatically initiate the switch process for limited variable subscriptions
@@ -305,7 +306,7 @@ class WC_Subscriptions_Switcher {
 								}
 
 								if ( apply_filters( 'wcs_initiate_auto_switch', self::can_item_be_switched_by_user( $item, $subscription ), $item, $subscription ) ) {
-									wp_redirect( add_query_arg( 'auto-switch', 'true', self::get_switch_url( $item_id, $item, $subscription ) ) );
+									wp_safe_redirect( add_query_arg( 'auto-switch', 'true', self::get_switch_url( $item_id, $item, $subscription ) ) );
 									exit;
 								}
 							}
@@ -1456,7 +1457,7 @@ class WC_Subscriptions_Switcher {
 			if ( ! current_user_can( 'switch_shop_subscription', $subscription->get_id() ) ) {
 				wc_add_notice( __( 'You can not switch this subscription. It appears you do not own the subscription.', 'woocommerce-subscriptions' ), 'error' );
 				WC()->cart->empty_cart( true );
-				wp_redirect( get_permalink( $product_id ) );
+				wp_safe_redirect( get_permalink( $product_id ) );
 				exit();
 			}
 
@@ -1497,7 +1498,7 @@ class WC_Subscriptions_Switcher {
 
 			wc_add_notice( __( 'There was an error locating the switch details.', 'woocommerce-subscriptions' ), 'error' );
 			WC()->cart->empty_cart( true );
-			wp_redirect( get_permalink( wc_get_page_id( 'cart' ) ) );
+			wp_safe_redirect( get_permalink( wc_get_page_id( 'cart' ) ) );
 			exit();
 		}
 	}

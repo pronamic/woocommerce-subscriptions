@@ -156,6 +156,9 @@ class WC_Subscriptions_Email_Notifications {
 		switch ( current_action() ) {
 			case 'woocommerce_scheduled_subscription_customer_notification_renewal':
 				$subscription = wcs_get_subscription( $subscription_id );
+				if ( $subscription->get_total() <= 0 ) {
+					break;
+				}
 				if ( $subscription->is_manual() ) {
 					$notification = $emails['WCS_Email_Customer_Notification_Manual_Renewal'];
 				} else {
@@ -248,7 +251,7 @@ class WC_Subscriptions_Email_Notifications {
 			$actions['wcs_customer_notification_subscription_expiration'] = esc_html__( 'Send upcoming subscription expiration notification', 'woocommerce-subscriptions' );
 		}
 
-		if ( in_array( 'next_payment', $valid_notifications, true ) ) {
+		if ( in_array( 'next_payment', $valid_notifications, true ) && $theorder->get_total() > 0 ) {
 			$actions['wcs_customer_notification_renewal'] = esc_html__( 'Send upcoming renewal notification', 'woocommerce-subscriptions' );
 		}
 

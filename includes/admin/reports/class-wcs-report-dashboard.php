@@ -66,8 +66,8 @@ class WCS_Report_Dashboard {
 				WHERE wcorder.post_type IN ( 'shop_order' )
 					AND wcsubs.post_type IN ( 'shop_subscription' )
 					AND wcorder.post_status IN ( 'wc-completed', 'wc-processing', 'wc-on-hold', 'wc-refunded' )
-					AND wcorder.post_date >= '%s'
-					AND wcorder.post_date < '%s'",
+					AND wcorder.post_date >= %s
+					AND wcorder.post_date < %s",
 			date( 'Y-m-01', current_time( 'timestamp' ) ),
 			date( 'Y-m-d', strtotime( '+1 DAY', current_time( 'timestamp' ) ) )
 		);
@@ -76,6 +76,7 @@ class WCS_Report_Dashboard {
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_signup_query', $query ) );
 			$update_cache = true;
 		}
@@ -95,8 +96,8 @@ class WCS_Report_Dashboard {
 						WHERE wcorder.post_type IN ( 'shop_order' )
 							AND wcsubs.post_type IN ( 'shop_subscription' )
 							AND wcorder.post_status IN ( 'wc-completed', 'wc-processing', 'wc-on-hold', 'wc-refunded' )
-							AND wcorder.post_date >= '%s'
-							AND wcorder.post_date < '%s'
+							AND wcorder.post_date >= %s
+							AND wcorder.post_date < %s
 					) AS orders ON orders.ID = order_total_meta.post_id
 				WHERE order_total_meta.meta_key = '_order_total'",
 			date( 'Y-m-01', current_time( 'timestamp' ) ),
@@ -107,6 +108,7 @@ class WCS_Report_Dashboard {
 
 		if ( $args['no_cache'] || false === $cached_results || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_signup_revenue_query', $query ) );
 			$update_cache = true;
 		}
@@ -125,8 +127,8 @@ class WCS_Report_Dashboard {
 					)
 				WHERE wcorder.post_type IN ( 'shop_order' )
 					AND wcorder.post_status IN ( 'wc-completed', 'wc-processing', 'wc-on-hold', 'wc-refunded' )
-					AND wcorder.post_date >= '%s'
-					AND wcorder.post_date < '%s'",
+					AND wcorder.post_date >= %s
+					AND wcorder.post_date < %s",
 			date( 'Y-m-01', current_time( 'timestamp' ) ),
 			date( 'Y-m-d', strtotime( '+1 DAY', current_time( 'timestamp' ) ) )
 		);
@@ -135,6 +137,7 @@ class WCS_Report_Dashboard {
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_renewal_query', $query ) );
 			$update_cache = true;
 		}
@@ -157,8 +160,8 @@ class WCS_Report_Dashboard {
 						)
 					WHERE wcorder.post_type IN ( 'shop_order' )
 						AND wcorder.post_status IN ( 'wc-completed', 'wc-processing', 'wc-on-hold', 'wc-refunded' )
-						AND wcorder.post_date >= '%s'
-						AND wcorder.post_date < '%s'
+						AND wcorder.post_date >= %s
+						AND wcorder.post_date < %s
 				) AS orders ON orders.ID = order_total_meta.post_id
 				WHERE order_total_meta.meta_key = '_order_total'",
 			date( 'Y-m-01', current_time( 'timestamp' ) ),
@@ -169,6 +172,7 @@ class WCS_Report_Dashboard {
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_renewal_revenue_query', $query ) );
 			$update_cache = true;
 		}
@@ -183,7 +187,8 @@ class WCS_Report_Dashboard {
 						ON wcsubs.ID = wcsmeta_cancel.post_id
 					AND wcsmeta_cancel.meta_key = '_schedule_cancelled'
 					AND wcsubs.post_status NOT IN ( 'trash', 'auto-draft' )
-					AND CONVERT_TZ( wcsmeta_cancel.meta_value, '+00:00', '{$site_timezone}' ) BETWEEN '%s' AND '%s'",
+					AND CONVERT_TZ( wcsmeta_cancel.meta_value, '+00:00', %s ) BETWEEN %s AND %s",
+			$site_timezone,
 			date( 'Y-m-01', current_time( 'timestamp' ) ),
 			date( 'Y-m-d', strtotime( '+1 DAY', current_time( 'timestamp' ) ) )
 		);
@@ -192,6 +197,7 @@ class WCS_Report_Dashboard {
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = $wpdb->get_var( apply_filters( 'woocommerce_subscription_dashboard_status_widget_cancellation_query', $query ) );
 			$update_cache = true;
 		}

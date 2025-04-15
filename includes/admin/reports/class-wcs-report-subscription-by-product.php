@@ -168,6 +168,7 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_product_data', $wpdb->get_results( $query, OBJECT_K ), $args );
 			set_transient( strtolower( __CLASS__ ), $cached_results, WEEK_IN_SECONDS );
 		}
@@ -201,26 +202,36 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 			}
 		}
 
+		$placeholders = implode( ',', array_fill( 0, count( $args['order_status'] ), '%s' ) );
+		$statuses     = wcs_maybe_prefix_key( $args['order_status'], 'wc-' );
+
 		// Now let's get the total revenue for each product so we can provide an average lifetime value for that product
 		$query = apply_filters( 'wcs_reports_product_lifetime_value_query',
-			"SELECT wcoimeta.meta_value as product_id, SUM(wcoimeta2.meta_value) as product_total
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Ignored for allowing interpolation in the IN statements.
+			$wpdb->prepare(
+				"SELECT wcoimeta.meta_value as product_id, SUM(wcoimeta2.meta_value) as product_total
 				FROM {$wpdb->prefix}woocommerce_order_items AS wcoitems
 				INNER JOIN {$wpdb->posts} AS wcorders
 					ON wcoitems.order_id = wcorders.ID
 					AND wcorders.post_type = 'shop_order'
-					AND wcorders.post_status IN ( 'wc-" . implode( "','wc-", $args['order_status'] ) . "' )
+					AND wcorders.post_status IN ( {$placeholders} )
 				INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS wcoimeta
 					ON wcoimeta.order_item_id = wcoitems.order_item_id
 				INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS wcoimeta2
 					ON wcoimeta2.order_item_id = wcoitems.order_item_id
 				WHERE ( wcoimeta.meta_key = '_product_id' OR wcoimeta.meta_key = '_variation_id' )
 					AND wcoimeta2.meta_key = '_line_total'
-				GROUP BY product_id" );
+				GROUP BY product_id",
+				$statuses
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
 		$query_hash = md5( $query );
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_product_lifetime_value_data', $wpdb->get_results( $query, OBJECT_K ), $args );
 			set_transient( strtolower( __CLASS__ ), $cached_results, WEEK_IN_SECONDS );
 		}

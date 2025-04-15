@@ -430,8 +430,13 @@ a.close-subscriptions-search {
 	max-width: 34%;
 	float: right;
 }
-.variable_subscription_pricing_2_3.variable_subscription_trial p.form-row {
+.variable_subscription_pricing_2_3.variable_subscription_pricing p.form-row {
 	margin-bottom: 0;
+}
+#variable_product_options
+  .variable_subscription_pricing_2_3
+  p._subscription_price_field {
+  margin-bottom: 0;
 }
 #variable_product_options
 	.variable_subscription_pricing_2_3
@@ -460,6 +465,11 @@ a.close-subscriptions-search {
 	.wc_input_subscription_payment_sync_month {
 	max-width: 86%;
 }
+#variable_product_options
+	.variable_subscription_pricing_2_3 .multiple_fields .wrap {
+		display: flex;
+		gap: 12px;
+}
 @media screen and ( max-width: 1190px ) {
 	#variable_product_options
 		.variable_subscription_pricing_2_3
@@ -473,7 +483,6 @@ a.close-subscriptions-search {
 		.variable_subscription_pricing_2_3
 		p._subscription_price_field {
 		width: 100%;
-		margin-bottom: 0;
 	}
 	#variable_product_options
 		.variable_subscription_pricing_2_3
@@ -921,4 +930,7 @@ table.form-table input#woocommerce_subscriptions_customer_notifications_offset {
 }
 #wcs_order_price_lock > .woocommerce-help-tip {
 	margin: 0 8px 0 2px;
+}
+.show_if_subscription .select2-selection, .show_if_variable-subscription .select2-selection {
+	font-size: 14px;
 }

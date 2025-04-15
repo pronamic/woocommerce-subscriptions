@@ -130,6 +130,7 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 		$args = wp_parse_args( $args, $default_args );
 
 		// Query based on whole days, not minutes/hours so that we can cache the query for at least 24 hours
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The $this->group_by_query clause is hard coded.
 		$base_query = $wpdb->prepare(
 			"SELECT
 				DATE(ms.meta_value) as scheduled_date,
@@ -155,7 +156,7 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 				AND p.post_status = 'wc-active'
 				AND mo.meta_key = '_order_total'
 				AND ms.meta_key = '_schedule_next_payment'
-				AND ( ( ms.meta_value < '%s' AND me.meta_value = 0 ) OR ( me.meta_value > '%s' AND ms.meta_value < '%s' ) )
+				AND ( ( ms.meta_value < %s AND me.meta_value = 0 ) OR ( me.meta_value > %s AND ms.meta_value < %s ) )
 				AND mi.meta_key = '_billing_interval'
 				AND mp.meta_key = '_billing_period'
 				AND me.meta_key = '_schedule_end '
@@ -165,6 +166,7 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 			date( 'Y-m-d', $this->start_date ),
 			date( 'Y-m-d', strtotime( '+1 DAY', $this->end_date ) )
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		$cached_results = get_transient( strtolower( get_class( $this ) ) );
 		$query_hash     = md5( $base_query );
@@ -176,6 +178,7 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
 			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_upcoming_recurring_revenue_data', $wpdb->get_results( $base_query, OBJECT_K ), $args );
 			set_transient( strtolower( get_class( $this ) ), $cached_results, WEEK_IN_SECONDS );
 		}

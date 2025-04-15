@@ -5,7 +5,7 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
- * Version: 7.3.1
+ * Version: 7.4.0
  * Requires Plugins: woocommerce
  *
  * WC requires at least: 8.7.1
@@ -78,7 +78,7 @@ class WC_Subscriptions {
 	public static $plugin_file = __FILE__;
 
 	/** @var string */
-	public static $version = '7.3.1'; // WRCS: DEFINED_VERSION.
+	public static $version = '7.4.0'; // WRCS: DEFINED_VERSION.
 
 	/** @var string */
 	public static $wc_minimum_supported_version = '7.7';
@@ -149,7 +149,7 @@ class WC_Subscriptions {
 			$trace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 );
 			$file  = $trace[0]['file'];
 			$line  = $trace[0]['line'];
-			trigger_error( "Call to undefined method $class::$method() in $file on line $line", E_USER_ERROR ); //phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+			trigger_error( "Call to undefined method $class::$method() in $file on line $line", E_USER_ERROR ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 }

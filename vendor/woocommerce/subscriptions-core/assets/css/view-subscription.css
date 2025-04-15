@@ -1,6 +1,9 @@
 @media only screen and ( max-width: 768px ) {
 	.subscription_details .button {
+		box-sizing: border-box;
 		margin-bottom: 2px;
+		padding-left: 0.5rem;
+		padding-right: 0.5rem;
 		width: 100%;
 		max-width: 200px;
 		text-align: center;

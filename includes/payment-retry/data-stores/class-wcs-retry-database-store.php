@@ -94,7 +94,8 @@ class WCS_Retry_Database_Store extends WCS_Retry_Store {
 		$retry     = null;
 		$raw_retry = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM {$this->get_full_table_name()} WHERE retry_id = %d LIMIT 1",
+				"SELECT * FROM %i WHERE retry_id = %d LIMIT 1",
+				$this->get_full_table_name(),
 				$retry_id
 			)
 		);
@@ -183,8 +184,11 @@ class WCS_Retry_Database_Store extends WCS_Retry_Store {
 		$orderby = sprintf( ' ORDER BY %s', sanitize_sql_orderby( "{$args['orderby']} {$args['order']}" ) );
 		$limit   = ( $args['limit'] > 0 ) ? $wpdb->prepare( ' LIMIT %d', $args['limit'] ) : '';
 
-		$raw_retries = $wpdb->get_results( "SELECT * FROM {$this->get_full_table_name()} $where $orderby $limit" );
 		$retries     = array();
+		$raw_retries = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The subqueries are prepared above.
+			$wpdb->prepare( "SELECT * FROM %i $where $orderby $limit", $this->get_full_table_name() )
+		);
 
 		foreach ( $raw_retries as $raw_retry ) {
 			if ( 'ids' === $return ) {
