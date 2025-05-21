@@ -11,7 +11,6 @@
 
 abstract class WCS_Retry_Store {
 
-	/** @var ActionScheduler_Store */
 	private static $store = null;
 
 	/**
@@ -80,8 +79,6 @@ abstract class WCS_Retry_Store {
 
 	/**
 	 * Setup the class, if required
-	 *
-	 * @return null
 	 */
 	abstract public function init();
 

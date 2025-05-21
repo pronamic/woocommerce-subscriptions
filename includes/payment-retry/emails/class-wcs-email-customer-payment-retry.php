@@ -11,7 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @version 2.1
  * @package WooCommerce_Subscriptions/Includes/Emails
  * @author Prospress
- * @extends WCS_Email_Customer_Renewal_Invoice
  */
 class WCS_Email_Customer_Payment_Retry extends WCS_Email_Customer_Renewal_Invoice {
 
@@ -34,7 +33,7 @@ class WCS_Email_Customer_Payment_Retry extends WCS_Email_Customer_Renewal_Invoic
 
 		$this->template_html  = 'emails/customer-payment-retry.php';
 		$this->template_plain = 'emails/plain/customer-payment-retry.php';
-		$this->template_base  = WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory( 'templates/' );
+		$this->template_base  = WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'templates/' );
 
 		$this->subject        = __( 'Automatic payment failed for {order_number}, we will retry {retry_time}', 'woocommerce-subscriptions' );
 		$this->heading        = __( 'Automatic payment failed for order {order_number}', 'woocommerce-subscriptions' );

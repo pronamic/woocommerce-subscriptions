@@ -22,7 +22,7 @@ class WCS_Manual_Renewal_Manager {
 	 *
 	 * @since 4.0.0
 	 * @param $settings The full subscription settings array.
-	 * @return $settings.
+	 * @return array
 	 */
 	public static function add_settings( $settings ) {
 

@@ -5,11 +5,11 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
- * Version: 7.4.0
+ * Version: 7.5.0
  * Requires Plugins: woocommerce
  *
  * WC requires at least: 8.7.1
- * WC tested up to: 9.8.0
+ * WC tested up to: 9.9.0
  * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
  *
  * Copyright 2019 WooCommerce
@@ -56,7 +56,7 @@ add_action(
 );
 
 // Subscribe to automated translations.
-add_action( 'woocommerce_translations_updates_for_woocommerce-subscriptions', '__return_true' );
+add_filter( 'woocommerce_translations_updates_for_woocommerce-subscriptions', '__return_true' );
 
 // Load and set up the Autoloader
 $wcs_autoloader = wcs_init_autoloader();
@@ -78,7 +78,7 @@ class WC_Subscriptions {
 	public static $plugin_file = __FILE__;
 
 	/** @var string */
-	public static $version = '7.4.0'; // WRCS: DEFINED_VERSION.
+	public static $version = '7.5.0'; // WRCS: DEFINED_VERSION.
 
 	/** @var string */
 	public static $wc_minimum_supported_version = '7.7';
@@ -126,10 +126,10 @@ class WC_Subscriptions {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string $function  The name of the method being called.
+	 * @param string $method    The name of the method being called.
 	 * @param array  $arguments An array containing the parameters passed to the method.
 	 *
-	 * @return mixed The value returned from a deprecated function replacement or null.
+	 * @return void|mixed The value returned from a deprecated function replacement or null.
 	 */
 	public static function __callStatic( $method, $arguments ) {
 		static $deprecation_handler = null;
@@ -149,7 +149,7 @@ class WC_Subscriptions {
 			$trace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 );
 			$file  = $trace[0]['file'];
 			$line  = $trace[0]['line'];
-			trigger_error( "Call to undefined method $class::$method() in $file on line $line", E_USER_ERROR ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			throw new Error( "Call to undefined method $class::$method() in $file on line $line" ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 }
@@ -181,15 +181,9 @@ register_activation_hook( __FILE__, 'add_woocommerce_inbox_variant' );
  * @return WCS_Autoloader
  */
 function wcs_init_autoloader() {
-	if ( ! function_exists( 'is_plugin_active' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/plugin.php';
-	}
+	$wcs_core_path = __DIR__ . '/includes/core/';
 
-	$wcs_core_plugin_slug = 'woocommerce-subscriptions-core/woocommerce-subscriptions-core.php';
-	$is_wcs_core_active   = ( isset( $_GET['action'], $_GET['plugin'] ) && 'activate' === $_GET['action'] && $wcs_core_plugin_slug === $_GET['plugin'] ) || is_plugin_active( $wcs_core_plugin_slug ); //phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$wcs_core_path        = $is_wcs_core_active ? WP_PLUGIN_DIR . '/woocommerce-subscriptions-core/' : dirname( __FILE__ ) . '/vendor/woocommerce/subscriptions-core/';
-
-	require_once $wcs_core_path . 'includes/class-wcs-core-autoloader.php';
+	require_once $wcs_core_path . '/class-wcs-core-autoloader.php';
 	require_once dirname( __FILE__ ) . '/includes/class-wcs-autoloader.php';
 
 	$wcs_autoloader = new WCS_Autoloader( $wcs_core_path );

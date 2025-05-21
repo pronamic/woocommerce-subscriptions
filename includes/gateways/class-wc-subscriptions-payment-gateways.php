@@ -99,8 +99,8 @@ class WC_Subscriptions_Payment_Gateways extends WC_Subscriptions_Core_Payment_Ga
 						__( 'Payment processing of the renewal order %1$s was skipped because it is already paid (%2$s).', 'woocommerce_subscriptions' ),
 						'<a href="' . esc_url( $latest_renewal_order->get_edit_order_url() ) . '">' . _x( '#', 'hash before order number', 'woocommerce' ) . $latest_renewal_order->get_order_number() . '</a>',
 						wc_get_order_status_name( $latest_renewal_order->get_status() )
-						)
-					);
+					)
+				);
 			}
 		}
 	}
@@ -108,7 +108,7 @@ class WC_Subscriptions_Payment_Gateways extends WC_Subscriptions_Core_Payment_Ga
 	/**
 	 * Fire a gateway specific hook for when a subscription renewal payment is due.
 	 *
-	 * @param WC_Order $renewal_order The renewal order to trigger the payment gateway hook for.
+	 * @param WC_Order|false $renewal_order The renewal order to trigger the payment gateway hook for.
 	 * @since 2.1.0
 	 */
 	public static function trigger_gateway_renewal_payment_hook( $renewal_order ) {
@@ -136,7 +136,7 @@ class WC_Subscriptions_Payment_Gateways extends WC_Subscriptions_Core_Payment_Ga
 	 * Returns whether the gateway supports subscriptions and automatic renewals.
 	 *
 	 * @since 4.0.0
-	 * @param WC_Gateway $gateway Gateway to check if it supports subscriptions.
+	 * @param WC_Payment_Gateway $gateway Gateway to check if it supports subscriptions.
 	 * @return bool
 	 */
 	public static function gateway_supports_subscriptions( $gateway ) {

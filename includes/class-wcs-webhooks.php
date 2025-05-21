@@ -133,17 +133,21 @@ class WCS_Webhooks {
 			switch ( $webhook->get_api_version() ) {
 				case 'legacy_v3':
 
+					// @phpstan-ignore-next-line Ignore legacy referencies.
 					if ( is_null( wc()->api ) ) {
 						throw new \Exception( 'The Legacy REST API plugin is not installed on this site. More information: https://developer.woocommerce.com/2023/10/03/the-legacy-rest-api-will-move-to-a-dedicated-extension-in-woocommerce-9-0/ ' );
 					}
 
+					// @phpstan-ignore-next-line
 					WC()->api->WC_API_Subscriptions->register_routes( array() );
+					// @phpstan-ignore-next-line
 					$payload = WC()->api->WC_API_Subscriptions->get_subscription( $resource_id );
 					break;
 				case 'wp_api_v1':
 				case 'wp_api_v2':
 					// There is no v2 subscritpion endpoint support so they fall back to v1.
 					$request    = new WP_REST_Request( 'GET' );
+					// @phpstan-ignore class.nameCase
 					$controller = new WC_REST_Subscriptions_v1_Controller();
 
 					$request->set_param( 'id', $resource_id );

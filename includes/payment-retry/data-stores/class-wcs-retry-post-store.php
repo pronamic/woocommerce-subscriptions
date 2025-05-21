@@ -16,7 +16,7 @@ class WCS_Retry_Post_Store extends WCS_Retry_Store {
 	/**
 	 * Setup the class, if required
 	 *
-	 * @return null
+	 * @return void
 	 */
 	public function init() {
 		if ( did_action( 'init' ) ) {

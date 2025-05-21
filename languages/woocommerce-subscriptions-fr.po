@@ -317,8 +317,8 @@ msgid "Thank you for your renewal order"
 msgstr "Merci pour votre commande de renouvellement"
 
 #: includes/emails/class-wcs-email-customer-on-hold-renewal-order.php:25
-msgid "Your {blogname} renewal order has been received!"
-msgstr "Votre commande de renouvellement de {blogname} a été reçue !"
+msgid "Your {site_title} renewal order has been received!"
+msgstr "Votre commande de renouvellement de {site_title} a été reçue !"
 
 #: includes/emails/class-wcs-email-customer-on-hold-renewal-order.php:24
 msgid ""
@@ -2021,14 +2021,14 @@ msgctxt "item name sent to paypal"
 msgid "Subscription %1$s - %2$s"
 msgstr "Abonnement %1$s - %2$s"
 
-#. translators: placeholder is {blogname}, a variable that will be substituted
+#. translators: placeholder is {site_title}, a variable that will be substituted
 #. when email is sent out
 #: includes/emails/class-wcs-email-on-hold-subscription.php:31
 msgctxt "default email subject for suspended emails sent to the admin"
 msgid "[%s] Subscription Suspended"
 msgstr "[%s] Abonnement suspendu"
 
-#. translators: placeholder is {blogname}, a variable that will be substituted
+#. translators: placeholder is {site_title}, a variable that will be substituted
 #. when email is sent out
 #: includes/emails/class-wcs-email-expired-subscription.php:31
 msgctxt "default email subject for expired emails sent to the admin"
@@ -4216,7 +4216,7 @@ msgctxt ""
 msgid "#"
 msgstr "n°"
 
-#. translators: $1: {blogname}, $2: {order_date}, variables will be substituted
+#. translators: $1: {site_title}, $2: {order_date}, variables will be substituted
 #. when email is sent out
 #: includes/emails/class-wcs-email-completed-renewal-order.php:40
 msgctxt "Default email subject for email with downloadable files in it"
@@ -4234,7 +4234,7 @@ msgstr ""
 "Votre commande de renouvellement d’abonnement est terminée, téléchargez vos "
 "fichiers"
 
-#. translators: $1: {blogname}, $2: {order_date}, variables that will be
+#. translators: $1: {site_title}, $2: {order_date}, variables that will be
 #. substituted when email is sent out
 #: includes/emails/class-wcs-email-completed-renewal-order.php:31
 msgctxt ""
@@ -4264,7 +4264,7 @@ msgctxt ""
 msgid "Email Heading"
 msgstr "En-tête de l’e-mail"
 
-#. translators: placeholder is {blogname}, a variable that will be substituted
+#. translators: placeholder is {site_title}, a variable that will be substituted
 #. when email is sent out
 #: includes/emails/class-wcs-email-cancelled-subscription.php:31
 msgctxt "default email subject for cancelled emails sent to the admin"
@@ -5999,8 +5999,8 @@ msgstr ""
 "désirez mettre en place une alternative."
 
 #: includes/emails/class-wcs-email-new-switch-order.php:26
-msgid "[{blogname}] Subscription Switched ({order_number}) - {order_date}"
-msgstr "[{blogname}] Abonnement changé ({order_number}) - {order_date}"
+msgid "[{site_title}] Subscription Switched ({order_number}) - {order_date}"
+msgstr "[{site_title}] Abonnement changé ({order_number}) - {order_date}"
 
 #: includes/emails/class-wcs-email-new-switch-order.php:23
 msgid ""
@@ -6017,9 +6017,9 @@ msgstr "Abonnement changé"
 
 #: includes/emails/class-wcs-email-new-renewal-order.php:26
 msgid ""
-"[{blogname}] New subscription renewal order ({order_number}) - {order_date}"
+"[{site_title}] New subscription renewal order ({order_number}) - {order_date}"
 msgstr ""
-"[{blogname}] Nouvelle commande de renouvellement d’abonnement ({order_number}"
+"[{site_title}] Nouvelle commande de renouvellement d’abonnement ({order_number}"
 ") - {order_date}"
 
 #: includes/emails/class-wcs-email-new-renewal-order.php:25
@@ -6052,8 +6052,8 @@ msgid "Customer Renewal Invoice"
 msgstr "Facture de renouvellement client"
 
 #: includes/emails/class-wcs-email-processing-renewal-order.php:29
-msgid "Your {blogname} renewal order receipt from {order_date}"
-msgstr "Votre reçu de commande de renouvellement de {blogname} du {order_date}"
+msgid "Your {site_title} renewal order receipt from {order_date}"
+msgstr "Votre reçu de commande de renouvellement de {site_title} du {order_date}"
 
 #: includes/emails/class-wcs-email-processing-renewal-order.php:28
 msgid "Thank you for your order"
@@ -6075,10 +6075,10 @@ msgstr "Traitement de la commande de renouvellement"
 
 #: includes/emails/class-wcs-email-completed-switch-order.php:39
 msgid ""
-"Your {blogname} subscription change from {order_date} is complete - download "
+"Your {site_title} subscription change from {order_date} is complete - download "
 "your files"
 msgstr ""
-"Votre changement d’abonnement de {blogname} du {order_date} est terminé, "
+"Votre changement d’abonnement de {site_title} du {order_date} est terminé, "
 "téléchargez vos fichiers"
 
 #: includes/emails/class-wcs-email-completed-switch-order.php:38
@@ -6086,9 +6086,9 @@ msgid "Your subscription change is complete - download your files"
 msgstr "Votre changement d’abonnement est terminé, téléchargez vos fichiers"
 
 #: includes/emails/class-wcs-email-completed-switch-order.php:31
-msgid "Your {blogname} subscription change from {order_date} is complete"
+msgid "Your {site_title} subscription change from {order_date} is complete"
 msgstr ""
-"Votre changement d’abonnement de {blogname} du {order_date} est terminé"
+"Votre changement d’abonnement de {site_title} du {order_date} est terminé"
 
 #: includes/emails/class-wcs-email-completed-switch-order.php:30
 msgid "Your subscription change is complete"

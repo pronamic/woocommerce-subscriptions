@@ -295,7 +295,7 @@ class WCS_Retry_Manager {
 	 * and if so, retry the payment.
 	 *
 	 * @since 2.1.0
-	 * @param WC_Order|int The order on which the payment failed.
+	 * @param WC_Order|int $order_id The order on which the payment failed.
 	 */
 	public static function maybe_retry_payment( $order_id ) {
 		$last_order = ! is_object( $order_id ) ? wc_get_order( $order_id ) : $order_id;
@@ -308,7 +308,7 @@ class WCS_Retry_Manager {
 		$last_retry    = self::store()->get_last_retry_for_order( wcs_get_objects_property( $last_order, 'id' ) );
 
 		// we only need to retry the payment if we have applied a retry rule for the order and it still needs payment
-		if ( null !== $last_retry && 'pending' === $last_retry->get_status() ) {
+		if ( null !== $last_retry && is_a( $last_retry, WCS_Retry::class ) && 'pending' === $last_retry->get_status() ) {
 
 			do_action( 'woocommerce_subscriptions_before_payment_retry', $last_retry, $last_order );
 
@@ -340,6 +340,7 @@ class WCS_Retry_Manager {
 				// if both statuses are still the same or there no special status was applied and the order still needs payment (i.e. there has been no manual intervention), trigger the payment hook
 				if ( $valid_order_status && $valid_subscription_status ) {
 					$unique_payment_methods = array();
+					$subscription = null;
 
 					$last_order->update_status( 'pending', _x( 'Subscription renewal payment retry:', 'used in order note as reason for why order status changed', 'woocommerce-subscriptions' ), true );
 
@@ -447,13 +448,15 @@ class WCS_Retry_Manager {
 	 * @since 2.5.0
 	 */
 	protected static function is_scheduled_payment_attempt() {
+		$doing_action = doing_action( 'woocommerce_scheduled_subscription_payment' ) || doing_action( 'woocommerce_scheduled_subscription_payment_retry' );
+
 		/**
 		 * Filter 'Is scheduled payment attempt?'
 		 *
-		 * @param boolean doing_action( 'woocommerce_scheduled_subscription_payment' ) || doing_action( 'woocommerce_scheduled_subscription_payment_retry' )
+		 * @param boolean $doing_action
 		 * @since 2.5.0
 		 */
-		return (bool) apply_filters( 'wcs_is_scheduled_payment_attempt', doing_action( 'woocommerce_scheduled_subscription_payment' ) || doing_action( 'woocommerce_scheduled_subscription_payment_retry' ) );
+		return (bool) apply_filters( 'wcs_is_scheduled_payment_attempt', $doing_action );
 	}
 
 	/**

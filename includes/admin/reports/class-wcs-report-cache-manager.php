@@ -122,7 +122,7 @@ class WCS_Report_Cache_Manager {
 	 * This function is attached as a callback on the events in the $update_events_and_classes property.
 	 *
 	 * @since 2.1
-	 * @return null
+	 * @return void
 	 */
 	public function set_reports_to_update() {
 		if ( isset( $this->update_events_and_classes[ current_filter() ] ) ) {
@@ -175,7 +175,7 @@ class WCS_Report_Cache_Manager {
 					}
 
 					// Use the index to space out caching of each report to make them 5 minutes apart so that on large sites, where we assume they'll get a request at least once every few minutes, we don't try to update the caches of all reports in the same request
-					as_schedule_single_action( gmdate( 'U' ) + MINUTE_IN_SECONDS * ( $index + 1 ) * 5, $this->cron_hook, $cron_args );
+					as_schedule_single_action( (int) gmdate( 'U' ) + MINUTE_IN_SECONDS * ( $index + 1 ) * 5, $this->cron_hook, $cron_args );
 				}
 			}
 		}
@@ -185,7 +185,6 @@ class WCS_Report_Cache_Manager {
 	 * Update the cache data for a given report, as specified with $report_class, by call it's get_data() method.
 	 *
 	 * @since 2.1
-	 * @return null
 	 */
 	public function update_cache( $report_class ) {
 		/**
@@ -217,7 +216,10 @@ class WCS_Report_Cache_Manager {
 
 		// Load report class dependencies
 		require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
-		require_once( WC()->plugin_path() . '/includes/admin/reports/class-wc-admin-report.php' );
+
+		$wc_core_dir = getenv( 'CI' ) ? ( getenv( 'WC_CORE_DIR' ) ? getenv( 'WC_CORE_DIR' ) : '/tmp/woocommerce' ) : WC()->plugin_path() . '/woocommerce';
+
+		require_once( $wc_core_dir . '/includes/admin/reports/class-wc-admin-report.php' );
 
 		$reflector = new ReflectionMethod( $report_class, 'get_data' );
 

@@ -15,7 +15,7 @@ class WCS_Call_To_Action_Button_Text_Manager {
 	 */
 	public static function init() {
 		add_filter( 'woocommerce_subscription_settings', array( __CLASS__, 'add_settings' ), 5 );
-		add_filter( 'wc_subscription_product_add_to_cart_text', array( __CLASS__, 'filter_add_to_cart_text' ), 10, 2 );
+		add_filter( 'wc_subscription_product_add_to_cart_text', array( __CLASS__, 'filter_add_to_cart_text' ) );
 		add_filter( 'wcs_place_subscription_order_text', array( __CLASS__, 'filter_place_subscription_order_text' ) );
 	}
 
@@ -71,8 +71,7 @@ class WCS_Call_To_Action_Button_Text_Manager {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string              $add_to_cart_text The product's add to cart text.
-	 * @param WC_Abstract_Product $product          The product.
+	 * @param string $add_to_cart_text The product's add to cart text.
 	 *
 	 * @return string
 	 */

@@ -79,6 +79,7 @@ class WC_REST_Subscription_System_Status_Manager {
 	private static function get_payment_gateway_feature_support() {
 		$gateway_features = array();
 
+		// @phpstan-ignore property.notFound
 		foreach ( WC()->payment_gateways->get_available_payment_gateways() as $gateway_id => $gateway ) {
 			// Some gateways include array keys. For consistency, only send the values.
 			$gateway_features[ $gateway_id ] = array_values( (array) apply_filters( 'woocommerce_subscriptions_payment_gateway_features_list', $gateway->supports, $gateway ) );

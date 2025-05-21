@@ -39,9 +39,9 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal {
 		parent::attach_dependant_hooks();
 
 		// Remove version dependent callbacks which don't apply to switch carts
-		remove_filter( 'woocommerce_checkout_update_customer_data', array( &$this, 'maybe_update_subscription_customer_data' ), 10 );
-		remove_filter( 'woocommerce_checkout_update_user_meta', array( &$this, 'maybe_update_subscription_address_data' ), 10 );
-		remove_filter( 'woocommerce_store_api_checkout_update_customer_from_request', array( &$this, 'maybe_update_subscription_address_data_from_store_api' ), 10, 2 );
+		remove_filter( 'woocommerce_checkout_update_customer_data', array( &$this, 'maybe_update_subscription_customer_data' ) );
+		remove_filter( 'woocommerce_checkout_update_user_meta', array( &$this, 'maybe_update_subscription_address_data' ) );
+		remove_filter( 'woocommerce_store_api_checkout_update_customer_from_request', array( &$this, 'maybe_update_subscription_address_data_from_store_api' ) );
 	}
 
 	/**

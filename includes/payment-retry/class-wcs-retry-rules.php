@@ -68,8 +68,8 @@ class WCS_Retry_Rules {
 	/**
 	 * Check if a retry rule exists for a certain stage of the retry process.
 	 *
-	 * @param int The retry queue position to check for a rule
-	 * @param int The ID of a WC_Order object to which the failed payment relates
+	 * @param int $retry_number The retry queue position to check for a rule
+	 * @param int $order_id The ID of a WC_Order object to which the failed payment relates
 	 * @return bool
 	 * @since 2.1
 	 */
@@ -80,8 +80,8 @@ class WCS_Retry_Rules {
 	/**
 	 * Get an instance of a retry rule for a given order and stage of the retry queue (if any).
 	 *
-	 * @param int The retry queue position to check for a rule
-	 * @param int The ID of a WC_Order object to which the failed payment relates
+	 * @param int $retry_number The retry queue position to check for a rule
+	 * @param int $order_id The ID of a WC_Order object to which the failed payment relates
 	 * @return null|WCS_Retry_Rule If a retry rule exists for this stage of the retry queue and order, WCS_Retry_Rule, otherwise null.
 	 * @since 2.1
 	 */

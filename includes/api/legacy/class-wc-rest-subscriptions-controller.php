@@ -16,7 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * REST API Subscriptions controller class.
  *
  * @package WooCommerce_Subscriptions/API
- * @extends WC_REST_Orders_Controller
  */
 class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 
@@ -76,7 +75,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	 *
 	 * @since 2.1
 	 * @param WP_REST_Response $response
-	 * @param WP_POST $post
+	 * @param WP_Post $post
 	 * @param WP_REST_Request $request
 	 */
 	public function filter_get_subscription_response( $response, $post, $request ) {
@@ -123,7 +122,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	 *
 	 * @since 2.1
 	 * @param WP_REST_Request $request
-	 * @param WP_POST $post
+	 * @param WP_Post $post
 	 */
 	protected function update_order( $request, $post ) {
 		try {

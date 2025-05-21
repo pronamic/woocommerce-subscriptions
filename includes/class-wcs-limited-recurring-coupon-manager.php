@@ -313,13 +313,14 @@ class WCS_Limited_Recurring_Coupon_Manager {
 		}
 
 		// Bail early if there are no limited coupons applied to the recurring cart or if there is no discount provided.
+		// @phpstan-ignore property.notFound
 		if ( empty( $limited_recurring_coupons ) || ! $recurring_cart->discount_cart ) {
 			return false;
 		}
 
 		$has_expiring_coupon   = false;
 		$subscription_length   = wcs_cart_pluck( $recurring_cart, 'subscription_length' );
-		$subscription_payments = $subscription_length / wcs_cart_pluck( $recurring_cart, 'subscription_period_interval' );
+		$subscription_payments = (int) $subscription_length / (int) wcs_cart_pluck( $recurring_cart, 'subscription_period_interval' );
 
 		// Limited recurring coupons will always expire at some point on subscriptions with no length.
 		if ( empty( $subscription_length ) ) {
@@ -381,7 +382,6 @@ class WCS_Limited_Recurring_Coupon_Manager {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string $message The current message indicating there are no payment methods available..
 	 * @return string The filtered message indicating there are no payment methods available.
 	 */
 	public static function no_available_payment_methods_message() {

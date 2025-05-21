@@ -1,0 +1,13 @@
+parameters:
+    excludePaths:
+        analyse:
+            - includes/api/legacy/*
+    ignoreErrors:
+        - '#Access to an undefined property WC_Cart::\$recurring_carts#'
+        - '#Access to an undefined property WP_User::\$#'
+        - '#Call to an undefined method WC_Order_Item::get_product#'
+        - '#Call to an undefined method WC_Order_Item::get_variation_id#'
+        - '#Call to an undefined method WCS_Retry_Store::#'
+        - '#Call to an undefined method WC_Data_Store::#'
+        - '#Variable \$this might not be defined#'
+        - '#Function as_.*_action not found#'

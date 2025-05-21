@@ -153,7 +153,7 @@ class WCS_Retry_Admin {
 	 * @param string   $column The column name
 	 * @param WC_Order $order  The order object
 	 *
-	 * @return null
+	 * @return void
 	 */
 	public static function add_column_content_list_table( string $column, WC_Order $order ) {
 		if ( 'subscription_relationship' === $column ) {
@@ -164,9 +164,9 @@ class WCS_Retry_Admin {
 	/**
 	 * Add a setting to enable/disable the retry system
 	 *
-	 * @param array
+	 * @param array $settings
 	 *
-	 * @return null
+	 * @return array
 	 */
 	public function add_settings( $settings ) {
 

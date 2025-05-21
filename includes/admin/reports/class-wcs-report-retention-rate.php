@@ -38,7 +38,7 @@ class WCS_Report_Retention_Rate extends WC_Admin_Report {
 	 * subscription may not have been active all of that time. Instead, it may have been on-hold for part of it.
 	 *
 	 * @since 2.1
-	 * @return null
+	 * @return void
 	 */
 	private function query_report_data() {
 		global $wpdb;
@@ -128,7 +128,6 @@ class WCS_Report_Retention_Rate extends WC_Admin_Report {
 	 * Use a custom report as we don't need the date filters provided by the WooCommerce html-report-by-date.php template.
 	 *
 	 * @since 2.1
-	 * @return null
 	 */
 	public function output_report() {
 		include( WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'includes/admin/views/html-report-by-period.php' ) );
@@ -138,7 +137,6 @@ class WCS_Report_Retention_Rate extends WC_Admin_Report {
 	 * Output the HTML and JavaScript to plot the chart
 	 *
 	 * @since 2.1
-	 * @return null
 	 */
 	public function get_main_chart() {
 
@@ -152,6 +150,8 @@ class WCS_Report_Retention_Rate extends WC_Admin_Report {
 				absint( $living_subscription_count ),
 			);
 		}
+
+		$x_axes_label = '';
 
 		switch ( $this->report_data->interval_period ) {
 			case 'day':
@@ -214,7 +214,7 @@ class WCS_Report_Retention_Rate extends WC_Admin_Report {
 								color: '#aaa',
 								position: "bottom",
 								tickDecimals: 0,
-								axisLabel: "<?php echo esc_js( $x_axes_label ); ?>",
+								axisLabel: "<?php esc_js( $x_axes_label ); ?>",
 								axisLabelPadding: 18,
 								font: {
 									color: "#aaa"

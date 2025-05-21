@@ -43,7 +43,7 @@ class WCS_Early_Renewal_Manager {
 	 * Add a setting to enable/disable the early renewal feature.
 	 *
 	 * @since 2.3.0
-	 * @param array Settings array.
+	 * @param array $settings Settings array.
 	 * @return array
 	 */
 	public static function add_settings( $settings ) {

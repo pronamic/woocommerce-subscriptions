@@ -26,8 +26,10 @@ class WCS_Subscriber_Role_Manager {
 	 * @return array Subscriptions settings.
 	 */
 	public static function add_settings( $settings ) {
+		$roles_options = array();
+
 		if ( ! function_exists( 'get_editable_roles' ) ) {
-			require_once( ABSPATH . 'wp-admin/includes/user.php' );
+			require_once ABSPATH . 'wp-admin/includes/user.php';
 		}
 
 		foreach ( get_editable_roles() as $role => $details ) {

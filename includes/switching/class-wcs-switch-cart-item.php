@@ -24,7 +24,7 @@ class WCS_Switch_Cart_Item {
 
 	/**
 	 * The existing subscription line item being switched.
-	 * @var WC_Order_Item
+	 * @var WC_Order_Item_Product
 	 */
 	public $existing_item;
 
@@ -143,7 +143,7 @@ class WCS_Switch_Cart_Item {
 	 */
 	public function get_days_until_next_payment() {
 		if ( ! isset( $this->days_until_next_payment ) ) {
-			$this->days_until_next_payment = ceil( ( $this->next_payment_timestamp - gmdate( 'U' ) ) / DAY_IN_SECONDS );
+			$this->days_until_next_payment = ceil( ( $this->next_payment_timestamp - (int) gmdate( 'U' ) ) / DAY_IN_SECONDS );
 		}
 
 		return $this->days_until_next_payment;
@@ -283,7 +283,7 @@ class WCS_Switch_Cart_Item {
 	public function get_days_since_last_payment() {
 		if ( ! isset( $this->days_since_last_payment ) ) {
 			// Use the timestamp for the last non-early renewal order or parent order to avoid date miscalculations which early renewing creates.
-			$this->days_since_last_payment = floor( ( gmdate( 'U' ) - $this->get_last_order_paid_time() ) / DAY_IN_SECONDS );
+			$this->days_since_last_payment = floor( ( (int) gmdate( 'U' ) - $this->get_last_order_paid_time() ) / DAY_IN_SECONDS );
 		}
 
 		return $this->days_since_last_payment;

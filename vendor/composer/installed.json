@@ -148,66 +148,6 @@
                 }
             ],
             "install-path": "./installers"
-        },
-        {
-            "name": "woocommerce/subscriptions-core",
-            "version": "8.2.0",
-            "version_normalized": "8.2.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Automattic/woocommerce-subscriptions-core.git",
-                "reference": "442d585955ab048673c765a8afca680b1ea38e07"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Automattic/woocommerce-subscriptions-core/zipball/442d585955ab048673c765a8afca680b1ea38e07",
-                "reference": "442d585955ab048673c765a8afca680b1ea38e07",
-                "shasum": ""
-            },
-            "require": {
-                "composer/installers": "^1.2 || ^2.2",
-                "php": "^7.1"
-            },
-            "require-dev": {
-                "dave-liddament/sarb": "^1.1",
-                "phpunit/phpunit": "9.5.14",
-                "woocommerce/woocommerce-sniffs": "0.1.0",
-                "yoast/phpunit-polyfills": "1.1.0"
-            },
-            "time": "2025-04-14T13:37:52+00:00",
-            "type": "wordpress-plugin",
-            "extra": {
-                "phpcodesniffer-search-depth": 2
-            },
-            "installation-source": "dist",
-            "archive": {
-                "exclude": [
-                    "!/build",
-                    "*.zip",
-                    "node_modules"
-                ]
-            },
-            "scripts": {
-                "phpcs": [
-                    "bin/phpcs.sh"
-                ],
-                "lint": [
-                    "find . \\( -path ./vendor \\) -prune -o \\( -name '*.php' \\) -exec php -lf {} \\;| (! grep -v \"No syntax errors detected\" )"
-                ],
-                "test": [
-                    "phpunit"
-                ]
-            },
-            "license": [
-                "GPL-3.0-or-later"
-            ],
-            "description": "Sell products and services with recurring payments in your WooCommerce Store.",
-            "homepage": "https://github.com/Automattic/woocommerce-subscriptions-core",
-            "support": {
-                "source": "https://github.com/Automattic/woocommerce-subscriptions-core/tree/8.2.0",
-                "issues": "https://github.com/Automattic/woocommerce-subscriptions-core/issues"
-            },
-            "install-path": "../woocommerce/subscriptions-core"
         }
     ],
     "dev": false,

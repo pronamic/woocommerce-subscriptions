@@ -18,7 +18,7 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 
 	/**
 	 * Get report data
-	 * @return array
+	 * @return stdClass
 	 */
 	public function get_report_data() {
 
@@ -210,7 +210,7 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 	/**
 	 * Get the main chart
 	 *
-	 * @return string
+	 * @return void
 	 */
 	public function get_main_chart() {
 		global $wp_locale;

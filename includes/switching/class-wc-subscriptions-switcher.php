@@ -295,6 +295,8 @@ class WC_Subscriptions_Switcher {
 								break;
 
 							} else {
+								$item_id = null;
+								$item = null;
 
 								// Get the matching item
 								foreach ( $subscription->get_items() as $line_item_id => $line_item ) {
@@ -571,6 +573,7 @@ class WC_Subscriptions_Switcher {
 			$subscription = wcs_get_subscription( $subscription );
 		}
 
+		/** @var WC_Product_Variable */
 		$product               = wc_get_product( $item['product_id'] );
 		$parent_products       = WC_Subscriptions_Product::get_visible_grouped_parent_product_ids( $product );
 		$additional_query_args = array();
@@ -880,7 +883,7 @@ class WC_Subscriptions_Switcher {
 	 * Subscription items on a new billing schedule are left to be added as new subscriptions, but we also
 	 * want to keep a record of them being a switch, so we do that here.
 	 *
-	 * @param int $order_item_id The ID of a WC_Order_Item object.
+	 * @param int $item_id The ID of a WC_Order_Item object.
 	 * @param array $cart_item The cart item's data.
 	 * @param string $cart_item_key The hash used to identify the item in the cart
 	 * @since 2.0
@@ -1146,10 +1149,8 @@ class WC_Subscriptions_Switcher {
 							$updated_dates['trial_end'] = 0;
 						}
 
-						if ( ! empty( $updated_dates ) ) {
-							$subscription->validate_date_updates( $updated_dates );
-							$switch_order_data[ $subscription->get_id() ]['dates']['update'] = $updated_dates;
-						}
+						$subscription->validate_date_updates( $updated_dates );
+						$switch_order_data[ $subscription->get_id() ]['dates']['update'] = $updated_dates;
 					}
 				}
 			}
@@ -1177,31 +1178,6 @@ class WC_Subscriptions_Switcher {
 			}
 			throw $e;
 		}
-	}
-
-	/**
-	 * Update shipping method on the subscription if the order changed anything
-	 *
-	 * @param  WC_Order $order The new order
-	 * @param  WC_Subscription $subscription The original subscription
-	 * @param  WC_Cart $recurring_cart A recurring cart
-	 * @deprecated 4.8.0
-	 */
-	public static function update_shipping_methods( $subscription, $recurring_cart ) {
-		wcs_deprecated_function( __METHOD__, '4.8.0', 'The use of this function is no longer recommended and will be removed in a future version.' );
-
-		// First, archive all the shipping methods
-		foreach ( $subscription->get_shipping_methods() as $shipping_method_id => $shipping_method ) {
-			wcs_update_order_item_type( $shipping_method_id, 'shipping_switched', $subscription->get_id() );
-		}
-
-		// Then zero the order_shipping total so we have a clean slate to add to
-		$subscription->set_total_shipping( 0 );
-
-		WC_Subscriptions_Checkout::add_shipping( $subscription, $recurring_cart );
-
-		// Now update subscription object order_shipping to reflect updated values so it doesn't stay 0
-		$subscription->order_shipping = $subscription->get_meta( '_order_shipping', true );
 	}
 
 	/**
@@ -1278,7 +1254,7 @@ class WC_Subscriptions_Switcher {
 	/**
 	 * Check if the cart includes any items which are to switch an existing subscription's item.
 	 *
-	 * @param int|object Either a product ID (not variation ID) or product object
+	 * @param int|object $product Either a product ID (not variation ID) or product object
 	 * @return bool True if the cart contains a switch for a given product, or false if it does not.
 	 * @since 2.0
 	 */
@@ -1363,6 +1339,8 @@ class WC_Subscriptions_Switcher {
 	public static function validate_switch_request( $is_valid, $product_id, $quantity, $variation_id = '' ) {
 
 		$error_message = '';
+		$subscription  = null;
+		$item          = null;
 
 		try {
 
@@ -1580,7 +1558,7 @@ class WC_Subscriptions_Switcher {
 	 * Set the subscription prices to be used in calculating totals by @see WC_Subscriptions_Cart::calculate_subscription_totals()
 	 *
 	 * @since 2.0
-	 * @param WC_Cart The cart object which totals are being calculated.
+	 * @param WC_Cart $cart The cart object which totals are being calculated.
 	 */
 	public static function calculate_prorated_totals( $cart ) {
 		if ( self::cart_contains_switches( 'any' ) ) {
@@ -1763,9 +1741,10 @@ class WC_Subscriptions_Switcher {
 		$order_completed = in_array( $order_new_status, array( apply_filters( 'woocommerce_payment_complete_order_status', 'processing', $order_id, $order ), 'processing', 'completed' ) );
 
 		if ( $order_completed ) {
+			$transaction = new WCS_SQL_Transaction();
+
 			try {
 				// Start transaction if available
-				$transaction = new WCS_SQL_Transaction();
 				$transaction->start();
 
 				self::complete_subscription_switches( $order );
@@ -2180,6 +2159,7 @@ class WC_Subscriptions_Switcher {
 			if ( $subscription->get_payment_method() !== wcs_get_objects_property( $order, 'payment_method' ) ) {
 
 				// Set the new payment method on the subscription
+				// @phpstan-ignore property.notFound
 				$available_gateways   = WC()->payment_gateways->get_available_payment_gateways();
 				$order_payment_method = wcs_get_objects_property( $order, 'payment_method' );
 				$payment_method       = '' != $order_payment_method && isset( $available_gateways[ $order_payment_method ] ) ? $available_gateways[ $order_payment_method ] : false;
@@ -2208,7 +2188,7 @@ class WC_Subscriptions_Switcher {
 	/**
 	 * Grant the download permissions to the subscription after the switch is processed.
 	 *
-	 * @param WC_Order The switch order.
+	 * @param WC_Order $order The switch order.
 	 * @since 2.2.13
 	 */
 	public static function grant_download_permissions( $order ) {
@@ -2225,10 +2205,10 @@ class WC_Subscriptions_Switcher {
 	 *
 	 * @since 2.6.0
 	 *
-	 * @param WC_Subscription $subscription         The Subscription.
-	 * @param WC_Order_Item   $subscription_item    The current line item on the subscription to map back through the related orders.
-	 * @param string          $include_sign_up_fees Optional. Whether to include the sign-up fees paid. Can be 'include_sign_up_fees' or 'exclude_sign_up_fees'. Default 'include_sign_up_fees'.
-	 * @param WC_Order[]      $orders_to_include    Optional. The orders to include in the total.
+	 * @param WC_Subscription       $subscription         The Subscription.
+	 * @param WC_Order_Item         $subscription_item    The current line item on the subscription to map back through the related orders.
+	 * @param string                $include_sign_up_fees Optional. Whether to include the sign-up fees paid. Can be 'include_sign_up_fees' or 'exclude_sign_up_fees'. Default 'include_sign_up_fees'.
+	 * @param WC_Order[]            $orders_to_include    Optional. The orders to include in the total.
 	 *
 	 * @return float The total amount paid for an existing subscription line item.
 	 */
@@ -2247,15 +2227,18 @@ class WC_Subscriptions_Switcher {
 		foreach ( $orders as $order ) {
 			$order_is_parent = $order->get_id() === $subscription->get_parent_id();
 
-			// Find the item on the order which matches the subscription item.
+			/**
+			 * Find the item on the order which matches the subscription item.
+			 *
+			 * @var WC_Order_Item_Product $order_item */
 			$order_item = wcs_find_matching_line_item( $order, $subscription_item );
 
-			if ( $order_item ) {
+			if ( $order_item && ! is_bool( $order_item ) ) {
 				$found_item = true;
-				$item_total = $order_item->get_total();
+				$item_total = (int) $order_item->get_total();
 
 				if ( $order->get_prices_include_tax( 'edit' ) ) {
-					$item_total += $order_item->get_total_tax();
+					$item_total += (int) $order_item->get_total_tax();
 				}
 
 				// Remove any signup fees if necessary.
@@ -2269,6 +2252,7 @@ class WC_Subscriptions_Switcher {
 						} else {
 							// For non-free trial subscriptions, the sign up fee portion is the order total minus the recurring total (subscription item total).
 							// Use the subscription item's subtotal (without discounts) to avoid signup fee coupon discrepancies
+							// @phpstan-ignore-next-line False positive when using WC_Order_Item_Product::get_subtotal()
 							$item_total -= max( $order_item->get_total() - $subscription_item->get_subtotal(), 0 );
 						}
 					// Remove the prorated sign up fees.
@@ -2368,7 +2352,7 @@ class WC_Subscriptions_Switcher {
 	 * @param WC_Subscription[]   $subscriptions     The list of related subscriptions.
 	 * @param WC_Order            $order             The order or subscription post being viewed.
 	 *
-	 * @return $orders_to_display The orders/subscriptions to display in the meta box.
+	 * @return array The orders/subscriptions to display in the meta box.
 	 */
 	public static function display_switches_in_related_order_metabox( $orders_to_display, $subscriptions, $order ) {
 		if ( $order instanceof WP_Post ) {
@@ -2508,6 +2492,7 @@ class WC_Subscriptions_Switcher {
 	 * @since 2.2.19
 	 */
 	protected static function has_different_length( $recurring_cart, $subscription ) {
+		// @phpstan-ignore property.notFound
 		$recurring_cart_end_date = gmdate( 'Y-m-d', wcs_date_to_time( $recurring_cart->end_date ) );
 		$subscription_end_date   = gmdate( 'Y-m-d', $subscription->get_time( 'end' ) );
 

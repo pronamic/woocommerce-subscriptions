@@ -14,7 +14,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @version 2.1
  * @package WooCommerce_Subscriptions/Includes/Emails
  * @author Prospress
- * @extends WC_Email_Failed_Order
  */
 class WCS_Email_Payment_Retry extends WC_Email_Failed_Order {
 
@@ -38,7 +37,7 @@ class WCS_Email_Payment_Retry extends WC_Email_Failed_Order {
 
 		$this->template_html  = 'emails/admin-payment-retry.php';
 		$this->template_plain = 'emails/plain/admin-payment-retry.php';
-		$this->template_base  = WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory( 'templates/' );
+		$this->template_base  = WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'templates/' );
 
 		// We want all the parent's methods, with none of its properties, so call its parent's constructor, rather than my parent constructor
 		WC_Email::__construct();

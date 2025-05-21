@@ -74,7 +74,7 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 						}
 					}
 				} while ( $next_payment_timestamp > 0 && $next_payment_timestamp <= $this->end_date
-					&& isset( $key, $scheduled_ends[ $key ] )
+					&& isset( $scheduled_ends[ $key ] )
 					&& ( 0 == $scheduled_ends[ $key ] || $next_payment_timestamp < strtotime( $scheduled_ends[ $key ] ) ) );
 			}
 		}
@@ -233,7 +233,7 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 
 	/**
 	 * Get the main chart
-	 * @return string
+	 * @return void
 	 */
 	public function get_main_chart() {
 		global $wp_locale;

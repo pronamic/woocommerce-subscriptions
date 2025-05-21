@@ -18,7 +18,7 @@ class WCS_API {
 		add_filter( 'woocommerce_api_classes', array( __CLASS__, 'includes' ) );
 		add_action( 'rest_api_init', array( __CLASS__, 'register_routes' ), 15 );
 		add_action( 'rest_api_init', array( __CLASS__, 'register_route_overrides' ), 15 );
-		add_action( 'woocommerce_rest_set_order_item', [ __CLASS__, 'add_sign_up_fee_to_order_item' ], 15, 2 );
+		add_action( 'woocommerce_rest_set_order_item', array( __CLASS__, 'add_sign_up_fee_to_order_item' ), 15, 2 );
 	}
 
 	/**
@@ -63,6 +63,7 @@ class WCS_API {
 		);
 
 		foreach ( $endpoint_classes as $class ) {
+			// @phpstan-ignore class.nameCase
 			$controller = new $class();
 			$controller->register_routes();
 		}
@@ -87,8 +88,8 @@ class WCS_API {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param WC_Order_Item $item              Order item object.
-	 * @param array         $item_request_data Data posted to the API about the order item.
+	 * @param WC_Order_Item_Product $item              Order item object.
+	 * @param array                 $item_request_data Data posted to the API about the order item.
 	 */
 	public static function add_sign_up_fee_to_order_item( $item, $item_request_data = array() ) {
 		if ( 'line_item' !== $item->get_type() || ! self::is_orders_api_request() ) {
@@ -119,7 +120,13 @@ class WCS_API {
 				$price = (float) $product->get_price() + $sign_up_fee;
 			}
 
-			$total = wc_get_price_excluding_tax( $product, [ 'qty' => $item->get_quantity(), 'price' => $price ] );
+			$total = wc_get_price_excluding_tax(
+				$product,
+				array(
+					'qty'   => $item->get_quantity(),
+					'price' => $price,
+				)
+			);
 
 			$item->set_total( $total );
 			$item->set_subtotal( $total );
@@ -165,6 +172,7 @@ class WCS_API {
 	 */
 	public static function get_wc_api_endpoint_data( $endpoint ) {
 		if ( wcs_is_woocommerce_pre( '9.0.0' ) ) {
+			// @phpstan-ignore-next-line Call to deprecated method.
 			return WC()->api->get_endpoint_data( $endpoint );
 		}
 

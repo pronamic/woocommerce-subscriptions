@@ -71,7 +71,7 @@ class WCS_Admin_Reports {
 	/**
 	 * Add the 'Subscriptions' report type to the WooCommerce reports screen.
 	 *
-	 * @param array Array of Report types & their labels, excluding the Subscription product type.
+	 * @param array $reports Array of Report types & their labels, excluding the Subscription product type.
 	 * @return array Array of Report types & their labels, including the Subscription product type.
 	 * @since 2.1
 	 */

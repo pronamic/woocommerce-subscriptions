@@ -60,7 +60,7 @@ class WCS_Zero_Initial_Payment_Checkout_Manager {
 	 */
 	public static function cart_needs_payment( $cart_needs_payment ) {
 		if ( ! self::zero_initial_checkout_requires_payment() ) {
-			remove_filter( 'woocommerce_cart_needs_payment', 'WC_Subscriptions_Cart::cart_needs_payment', 10, 2 );
+			remove_filter( 'woocommerce_cart_needs_payment', 'WC_Subscriptions_Cart::cart_needs_payment' );
 		}
 
 		return $cart_needs_payment;
@@ -77,7 +77,7 @@ class WCS_Zero_Initial_Payment_Checkout_Manager {
 	 */
 	public static function order_needs_payment( $needs_payment ) {
 		if ( ! self::zero_initial_checkout_requires_payment() ) {
-			remove_filter( 'woocommerce_order_needs_payment', 'WC_Subscriptions_Order::order_needs_payment', 10, 3 );
+			remove_filter( 'woocommerce_order_needs_payment', 'WC_Subscriptions_Order::order_needs_payment' );
 		}
 
 		return $needs_payment;

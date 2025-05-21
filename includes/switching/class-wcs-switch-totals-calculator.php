@@ -238,6 +238,13 @@ class WCS_Switch_Totals_Calculator {
 
 		$is_switch_out_of_trial = 0 == $switch_item->get_total_paid_for_current_period() && ! $switch_item->trial_periods_match() && $switch_item->is_switch_during_trial();
 
+		$should_reduce_current_subscription_prepaid_term = $is_switch_out_of_trial || $days_in_old_cycle > $days_in_new_cycle;
+
+		$subscription      = $switch_item->subscription;
+		$cart_item         = $switch_item->cart_item;
+		$old_price_per_day = $switch_item->get_old_price_per_day();
+		$new_price_per_day = $switch_item->get_new_price_per_day();
+
 		/**
 		 * Allow third-parties to filter whether to reduce the prepaid term or not.
 		 *
@@ -248,15 +255,15 @@ class WCS_Switch_Totals_Calculator {
 		 *     - The old trial period and length doesn't match the new one.
 		 *  - Or there are more days in the in old cycle as there are in the in new cycle (for example switching from yearly to monthly)
 		 *
-		 * @param bool            Whether the switch should reduce the current subscription's prepaid term.
-		 * @param WC_Subscription $switch_item->subscription The subscription being switched.
-		 * @param array           $switch_item->cart_item The cart item recording the switch.
+		 * @param bool            $should_reduce_current_subscription_prepaid_term Whether the switch should reduce the current subscription's prepaid term.
+		 * @param WC_Subscription $subscription The subscription being switched.
+		 * @param array           $cart_item The cart item recording the switch.
 		 * @param int             $days_in_old_cycle The number of days in the current subscription's billing cycle.
 		 * @param int             $days_in_new_cycle The number of days in the new product's billing cycle.
-		 * @param float           $switch_item->get_old_price_per_day() The current subscription's price per day.
-		 * @param float           $switch_item->get_new_price_per_day() The new product's price per day.
+		 * @param float           $old_price_per_day The current subscription's price per day.
+		 * @param float           $new_price_per_day The new product's price per day.
 		 */
-		return apply_filters( 'wcs_switch_proration_reduce_pre_paid_term', $is_switch_out_of_trial || $days_in_old_cycle > $days_in_new_cycle, $switch_item->subscription, $switch_item->cart_item, $days_in_old_cycle, $days_in_new_cycle, $switch_item->get_old_price_per_day(), $switch_item->get_new_price_per_day() );
+		return (bool) apply_filters( 'wcs_switch_proration_reduce_pre_paid_term', $should_reduce_current_subscription_prepaid_term, $subscription, $cart_item, $days_in_old_cycle, $days_in_new_cycle, $old_price_per_day, $new_price_per_day );
 	}
 
 	/**

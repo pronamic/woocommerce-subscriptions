@@ -94,7 +94,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	 *
 	 * @since  3.1.0
 	 *
-	 * @param  WC_Data         $object  Subscription object.
+	 * @param  WC_Subscription $object  Subscription object.
 	 * @param  WP_REST_Request $request Request object.
 	 * @return WP_REST_Response
 	 */

@@ -15,7 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * REST API Subscription Notes controller class.
  *
  * @package WooCommerce_Subscriptions/API
- * @extends WC_REST_Order_Notes_Controller
  */
 class WC_REST_Subscription_Notes_Controller extends WC_REST_Order_Notes_Controller {
 

@@ -201,7 +201,7 @@ class WCS_Early_Renewal_Modal_Handler {
 	 * @since 2.6.0
 	 */
 	private static function detach_renewal_callbacks() {
-		remove_filter( 'wcs_renewal_order_created', 'WC_Subscriptions_Renewal_Order::add_order_note', 10, 2 );
-		remove_filter( 'woocommerce_order_status_changed', 'WC_Subscriptions_Renewal_Order::maybe_record_subscription_payment', 10, 2 );
+		remove_filter( 'wcs_renewal_order_created', 'WC_Subscriptions_Renewal_Order::add_order_note' );
+		remove_filter( 'woocommerce_order_status_changed', 'WC_Subscriptions_Renewal_Order::maybe_record_subscription_payment' );
 	}
 }
