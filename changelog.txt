@@ -1,5 +1,14 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-06-11 - version 7.6.0
+* Update: Allow updating billing info on existing subscriptions when customer changes account details.
+* Fix: Use floats instead of integers for tax calculation in subscription switching when prices include tax.
+* Fix: Enhance checks in email templates upgrade script for WooCommerce Subscriptions core 8.3.0.
+* Dev: Refactor argument processing in run-tests.sh to add a direct check for the -w flag.
+* Fix: Undefined array key `new`
+* Fix: Ensure subscription exists before updating its last order date.
+* Fix: Prevent fatal error when the line items no longer exist in the database.
+
 2025-05-20 - version 7.5.0
 * Update: Add pagination to the related orders list in the My Account > View Subscription page.
 * Fix: Infinite loop when trying to load subscription related orders meta after cache busting.

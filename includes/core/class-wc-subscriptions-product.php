@@ -1082,6 +1082,8 @@ class WC_Subscriptions_Product {
 				// Only set the meta value when the object has a meta value to workaround ambiguous default return values
 				if ( $product->meta_exists( $prefixed_key ) ) {
 					$meta_value = $product->get_meta( $prefixed_key, true );
+				} elseif ( $product->meta_exists( $meta_key ) ) {
+					$meta_value = $product->get_meta( $meta_key, true );
 				}
 			} elseif ( isset( $product->{$meta_key} ) ) { // WC < 3.0
 				$meta_value = $product->{$meta_key};

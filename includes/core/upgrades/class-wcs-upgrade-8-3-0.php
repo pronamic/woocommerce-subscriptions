@@ -39,9 +39,10 @@ class WCS_Upgrade_8_3_0 {
 		WCS_Upgrade_Logger::add( '8.3.0 - Updating subscription email settings.' );
 
 		foreach ( $settings_names as $settings_name ) {
-			$option = get_option( $settings_name );
+			// Cast to array helps us to avoid issues with further checks or leave the option unchanged if its format is modified by other plugins.
+			$option = (array) get_option( $settings_name );
 
-			if ( ! $option || ( empty( $option['subject'] && empty( $option['heading'] ) ) ) ) {
+			if ( empty( $option['subject'] ) && empty( $option['heading'] ) ) {
 				WCS_Upgrade_Logger::add( sprintf( 'Subscription email settings not found: %s.', $settings_name ) );
 				continue;
 			}

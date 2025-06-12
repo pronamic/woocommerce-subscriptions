@@ -673,6 +673,10 @@ class WCS_Admin_Meta_Boxes {
 		foreach ( $item_data['line_subtotal'] as $line_item_id => $new_line_subtotal ) {
 			$line_item = WC_Order_Factory::get_order_item( $line_item_id );
 
+			if ( ! $line_item ) {
+				continue;
+			}
+
 			// If this item's subtracted tax data hasn't been repaired, do that now.
 			if ( $line_item->meta_exists( '_subtracted_base_location_tax' ) ) {
 				WC_Subscriptions_Upgrader::repair_subtracted_base_taxes( $line_item->get_id() );

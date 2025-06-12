@@ -87,7 +87,7 @@ class WCS_Limiter {
 					} else { // When mixed checkout is enabled
 						foreach ( WC()->cart->cart_contents as $cart_item ) {
 							// If the variable product is limited, it can't be purchased if it is the same variation
-							if ( $product->get_parent_id() == wcs_get_objects_property( $cart_item['data'], 'parent_id' ) && $product->get_id() != $cart_item['data']->get_id() ) {
+							if ( $product->get_parent_id() === $cart_item['data']->get_parent_id() && $product->get_id() !== $cart_item['data']->get_id() ) {
 								$purchasable = false;
 								break;
 							}

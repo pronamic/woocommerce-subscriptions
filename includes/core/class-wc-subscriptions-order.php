@@ -2504,6 +2504,9 @@ class WC_Subscriptions_Order {
 
 		foreach ( $subscription_ids as $subscription_id ) {
 			$subscription = wcs_get_subscription( $subscription_id );
+			if ( ! $subscription ) {
+				continue;
+			}
 
 			self::update_subscription_last_order_date_created( $subscription, $exclude_statuses );
 		}
@@ -2524,6 +2527,9 @@ class WC_Subscriptions_Order {
 		}
 
 		$subscription = wcs_get_subscription( $object_id );
+		if ( ! $subscription ) {
+			return;
+		}
 
 		self::update_subscription_last_order_date_created( $subscription );
 	}

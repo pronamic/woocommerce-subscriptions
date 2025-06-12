@@ -33,6 +33,8 @@ class WCS_Object_Data_Cache_Manager_Many_To_One extends WCS_Object_Data_Cache_Ma
 	 */
 	protected function trigger_update_cache_hook_from_change( $object, $key, $change ) {
 		$previous_value = ! empty( $change['previous'] ) ? $change['previous'] : '';
-		$this->trigger_update_cache_hook( $change['type'], $object->get_id(), $key, $change['new'], $previous_value );
+		// When a meta is being deleted, the `new` key is not set.
+		$new = ! empty( $change['new'] ) ? $change['new'] : '';
+		$this->trigger_update_cache_hook( $change['type'], $object->get_id(), $key, $new, $previous_value );
 	}
 }

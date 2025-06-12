@@ -2,16 +2,16 @@
 # This file is distributed under the same license as the WooCommerce Subscriptions plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 7.5.0\n"
+"Project-Id-Version: WooCommerce Subscriptions 7.6.0\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-05-20T20:21:13+00:00\n"
+"POT-Creation-Date: 2025-06-11T02:20:05+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.11.0\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woocommerce-subscriptions\n"
 
 #. Plugin Name of the plugin
@@ -49,6 +49,7 @@ msgstr ""
 
 #. translators: placeholders $1 and $2 are opening <a> tags linking to the WooCommerce documentation on HPOS, and to the Advanced Feature settings screen. Placeholder $3 is a closing link (<a>) tag.
 #: includes/admin/class-wcs-admin-reports.php:61
+#, php-format
 msgid "Subscription reports are incompatible with the %1$sWooCommerce data storage features%3$s enabled on your store. Please %2$senable compatibility mode%3$s if you wish to use subscription reports."
 msgstr ""
 
@@ -122,6 +123,7 @@ msgstr ""
 
 #. translators: %d refers to the number of times we have detected cache update failures
 #: includes/admin/reports/class-wcs-report-cache-manager.php:330
+#, php-format
 msgid "%d failures"
 msgid_plural "%d failure"
 msgstr[0] ""
@@ -129,6 +131,7 @@ msgstr[1] ""
 
 #. translators: 1$: count, 2$ and 3$ are opening and closing strong tags, respectively.
 #: includes/admin/reports/class-wcs-report-dashboard.php:227
+#, php-format
 msgid "%2$s%1$s signup%3$s subscription signups this month"
 msgid_plural "%2$s%1$s signups%3$s subscription signups this month"
 msgstr[0] ""
@@ -136,11 +139,13 @@ msgstr[1] ""
 
 #. translators: %s: formatted amount.
 #: includes/admin/reports/class-wcs-report-dashboard.php:235
+#, php-format
 msgid "%s signup revenue this month"
 msgstr ""
 
 #. translators: 1$: count, 2$ and 3$ are opening and closing strong tags, respectively.
 #: includes/admin/reports/class-wcs-report-dashboard.php:243
+#, php-format
 msgid "%2$s%1$s renewal%3$s subscription renewals this month"
 msgid_plural "%2$s%1$s renewals%3$s subscription renewals this month"
 msgstr[0] ""
@@ -148,11 +153,13 @@ msgstr[1] ""
 
 #. translators: %s: formatted amount.
 #: includes/admin/reports/class-wcs-report-dashboard.php:251
+#, php-format
 msgid "%s renewal revenue this month"
 msgstr ""
 
 #. translators: 1$: count, 2$ and 3$ are opening and closing strong tags, respectively.
 #: includes/admin/reports/class-wcs-report-dashboard.php:259
+#, php-format
 msgid "%2$s%1$s cancellation%3$s subscription cancellations this month"
 msgid_plural "%2$s%1$s cancellations%3$s subscription cancellations this month"
 msgstr[0] ""
@@ -236,6 +243,7 @@ msgstr ""
 
 #. translators: %s: help tip.
 #: includes/admin/reports/class-wcs-report-subscription-by-customer.php:99
+#, php-format
 msgid "Active Subscriptions %s"
 msgstr ""
 
@@ -246,6 +254,7 @@ msgstr ""
 
 #. translators: %s: help tip.
 #: includes/admin/reports/class-wcs-report-subscription-by-customer.php:101
+#, php-format
 msgid "Total Subscriptions %s"
 msgstr ""
 
@@ -256,6 +265,7 @@ msgstr ""
 
 #. translators: %s: help tip.
 #: includes/admin/reports/class-wcs-report-subscription-by-customer.php:103
+#, php-format
 msgid "Total Subscription Orders %s"
 msgstr ""
 
@@ -266,6 +276,7 @@ msgstr ""
 
 #. translators: %s: help tip.
 #: includes/admin/reports/class-wcs-report-subscription-by-customer.php:105
+#, php-format
 msgid "Lifetime Value from Subscriptions %s"
 msgstr ""
 
@@ -292,6 +303,7 @@ msgstr ""
 
 #. translators: %s: help tip.
 #: includes/admin/reports/class-wcs-report-subscription-by-product.php:91
+#, php-format
 msgid "Subscription Count %s"
 msgstr ""
 
@@ -302,6 +314,7 @@ msgstr ""
 
 #. translators: %s: help tip.
 #: includes/admin/reports/class-wcs-report-subscription-by-product.php:93
+#, php-format
 msgid "Average Recurring Line Total %s"
 msgstr ""
 
@@ -312,6 +325,7 @@ msgstr ""
 
 #. translators: %s: help tip.
 #: includes/admin/reports/class-wcs-report-subscription-by-product.php:95
+#, php-format
 msgid "Average Lifetime Value %s"
 msgstr ""
 
@@ -327,6 +341,7 @@ msgstr ""
 
 #. translators: %s: formatted total amount.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:509
+#, php-format
 msgid "%s signup revenue in this period"
 msgstr ""
 
@@ -336,6 +351,7 @@ msgstr ""
 
 #. translators: %s: formatted total amount.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:517
+#, php-format
 msgid "%s renewal revenue in this period"
 msgstr ""
 
@@ -345,6 +361,7 @@ msgstr ""
 
 #. translators: %s: formatted total amount.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:525
+#, php-format
 msgid "%s resubscribe revenue in this period"
 msgstr ""
 
@@ -354,6 +371,7 @@ msgstr ""
 
 #. translators: %s: formatted total amount.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:533
+#, php-format
 msgid "%s switch revenue in this period"
 msgstr ""
 
@@ -363,6 +381,7 @@ msgstr ""
 
 #. translators: 2: link opening tag, 1: subscription count and closing tag.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:542
+#, php-format
 msgid "%2$s %1$s new subscriptions"
 msgstr ""
 
@@ -372,6 +391,7 @@ msgstr ""
 
 #. translators: 2: link opening tag, 1: subscription count and closing tag.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:564
+#, php-format
 msgid "%2$s %1$s subscription signups"
 msgstr ""
 
@@ -381,6 +401,7 @@ msgstr ""
 
 #. translators: 2: link opening tag, 1: subscription count and closing tag.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:586
+#, php-format
 msgid "%2$s %1$s subscription resubscribes"
 msgstr ""
 
@@ -390,6 +411,7 @@ msgstr ""
 
 #. translators: 2: link opening tag, 1: subscription count and closing tag.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:608
+#, php-format
 msgid "%2$s %1$s subscription renewals"
 msgstr ""
 
@@ -399,6 +421,7 @@ msgstr ""
 
 #. translators: 2: link opening tag, 1: subscription count and closing tag.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:630
+#, php-format
 msgid "%2$s %1$s subscription switches"
 msgstr ""
 
@@ -408,6 +431,7 @@ msgstr ""
 
 #. translators: 2: link opening tag, 1: subscription count and closing tag.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:652
+#, php-format
 msgid "%2$s %1$s subscription cancellations"
 msgstr ""
 
@@ -417,6 +441,7 @@ msgstr ""
 
 #. translators: 2: link opening tag, 1: subscription count and closing tag.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:674
+#, php-format
 msgid "%2$s %1$s ended subscriptions"
 msgstr ""
 
@@ -426,6 +451,7 @@ msgstr ""
 
 #. translators: 2: link opening tag, 1: subscription count and closing tag.
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:699
+#, php-format
 msgid "%2$s %1$s current subscriptions"
 msgstr ""
 
@@ -435,11 +461,13 @@ msgstr ""
 
 #. translators: %s: subscription net gain (with percentage).
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:731
+#, php-format
 msgid "%s net subscription gain"
 msgstr ""
 
 #. translators: %s: subscription net loss (with percentage).
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:734
+#, php-format
 msgid "%s net subscription loss"
 msgstr ""
 
@@ -528,6 +556,7 @@ msgstr ""
 
 #. translators: %s: formatted amount.
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:119
+#, php-format
 msgid "%s renewal revenue recovered"
 msgstr ""
 
@@ -538,6 +567,7 @@ msgstr ""
 #. translators: %s: renewal count.
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:127
 #: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:104
+#, php-format
 msgid "%s renewal orders"
 msgstr ""
 
@@ -547,6 +577,7 @@ msgstr ""
 
 #. translators: %s: retry count.
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:134
+#, php-format
 msgid "%s retry attempts succeeded"
 msgstr ""
 
@@ -556,6 +587,7 @@ msgstr ""
 
 #. translators: %s: retry count.
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:142
+#, php-format
 msgid "%s retry attempts failed"
 msgstr ""
 
@@ -565,6 +597,7 @@ msgstr ""
 
 #. translators: %s: retry count.
 #: includes/admin/reports/class-wcs-report-subscription-payment-retry.php:150
+#, php-format
 msgid "%s retry attempts pending"
 msgstr ""
 
@@ -590,6 +623,7 @@ msgstr ""
 
 #. translators: %s: formatted amount.
 #: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:97
+#, php-format
 msgid "%s renewal income in this period"
 msgstr ""
 
@@ -603,6 +637,7 @@ msgstr ""
 
 #. translators: %s: formatted amount.
 #: includes/admin/reports/class-wcs-report-upcoming-recurring-revenue.php:111
+#, php-format
 msgid "%s average renewal amount"
 msgstr ""
 
@@ -684,11 +719,13 @@ msgstr ""
 
 #: includes/api/class-wc-rest-subscriptions-controller.php:174
 #: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:170
+#, php-format
 msgid "Failed to load subscription object with the ID %d."
 msgstr ""
 
 #: includes/api/class-wc-rest-subscriptions-controller.php:331
 #: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:329
+#, php-format
 msgid "Subscription dates could not be set. Error message: %s"
 msgstr ""
 
@@ -817,6 +854,7 @@ msgstr ""
 #. translators: placeholder is the payment method ID.
 #: includes/api/class-wc-rest-subscriptions-controller.php:519
 #: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:511
+#, php-format
 msgid "The %s payment gateway does not support admin changing the payment method."
 msgstr ""
 
@@ -825,6 +863,7 @@ msgstr ""
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:335
 #: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:403
 #: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:528
+#, php-format
 msgid "Subscription payment method could not be set to %1$s with error message: %2$s"
 msgstr ""
 
@@ -835,6 +874,7 @@ msgstr ""
 
 #: includes/api/class-wc-rest-subscriptions-controller.php:556
 #: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:551
+#, php-format
 msgid "Failed to load order object with the ID %d."
 msgstr ""
 
@@ -867,6 +907,7 @@ msgstr ""
 
 #. translators: placeholder is error message
 #: includes/api/legacy/class-wc-api-subscriptions.php:276
+#, php-format
 msgctxt "API error message when editing the order failed"
 msgid "Edit subscription failed with error: %s"
 msgstr ""
@@ -879,6 +920,7 @@ msgstr ""
 
 #. translators: 1$: gateway id, 2$: error message
 #: includes/api/legacy/class-wc-api-subscriptions.php:352
+#, php-format
 msgid "Subscription payment method could not be set to %1$s and has been set to manual with error message: %2$s"
 msgstr ""
 
@@ -904,12 +946,14 @@ msgstr ""
 
 #. translators: placeholder is an error message.
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:241
+#, php-format
 msgid "Cannot create subscription: %s."
 msgstr ""
 
 #. translators: placeholder is an error message.
 #: includes/api/legacy/class-wc-rest-subscriptions-controller.php:286
 #: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:473
+#, php-format
 msgid "Updating subscription dates errored with message: %s"
 msgstr ""
 
@@ -1053,16 +1097,19 @@ msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin
 #: includes/class-wc-subscriptions-dependency-manager.php:156
+#, php-format
 msgid "%1$sWooCommerce Subscriptions is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for WooCommerce Subscriptions to work. Please %5$sinstall & activate WooCommerce &raquo;%6$s"
 msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$: minimum supported WooCommerce version, 4$-5$: opening and closing link tags, leads to plugin admin
 #: includes/class-wc-subscriptions-dependency-manager.php:159
+#, php-format
 msgid "%1$sWooCommerce Subscriptions is inactive.%2$s This version of Subscriptions requires WooCommerce %3$s or newer. Please %4$supdate WooCommerce to version %3$s or newer &raquo;%5$s"
 msgstr ""
 
 #. translators: 1-2: opening/closing <b> tags, 3: Subscriptions version.
 #: includes/class-wc-subscriptions-plugin.php:62
+#, php-format
 msgid "%1$sWarning!%2$s We can see the %1$sWooCommerce Subscriptions Early Renewal%2$s plugin is active. Version %3$s of %1$sWooCommerce Subscriptions%2$s comes with that plugin's functionality packaged into the core plugin. Please deactivate WooCommerce Subscriptions Early Renewal to avoid any conflicts."
 msgstr ""
 
@@ -1072,6 +1119,7 @@ msgstr ""
 
 #. translators: $1-$2: opening and closing <strong> tags, $3-$4: opening and closing <em> tags.
 #: includes/class-wc-subscriptions-plugin.php:208
+#, php-format
 msgid "%1$sWooCommerce Subscriptions Installed%2$s &#8211; %3$sYou're ready to start selling subscriptions!%4$s"
 msgstr ""
 
@@ -1115,8 +1163,8 @@ msgstr ""
 #: includes/class-wcs-call-to-action-button-text-manager.php:55
 #: includes/class-wcs-call-to-action-button-text-manager.php:58
 #: includes/core/class-wc-subscriptions-checkout.php:657
-#: includes/core/class-wc-subscriptions-product.php:1202
-#: includes/core/class-wc-subscriptions-product.php:1234
+#: includes/core/class-wc-subscriptions-product.php:1204
+#: includes/core/class-wc-subscriptions-product.php:1236
 msgid "Sign up now"
 msgstr ""
 
@@ -1157,6 +1205,7 @@ msgstr ""
 
 #. translators: %s is a line break.
 #: includes/class-wcs-drip-downloads-manager.php:70
+#, php-format
 msgid "Enabling this grants access to new downloadable files added to a product only after the next renewal is processed.%sBy default, access to new downloadable files added to a product is granted immediately to any customer that has an active subscription with that product."
 msgstr ""
 
@@ -1174,6 +1223,7 @@ msgstr ""
 
 #. translators: %1$s is the coupon code, %2$d is the number of payment usages
 #: includes/class-wcs-limited-recurring-coupon-manager.php:252
+#, php-format
 msgid "Limited use coupon \"%1$s\" removed from subscription. It has been used %2$d time."
 msgid_plural "Limited use coupon \"%1$s\" removed from subscription. It has been used %2$d times."
 msgstr[0] ""
@@ -1181,6 +1231,7 @@ msgstr[1] ""
 
 #. translators: %d refers to the number of payments the coupon can be used for.
 #: includes/class-wcs-limited-recurring-coupon-manager.php:292
+#, php-format
 msgid "Active for %d payment"
 msgid_plural "Active for %d payments"
 msgstr[0] ""
@@ -1210,6 +1261,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing link tags
 #: includes/class-wcs-manual-renewal-manager.php:43
+#, php-format
 msgid "With manual renewals, a customer's subscription is put on-hold until they login and pay to renew it. %1$sLearn more%2$s."
 msgstr ""
 
@@ -1219,6 +1271,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing link tags
 #: includes/class-wcs-manual-renewal-manager.php:54
+#, php-format
 msgid "If you don't want new subscription purchases to automatically charge renewal payments, you can turn off automatic payments. Existing automatic subscriptions will continue to charge customers automatically. %1$sLearn more%2$s."
 msgstr ""
 
@@ -1228,6 +1281,7 @@ msgstr ""
 
 #. translators: placeholders are <em> tags
 #: includes/class-wcs-subscriber-role-manager.php:44
+#, php-format
 msgid "Choose the default roles to assign to active and inactive subscribers. For record keeping purposes, a user account must be created for subscribers. Users with the %1$sadministrator%2$s role, such as yourself, will never be allocated these roles to prevent locking out administrators."
 msgstr ""
 
@@ -1258,6 +1312,7 @@ msgstr ""
 
 #. translators: 1-3: opening/closing <a> tags - link to documentation.
 #: includes/class-wcs-upgrade-notice-manager.php:88
+#, php-format
 msgid "Webhook and REST API users can now use v3 subscription endpoints. Click here to %1$slearn more%2$s about the REST API and check out the technical API docs %3$shere%2$s."
 msgstr ""
 
@@ -1267,11 +1322,13 @@ msgstr ""
 
 #. translators: 1-2: opening/closing <a> tags - link to documentation.
 #: includes/class-wcs-upgrade-notice-manager.php:98
+#, php-format
 msgid "Subscriptions is now compatible with the WooCommerce cart and checkout blocks. You can learn more about the compatibility status of the cart & checkout blocks %1$shere%2$s."
 msgstr ""
 
 #. translators: placeholder is Subscription version string ('3.1')
 #: includes/class-wcs-upgrade-notice-manager.php:105
+#, php-format
 msgid "Welcome to WooCommerce Subscriptions %s!"
 msgstr ""
 
@@ -1310,6 +1367,7 @@ msgstr ""
 
 #. translators: 1: relation type, 2: list of valid relation types.
 #: includes/core/abstracts/abstract-wcs-related-order-store.php:148
+#, php-format
 msgid "Invalid relation type: %1$s. Order relationship type must be one of: %2$s."
 msgstr ""
 
@@ -1336,6 +1394,7 @@ msgstr ""
 
 #. translators: placeholder is trial period validation message if passed an invalid value (e.g. "Trial period can not exceed 4 weeks")
 #: includes/core/admin/class-wc-subscriptions-admin.php:300
+#, php-format
 msgctxt "Trial period field tooltip on Edit Product administration screen"
 msgid "An optional period of time to wait before charging the first recurring payment. Any sign up fee will still be charged at the outset of the subscription. %s"
 msgstr ""
@@ -1344,6 +1403,7 @@ msgstr ""
 #. translators: placeholder is a currency symbol / code
 #: includes/core/admin/class-wc-subscriptions-admin.php:315
 #: templates/admin/html-variation-price.php:23
+#, php-format
 msgid "Subscription price (%s)"
 msgstr ""
 
@@ -1352,6 +1412,7 @@ msgstr ""
 #: includes/core/admin/class-wc-subscriptions-admin.php:320
 #: includes/core/admin/class-wc-subscriptions-admin.php:359
 #: templates/admin/html-variation-price.php:30
+#, php-format
 msgctxt "example price"
 msgid "e.g. %s"
 msgstr ""
@@ -1378,6 +1439,7 @@ msgstr ""
 #. translators: %s is a currency symbol / code
 #: includes/core/admin/class-wc-subscriptions-admin.php:357
 #: templates/admin/html-variation-price.php:63
+#, php-format
 msgid "Sign-up fee (%s)"
 msgstr ""
 
@@ -1427,6 +1489,7 @@ msgstr ""
 
 #. translators: %s: subscription status.
 #: includes/core/admin/class-wc-subscriptions-admin.php:810
+#, php-format
 msgid "Unable to change subscription status to \"%s\". Please assign a customer to the subscription to activate it."
 msgstr ""
 
@@ -1499,12 +1562,14 @@ msgstr ""
 
 #. translators: placeholders are for HTML tags. They are 1$: "<h3>", 2$: "</h3>", 3$: "<p>", 4$: "<em>", 5$: "</em>", 6$: "<em>", 7$: "</em>", 8$: "</p>"
 #: includes/core/admin/class-wc-subscriptions-admin.php:932
+#, php-format
 msgctxt "used in admin pointer script params in javascript as type pointer content"
 msgid "%1$sChoose Subscription%2$s%3$sThe WooCommerce Subscriptions extension adds two new subscription product types - %4$sSimple subscription%5$s and %6$sVariable subscription%7$s.%8$s"
 msgstr ""
 
 #. translators: placeholders are for HTML tags. They are 1$: "<h3>", 2$: "</h3>", 3$: "<p>", 4$: "</p>"
 #: includes/core/admin/class-wc-subscriptions-admin.php:934
+#, php-format
 msgctxt "used in admin pointer script params in javascript as price pointer content"
 msgid "%1$sSet a Price%2$s%3$sSubscription prices are a little different to other product prices. For a subscription, you can set a billing period, length, sign-up fee and free trial.%4$s"
 msgstr ""
@@ -1543,12 +1608,14 @@ msgstr ""
 #. translators: placeholder is a subscription ID.
 #: includes/core/admin/class-wc-subscriptions-admin.php:1348
 #: includes/core/admin/class-wc-subscriptions-admin.php:1590
+#, php-format
 msgid "We can't find a subscription with ID #%d. Perhaps it was deleted?"
 msgstr ""
 
 #. translators: Placeholders are opening and closing link tags.
 #: includes/core/admin/class-wc-subscriptions-admin.php:1441
 #: includes/core/admin/class-wc-subscriptions-admin.php:1503
+#, php-format
 msgid "We weren't able to locate the set of report results you requested. Please regenerate the link from the %1$sSubscription Reports screen%2$s."
 msgstr ""
 
@@ -1558,16 +1625,19 @@ msgstr ""
 
 #. translators: placeholders are opening link tag, ID of sub, and closing link tag
 #: includes/core/admin/class-wc-subscriptions-admin.php:1597
+#, php-format
 msgid "Showing orders for %1$sSubscription %2$s%3$s"
 msgstr ""
 
 #. translators: number of 1$: days, 2$: weeks, 3$: months, 4$: years
 #: includes/core/admin/class-wc-subscriptions-admin.php:1620
+#, php-format
 msgid "The trial period can not exceed: %1$s, %2$s, %3$s or %4$s."
 msgstr ""
 
 #. translators: placeholder is a time period (e.g. "4 weeks")
 #: includes/core/admin/class-wc-subscriptions-admin.php:1625
+#, php-format
 msgid "The trial period can not exceed %s."
 msgstr ""
 
@@ -1625,6 +1695,7 @@ msgstr ""
 
 #. translators: $1-2: opening and closing tags of a link that takes to Woo marketplace / Stripe product page
 #: includes/core/admin/class-wc-subscriptions-admin.php:1898
+#, php-format
 msgid "No payment gateways capable of processing automatic subscription payments are enabled. If you would like to process automatic payments, we recommend %1$sWooPayments%2$s."
 msgstr ""
 
@@ -1634,6 +1705,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing link tags
 #: includes/core/admin/class-wc-subscriptions-admin.php:1913
+#, php-format
 msgid "Payment gateways which don't support automatic recurring payments can be used to process %1$smanual subscription renewal payments%2$s."
 msgstr ""
 
@@ -1746,11 +1818,13 @@ msgstr ""
 
 #. Translators: %1$s opening link tag, %2$s closing link tag.
 #: includes/core/admin/class-wcs-admin-meta-boxes.php:300
+#, php-format
 msgid "A pending %1$srenewal order%2$s was successfully created!"
 msgstr ""
 
 #. Translators: %1$s opening link tag, %2$s closing link tag.
 #: includes/core/admin/class-wcs-admin-meta-boxes.php:312
+#, php-format
 msgid "A %1$spending renewal order%2$s was successfully created, but there was a problem setting the payment method. Please review the order."
 msgstr ""
 
@@ -1814,6 +1888,7 @@ msgstr ""
 
 #. translators: placeholder is the number of subscriptions updated
 #: includes/core/admin/class-wcs-admin-post-types.php:421
+#, php-format
 msgid "%s subscription status changed."
 msgid_plural "%s subscription statuses changed."
 msgstr[0] ""
@@ -1821,6 +1896,7 @@ msgstr[1] ""
 
 #. translators: 1$: is the number of subscriptions not updated, 2$: is the error message
 #: includes/core/admin/class-wcs-admin-post-types.php:440
+#, php-format
 msgid "%1$s subscription could not be updated: %2$s"
 msgid_plural "%1$s subscriptions could not be updated: %2$s"
 msgstr[0] ""
@@ -1855,8 +1931,6 @@ msgstr ""
 #: includes/core/admin/class-wcs-admin-post-types.php:471
 #: assets/src/js/recurring-totals/index.js:188
 #: assets/src/js/recurring-totals/index.js:285
-#: core-legacy/build/index.js:11
-#: core-legacy/build/index.js:17
 msgid "Total"
 msgstr ""
 
@@ -1887,12 +1961,14 @@ msgstr ""
 
 #. translators: placeholder is a subscription ID.
 #: includes/core/admin/class-wcs-admin-post-types.php:512
+#, php-format
 msgctxt "hash before subscription number"
 msgid "#%s"
 msgstr ""
 
 #. translators: Placeholder is a <br> HTML tag.
 #: includes/core/admin/class-wcs-admin-post-types.php:524
+#, php-format
 msgid "This subscription couldn't be loaded from the database. %s Click to learn more."
 msgstr ""
 
@@ -1903,16 +1979,19 @@ msgstr ""
 
 #. translators: placeholder is customer's billing email
 #: includes/core/admin/class-wcs-admin-post-types.php:567
+#, php-format
 msgid "Email: %s"
 msgstr ""
 
 #. translators: placeholder is customer's billing phone number
 #: includes/core/admin/class-wcs-admin-post-types.php:572
+#, php-format
 msgid "Tel: %s"
 msgstr ""
 
 #. translators: $1: is opening link, $2: is subscription order number, $3: is closing link tag, $4: is user's name
 #: includes/core/admin/class-wcs-admin-post-types.php:603
+#, php-format
 msgctxt "Subscription title on admin table. (e.g.: #211 for John Doe)"
 msgid "%1$s#%2$s%3$s for %4$s"
 msgstr ""
@@ -1923,6 +2002,7 @@ msgstr ""
 
 #. translators: %d: item count.
 #: includes/core/admin/class-wcs-admin-post-types.php:633
+#, php-format
 msgid "%d item"
 msgid_plural "%d items"
 msgstr[0] ""
@@ -1932,6 +2012,7 @@ msgstr[1] ""
 #. translators: %s: payment method.
 #: includes/core/admin/class-wcs-admin-post-types.php:652
 #: includes/core/class-wc-subscription.php:2327
+#, php-format
 msgid "Via %s"
 msgstr ""
 
@@ -1963,6 +2044,7 @@ msgstr ""
 
 #. translators: placeholder is previous post title
 #: includes/core/admin/class-wcs-admin-post-types.php:1121
+#, php-format
 msgctxt "used in post updated messages"
 msgid "Subscription restored to revision from %s"
 msgstr ""
@@ -1977,6 +2059,7 @@ msgstr ""
 
 #. translators: php date string
 #: includes/core/admin/class-wcs-admin-post-types.php:1126
+#, php-format
 msgid "Subscription scheduled for: %1$s."
 msgstr ""
 
@@ -2006,6 +2089,7 @@ msgstr ""
 
 #. translators: 1: user display name 2: user ID 3: user email
 #: includes/core/admin/class-wcs-admin-post-types.php:1341
+#, php-format
 msgid "%1$s (#%2$s &ndash; %3$s)"
 msgstr ""
 
@@ -2107,11 +2191,13 @@ msgstr ""
 
 #. translators: placeholders are opening/closing tags linking to documentation on outdated templates.
 #: includes/core/admin/class-wcs-admin-system-status.php:207
+#, php-format
 msgid "%1$sLearn how to update%2$s"
 msgstr ""
 
 #. translators: %1$s is the file version, %2$s is the core version
 #: includes/core/admin/class-wcs-admin-system-status.php:252
+#, php-format
 msgid "version %1$s is out of date. The core version is %2$s"
 msgstr ""
 
@@ -2205,6 +2291,7 @@ msgstr ""
 
 #. translators: %1$d=count of total entries needing conversion
 #: includes/core/admin/debug-tools/class-wcs-notifications-debug-tool-processor.php:334
+#, php-format
 msgid "Stopping this will halt the background process that adds notifications to pending, active, and on-hold subscriptions. %1$d subscriptions remain to be processed."
 msgstr ""
 
@@ -2249,6 +2336,7 @@ msgstr ""
 
 #. translators: placeholder is the ID of the subscription
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:54
+#, php-format
 msgctxt "edit subscription header"
 msgid "Subscription #%s details"
 msgstr ""
@@ -2279,6 +2367,7 @@ msgstr ""
 
 #. translators: placeholder is an order number.
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:127
+#, php-format
 msgid "#%1$s"
 msgstr ""
 
@@ -2324,6 +2413,7 @@ msgstr ""
 #. translators: %s: gateway ID.
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:193
 #: includes/core/class-wcs-change-payment-method-admin.php:49
+#, php-format
 msgctxt "The gateway ID displayed on the Edit Subscriptions screen when editing payment method."
 msgid "Gateway ID: [%s]"
 msgstr ""
@@ -2339,7 +2429,6 @@ msgstr ""
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:253
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:291
 #: assets/src/js/recurring-totals/index.js:104
-#: core-legacy/build/index.js:6
 msgid "Shipping"
 msgstr ""
 
@@ -2366,17 +2455,20 @@ msgstr ""
 
 #. translators: %s: parent order number (linked to its details screen).
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:430
+#, php-format
 msgctxt "subscription note after linking to a parent order"
 msgid "Subscription linked to parent order %s via admin."
 msgstr ""
 
 #. translators: placeholder is error message from the payment gateway or subscriptions when updating the status
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:445
+#, php-format
 msgid "Error updating some information: %s"
 msgstr ""
 
 #. translators: placeholder is an order number.
 #: includes/core/admin/meta-boxes/views/html-related-orders-row.php:14
+#, php-format
 msgid "Edit order number %s"
 msgstr ""
 
@@ -2392,6 +2484,7 @@ msgstr ""
 #: templates/myaccount/my-subscriptions.php:36
 #: templates/myaccount/related-orders.php:49
 #: templates/myaccount/related-subscriptions.php:34
+#, php-format
 msgctxt "hash before order number"
 msgid "#%s"
 msgstr ""
@@ -2443,6 +2536,7 @@ msgstr ""
 
 #. Translators: The %1 placeholder is the translated order relationship ("Parent Order"), %2 placeholder is a <br> HTML tag.
 #: includes/core/admin/meta-boxes/views/html-unknown-related-orders-row.php:25
+#, php-format
 msgid "This %1$s couldn't be loaded from the database. %1$s Click to learn more."
 msgstr ""
 
@@ -2452,21 +2546,25 @@ msgstr ""
 
 #. translators: %s: subscription status.
 #: includes/core/class-wc-subscription.php:444
+#, php-format
 msgid "Unable to change subscription status to \"%s\"."
 msgstr ""
 
 #. translators: 1: subscription status, 2: error message.
 #: includes/core/class-wc-subscription.php:567
+#, php-format
 msgid "Unable to change subscription status to \"%1$s\". Exception: %2$s"
 msgstr ""
 
 #. translators: 1: old subscription status 2: new subscription status
 #: includes/core/class-wc-subscription.php:600
+#, php-format
 msgid "Status changed from %1$s to %2$s."
 msgstr ""
 
 #. translators: %s: new order status
 #: includes/core/class-wc-subscription.php:614
+#, php-format
 msgid "Status set to %s."
 msgstr ""
 
@@ -2477,12 +2575,14 @@ msgstr ""
 #. translators: placeholder is human time diff (e.g. "3 weeks")
 #: includes/core/class-wc-subscription.php:1344
 #: includes/core/class-wc-subscriptions-manager.php:2402
+#, php-format
 msgid "In %s"
 msgstr ""
 
 #. translators: placeholder is human time diff (e.g. "3 weeks")
 #: includes/core/class-wc-subscription.php:1347
 #: includes/core/wcs-formatting-functions.php:246
+#, php-format
 msgid "%s ago"
 msgstr ""
 
@@ -2509,6 +2609,7 @@ msgstr ""
 
 #. translators: %s: date type (e.g. "trial_end").
 #: includes/core/class-wc-subscription.php:1479
+#, php-format
 msgid "The %s date of a subscription can not be deleted. You must delete the order."
 msgstr ""
 
@@ -2516,6 +2617,7 @@ msgstr ""
 #. translators: %d: order ID.
 #: includes/core/class-wc-subscription.php:1488
 #: includes/core/class-wc-subscription.php:2750
+#, php-format
 msgid "Subscription #%d: "
 msgstr ""
 
@@ -2554,32 +2656,38 @@ msgstr ""
 
 #. translators: placeholder is date type (e.g. "end", "next_payment"...)
 #: includes/core/class-wc-subscription.php:2680
+#, php-format
 msgctxt "appears in an error message if date is wrong format"
 msgid "Invalid %s date. The date must be of the format: \"Y-m-d H:i:s\"."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
 #: includes/core/class-wc-subscription.php:2718
+#, php-format
 msgid "The %s date must occur after the cancellation date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
 #: includes/core/class-wc-subscription.php:2724
+#, php-format
 msgid "The %s date must occur after the last payment date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
 #: includes/core/class-wc-subscription.php:2729
+#, php-format
 msgid "The %s date must occur after the next payment date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "end").
 #: includes/core/class-wc-subscription.php:2735
+#, php-format
 msgid "The %s date must occur after the trial end date."
 msgstr ""
 
 #. translators: %s: date type (e.g. "next_payment").
 #: includes/core/class-wc-subscription.php:2740
+#, php-format
 msgid "The %s date must occur after the start date."
 msgstr ""
 
@@ -2588,31 +2696,40 @@ msgstr ""
 msgid "Backordered"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-addresses.php:63
+#: includes/core/class-wc-subscriptions-addresses.php:66
 msgid "Change address"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-addresses.php:105
+#: includes/core/class-wc-subscriptions-addresses.php:108
 msgid "Both the shipping address used for the subscription and your default shipping address for future purchases will be updated."
 msgstr ""
 
 #. translators: $1: address type (Shipping Address / Billing Address), $2: opening <strong> tag, $3: closing </strong> tag
-#: includes/core/class-wc-subscriptions-addresses.php:118
+#: includes/core/class-wc-subscriptions-addresses.php:122
+#, php-format
 msgid "Update the %1$s used for %2$sall%3$s future renewals of my active subscriptions"
+msgstr ""
+
+#. translators: $1: address type (Billing Address), $2: opening <strong> tag, $3: closing </strong> tag
+#: includes/core/class-wc-subscriptions-addresses.php:167
+#, php-format
+msgid "Update the %1$s contact used for %2$sall%3$s future renewals of my active subscriptions"
 msgstr ""
 
 #. translators: %s: subscription ID.
 #. translators: %s: order number.
 #. translators: placeholder is a subscription ID.
-#: includes/core/class-wc-subscriptions-addresses.php:242
+#: includes/core/class-wc-subscriptions-addresses.php:346
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:763
 #: includes/core/class-wcs-query.php:101
+#, php-format
 msgctxt "hash before order number"
 msgid "Subscription #%s"
 msgstr ""
 
 #. translators: %s: address type (eg. 'billing' or 'shipping').
-#: includes/core/class-wc-subscriptions-addresses.php:248
+#: includes/core/class-wc-subscriptions-addresses.php:352
+#, php-format
 msgctxt "change billing or shipping address"
 msgid "Change %s address"
 msgstr ""
@@ -2665,6 +2782,7 @@ msgstr ""
 #. translators: placeholder is a number of days.
 #: includes/core/class-wc-subscriptions-cart.php:2311
 #: includes/core/wcs-time-functions.php:58
+#, php-format
 msgid "%s day"
 msgid_plural "%s days"
 msgstr[0] ""
@@ -2673,6 +2791,7 @@ msgstr[1] ""
 #. translators: placeholder is a number of weeks.
 #: includes/core/class-wc-subscriptions-cart.php:2315
 #: includes/core/wcs-time-functions.php:60
+#, php-format
 msgid "%s week"
 msgid_plural "%s weeks"
 msgstr[0] ""
@@ -2681,6 +2800,7 @@ msgstr[1] ""
 #. translators: placeholder is a number of months.
 #: includes/core/class-wc-subscriptions-cart.php:2319
 #: includes/core/wcs-time-functions.php:62
+#, php-format
 msgid "%s month"
 msgid_plural "%s months"
 msgstr[0] ""
@@ -2689,6 +2809,7 @@ msgstr[1] ""
 #. translators: placeholder is a number of years.
 #: includes/core/class-wc-subscriptions-cart.php:2323
 #: includes/core/wcs-time-functions.php:64
+#, php-format
 msgid "%s year"
 msgid_plural "%s years"
 msgstr[0] ""
@@ -2696,11 +2817,13 @@ msgstr[1] ""
 
 #. translators: 1$: day of the week (e.g. "every Wednesday").
 #: includes/core/class-wc-subscriptions-cart.php:2345
+#, php-format
 msgid "every %1$s"
 msgstr ""
 
 #. translators: 1$: period, 2$: day of the week (e.g. "every 2nd week on Wednesday").
 #: includes/core/class-wc-subscriptions-cart.php:2349
+#, php-format
 msgid "every %1$s on %2$s"
 msgstr ""
 
@@ -2710,26 +2833,31 @@ msgstr ""
 
 #. translators: 1$: day of the month (e.g. "23rd") (e.g. "every 23rd of each month").
 #: includes/core/class-wc-subscriptions-cart.php:2362
+#, php-format
 msgid "on the %1$s of each month"
 msgstr ""
 
 #. translators: 1$: interval (e.g. "3rd") (e.g. "on the last day of every 3rd month").
 #: includes/core/class-wc-subscriptions-cart.php:2370
+#, php-format
 msgid "on the last day of every %1$s month"
 msgstr ""
 
 #. translators: on the, 1$: <date> day of every, 2$: <interval> month (e.g. "on the 23rd day of every 2nd month").
 #: includes/core/class-wc-subscriptions-cart.php:2376
+#, php-format
 msgid "on the %1$s day of every %2$s month"
 msgstr ""
 
 #. translators: on, 1$: <date>, 2$: <month> each year (e.g. "on March 15th each year").
 #: includes/core/class-wc-subscriptions-cart.php:2387
+#, php-format
 msgid "on %1$s %2$s each year"
 msgstr ""
 
 #. translators: 1$: month (e.g. "March"), 2$: day of the month (e.g. "23rd), 3$: interval year (r.g  March 23rd every 2nd year").
 #: includes/core/class-wc-subscriptions-cart.php:2394
+#, php-format
 msgid "on %1$s %2$s every %3$s year"
 msgstr ""
 
@@ -2747,11 +2875,13 @@ msgstr ""
 
 #. translators: placeholder is next payment's date
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:184
+#, php-format
 msgid " Next payment is due %s."
 msgstr ""
 
 #. translators: placeholder is either empty or "Next payment is due..."
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:190
+#, php-format
 msgid "Choose a new payment method.%s"
 msgstr ""
 
@@ -2808,6 +2938,7 @@ msgstr ""
 
 #. translators: 1: old payment title, 2: new payment title.
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:541
+#, php-format
 msgctxt "%1$s: old payment title, %2$s: new payment title"
 msgid "Payment method changed from \"%1$s\" to \"%2$s\" by the subscriber."
 msgstr ""
@@ -2817,6 +2948,7 @@ msgid "An error occurred updating your subscription's payment method. Please con
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:560
+#, php-format
 msgid "%1$sError:%2$s %3$s"
 msgstr ""
 
@@ -2837,26 +2969,31 @@ msgstr ""
 #. translators: placeholder is an internal error number
 #: includes/core/class-wc-subscriptions-checkout.php:204
 #: includes/core/class-wc-subscriptions-checkout.php:392
+#, php-format
 msgid "Error %d: Unable to create subscription. Please try again."
 msgstr ""
 
 #. translators: placeholder is an internal error number
 #: includes/core/class-wc-subscriptions-checkout.php:221
+#, php-format
 msgid "Error %d: Unable to add tax to subscription. Please try again."
 msgstr ""
 
 #. translators: placeholder is an internal error number
 #: includes/core/class-wc-subscriptions-checkout.php:233
+#, php-format
 msgid "Error %d: Unable to create order. Please try again."
 msgstr ""
 
 #. Translators: Placeholders are opening and closing strong and link tags.
 #: includes/core/class-wc-subscriptions-checkout.php:521
+#, php-format
 msgid "Purchasing a subscription product requires an account. Please go to the %1$sMy Account%2$s page to login or register."
 msgstr ""
 
 #. Translators: Placeholders are opening and closing strong and link tags.
 #: includes/core/class-wc-subscriptions-checkout.php:524
+#, php-format
 msgid "Purchasing a subscription product requires an account. Please go to the %1$sMy Account%2$s page to login or contact us if you need assistance."
 msgstr ""
 
@@ -2907,6 +3044,7 @@ msgstr ""
 
 #. translators: placeholder is a post count.
 #: includes/core/class-wc-subscriptions-core-plugin.php:466
+#, php-format
 msgctxt "post status label including post count"
 msgid "Active <span class=\"count\">(%s)</span>"
 msgid_plural "Active <span class=\"count\">(%s)</span>"
@@ -2915,6 +3053,7 @@ msgstr[1] ""
 
 #. translators: placeholder is a post count.
 #: includes/core/class-wc-subscriptions-core-plugin.php:468
+#, php-format
 msgctxt "post status label including post count"
 msgid "Switched <span class=\"count\">(%s)</span>"
 msgid_plural "Switched <span class=\"count\">(%s)</span>"
@@ -2923,6 +3062,7 @@ msgstr[1] ""
 
 #. translators: placeholder is a post count.
 #: includes/core/class-wc-subscriptions-core-plugin.php:470
+#, php-format
 msgctxt "post status label including post count"
 msgid "Expired <span class=\"count\">(%s)</span>"
 msgid_plural "Expired <span class=\"count\">(%s)</span>"
@@ -2931,6 +3071,7 @@ msgstr[1] ""
 
 #. translators: placeholder is a post count.
 #: includes/core/class-wc-subscriptions-core-plugin.php:472
+#, php-format
 msgctxt "post status label including post count"
 msgid "Pending Cancellation <span class=\"count\">(%s)</span>"
 msgid_plural "Pending Cancellation <span class=\"count\">(%s)</span>"
@@ -2953,6 +3094,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing tags. Leads to docs on upgrading WooCommerce Subscriptions
 #: includes/core/class-wc-subscriptions-core-plugin.php:599
+#, php-format
 msgid "Warning! Version 2.0 is a major update to the WooCommerce Subscriptions extension. Before updating, please create a backup, update all WooCommerce extensions and test all plugins, custom code and payment gateways with version 2.0 on a staging site. %1$sLearn more about updating older versions of WooCommerce Subscriptions &raquo;%2$s"
 msgstr ""
 
@@ -2986,6 +3128,7 @@ msgstr ""
 
 #. translators: 1$: coupon code that is being removed
 #: includes/core/class-wc-subscriptions-coupon.php:463
+#, php-format
 msgid "Sorry, the \"%1$s\" coupon is only valid for renewals."
 msgstr ""
 
@@ -2999,6 +3142,7 @@ msgstr ""
 
 #. translators: placeholder is coupon code
 #: includes/core/class-wc-subscriptions-coupon.php:498
+#, php-format
 msgid "Sorry, \"%s\" can only be applied to subscription parent orders which contain a product with signup fees."
 msgstr ""
 
@@ -3028,7 +3172,6 @@ msgstr ""
 
 #: includes/core/class-wc-subscriptions-coupon.php:697
 #: assets/src/js/recurring-totals/index.js:60
-#: core-legacy/build/index.js:6
 msgid "Discount"
 msgstr ""
 
@@ -3050,6 +3193,7 @@ msgstr ""
 
 #. translators: Link to WC Settings > Email.
 #: includes/core/class-wc-subscriptions-email-notifications.php:275
+#, php-format
 msgid "To enable/disable individual notifications and customize templates, visit the <a href=\"%s\">Email settings</a>."
 msgstr ""
 
@@ -3117,6 +3261,7 @@ msgstr ""
 
 #. translators: %d subscription interval.
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:297
+#, php-format
 msgid "Shipment every %d year"
 msgid_plural "Shipment every %d years"
 msgstr[0] ""
@@ -3129,6 +3274,7 @@ msgstr ""
 
 #. translators: %d subscription interval.
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:301
+#, php-format
 msgid "Shipment every %d month"
 msgid_plural "Shipment every %d months"
 msgstr[0] ""
@@ -3141,6 +3287,7 @@ msgstr ""
 
 #. translators: %d subscription interval.
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:305
+#, php-format
 msgid "Shipment every %d week"
 msgid_plural "Shipment every %d weeks"
 msgstr[0] ""
@@ -3153,6 +3300,7 @@ msgstr ""
 
 #. translators: %d subscription interval.
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:309
+#, php-format
 msgid "Shipment every %d day"
 msgid_plural "Shipment every %d days"
 msgstr[0] ""
@@ -3269,6 +3417,7 @@ msgstr ""
 
 #. translators: placeholder %1 is an order note. %2 is the error message that was thrown.
 #: includes/core/class-wc-subscriptions-manager.php:151
+#, php-format
 msgid "Error: Unable to create renewal order with note \"%1$s\". Message: %2$s"
 msgstr ""
 
@@ -3280,26 +3429,31 @@ msgstr ""
 #. translators: %d: subscription ID.
 #: includes/core/class-wc-subscriptions-manager.php:194
 #: includes/gateways/class-wc-subscriptions-payment-gateways.php:77
+#, php-format
 msgid "Subscription doesn't exist in scheduled action: %d"
 msgstr ""
 
 #. translators: $1: order number, $2: error message
 #: includes/core/class-wc-subscriptions-manager.php:344
+#, php-format
 msgid "Failed to activate subscription status for order #%1$s: %2$s"
 msgstr ""
 
 #. translators: $1: order number, $2: error message
 #: includes/core/class-wc-subscriptions-manager.php:372
+#, php-format
 msgid "Failed to update subscription status after order #%1$s was put on-hold: %2$s"
 msgstr ""
 
 #. translators: $1: order number, $2: error message
 #: includes/core/class-wc-subscriptions-manager.php:400
+#, php-format
 msgid "Failed to cancel subscription after order #%1$s was cancelled: %2$s"
 msgstr ""
 
 #. translators: $1: order number, $2: error message
 #: includes/core/class-wc-subscriptions-manager.php:428
+#, php-format
 msgid "Failed to set subscription as expired for order #%1$s: %2$s"
 msgstr ""
 
@@ -3309,6 +3463,7 @@ msgstr ""
 
 #. translators: $1: order number, $2: error message
 #: includes/core/class-wc-subscriptions-manager.php:464
+#, php-format
 msgid "Failed to process failed payment on subscription for order #%1$s: %2$s"
 msgstr ""
 
@@ -3326,11 +3481,13 @@ msgstr ""
 
 #. Translators: 1: The subscription ID number. 2: The current user's username.
 #: includes/core/class-wc-subscriptions-manager.php:1015
+#, php-format
 msgid "The related subscription #%1$s has been deleted after the customer was deleted by %2$s."
 msgstr ""
 
 #. Translators: Placeholder is the subscription ID number.
 #: includes/core/class-wc-subscriptions-manager.php:1018
+#, php-format
 msgid "The related subscription #%s has been deleted after the customer was deleted."
 msgstr ""
 
@@ -3370,17 +3527,20 @@ msgstr ""
 
 #. translators: 1$: month number (e.g. "01"), 2$: month abbreviation (e.g. "Jan")
 #: includes/core/class-wc-subscriptions-manager.php:1932
+#, php-format
 msgctxt "used in a select box"
 msgid "%1$s-%2$s"
 msgstr ""
 
 #. translators: all fields are full html nodes: 1$: month input, 2$: day input, 3$: year input, 4$: hour input, 5$: minute input. Change the order if you'd like
 #: includes/core/class-wc-subscriptions-manager.php:1945
+#, php-format
 msgid "%1$s%2$s, %3$s @ %4$s : %5$s"
 msgstr ""
 
 #. translators: all fields are full html nodes: 1$: month input, 2$: day input, 3$: year input. Change the order if you'd like
 #: includes/core/class-wc-subscriptions-manager.php:1949
+#, php-format
 msgid "%1$s%2$s, %3$s"
 msgstr ""
 
@@ -3390,6 +3550,7 @@ msgstr ""
 
 #. translators: placeholder is subscription ID
 #: includes/core/class-wc-subscriptions-manager.php:2284
+#, php-format
 msgid "Failed sign-up for subscription %s."
 msgstr ""
 
@@ -3417,6 +3578,7 @@ msgstr[1] ""
 
 #. translators: placeholders are opening and closing link tags
 #: includes/core/class-wc-subscriptions-order.php:371
+#, php-format
 msgid "View the status of your subscription in %1$syour account%2$s."
 msgid_plural "View the status of your subscriptions in %1$syour account%2$s."
 msgstr[0] ""
@@ -3432,57 +3594,59 @@ msgstr ""
 
 #. translators: $1: opening link tag, $2: order number, $3: closing link tag
 #: includes/core/class-wc-subscriptions-order.php:1171
+#, php-format
 msgid "Subscription cancelled for refunded order %1$s#%2$s%3$s."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-order.php:2553
+#: includes/core/class-wc-subscriptions-order.php:2559
 msgctxt "An order type"
 msgid "Original"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-order.php:2554
+#: includes/core/class-wc-subscriptions-order.php:2560
 msgctxt "An order type"
 msgid "Subscription Parent"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-order.php:2555
+#: includes/core/class-wc-subscriptions-order.php:2561
 msgctxt "An order type"
 msgid "Subscription Renewal"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-order.php:2556
+#: includes/core/class-wc-subscriptions-order.php:2562
 msgctxt "An order type"
 msgid "Subscription Resubscribe"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-order.php:2557
+#: includes/core/class-wc-subscriptions-order.php:2563
 msgctxt "An order type"
 msgid "Subscription Switch"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-order.php:2558
+#: includes/core/class-wc-subscriptions-order.php:2564
 msgctxt "An order type"
 msgid "Non-subscription"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-order.php:2567
+#: includes/core/class-wc-subscriptions-order.php:2573
 msgid "All orders types"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-order.php:2600
+#: includes/core/class-wc-subscriptions-order.php:2606
 msgid "Renewal Order"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-order.php:2602
+#: includes/core/class-wc-subscriptions-order.php:2608
 msgid "Resubscribe Order"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-order.php:2604
+#: includes/core/class-wc-subscriptions-order.php:2610
 msgid "Parent Order"
 msgstr ""
 
 #. translators: %1$s refers to the price. This string is meant to prefix another string below, e.g. "$5 now, and $5 on March 15th each year"
 #: includes/core/class-wc-subscriptions-product.php:290
+#, php-format
 msgid "%1$s now, and "
 msgstr ""
 
@@ -3492,6 +3656,7 @@ msgstr ""
 #: includes/core/class-wc-subscriptions-product.php:299
 #: includes/core/wcs-formatting-functions.php:116
 #: includes/core/wcs-formatting-functions.php:201
+#, php-format
 msgid "%1$s every %2$s"
 msgstr ""
 
@@ -3499,6 +3664,7 @@ msgstr ""
 #. translators: 1$: recurring amount string, 2$: period, 3$: day of the week (e.g. "$10 every 2nd week on Wednesday")
 #: includes/core/class-wc-subscriptions-product.php:303
 #: includes/core/wcs-formatting-functions.php:125
+#, php-format
 msgid "%1$s every %2$s on %3$s"
 msgstr ""
 
@@ -3506,6 +3672,7 @@ msgstr ""
 #. translators: placeholder is recurring amount
 #: includes/core/class-wc-subscriptions-product.php:314
 #: includes/core/wcs-formatting-functions.php:143
+#, php-format
 msgid "%s on the last day of each month"
 msgstr ""
 
@@ -3513,6 +3680,7 @@ msgstr ""
 #. translators: 1$: recurring amount, 2$: day of the month (e.g. "23rd") (e.g. "$5 every 23rd of each month")
 #: includes/core/class-wc-subscriptions-product.php:318
 #: includes/core/wcs-formatting-functions.php:146
+#, php-format
 msgid "%1$s on the %2$s of each month"
 msgstr ""
 
@@ -3520,6 +3688,7 @@ msgstr ""
 #. translators: 1$: recurring amount, 2$: interval (e.g. "3rd") (e.g. "$10 on the last day of every 3rd month")
 #: includes/core/class-wc-subscriptions-product.php:327
 #: includes/core/wcs-formatting-functions.php:162
+#, php-format
 msgid "%1$s on the last day of every %2$s month"
 msgstr ""
 
@@ -3527,6 +3696,7 @@ msgstr ""
 #. translators: 1$: recurring amount, 2$: day of the month (e.g. "23rd") (e.g. "$5 every 23rd of each month")
 #: includes/core/class-wc-subscriptions-product.php:334
 #: includes/core/wcs-formatting-functions.php:165
+#, php-format
 msgid "%1$s on the %2$s day of every %3$s month"
 msgstr ""
 
@@ -3534,6 +3704,7 @@ msgstr ""
 #. translators: 1$: recurring amount, 2$: month (e.g. "March"), 3$: day of the month (e.g. "23rd") (e.g. "$15 on March 15th every 3rd year")
 #: includes/core/class-wc-subscriptions-product.php:346
 #: includes/core/wcs-formatting-functions.php:178
+#, php-format
 msgid "%1$s on %2$s %3$s each year"
 msgstr ""
 
@@ -3541,6 +3712,7 @@ msgstr ""
 #. translators: 1$: recurring amount, 2$: month (e.g. "March"), 3$: day of the month (e.g. "23rd") (e.g. "$15 on March 15th every 3rd year")
 #: includes/core/class-wc-subscriptions-product.php:354
 #: includes/core/wcs-formatting-functions.php:187
+#, php-format
 msgid "%1$s on %2$s %3$s every %4$s year"
 msgstr ""
 
@@ -3548,6 +3720,7 @@ msgstr ""
 #. translators: 1$: recurring amount, 2$: subscription period (e.g. "month" or "3 months") (e.g. "$15 / month" or "$15 every 2nd month")
 #: includes/core/class-wc-subscriptions-product.php:366
 #: includes/core/wcs-formatting-functions.php:198
+#, php-format
 msgid "%1$s / %2$s"
 msgid_plural "%1$s every %2$s"
 msgstr[0] ""
@@ -3555,6 +3728,7 @@ msgstr[1] ""
 
 #. translators: billing period (e.g. "every week").
 #: includes/core/class-wc-subscriptions-product.php:376
+#, php-format
 msgid "every %s"
 msgstr ""
 
@@ -3562,16 +3736,19 @@ msgstr ""
 #. translators: 1$: subscription string (e.g. "$10 up front then $5 on March 23rd every 3rd year"), 2$: length (e.g. "4 years")
 #: includes/core/class-wc-subscriptions-product.php:386
 #: includes/core/wcs-formatting-functions.php:209
+#, php-format
 msgid "%1$s for %2$s"
 msgstr ""
 
 #. translators: 1$: subscription string (e.g. "$15 on March 15th every 3 years for 6 years"), 2$: trial length (e.g.: "with 4 months free trial").
 #: includes/core/class-wc-subscriptions-product.php:392
+#, php-format
 msgid "%1$s with %2$s free trial"
 msgstr ""
 
 #. translators: 1$: subscription string (e.g. "$15 on March 15th every 3 years for 6 years with 2 months free trial"), 2$: signup fee price (e.g. "and a $30 sign-up fee").
 #: includes/core/class-wc-subscriptions-product.php:397
+#, php-format
 msgid "%1$s and a %2$s sign-up fee"
 msgstr ""
 
@@ -3581,6 +3758,7 @@ msgstr ""
 
 #. translators: placeholder is order ID
 #: includes/core/class-wc-subscriptions-renewal-order.php:157
+#, php-format
 msgid "Order %s created to record renewal."
 msgstr ""
 
@@ -3598,6 +3776,7 @@ msgstr ""
 
 #. translators: placeholder is a year (e.g. "2016")
 #: includes/core/class-wc-subscriptions-synchroniser.php:51
+#, php-format
 msgctxt "used in subscription product edit screen"
 msgid "Align the payment date for this subscription to a specific day of the year. If the date has already taken place this year, the first payment will be processed in %s. Set the day to 0 to disable payment syncing for this product."
 msgstr ""
@@ -3608,6 +3787,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing link tags
 #: includes/core/class-wc-subscriptions-synchroniser.php:203
+#, php-format
 msgctxt "used in the general subscription options page"
 msgid "Align subscription renewal to a specific day of the week, month or year. For example, the first day of the month. %1$sLearn more%2$s."
 msgstr ""
@@ -3670,11 +3850,13 @@ msgstr ""
 
 #. translators: placeholder is a day of the week
 #: includes/core/class-wc-subscriptions-synchroniser.php:779
+#, php-format
 msgid "%s each week"
 msgstr ""
 
 #. translators: placeholder is a number of day with language specific suffix applied (e.g. "1st", "3rd", "5th", etc...)
 #: includes/core/class-wc-subscriptions-synchroniser.php:785
+#, php-format
 msgid "%s day of the month"
 msgstr ""
 
@@ -3688,24 +3870,29 @@ msgstr ""
 
 #. translators: placeholder is a date
 #: includes/core/class-wc-subscriptions-synchroniser.php:842
+#, php-format
 msgid "First payment prorated. Next payment: %s"
 msgstr ""
 
 #. translators: placeholder is a date
 #: includes/core/class-wc-subscriptions-synchroniser.php:845
+#, php-format
 msgid "First payment: %s"
 msgstr ""
 
 #: includes/core/class-wcs-cached-data-manager.php:75
+#, php-format
 msgid "Related order caching is now handled by %1$s."
 msgstr ""
 
 #: includes/core/class-wcs-cached-data-manager.php:82
+#, php-format
 msgid "Customer subscription caching is now handled by %1$s."
 msgstr ""
 
 #: includes/core/class-wcs-cached-data-manager.php:106
 #: includes/core/class-wcs-cached-data-manager.php:238
+#, php-format
 msgid "Customer subscription caching is now handled by %1$s and %2$s."
 msgstr ""
 
@@ -3732,16 +3919,19 @@ msgstr ""
 
 #. translators: placeholder is an item name
 #: includes/core/class-wcs-cart-renewal.php:333
+#, php-format
 msgid "The %s product has been deleted and can no longer be renewed. Please choose a new product or contact us for assistance."
 msgstr ""
 
 #. translators: %s is subscription's number
 #: includes/core/class-wcs-cart-renewal.php:368
+#, php-format
 msgid "Subscription #%s has not been added to the cart."
 msgstr ""
 
 #. translators: %s is order's number
 #: includes/core/class-wcs-cart-renewal.php:371
+#, php-format
 msgid "Order #%s has not been added to the cart."
 msgstr ""
 
@@ -3791,6 +3981,7 @@ msgstr ""
 
 #. translators: %s: order number.
 #: includes/core/class-wcs-cart-resubscribe.php:320
+#, php-format
 msgid "Customer resubscribed in order #%s"
 msgstr ""
 
@@ -3805,6 +3996,7 @@ msgstr ""
 
 #. Translators: Placeholder is the payment gateway title.
 #: includes/core/class-wcs-change-payment-method-admin.php:149
+#, php-format
 msgid "Admin turned on automatic renewals by changing payment method to \"%s\" via the Edit Subscription screen."
 msgstr ""
 
@@ -3818,6 +4010,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing link tags
 #: includes/core/class-wcs-limiter.php:49
+#, php-format
 msgid "Only allow a customer to have one subscription to this product. %1$sLearn more%2$s."
 msgstr ""
 
@@ -3859,33 +4052,39 @@ msgstr ""
 
 #. translators: 1: deleted token, 2: new token.
 #: includes/core/class-wcs-my-account-payment-methods.php:130
+#, php-format
 msgctxt "used in subscription note"
 msgid "Payment method meta updated after customer deleted a token from their My Account page. Payment meta changed from %1$s to %2$s"
 msgstr ""
 
 #. translators: $1: the token/credit card label, 2$-3$: opening and closing strong and link tags
 #: includes/core/class-wcs-my-account-payment-methods.php:135
+#, php-format
 msgid "The deleted payment method was used for automatic subscription payments. To avoid failed renewal payments in future the subscriptions using this payment method have been updated to use your %1$s. To change the payment method of individual subscriptions go to your %2$sMy Account > Subscriptions%3$s page."
 msgstr ""
 
 #. translators: 1: token display name, 2: opening link tag, 4: closing link tag, 3: opening link tag.
 #: includes/core/class-wcs-my-account-payment-methods.php:190
+#, php-format
 msgid "Would you like to update your subscriptions to use this new payment method - %1$s?%2$sYes%4$s | %3$sNo%4$s"
 msgstr ""
 
 #. translators: 1: previous token, 2: new token.
 #: includes/core/class-wcs-my-account-payment-methods.php:231
+#, php-format
 msgctxt "used in subscription note"
 msgid "Payment method meta updated after customer changed their default token and opted to update their subscriptions. Payment meta changed from %1$s to %2$s"
 msgstr ""
 
 #. translators: %1$s opening strong HTML tag, %2$s closing strong HTML tag.
 #: includes/core/class-wcs-my-account-payment-methods.php:253
+#, php-format
 msgid "That payment method cannot be deleted because it is linked to an automatic subscription. Please %1$sadd a payment method%2$s, before trying again."
 msgstr ""
 
 #. translators: %1$s opening strong and em HTML tags, %2$s closing em HTML tag, %3$s closing strong HTML tag.
 #: includes/core/class-wcs-my-account-payment-methods.php:259
+#, php-format
 msgid "That payment method cannot be deleted because it is linked to an automatic subscription. Please choose a %1$sdefault%2$s payment method%3$s, before trying again."
 msgstr ""
 
@@ -3899,16 +4098,19 @@ msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags.
 #: includes/core/class-wcs-permalink-manager.php:91
+#, php-format
 msgid "Error saving Subscriptions endpoints: %1$sSubscriptions%2$s, %1$sView subscription%2$s and %1$sSubscription payment method%2$s cannot be the same. The changes have been reverted."
 msgstr ""
 
 #. translators: %s: invalid type of update argument.
 #: includes/core/class-wcs-post-meta-cache-manager.php:200
+#, php-format
 msgid "Invalid update type: %s. Post update types supported are \"add\" or \"delete\". Updates are done on post meta directly."
 msgstr ""
 
 #. translators: placeholder is a page number.
 #: includes/core/class-wcs-query.php:106
+#, php-format
 msgid "Subscriptions (page %d)"
 msgstr ""
 
@@ -3938,12 +4140,14 @@ msgstr ""
 
 #. translators: %d: subscription ID.
 #: includes/core/class-wcs-remove-item.php:79
+#, php-format
 msgctxt "hash before subscription ID"
 msgid "Subscription #%d does not exist."
 msgstr ""
 
 #. translators: 1$: product name, 2$: product id
 #: includes/core/class-wcs-remove-item.php:114
+#, php-format
 msgctxt "used in order note"
 msgid "Customer added \"%1$s\" (Product ID: #%2$d) via the My Account page."
 msgstr ""
@@ -3954,12 +4158,14 @@ msgstr ""
 
 #. translators: 1$: product name, 2$: product id
 #: includes/core/class-wcs-remove-item.php:137
+#, php-format
 msgctxt "used in order note"
 msgid "Customer removed \"%1$s\" (Product ID: #%2$d) via the My Account page."
 msgstr ""
 
 #. translators: placeholders are 1$: item name, and, 2$: opening and, 3$: closing link tags
 #: includes/core/class-wcs-remove-item.php:140
+#, php-format
 msgid "You have successfully removed \"%1$s\" from your subscription. %2$sUndo?%3$s"
 msgstr ""
 
@@ -3982,6 +4188,7 @@ msgstr ""
 
 #. translators: 1-2: opening/closing <a> tags - linked to staging site, 3: link to live site.
 #: includes/core/class-wcs-staging.php:41
+#, php-format
 msgid "Payment processing skipped - renewal order created on %1$sstaging site%2$s under staging site lock. Live site is at %3$s"
 msgstr ""
 
@@ -3991,11 +4198,13 @@ msgstr ""
 
 #. translators: placeholder is a payment method title.
 #: includes/core/class-wcs-staging.php:98
+#, php-format
 msgid "Subscription locked to Manual Renewal while the store is in staging mode. Live payment method: %s"
 msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags. 3$-4$: opening and closing link tags for learn more. Leads to duplicate site article on docs. 5$-6$: Opening and closing link to production URL. 7$: Production URL .
 #: includes/core/class-wcs-staging.php:129
+#, php-format
 msgid "It looks like this site has moved or is a duplicate site. %1$sWooCommerce Subscriptions%2$s has disabled automatic payments and subscription related emails on this site to prevent duplicate payments from a staging or test environment. %1$sWooCommerce Subscriptions%2$s considers %5$s%7$s%6$s to be the site's URL. %3$sLearn more &raquo;%4$s."
 msgstr ""
 
@@ -4055,6 +4264,7 @@ msgstr ""
 
 #. translators: placeholder is subscription's new status, translated
 #: includes/core/class-wcs-user-change-status-handler.php:116
+#, php-format
 msgid "That subscription can not be changed to %s. Please contact us if you need assistance."
 msgstr ""
 
@@ -4076,21 +4286,25 @@ msgstr ""
 
 #. translators: 1: subscription ID, 2: subscription status
 #: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php:352
+#, php-format
 msgid "Subscription %1$d cannot be restored from the trash: it has already been restored to status \"%2$s\"."
 msgstr ""
 
 #. translators: 1: subscription ID, 2: subscription status
 #: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php:370
+#, php-format
 msgid "The previous status of subscription %1$d (\"%2$s\") is invalid. It has been restored to \"pending\" status instead."
 msgstr ""
 
 #. translators: 1: subscription ID, 2: subscription status
 #: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php:382
+#, php-format
 msgid "The previous status of subscription %1$d (\"%2$s\") is invalid. It could not be restored."
 msgstr ""
 
 #. translators: 1: subscription ID, 2: subscription status
 #: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php:433
+#, php-format
 msgid "Something went wrong when trying to restore subscription %d from the trash. It could not be restored."
 msgstr ""
 
@@ -4112,6 +4326,7 @@ msgstr ""
 
 #. translators: %s: Order date
 #: includes/core/data-stores/class-wcs-subscription-data-store-cpt.php:273
+#, php-format
 msgid "Subscription &ndash; %s"
 msgstr ""
 
@@ -4125,11 +4340,13 @@ msgstr ""
 
 #. translators: placeholder is Subscriptions version number.
 #: includes/core/deprecated/deprecation-handlers/class-wc-subscriptions-deprecation-handler.php:271
+#, php-format
 msgid "Warning! You are running version %s of WooCommerce Subscriptions plugin code but your database has been upgraded to Subscriptions version 2.0. This will cause major problems on your store."
 msgstr ""
 
 #. translators: opening/closing <a> tags - linked to ticket form.
 #: includes/core/deprecated/deprecation-handlers/class-wc-subscriptions-deprecation-handler.php:273
+#, php-format
 msgid "Please upgrade the WooCommerce Subscriptions plugin to version 2.0 or newer immediately. If you need assistance, after upgrading to Subscriptions v2.0, please %1$sopen a support ticket%2$s."
 msgstr ""
 
@@ -4147,6 +4364,7 @@ msgstr ""
 
 #. translators: placeholder is {site_title}, a variable that will be substituted when email is sent out
 #: includes/core/emails/class-wcs-email-cancelled-subscription.php:31
+#, php-format
 msgctxt "default email subject for cancelled emails sent to the admin"
 msgid "[%s] Subscription Cancelled"
 msgstr ""
@@ -4185,6 +4403,7 @@ msgstr ""
 #: includes/core/emails/class-wcs-email-cancelled-subscription.php:177
 #: includes/core/emails/class-wcs-email-expired-subscription.php:150
 #: includes/core/emails/class-wcs-email-on-hold-subscription.php:149
+#, php-format
 msgid "Enter recipients (comma separated) for this email. Defaults to %s."
 msgstr ""
 
@@ -4199,6 +4418,7 @@ msgstr ""
 #: includes/core/emails/class-wcs-email-cancelled-subscription.php:185
 #: includes/core/emails/class-wcs-email-expired-subscription.php:158
 #: includes/core/emails/class-wcs-email-on-hold-subscription.php:157
+#, php-format
 msgid "This controls the email subject line. Leave blank to use the default subject: %s."
 msgstr ""
 
@@ -4211,6 +4431,7 @@ msgstr ""
 
 #. translators: %s: default e-mail heading.
 #: includes/core/emails/class-wcs-email-cancelled-subscription.php:193
+#, php-format
 msgid "This controls the main heading contained within the email notification. Leave blank to use the default heading: %s."
 msgstr ""
 
@@ -4264,6 +4485,7 @@ msgstr ""
 
 #. translators: $1: {site_title}, $2: {order_date}, variables that will be substituted when email is sent out
 #: includes/core/emails/class-wcs-email-completed-renewal-order.php:31
+#, php-format
 msgctxt "Default email subject for email to customer on completed renewal order"
 msgid "Your %1$s renewal order from %2$s is complete"
 msgstr ""
@@ -4275,6 +4497,7 @@ msgstr ""
 
 #. translators: $1: {site_title}, $2: {order_date}, variables will be substituted when email is sent out
 #: includes/core/emails/class-wcs-email-completed-renewal-order.php:182
+#, php-format
 msgctxt "Default email subject for email with downloadable files in it"
 msgid "Your %1$s subscription renewal order from %2$s is complete - download your files"
 msgstr ""
@@ -4317,6 +4540,7 @@ msgstr ""
 
 #. translators: $1: {site_title}, $2: {customers_first_name}, $3: {time_until_renewal}, variables that will be substituted when email is sent out
 #: includes/core/emails/class-wcs-email-customer-notification-auto-renewal.php:32
+#, php-format
 msgctxt "default email subject for subscription's automatic renewal notice"
 msgid "[%1$s] %2$s, your subscription automatically renews in %3$s!"
 msgstr ""
@@ -4339,6 +4563,7 @@ msgstr ""
 
 #. translators: $1: {site_title}, $2: {customers_first_name}, variables that will be substituted when email is sent out
 #: includes/core/emails/class-wcs-email-customer-notification-auto-trial-expiration.php:30
+#, php-format
 msgctxt "default email subject for free trial expiry notification emails sent to the customer"
 msgid "[%1$s] %2$s, your paid subscription starts soon!"
 msgstr ""
@@ -4357,6 +4582,7 @@ msgstr ""
 
 #. translators: $1: {site_title}, $2: {customers_first_name}, variables that will be substituted when email is sent out
 #: includes/core/emails/class-wcs-email-customer-notification-manual-renewal.php:30
+#, php-format
 msgctxt "default email subject for notification for a manually renewed subscription sent to the customer"
 msgid "[%1$s] %2$s, your subscription is ready to be renewed!"
 msgstr ""
@@ -4379,6 +4605,7 @@ msgstr ""
 
 #. translators: $1: {site_title}, $2: {customers_first_name}, variables that will be substituted when email is sent out.
 #: includes/core/emails/class-wcs-email-customer-notification-manual-trial-expiration.php:31
+#, php-format
 msgctxt "default email subject for an email notification for a manually renewed subscription with free trial expiry emails sent to the customer"
 msgid "[%1$s] %2$s, your free trial is almost up!"
 msgstr ""
@@ -4397,6 +4624,7 @@ msgstr ""
 
 #. translators: $1: {site_title}, $2: {customers_first_name}, variables that will be substituted when email is sent out
 #: includes/core/emails/class-wcs-email-customer-notification-subscription-expiration.php:30
+#, php-format
 msgctxt "default email subject for subscription expiry notification email sent to the customer"
 msgid "[%1$s] %2$s, your subscription is about to expire!"
 msgstr ""
@@ -4407,6 +4635,7 @@ msgstr ""
 
 #. translators: %s: list of placeholders
 #: includes/core/emails/class-wcs-email-customer-notification.php:32
+#, php-format
 msgid "Available placeholders: %s"
 msgstr ""
 
@@ -4440,11 +4669,13 @@ msgstr ""
 
 #. translators: 1: Notification type, 2: customer's email.
 #: includes/core/emails/class-wcs-email-customer-notification.php:101
+#, php-format
 msgid "%1$s was successfully sent to %2$s."
 msgstr ""
 
 #. translators: 1: Notification type, 2: customer's email.
 #: includes/core/emails/class-wcs-email-customer-notification.php:104
+#, php-format
 msgid "Attempt to send %1$s to %2$s failed."
 msgstr ""
 
@@ -4470,6 +4701,7 @@ msgstr ""
 
 #. translators: %1$s: email title, %2$s: list of reasons why email was skipped.
 #: includes/core/emails/class-wcs-email-customer-notification.php:304
+#, php-format
 msgid "Skipped sending \"%1$s\": %2$s"
 msgstr ""
 
@@ -4519,6 +4751,7 @@ msgstr ""
 
 #. translators: placeholder is {site_title}, a variable that will be substituted when email is sent out
 #: includes/core/emails/class-wcs-email-expired-subscription.php:31
+#, php-format
 msgctxt "default email subject for expired emails sent to the admin"
 msgid "[%s] Subscription Expired"
 msgstr ""
@@ -4531,6 +4764,7 @@ msgstr ""
 #. translators: %s: default e-mail heading.
 #: includes/core/emails/class-wcs-email-expired-subscription.php:166
 #: includes/core/emails/class-wcs-email-on-hold-subscription.php:165
+#, php-format
 msgid "This controls the main heading contained within the email notification. Leave blank to use the default heading: <code>%s</code>."
 msgstr ""
 
@@ -4598,6 +4832,7 @@ msgstr ""
 
 #. translators: 1-2: opening/closing tags - link to documentation.
 #: includes/core/gateways/class-wc-subscriptions-core-payment-gateways.php:178
+#, php-format
 msgid "Sorry, it seems there are no available payment methods which support subscriptions. Please see %1$sEnabling Payment Gateways for Subscriptions%2$s if you require assistance."
 msgstr ""
 
@@ -4619,11 +4854,13 @@ msgstr ""
 
 #. Translators: placeholder is a 0 price formatted with the the store's currency and decimal settings.
 #: includes/core/gateways/class-wc-subscriptions-gateway-restrictions-manager.php:44
+#, php-format
 msgid "Please enter a price greater than %s."
 msgstr ""
 
 #. Translators: Placeholder is a localized price string (eg. $1.00).
 #: includes/core/gateways/class-wc-subscriptions-gateway-restrictions-manager.php:64
+#, php-format
 msgid "Warning! Your store cannot create subscriptions less than %s"
 msgstr ""
 
@@ -4649,21 +4886,25 @@ msgstr ""
 
 #. translators: placeholders are PayPal API error code and PayPal API error message
 #: includes/core/gateways/paypal/class-wcs-paypal.php:389
+#, php-format
 msgid "PayPal API error: (%1$d) %2$s"
 msgstr ""
 
 #. translators: placeholder is PayPal transaction status message
 #: includes/core/gateways/paypal/class-wcs-paypal.php:394
+#, php-format
 msgid "PayPal Transaction Held: %s"
 msgstr ""
 
 #. translators: placeholder is PayPal transaction status message
 #: includes/core/gateways/paypal/class-wcs-paypal.php:406
+#, php-format
 msgid "PayPal payment declined: %s"
 msgstr ""
 
 #. translators: placeholder is a transaction ID.
 #: includes/core/gateways/paypal/class-wcs-paypal.php:410
+#, php-format
 msgid "PayPal payment approved (ID: %s)"
 msgstr ""
 
@@ -4681,36 +4922,43 @@ msgstr ""
 
 #. translators: $1 and $2 are opening and closing strong tags, respectively.
 #: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:63
+#, php-format
 msgid "It is %1$sstrongly recommended you do not change the Receiver Email address%2$s if you have active subscriptions with PayPal. Doing so can break existing subscriptions."
 msgstr ""
 
 #. translators: placeholders are opening and closing link tags. 1$-2$: to docs on woocommerce, 3$-4$ to gateway settings on the site
 #: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:114
+#, php-format
 msgid "PayPal is inactive for subscription transactions. Please %1$sset up the PayPal IPN%2$s and %3$senter your API credentials%4$s to enable PayPal for Subscriptions."
 msgstr ""
 
 #. translators: opening/closing tags - links to documentation.
 #: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:126
+#, php-format
 msgid "%1$sPayPal Reference Transactions are not enabled on your account%2$s, some subscription management features are not enabled. Please contact PayPal and request they %3$senable PayPal Reference Transactions%4$s on your account. %5$sCheck PayPal Account%6$s  %3$sLearn more %7$s"
 msgstr ""
 
 #. translators: opening/closing tags - links to documentation.
 #: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:130
+#, php-format
 msgid "%1$sPayPal Reference Transactions are not enabled on your account%2$s. If you wish to use PayPal Reference Transactions with Subscriptions, please contact PayPal and request they %3$senable PayPal Reference Transactions%4$s on your account. %5$sCheck PayPal Account%6$s  %3$sLearn more %7$s"
 msgstr ""
 
 #. translators: placeholders are opening and closing strong tags.
 #: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:152
+#, php-format
 msgid "%1$sPayPal Reference Transactions are enabled on your account%2$s. All subscription management features are now enabled. Happy selling!"
 msgstr ""
 
 #. translators: placeholders are link opening and closing tags. 1$-2$: to gateway settings, 3$-4$: support docs on woocommerce.com
 #: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:163
+#, php-format
 msgid "There is a problem with PayPal. Your API credentials may be incorrect. Please update your %1$sAPI credentials%2$s. %3$sLearn more%4$s."
 msgstr ""
 
 #. translators: placeholders are opening and closing link tags. 1$-2$: docs on woocommerce, 3$-4$: dismiss link
 #: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:176
+#, php-format
 msgid "There is a problem with PayPal. Your PayPal account is issuing out-of-date subscription IDs. %1$sLearn more%2$s. %3$sDismiss%4$s."
 msgstr ""
 
@@ -4732,11 +4980,13 @@ msgstr ""
 
 #. translators: Placeholders are the opening and closing link tags.
 #: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:324
+#, php-format
 msgid "Before enabling PayPal Standard for Subscriptions, please note, when using PayPal Standard, customers are locked into using PayPal Standard for the life of their subscription, and PayPal Standard has a number of limitations. Please read the guide on %1$swhy we don't recommend PayPal Standard%2$s for Subscriptions before choosing to enable this option."
 msgstr ""
 
 #. translators: placeholder is blogname
 #: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-request.php:71
+#, php-format
 msgctxt "data sent to paypal"
 msgid "Orders with %s"
 msgstr ""
@@ -4747,22 +4997,26 @@ msgstr ""
 
 #. translators: placeholder is blogname
 #: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-request.php:306
+#, php-format
 msgid "%s - Order"
 msgstr ""
 
 #. translators: 1$: new status (e.g. "Cancel"), 2$: blog name
 #: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-request.php:416
+#, php-format
 msgctxt "data sent to paypal"
 msgid "%1$s subscription event triggered at %2$s"
 msgstr ""
 
 #. translators: %s: product SKU.
 #: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-request.php:536
+#, php-format
 msgid "SKU: %s"
 msgstr ""
 
 #. translators: placeholder is localised datetime
 #: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-response-payment.php:119
+#, php-format
 msgid "expected clearing date %s"
 msgstr ""
 
@@ -4808,12 +5062,14 @@ msgstr ""
 #. translators: placeholder is payment status (e.g. "completed")
 #: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-handler.php:426
 #: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-handler.php:435
+#, php-format
 msgctxt "used in order note"
 msgid "IPN subscription payment %s."
 msgstr ""
 
 #. translators: 1: payment status (e.g. "completed"), 2: pending reason.
 #: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-handler.php:439
+#, php-format
 msgctxt "used in order note"
 msgid "IPN subscription payment %1$s for reason: %2$s."
 msgstr ""
@@ -4836,12 +5092,14 @@ msgstr ""
 
 #. translators: 1$: subscription ID, 2$: names of items, comma separated
 #: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-request.php:75
+#, php-format
 msgctxt "item name sent to paypal"
 msgid "Subscription %1$s - %2$s"
 msgstr ""
 
 #. translators: 1$: subscription ID, 2$: order ID, 3$: names of items, comma separated
 #: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-request.php:78
+#, php-format
 msgctxt "item name sent to paypal"
 msgid "Subscription %1$s (Order %2$s) - %3$s"
 msgstr ""
@@ -4867,6 +5125,7 @@ msgid "PayPal API error - credentials are incorrect."
 msgstr ""
 
 #: includes/core/gateways/paypal/includes/templates/html-ipn-failure-notice.php:18
+#, php-format
 msgid "A fatal error has occurred while processing a recent subscription payment with PayPal. Please %1$sopen a new ticket at WooCommerce Support%3$s immediately to get this resolved. See our documentation on %2$sdebugging IPN issues in PayPal Standard to Learn more &raquo;%3$s"
 msgstr ""
 
@@ -4875,16 +5134,19 @@ msgid "Last recorded error:"
 msgstr ""
 
 #: includes/core/gateways/paypal/includes/templates/html-ipn-failure-notice.php:36
+#, php-format
 msgid "To see the full error, view the %1$s log file from the %2$sWooCommerce logs screen.%3$s."
 msgstr ""
 
 #. Translators: %s subscription number.
 #: includes/core/privacy/class-wcs-privacy-erasers.php:71
+#, php-format
 msgid "Removed personal data from subscription %s."
 msgstr ""
 
 #. Translators: %s subscription number.
 #: includes/core/privacy/class-wcs-privacy-erasers.php:75
+#, php-format
 msgid "Personal data within subscription %s has been retained."
 msgstr ""
 
@@ -4962,6 +5224,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing link tags, linking to additional privacy policy documentation.
 #: includes/core/privacy/class-wcs-privacy.php:110
+#, php-format
 msgid "If you are using PayPal Standard or PayPal Reference transactions please see the %1$sPayPal Privacy Policy%2$s for more details."
 msgstr ""
 
@@ -4972,6 +5235,7 @@ msgstr ""
 
 #. translators: %d: number of subscriptions affected.
 #: includes/core/privacy/class-wcs-privacy.php:221
+#, php-format
 msgid "Removed personal data from %d subscription."
 msgid_plural "Removed personal data from %d subscriptions."
 msgstr[0] ""
@@ -4979,6 +5243,7 @@ msgstr[1] ""
 
 #. translators: placeholders are opening and closing tags.
 #: includes/core/privacy/class-wcs-privacy.php:240
+#, php-format
 msgid "%1$sNote:%2$s Orders which are related to subscriptions will not be included in the orders affected by these settings."
 msgstr ""
 
@@ -4992,6 +5257,7 @@ msgstr ""
 
 #. Translators: %s URL to erasure request screen.
 #: includes/core/privacy/class-wcs-privacy.php:268
+#, php-format
 msgid "When handling an %s, should personal data within subscriptions be retained or removed?"
 msgstr ""
 
@@ -5013,50 +5279,59 @@ msgstr ""
 
 #. translators: 1-2: opening/closing <strong> tags, 3: active version of Subscriptions, 4: current version of Subscriptions, 5-6: opening/closing tags linked to ticket form, 7-8: opening/closing tags linked to documentation.
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:255
+#, php-format
 msgid "%1$sWarning!%2$s It appears that you have downgraded %1$sWooCommerce Subscriptions%2$s from %3$s to %4$s. Downgrading the plugin in this way may cause issues. Please update to %3$s or higher, or %5$sopen a new support ticket%6$s for further assistance. %7$sLearn more &raquo;%8$s"
 msgstr ""
 
 #. translators: placeholder is a list of version numbers (e.g. "1.3 & 1.4 & 1.5")
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:394
+#, php-format
 msgid "Database updated to version %s"
 msgstr ""
 
 #. translators: placeholder is number of upgraded subscriptions
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:402
+#, php-format
 msgctxt "used in the subscriptions upgrader"
 msgid "Marked %s subscription products as \"sold individually\"."
 msgstr ""
 
 #. translators: 1$: number of action scheduler hooks upgraded, 2$: "{execution_time}", will be replaced on front end with actual time
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:411
+#, php-format
 msgid "Migrated %1$s subscription related hooks to the new scheduler (in %2$s seconds)."
 msgstr ""
 
 #. translators: 1$: number of subscriptions upgraded, 2$: "{execution_time}", will be replaced on front end with actual time it took
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:423
+#, php-format
 msgid "Migrated %1$s subscriptions to the new structure (in %2$s seconds)."
 msgstr ""
 
 #. translators: placeholder is "{time_left}", will be replaced on front end with actual time
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:426
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:472
+#, php-format
 msgctxt "Message that gets sent to front end."
 msgid "Estimated time left (minutes:seconds): %s"
 msgstr ""
 
 #. translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:436
+#, php-format
 msgid "Unable to upgrade subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s."
 msgstr ""
 
 #. translators: placeholder is the number of subscriptions repaired
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:451
+#, php-format
 msgctxt "Repair message that gets sent to front end."
 msgid "Repaired %d subscriptions with incorrect dates, line tax data or missing customer notes."
 msgstr ""
 
 #. translators: placeholder is number of subscriptions that were checked and did not need repairs. There's a space at the beginning!
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:457
+#, php-format
 msgctxt "Repair message that gets sent to front end."
 msgid " %d other subscription was checked and did not need any repairs."
 msgid_plural "%d other subscriptions were checked and did not need any repairs."
@@ -5065,18 +5340,21 @@ msgstr[1] ""
 
 #. translators: placeholder is "{execution_time}", which will be replaced on front end with actual time
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:461
+#, php-format
 msgctxt "Repair message that gets sent to front end."
 msgid "(in %s seconds)"
 msgstr ""
 
 #. translators: $1: "Repaired x subs with incorrect dates...", $2: "X others were checked and no repair needed", $3: "(in X seconds)". Ordering for RTL languages.
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:464
+#, php-format
 msgctxt "The assembled repair message that gets sent to front end."
 msgid "%1$s%2$s %3$s"
 msgstr ""
 
 #. translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:483
+#, php-format
 msgctxt "Error message that gets sent to front end when upgrading Subscriptions"
 msgid "Unable to repair subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s."
 msgstr ""
@@ -5091,6 +5369,7 @@ msgstr ""
 
 #. translators: 1-2: opening/closing <strong> tags, 3-4: opening/closing tags linked to ticket form.
 #: includes/core/upgrades/class-wc-subscriptions-upgrader.php:924
+#, php-format
 msgid "%1$sWarning!%2$s We discovered an issue in %1$sWooCommerce Subscriptions 2.3.0 - 2.3.2%2$s that may cause your subscription renewal order and customer subscription caches to contain invalid data. For information about how to update the cached data, please %3$sopen a new support ticket%4$s."
 msgstr ""
 
@@ -5111,6 +5390,7 @@ msgstr ""
 
 #. translators: placeholder $1 is the Subscription version string ('2.3'), $2-3 are opening and closing <em> tags
 #: includes/core/upgrades/templates/update-welcome-notice.php:5
+#, php-format
 msgid "Version %1$s brings some new improvements requested by store managers just like you (and possibly even by %2$syou%3$s)."
 msgstr ""
 
@@ -5126,6 +5406,7 @@ msgstr ""
 
 #. translators: placeholder is Subscription version string ('2.3')
 #: includes/core/upgrades/templates/update-welcome-notice.php:16
+#, php-format
 msgid "Want to know more about Subscriptions %s?"
 msgstr ""
 
@@ -5140,6 +5421,7 @@ msgstr ""
 #. translators: placeholder is version number
 #: includes/core/upgrades/templates/wcs-about-2-0.php:31
 #: includes/core/upgrades/templates/wcs-about.php:30
+#, php-format
 msgid "Version %s"
 msgstr ""
 
@@ -5162,6 +5444,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing link tags
 #: includes/core/upgrades/templates/wcs-about-2-0.php:56
+#, php-format
 msgid "Learn more about the new %smultiple subscriptions%s feature."
 msgstr ""
 
@@ -5175,11 +5458,13 @@ msgstr ""
 
 #. translators: placeholders are opening and closing <strong> tags
 #: includes/core/upgrades/templates/wcs-about-2-0.php:72
+#, php-format
 msgid "The new interface is also built on the existing %sEdit Order%s screen. If you've ever modified an order, you already know how to modify a subscription."
 msgstr ""
 
 #. translators: placeholders are link tags: 1$-2$ new subscription page, 3$-4$: docs on woocommerce.com
 #: includes/core/upgrades/templates/wcs-about-2-0.php:76
+#, php-format
 msgid "%1$sAdd a subscription%2$s now or %3$slearn more%4$s about the new interface."
 msgstr ""
 
@@ -5189,6 +5474,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing <strong> tags
 #: includes/core/upgrades/templates/wcs-about-2-0.php:91
+#, php-format
 msgid "Your customers can now view the full details of a subscription, including line items, billing and shipping address, billing schedule and renewal orders, from a special %sMy Account > View Subscription%s page."
 msgstr ""
 
@@ -5198,11 +5484,13 @@ msgstr ""
 
 #. translators: placeholders are opening and closing link tags
 #: includes/core/upgrades/templates/wcs-about-2-0.php:97
+#, php-format
 msgid "Learn more about the new %sView Subscription page%s."
 msgstr ""
 
 #. translators: placeholders are for opening and closing link (<a>) tags
 #: includes/core/upgrades/templates/wcs-about-2-0.php:111
+#, php-format
 msgid "By default, adding new files to an existing subscription product will automatically provide active subscribers with access to the new files. However, now you can enable a %snew content dripping setting%s to provide subscribers with access to new files only after the next renewal payment."
 msgstr ""
 
@@ -5216,6 +5504,7 @@ msgstr ""
 #: includes/core/upgrades/templates/wcs-about.php:142
 #: includes/core/upgrades/templates/wcs-about.php:170
 #: includes/core/upgrades/templates/wcs-about.php:191
+#, php-format
 msgid "%sLearn more &raquo;%s"
 msgstr ""
 
@@ -5226,6 +5515,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing <strong> tags
 #: includes/core/upgrades/templates/wcs-about-2-0.php:124
+#, php-format
 msgid "For a store manager to change a subscription from automatic to manual renewal payments (or manual to automatic) with Subscriptions v1.5, the database needed to be modified directly. Subscriptions now provides a way for payment gateways to allow you to change that from the new %sEdit Subscription%s interface."
 msgstr ""
 
@@ -5235,6 +5525,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing <strong> tags
 #: includes/core/upgrades/templates/wcs-about-2-0.php:137
+#, php-format
 msgid "It was already possible to change a subscription's next payment date, but some store managers wanted to provide a customer with an extended free trial or add an extra month to the expiration date. Now you can change all of these dates from the %sEdit Subscription%s screen."
 msgstr ""
 
@@ -5253,6 +5544,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing code tags
 #: includes/core/upgrades/templates/wcs-about-2-0.php:164
+#, php-format
 msgid "New %sshop_subscription%s Post Type"
 msgstr ""
 
@@ -5262,11 +5554,13 @@ msgstr ""
 
 #. translators: placeholders are opening and closing <code> tags
 #: includes/core/upgrades/templates/wcs-about-2-0.php:169
+#, php-format
 msgid "Developers can also now use all the familiar WordPress functions, like %sget_posts()%s, to query or modify subscription data."
 msgstr ""
 
 #. translators: placeholders are opening and closing <code> tags
 #: includes/core/upgrades/templates/wcs-about-2-0.php:175
+#, php-format
 msgid "New %sWC_Subscription%s Object"
 msgstr ""
 
@@ -5276,6 +5570,7 @@ msgstr ""
 
 #. translators: all placeholders are opening and closing <code> tags, no need to order them
 #: includes/core/upgrades/templates/wcs-about-2-0.php:180
+#, php-format
 msgid "Because the %sWC_Subscription%s class extends %sWC_Order%s, you can use its familiar methods, like %s$subscription->update_status()%s or %s$subscription->get_total()%s."
 msgstr ""
 
@@ -5289,6 +5584,7 @@ msgstr ""
 
 #. translators: all placeholders are opening and closing <code> tags, no need to order them
 #: includes/core/upgrades/templates/wcs-about-2-0.php:188
+#, php-format
 msgid "Want to list all the subscriptions on a site? Get %sexample.com/wc-api/v2/subscriptions/%s. Want the details of a specific subscription? Get %s/wc-api/v2/subscriptions/<id>/%s."
 msgstr ""
 
@@ -5301,6 +5597,7 @@ msgid "Welcome to Subscriptions 2.1!"
 msgstr ""
 
 #: includes/core/upgrades/templates/wcs-about.php:23
+#, php-format
 msgid "Version 2.1 introduces some great new features requested by store managers just like you (and possibly even by %syou%s)."
 msgstr ""
 
@@ -5396,6 +5693,7 @@ msgid "a subscription expires"
 msgstr ""
 
 #: includes/core/upgrades/templates/wcs-about.php:97
+#, php-format
 msgid "These emails can be enabled, disabled and customised under the %sWooCommerce > Settings > Emails%s administration screen."
 msgstr ""
 
@@ -5464,11 +5762,13 @@ msgstr ""
 
 #. translators: all placeholders are opening and closing <code> tags, no need to order them
 #: includes/core/upgrades/templates/wcs-about.php:162
+#, php-format
 msgid "With the %s'wcs_default_retry_rules'%s filter, you can define a set of default rules to apply to all failed payments in your store."
 msgstr ""
 
 #. translators: all placeholders are opening and closing <code> tags, no need to order them
 #: includes/core/upgrades/templates/wcs-about.php:166
+#, php-format
 msgid "To apply a specific rule based on certain conditions, like high value orders or an infrequent renewal schedule, you can use the retry specific %s'wcs_get_retry_rule'%s filter. This provides the ID of the renewal order for the failed payment, which can be used to find information about the products, subscription and totals to which the failed payment relates."
 msgstr ""
 
@@ -5478,6 +5778,7 @@ msgstr ""
 
 #. translators: $1: opening <a> tag linking to WC API docs, $2: closing <a> tag, $3: opening <a> tag linking to WP API docs, $4: closing <a> tag
 #: includes/core/upgrades/templates/wcs-about.php:177
+#, php-format
 msgid "WooCommerce 2.6 added support for %1$sREST API%2$s endpoints built on WordPress core's %3$sREST API%4$s infrastructure."
 msgstr ""
 
@@ -5491,11 +5792,13 @@ msgstr ""
 
 #. translators: all placeholders are opening and closing <code> tags, no need to order them
 #: includes/core/upgrades/templates/wcs-about.php:183
+#, php-format
 msgid "Want to list all the subscriptions on a site? Get %s/wp-json/wc/v1/subscriptions%s."
 msgstr ""
 
 #. translators: all placeholders are opening and closing <code> tags, no need to order them
 #: includes/core/upgrades/templates/wcs-about.php:187
+#, php-format
 msgid "Want the details of a specific subscription? Get %s/wp-json/wc/v1/subscriptions/<id>/%s."
 msgstr ""
 
@@ -5510,11 +5813,13 @@ msgstr ""
 
 #. translators: placeholders are opening and closing <code> tags
 #: includes/core/upgrades/templates/wcs-about.php:202
+#, php-format
 msgid "Subscriptions 2.1 now passes the renewal order's total, making it possible to add a fee or discount to the renewal order with simple one-liners like %s$order->add_fee()%s or %s$order->add_coupon()%s."
 msgstr ""
 
 #. translators: placeholders are opening and closing <a> tags
 #: includes/core/upgrades/templates/wcs-about.php:206
+#, php-format
 msgid "Subscriptions also now uses the renewal order to setup the cart for %smanual renewals%s, making it easier to add products or discounts to a single renewal paid manually."
 msgstr ""
 
@@ -5540,6 +5845,7 @@ msgstr ""
 
 #. translators: placeholder is number of seconds
 #: includes/core/upgrades/templates/wcs-upgrade-in-progress.php:34
+#, php-format
 msgid "If you received a server error and reloaded the page to find this notice, please refresh the page in %s seconds and the upgrade routine will recommence without issues."
 msgstr ""
 
@@ -5561,11 +5867,13 @@ msgstr ""
 
 #. translators: placeholders are opening and closing tags
 #: includes/core/upgrades/templates/wcs-upgrade.php:33
+#, php-format
 msgid "Before we send you on your way, we need to update your database to the newest version. If you do not have a recent backup of your site, %snow is the time to create one%s."
 msgstr ""
 
 #. translators: 1$: number of subscriptions on site, 2$, lower estimate (minutes), 3$: upper estimate
 #: includes/core/upgrades/templates/wcs-upgrade.php:38
+#, php-format
 msgid "The full update process for the %1$d subscriptions on your site will take between %2$d and %3$d minutes."
 msgstr ""
 
@@ -5612,6 +5920,7 @@ msgstr ""
 
 #. translators: $1: placeholder is number of weeks, 2$: path to the file
 #: includes/core/upgrades/templates/wcs-upgrade.php:74
+#, php-format
 msgid "To record the progress of the update a new log file was created. This file will be automatically deleted in %1$d weeks. If you would like to delete it sooner, you can find it in the %2$sWooCommerce logs screen%3$s."
 msgstr ""
 
@@ -5626,6 +5935,7 @@ msgstr ""
 #. translators: %s: shipping method label.
 #: includes/core/wcs-cart-functions.php:98
 #: includes/core/wcs-cart-functions.php:104
+#, php-format
 msgid "Shipping via %s"
 msgstr ""
 
@@ -5644,17 +5954,20 @@ msgstr ""
 
 #. translators: placeholder is price string, denotes tax included in cart/order total
 #: includes/core/wcs-cart-functions.php:357
+#, php-format
 msgctxt "includes tax"
 msgid "(includes %s)"
 msgstr ""
 
 #. translators: placeholder is a date
 #: includes/core/wcs-cart-functions.php:432
+#, php-format
 msgid "First renewal: %s"
 msgstr ""
 
 #. translators: placeholder is either subscription key or a subscription id, or, failing that, empty (e.g. "145_21" or "145")
 #: includes/core/wcs-deprecated-functions.php:179
+#, php-format
 msgid "Could not get subscription. Most likely the subscription key does not refer to a subscription. The key was: \"%s\"."
 msgstr ""
 
@@ -5665,51 +5978,61 @@ msgstr ""
 
 #. translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount string (e.g. "£10 / month" )
 #: includes/core/wcs-formatting-functions.php:99
+#, php-format
 msgid "%1$s %2$s then %3$s"
 msgstr ""
 
 #. translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount string, 4$: payment day of the week (e.g. "$15 up front, then $10 every Wednesday")
 #: includes/core/wcs-formatting-functions.php:113
+#, php-format
 msgid "%1$s %2$s then %3$s every %4$s"
 msgstr ""
 
 #. translators: 1$: initial amount, 2$: initial description (e.g. "up front" ), 3$: recurring amount, 4$: interval (e.g. "2nd week"), 5$: day of the week (e.g. "Thursday"); (e.g. "$10 up front, then $20 every 2nd week on Wednesday")
 #: includes/core/wcs-formatting-functions.php:122
+#, php-format
 msgid "%1$s %2$s then %3$s every %4$s on %5$s"
 msgstr ""
 
 #. translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount; (e.g. "$10 up front then $30 on the last day of each month")
 #: includes/core/wcs-formatting-functions.php:135
+#, php-format
 msgid "%1$s %2$s then %3$s on the last day of each month"
 msgstr ""
 
 #. translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount, 4$: day of the month (e.g. "23rd"); (e.g. "$10 up front then $40 on the 23rd of each month")
 #: includes/core/wcs-formatting-functions.php:138
+#, php-format
 msgid "%1$s %2$s then %3$s on the %4$s of each month"
 msgstr ""
 
 #. translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount, 4$: interval (e.g. "3rd")
 #: includes/core/wcs-formatting-functions.php:154
+#, php-format
 msgid "%1$s %2$s then %3$s on the last day of every %4$s month"
 msgstr ""
 
 #. translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount, 4$: day of the month (e.g. "23rd"), 5$: interval (e.g. "3rd")
 #: includes/core/wcs-formatting-functions.php:157
+#, php-format
 msgid "%1$s %2$s then %3$s on the %4$s day of every %5$s month"
 msgstr ""
 
 #. translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount, 4$: month of year (e.g. "March"), 5$: day of the month (e.g. "23rd")
 #: includes/core/wcs-formatting-functions.php:175
+#, php-format
 msgid "%1$s %2$s then %3$s on %4$s %5$s each year"
 msgstr ""
 
 #. translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount, 4$: month (e.g. "March"), 5$: day of the month (e.g. "23rd"), 6$: interval (e.g. "3rd")
 #: includes/core/wcs-formatting-functions.php:184
+#, php-format
 msgid "%1$s %2$s then %3$s on %4$s %5$s every %6$s year"
 msgstr ""
 
 #. translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount, 4$: subscription period (e.g. "month" or "3 months")
 #: includes/core/wcs-formatting-functions.php:194
+#, php-format
 msgid "%1$s %2$s then %3$s / %4$s"
 msgid_plural "%1$s %2$s then %3$s every %4$s"
 msgstr[0] ""
@@ -5717,21 +6040,25 @@ msgstr[1] ""
 
 #. translators: 1$: subscription string (e.g. "$10 up front then $5 on March 23rd every 3rd year"), 2$: trial length (e.g. "3 weeks")
 #: includes/core/wcs-formatting-functions.php:216
+#, php-format
 msgid "%1$s after %2$s free trial"
 msgstr ""
 
 #. translators: 1$: trial length (e.g. "3 weeks"), 2$: subscription string (e.g. "$10 up front then $5 on March 23rd every 3rd year")
 #: includes/core/wcs-formatting-functions.php:219
+#, php-format
 msgid "%1$s free trial then %2$s"
 msgstr ""
 
 #. translators: placeholder is human time diff (e.g. "3 weeks")
 #: includes/core/wcs-formatting-functions.php:243
+#, php-format
 msgid "in %s"
 msgstr ""
 
 #. translators: placeholder is a localized date and time (e.g. "February 1, 2018 10:20 PM")
 #: includes/core/wcs-formatting-functions.php:251
+#, php-format
 msgctxt "wcs_get_human_time_diff"
 msgid "%s"
 msgstr ""
@@ -5740,21 +6067,25 @@ msgstr ""
 #. translators: placeholder is a number, numbers ending in 4-9, 0
 #: includes/core/wcs-formatting-functions.php:296
 #: includes/core/wcs-formatting-functions.php:313
+#, php-format
 msgid "%sth"
 msgstr ""
 
 #. translators: placeholder is a number, numbers ending in 1
 #: includes/core/wcs-formatting-functions.php:301
+#, php-format
 msgid "%sst"
 msgstr ""
 
 #. translators: placeholder is a number, numbers ending in 2
 #: includes/core/wcs-formatting-functions.php:305
+#, php-format
 msgid "%snd"
 msgstr ""
 
 #. translators: placeholder is a number, numbers ending in 3
 #: includes/core/wcs-formatting-functions.php:309
+#, php-format
 msgid "%srd"
 msgstr ""
 
@@ -5860,6 +6191,7 @@ msgstr ""
 
 #. translators: 1) passed sort order type argument, 2) 'ascending', 3) 'descending'.
 #: includes/core/wcs-helper-functions.php:281
+#, php-format
 msgid "Invalid sort order type: %1$s. The $sort_order argument must be %2$s or %3$s."
 msgstr ""
 
@@ -5875,16 +6207,19 @@ msgstr ""
 
 #. translators: placeholder %1 is the order type. %2 is the subscription ID we attempted to create the order for.
 #: includes/core/wcs-order-functions.php:277
+#, php-format
 msgid "There was an error fetching the new order (%1$s) for subscription %2$d."
 msgstr ""
 
 #. translators: placeholder is a date.
 #: includes/core/wcs-order-functions.php:318
+#, php-format
 msgid "Subscription Renewal Order &ndash; %s"
 msgstr ""
 
 #. translators: placeholder is a date.
 #: includes/core/wcs-order-functions.php:322
+#, php-format
 msgid "Resubscribe Order &ndash; %s"
 msgstr ""
 
@@ -5894,6 +6229,7 @@ msgstr ""
 
 #. translators: placeholder is an order type.
 #: includes/core/wcs-order-functions.php:346
+#, php-format
 msgid "\"%s\" is not a valid new order type."
 msgstr ""
 
@@ -5969,6 +6305,7 @@ msgstr ""
 
 #. translators: period interval, placeholder is ordinal (eg "$10 every _2nd/3rd/4th_", etc)
 #: includes/core/wcs-time-functions.php:163
+#, php-format
 msgctxt "period interval with ordinal number (e.g. \"every 2nd\""
 msgid "every %s"
 msgstr ""
@@ -6026,6 +6363,7 @@ msgstr ""
 
 #. translators: %s: order ID (linked to details page).
 #: includes/early-renewal/class-wcs-cart-early-renewal.php:225
+#, php-format
 msgid "Order %s created to record early renewal."
 msgstr ""
 
@@ -6057,6 +6395,7 @@ msgstr ""
 
 #. translators: 1-2: opening/closing <strong> tags , 2-3: opening/closing tags for a link to docs on early renewal.
 #: includes/early-renewal/class-wcs-early-renewal-manager.php:66
+#, php-format
 msgid "Allow customers to bypass the checkout and renew their subscription early from their %1$sMy Account > View Subscription%2$s page. %3$sLearn more.%4$s"
 msgstr ""
 
@@ -6090,16 +6429,19 @@ msgstr ""
 
 #. translators: placeholder contains a link to the order's edit screen.
 #: includes/early-renewal/wcs-early-renewal-functions.php:143
+#, php-format
 msgid "Customer successfully renewed early with order %s."
 msgstr ""
 
 #. translators: placeholder contains a link to the order's edit screen.
 #: includes/early-renewal/wcs-early-renewal-functions.php:146
+#, php-format
 msgid "Failed to update subscription dates after customer renewed early with order %s."
 msgstr ""
 
 #. translators: $1-$2: opening and closing tags. Link to documents->payment gateways, 3$-4$: opening and closing tags. Link to WooCommerce extensions shop page
 #: includes/gateways/class-wc-subscriptions-payment-gateways.php:152
+#, php-format
 msgid "Find new gateways that %1$ssupport automatic subscription payments%2$s in the official %3$sWooCommerce Marketplace%4$s."
 msgstr ""
 
@@ -6109,6 +6451,7 @@ msgstr ""
 
 #. translators: %d: retry count.
 #: includes/payment-retry/admin/class-wcs-retry-admin.php:121
+#, php-format
 msgid "%d Pending Payment Retry"
 msgid_plural "%d Pending Payment Retries"
 msgstr[0] ""
@@ -6116,6 +6459,7 @@ msgstr[1] ""
 
 #. translators: %d: retry count.
 #: includes/payment-retry/admin/class-wcs-retry-admin.php:125
+#, php-format
 msgid "%d Processing Payment Retry"
 msgid_plural "%d Processing Payment Retries"
 msgstr[0] ""
@@ -6123,6 +6467,7 @@ msgstr[1] ""
 
 #. translators: %d: retry count.
 #: includes/payment-retry/admin/class-wcs-retry-admin.php:129
+#, php-format
 msgid "%d Failed Payment Retry"
 msgid_plural "%d Failed Payment Retries"
 msgstr[0] ""
@@ -6130,6 +6475,7 @@ msgstr[1] ""
 
 #. translators: %d: retry count.
 #: includes/payment-retry/admin/class-wcs-retry-admin.php:133
+#, php-format
 msgid "%d Successful Payment Retry"
 msgid_plural "%d Successful Payment Retries"
 msgstr[0] ""
@@ -6137,6 +6483,7 @@ msgstr[1] ""
 
 #. translators: %d: retry count.
 #: includes/payment-retry/admin/class-wcs-retry-admin.php:137
+#, php-format
 msgid "%d Cancelled Payment Retry"
 msgid_plural "%d Cancelled Payment Retries"
 msgstr[0] ""
@@ -6152,6 +6499,7 @@ msgstr ""
 
 #. translators: 1,2: opening/closing link tags (to documentation).
 #: includes/payment-retry/admin/class-wcs-retry-admin.php:186
+#, php-format
 msgid "Attempt to recover recurring revenue that would otherwise be lost due to payment methods being declined only temporarily. %1$sLearn more%2$s."
 msgstr ""
 
@@ -6355,6 +6703,7 @@ msgstr ""
 
 #. translators: 1$: is the "You have already subscribed to this product" notice, 2$-4$: opening/closing link tags, 3$: an order number
 #: includes/switching/class-wc-subscriptions-switcher.php:291
+#, php-format
 msgid "%1$s Complete payment on %2$sOrder %3$s%4$s to be able to change your subscription."
 msgstr ""
 
@@ -6364,6 +6713,7 @@ msgstr ""
 
 #. translators: placeholders are opening and closing link tags
 #: includes/switching/class-wc-subscriptions-switcher.php:390
+#, php-format
 msgid "Allow subscribers to switch (upgrade or downgrade) between different subscriptions. %1$sLearn more%2$s."
 msgstr ""
 
@@ -6461,6 +6811,7 @@ msgstr ""
 
 #. translators: %s: order number.
 #: includes/switching/class-wc-subscriptions-switcher.php:1165
+#, php-format
 msgid "Switch order cancelled due to a new switch order being created #%s."
 msgstr ""
 
@@ -6501,6 +6852,7 @@ msgstr ""
 
 #. translators: %1: product subtotal, %2: HTML span tag, %3: direction (upgrade, downgrade, crossgrade), %4: closing HTML span tag
 #: includes/switching/class-wc-subscriptions-switcher.php:1837
+#, php-format
 msgctxt "product subtotal string"
 msgid "%1$s %2$s(%3$s)%4$s"
 msgstr ""
@@ -6515,12 +6867,14 @@ msgstr ""
 
 #. translators: 1$: old item, 2$: new item when switching
 #: includes/switching/class-wc-subscriptions-switcher.php:1966
+#, php-format
 msgctxt "used in order notes"
 msgid "Customer switched from: %1$s to %2$s."
 msgstr ""
 
 #. translators: %s: new item name.
 #: includes/switching/class-wc-subscriptions-switcher.php:1969
+#, php-format
 msgctxt "used in order notes"
 msgid "Customer added %s."
 msgstr ""
@@ -6545,6 +6899,7 @@ msgstr ""
 
 #. translators: placeholder is a switch type.
 #: includes/switching/class-wcs-switch-cart-item.php:315
+#, php-format
 msgid "Invalid switch type \"%s\". Switch must be one of: \"upgrade\", \"downgrade\" or \"crossgrade\"."
 msgstr ""
 
@@ -6555,6 +6910,7 @@ msgstr ""
 #. translators: placeholder is a currency symbol / code
 #: templates/admin/deprecated/html-variation-price.php:20
 #: templates/admin/deprecated/html-variation-price.php:30
+#, php-format
 msgid "Subscription Price (%s)"
 msgstr ""
 
@@ -6578,6 +6934,7 @@ msgid "Subscription Length"
 msgstr ""
 
 #: templates/admin/deprecated/html-variation-price.php:85
+#, php-format
 msgid "Sign-up Fee (%s)"
 msgstr ""
 
@@ -6594,6 +6951,7 @@ msgstr ""
 #. translators: placeholder is trial period validation message if passed an invalid value (e.g. "Trial period can not exceed 4 weeks")
 #: templates/admin/deprecated/html-variation-price.php:118
 #: templates/admin/html-variation-price.php:72
+#, php-format
 msgctxt "Trial period dropdown's description in pricing fields"
 msgid "An optional period of time to wait before charging the first recurring payment. Any sign up fee will still be charged at the outset of the subscription. %s"
 msgstr ""
@@ -6638,6 +6996,7 @@ msgid "Create subscription product"
 msgstr ""
 
 #: templates/admin/html-failed-scheduled-action-notice.php:26
+#, php-format
 msgid "An error has occurred while processing a recent subscription related event. For steps on how to fix the affected subscription and to learn more about the possible causes of this error, please read our guide %1$shere%2$s."
 msgid_plural "An error has occurred while processing recent subscription related events. For steps on how to fix the affected subscriptions and to learn more about the possible causes of this error, please read our guide %1$shere%2$s."
 msgstr[0] ""
@@ -6651,6 +7010,7 @@ msgstr[1] ""
 
 #. translators: $1 the log file name $2 and $3 are opening and closing link tags, respectively.
 #: templates/admin/html-failed-scheduled-action-notice.php:43
+#, php-format
 msgid "To see further details about these errors, view the %1$s log file from the %2$sWooCommerce logs screen.%2$s"
 msgstr ""
 
@@ -6718,6 +7078,7 @@ msgstr ""
 
 #. translators: $1: opening <strong> tag, $2: closing </strong> tag
 #: templates/checkout/form-change-payment-method.php:92
+#, php-format
 msgid "Use this payment method for %1$sall%2$s of my current subscriptions"
 msgstr ""
 
@@ -6738,27 +7099,32 @@ msgstr ""
 #. translators: placeholder is the subscription order number wrapped in <strong> tags
 #: templates/checkout/subscription-receipt.php:18
 #: templates/emails/plain/email-order-details.php:19
+#, php-format
 msgid "Subscription Number: %s"
 msgstr ""
 
 #. translators: placeholder is the subscription's next payment date (either human readable or normal date) wrapped in <strong> tags
 #: templates/checkout/subscription-receipt.php:24
+#, php-format
 msgid "Next Payment Date: %s"
 msgstr ""
 
 #. translators: placeholder is the formatted total to be paid for the subscription wrapped in <strong> tags
 #: templates/checkout/subscription-receipt.php:30
+#, php-format
 msgid "Total: %s"
 msgstr ""
 
 #. translators: placeholder is the display name of the payment method
 #: templates/checkout/subscription-receipt.php:37
+#, php-format
 msgid "Payment Method: %s"
 msgstr ""
 
 #. translators: $1: customer's billing first name and last name
 #: templates/emails/admin-new-renewal-order.php:22
 #: templates/emails/plain/admin-new-renewal-order.php:16
+#, php-format
 msgctxt "Used in admin email: new renewal order"
 msgid "You have received a subscription renewal order from %1$s. Their order is as follows:"
 msgstr ""
@@ -6767,6 +7133,7 @@ msgstr ""
 #. translators: $1: customer's first name and last name, $2: how many subscriptions customer switched
 #: templates/emails/admin-new-switch-order.php:28
 #: templates/emails/plain/admin-new-switch-order.php:18
+#, php-format
 msgctxt "Used in switch notification admin email"
 msgid "Customer %1$s has switched their subscription. The details of their new subscription are as follows:"
 msgid_plural "Customer %1$s has switched %2$d of their subscriptions. The details of their new subscriptions are as follows:"
@@ -6775,6 +7142,7 @@ msgstr[1] ""
 
 #. translators: $1: customer's first name and last name, $2: how many subscriptions customer switched
 #: templates/emails/admin-new-switch-order.php:31
+#, php-format
 msgctxt "Used in switch notification admin email"
 msgid "Customer %1$s has switched %2$d of their subscriptions. The details of their new subscriptions are as follows:"
 msgstr ""
@@ -6790,6 +7158,7 @@ msgstr ""
 
 #. translators: %1$s: an order number, %2$s: the customer's full name, %3$s: lowercase human time diff in the form returned by wcs_get_human_time_diff(), e.g. 'in 12 hours'
 #: templates/emails/admin-payment-retry.php:23
+#, php-format
 msgctxt "In customer renewal invoice email"
 msgid "The automatic recurring payment for order #%1$d from %2$s has failed. The payment will be retried %3$s."
 msgstr ""
@@ -6801,6 +7170,7 @@ msgstr ""
 
 #. translators: $1$s customer's billing first name and last name %2$s: date on which the subscription ends.
 #: templates/emails/cancelled-subscription.php:21
+#, php-format
 msgid "A subscription belonging to %1$s is now pending cancellation, and will end on %2$s. Their subscription's details are as follows:"
 msgstr ""
 
@@ -6808,6 +7178,7 @@ msgstr ""
 #. translators: $1: customer's billing first name and last name
 #: templates/emails/cancelled-subscription.php:28
 #: templates/emails/plain/cancelled-subscription.php:16
+#, php-format
 msgid "A subscription belonging to %1$s has been cancelled. Their subscription's details are as follows:"
 msgstr ""
 
@@ -6843,6 +7214,7 @@ msgstr ""
 #: templates/emails/plain/customer-payment-retry.php:16
 #: templates/emails/plain/customer-processing-renewal-order.php:16
 #: templates/emails/plain/customer-renewal-invoice.php:16
+#, php-format
 msgid "Hi %s,"
 msgstr ""
 
@@ -6861,16 +7233,19 @@ msgstr ""
 #: templates/emails/customer-notification-manual-renewal.php:25
 #: templates/emails/plain/customer-notification-auto-renewal.php:19
 #: templates/emails/plain/customer-notification-manual-renewal.php:19
+#, php-format
 msgid "Hi %s."
 msgstr ""
 
 #. translators: %1$s: human readable time difference (eg 3 days, 1 day), %2$s: date in local format.
 #: templates/emails/customer-notification-auto-renewal.php:37
+#, php-format
 msgid "Your subscription will <strong>automatically renew</strong> in %1$s — that’s <strong>%2$s</strong>."
 msgstr ""
 
 #. translators: %s: link to subscription detail in the customer's dashboard.
 #: templates/emails/customer-notification-auto-renewal.php:74
+#, php-format
 msgid "You can manage this subscription from your %s"
 msgstr ""
 
@@ -6882,16 +7257,19 @@ msgstr ""
 #. translators: %s: Customer first name
 #: templates/emails/customer-notification-auto-trial-ending.php:25
 #: templates/emails/plain/customer-notification-auto-trial-ending.php:19
+#, php-format
 msgid "Hi, %s."
 msgstr ""
 
 #. translators: %1$s: human readable time difference (eg 3 days, 1 day), %2$s: date in local format.
 #: templates/emails/customer-notification-auto-trial-ending.php:36
+#, php-format
 msgid "Your paid subscription begins when your free trial expires in %1$s — that’s <strong>%2$s</strong>."
 msgstr ""
 
 #. translators: %1$s: link to account dashboard.
 #: templates/emails/customer-notification-auto-trial-ending.php:53
+#, php-format
 msgid "Payment will be deducted using the payment method on file. You can manage this subscription from your %1$s."
 msgstr ""
 
@@ -6900,16 +7278,19 @@ msgstr ""
 #: templates/emails/customer-notification-manual-trial-ending.php:25
 #: templates/emails/plain/customer-notification-expiring-subscription.php:19
 #: templates/emails/plain/customer-notification-manual-trial-ending.php:19
+#, php-format
 msgid "Heads up, %s."
 msgstr ""
 
 #. translators: %1$s: human readable time difference (eg 3 days, 1 day), %2$s: date in local format.
 #: templates/emails/customer-notification-expiring-subscription.php:36
+#, php-format
 msgid "Your subscription expires in %1$s — that’s <strong>%2$s</strong>."
 msgstr ""
 
 #. translators: %1$s: human readable time difference (eg 3 days, 1 day), %2$s: date in local format.
 #: templates/emails/customer-notification-manual-renewal.php:38
+#, php-format
 msgid "Your subscription is up for renewal in %1$s — that’s <strong>%2$s</strong>."
 msgstr ""
 
@@ -6932,6 +7313,7 @@ msgstr ""
 
 #. translators: %1$s: human readable time difference (eg 3 days, 1 day), %2$s: date in local format.
 #: templates/emails/customer-notification-manual-trial-ending.php:36
+#, php-format
 msgid "Your free trial expires in %1$s — that’s <strong>%2$s</strong>."
 msgstr ""
 
@@ -6943,12 +7325,14 @@ msgstr ""
 #. translators: %s: lowercase human time diff in the form returned by wcs_get_human_time_diff(), e.g. 'in 12 hours'
 #: templates/emails/customer-payment-retry.php:19
 #: templates/emails/plain/customer-payment-retry.php:18
+#, php-format
 msgctxt "In customer renewal invoice email"
 msgid "The automatic payment to renew your subscription has failed. We will retry the payment %s."
 msgstr ""
 
 #. translators: %1$s %2$s: link markup to checkout payment url, note: no full stop due to url at the end
 #: templates/emails/customer-payment-retry.php:22
+#, php-format
 msgctxt "In customer renewal invoice email"
 msgid "To reactivate the subscription now, you can also log in and pay for the renewal from your account page: %1$sPay Now &raquo;%2$s"
 msgstr ""
@@ -6956,6 +7340,7 @@ msgstr ""
 #. translators: %s: Order number
 #: templates/emails/customer-processing-renewal-order.php:19
 #: templates/emails/plain/customer-processing-renewal-order.php:18
+#, php-format
 msgid "Just to let you know &mdash; we've received your subscription renewal order #%s, and it is now being processed:"
 msgstr ""
 
@@ -6963,6 +7348,7 @@ msgstr ""
 #. translators: %1$s: name of the blog, %2$s: link to checkout payment url, note: no full stop due to url at the end
 #: templates/emails/customer-renewal-invoice.php:25
 #: templates/emails/plain/customer-renewal-invoice.php:20
+#, php-format
 msgctxt "In customer renewal invoice email"
 msgid "An order has been created for you to renew your subscription on %1$s. To pay for this invoice please use the following link: %2$s"
 msgstr ""
@@ -6976,17 +7362,20 @@ msgstr ""
 #. translators: %1$s: name of the blog, %2$s: link to checkout payment url, note: no full stop due to url at the end
 #: templates/emails/customer-renewal-invoice.php:47
 #: templates/emails/plain/customer-renewal-invoice.php:23
+#, php-format
 msgctxt "In customer renewal invoice email"
 msgid "The automatic payment to renew your subscription with %1$s has failed. To reactivate the subscription, please log in and pay for the renewal from your account page: %2$s"
 msgstr ""
 
 #. translators: %s: Order or subscription ID.
 #: templates/emails/email-order-details.php:31
+#, php-format
 msgid "Order #%s"
 msgstr ""
 
 #. translators: %s: Order or subscription ID.
 #: templates/emails/email-order-details.php:31
+#, php-format
 msgid "Subscription #%s"
 msgstr ""
 
@@ -7005,6 +7394,7 @@ msgstr ""
 #. translators: $1: customer's billing first name and last name
 #: templates/emails/expired-subscription.php:17
 #: templates/emails/plain/expired-subscription.php:16
+#, php-format
 msgid "A subscription belonging to %1$s has expired. Their subscription's details are as follows:"
 msgstr ""
 
@@ -7016,6 +7406,7 @@ msgstr ""
 #. translators: $1: customer's billing first name and last name
 #: templates/emails/on-hold-subscription.php:17
 #: templates/emails/plain/on-hold-subscription.php:16
+#, php-format
 msgid "A subscription belonging to %1$s has been suspended by the user. Their subscription's details are as follows:"
 msgstr ""
 
@@ -7026,6 +7417,7 @@ msgstr ""
 
 #. translators: %1$s: an order number, %2$s: the customer's full name, %3$s: lowercase human time diff in the form returned by wcs_get_human_time_diff(), e.g. 'in 12 hours'
 #: templates/emails/plain/admin-payment-retry.php:20
+#, php-format
 msgctxt "In customer renewal invoice email"
 msgid "The automatic recurring payment for order #%1$s from %2$s has failed. The payment will be retried %3$s."
 msgstr ""
@@ -7033,33 +7425,39 @@ msgstr ""
 #. translators: placeholder is last time subscription was paid
 #: templates/emails/plain/cancelled-subscription.php:32
 #: templates/emails/plain/expired-subscription.php:32
+#, php-format
 msgid "Last Order Date: %s"
 msgstr ""
 
 #. translators: placeholder is localised date string
 #: templates/emails/plain/cancelled-subscription.php:39
+#, php-format
 msgid "End of Prepaid Term: %s"
 msgstr ""
 
 #: templates/emails/plain/cancelled-subscription.php:44
 #: templates/emails/plain/expired-subscription.php:44
 #: templates/emails/plain/on-hold-subscription.php:40
+#, php-format
 msgctxt "in plain emails for subscription information"
 msgid "View Subscription: %s"
 msgstr ""
 
 #. translators: placeholder is order's view url
 #: templates/emails/plain/customer-completed-switch-order.php:24
+#, php-format
 msgid "View your order: %s"
 msgstr ""
 
 #. translators: placeholder is subscription's view url
 #: templates/emails/plain/customer-completed-switch-order.php:35
+#, php-format
 msgid "View your subscription: %s"
 msgstr ""
 
 #. translators: %1$s: human readable time difference (eg 3 days, 1 day), %2$s: date in local format.
 #: templates/emails/plain/customer-notification-auto-renewal.php:29
+#, php-format
 msgid "Your subscription will automatically renew in %1$s — that’s %2$s."
 msgstr ""
 
@@ -7069,6 +7467,7 @@ msgstr ""
 
 #. translators: %1$s: human readable time difference (eg 3 days, 1 day), %2$s: date in local format.
 #: templates/emails/plain/customer-notification-auto-trial-ending.php:29
+#, php-format
 msgid "Your paid subscription begins when your free trial expires in %1$s — that’s %2$s."
 msgstr ""
 
@@ -7079,11 +7478,13 @@ msgstr ""
 
 #. translators: %1$s: human readable time difference (eg 3 days, 1 day), %2$s: date in local format.
 #: templates/emails/plain/customer-notification-expiring-subscription.php:29
+#, php-format
 msgid "Your subscription expires in %1$s — that’s %2$s."
 msgstr ""
 
 #. translators: %1$s: human readable time difference (eg 3 days, 1 day), %2$s: date in local format.
 #: templates/emails/plain/customer-notification-manual-renewal.php:29
+#, php-format
 msgid "Your subscription is up for renewal in %1$s — that’s %2$s."
 msgstr ""
 
@@ -7101,35 +7502,42 @@ msgstr ""
 
 #. translators: %1$s: human readable time difference (eg 3 days, 1 day), %2$s: date in local format.
 #: templates/emails/plain/customer-notification-manual-trial-ending.php:29
+#, php-format
 msgid "Your free trial expires in %1$s — that’s %2$s."
 msgstr ""
 
 #. translators: %1$s: link to checkout payment url, note: no full stop due to url at the end
 #: templates/emails/plain/customer-payment-retry.php:21
+#, php-format
 msgctxt "In customer renewal invoice email"
 msgid "To reactivate the subscription now, you can also log in and pay for the renewal from your account page: %1$s"
 msgstr ""
 
 #: templates/emails/plain/email-order-details.php:16
+#, php-format
 msgid "Order number: %s"
 msgstr ""
 
 #: templates/emails/plain/email-order-details.php:17
+#, php-format
 msgid "Order date: %s"
 msgstr ""
 
 #. translators: placeholder is localised date string
 #: templates/emails/plain/expired-subscription.php:39
+#, php-format
 msgid "End Date: %s"
 msgstr ""
 
 #. translators: placeholder is last time subscription was paid
 #: templates/emails/plain/on-hold-subscription.php:32
+#, php-format
 msgid "Last Order: %s"
 msgstr ""
 
 #. translators: placeholder is localised date string
 #: templates/emails/plain/on-hold-subscription.php:36
+#, php-format
 msgid "Date Suspended: %s"
 msgstr ""
 
@@ -7140,18 +7548,21 @@ msgstr ""
 
 #. translators: placeholder is subscription's number
 #: templates/emails/plain/subscription-info.php:24
+#, php-format
 msgctxt "in plain emails for subscription information"
 msgid "Subscription: %s"
 msgstr ""
 
 #. translators: placeholder is either view or edit url for the subscription
 #: templates/emails/plain/subscription-info.php:26
+#, php-format
 msgctxt "in plain emails for subscription information"
 msgid "View subscription: %s"
 msgstr ""
 
 #. translators: placeholder is localised start date
 #: templates/emails/plain/subscription-info.php:28
+#, php-format
 msgctxt "in plain emails for subscription information"
 msgid "Start date: %s"
 msgstr ""
@@ -7163,12 +7574,14 @@ msgstr ""
 
 #. translators: placeholder is localised end date, or "when cancelled"
 #: templates/emails/plain/subscription-info.php:32
+#, php-format
 msgctxt "in plain emails for subscription information"
 msgid "End date: %s"
 msgstr ""
 
 #. translators: placeholder is the formatted order total for the subscription
 #: templates/emails/plain/subscription-info.php:34
+#, php-format
 msgctxt "in plain emails for subscription information"
 msgid "Recurring price: %s"
 msgstr ""
@@ -7176,10 +7589,12 @@ msgstr ""
 #. Translators: placeholder is the next payment date.
 #: templates/emails/plain/subscription-info.php:37
 #: templates/emails/subscription-info.php:43
+#, php-format
 msgid "Next payment: %s"
 msgstr ""
 
 #: templates/emails/plain/subscription-info.php:53
+#, php-format
 msgid "This subscription is set to renew automatically using your payment method on file. You can manage or cancel this subscription from your my account page. %s"
 msgid_plural "These subscriptions are set to renew automatically using your payment method on file. You can manage or cancel your subscriptions from your my account page. %s"
 msgstr[0] ""
@@ -7207,6 +7622,7 @@ msgstr ""
 
 #. Translators: placeholder is the subscription number.
 #: templates/emails/subscription-info.php:35
+#, php-format
 msgctxt "subscription number in email table. (eg: #106)"
 msgid "#%s"
 msgstr ""
@@ -7218,20 +7634,24 @@ msgstr ""
 
 #. Translators: Placeholders are opening and closing My Account link tags.
 #: templates/emails/subscription-info.php:64
+#, php-format
 msgid "This subscription is set to renew automatically using your payment method on file. You can manage or cancel this subscription from your %1$smy account page%2$s."
 msgid_plural "These subscriptions are set to renew automatically using your payment method on file. You can manage or cancel your subscriptions from your %1$smy account page%2$s."
 msgstr[0] ""
 msgstr[1] ""
 
 #: templates/html-early-renewal-modal-content.php:23
+#, php-format
 msgid "By renewing your subscription early your next payment will be %s."
 msgstr ""
 
 #: templates/html-early-renewal-modal-content.php:28
+#, php-format
 msgid "By renewing your subscription early, your scheduled next payment on %s will be cancelled."
 msgstr ""
 
 #: templates/html-early-renewal-modal-content.php:34
+#, php-format
 msgid "Want to renew early via the checkout? Click %shere.%s"
 msgstr ""
 
@@ -7250,6 +7670,7 @@ msgstr ""
 #. translators: placeholder is a subscription number.
 #: templates/myaccount/my-subscriptions.php:35
 #: templates/myaccount/related-subscriptions.php:33
+#, php-format
 msgid "View subscription number %s"
 msgstr ""
 
@@ -7276,6 +7697,7 @@ msgid "Next"
 msgstr ""
 
 #: templates/myaccount/my-subscriptions.php:75
+#, php-format
 msgid "You have reached the end of subscriptions. Go to the %sfirst page%s."
 msgstr ""
 
@@ -7317,11 +7739,13 @@ msgstr ""
 
 #. translators: placeholder is an order number.
 #: templates/myaccount/related-orders.php:48
+#, php-format
 msgid "View order number %s"
 msgstr ""
 
 #. translators: $1: formatted order total for the order, $2: number of items bought
 #: templates/myaccount/related-orders.php:61
+#, php-format
 msgid "%1$s for %2$d item"
 msgid_plural "%1$s for %2$d items"
 msgstr[0] ""
@@ -7420,82 +7844,75 @@ msgid "Clear"
 msgstr ""
 
 #: assets/src/js/filters/index.js:33
-#: core-legacy/build/index.js:17
 msgid "Total due today"
 msgstr ""
 
 #. translators: the word used to describe billing frequency, e.g. "for" 1 day or "for" 1 month.
 #: assets/src/js/filters/index.js:60
-#: core-legacy/build/index.js:18
 msgid "for 1"
 msgstr ""
 
 #. translators: the word used to describe billing frequency, e.g. "for" 6 days or "for" 2 weeks.
 #: assets/src/js/filters/index.js:67
-#: core-legacy/build/index.js:19
 msgid "for"
 msgstr ""
 
 #. translators: the word used to describe billing frequency, e.g. "every" 6 days or "every" 2 weeks.
 #: assets/src/js/filters/index.js:74
-#: core-legacy/build/index.js:20
 msgid "every"
 msgstr ""
 
 #. translators: %s Product name.
 #: assets/src/js/filters/index.js:93
-#: core-legacy/build/index.js:21
+#, js-format
 msgid "%s (resubscription)"
 msgstr ""
 
 #. translators: %1$s Product name, %2$s Switch type (upgraded, downgraded, or crossgraded).
 #: assets/src/js/filters/index.js:100
-#: core-legacy/build/index.js:22
+#, js-format
 msgid "%1$s (%2$s)"
 msgstr ""
 
 #. translators: %s is the subscription price to pay immediately (ie: $10).
 #: assets/src/js/filters/index.js:112
-#: core-legacy/build/index.js:24
+#, js-format
 msgid "Due today %s"
 msgstr ""
 
 #. translators: %s is the subscription price to pay immediately (ie: $10).
 #: assets/src/js/filters/index.js:117
-#: core-legacy/build/index.js:26
+#, js-format
 msgid "%s due today"
 msgstr ""
 
 #: assets/src/js/recurring-totals/index.js:97
-#: core-legacy/build/index.js:6
 msgid "Free"
 msgstr ""
 
 #. translators: %s selected shipping rate (ex: flat rate)
 #: assets/src/js/recurring-totals/index.js:110
-#: core-legacy/build/index.js:7
+#, js-format
 msgid "via %s"
 msgstr ""
 
 #. Translators: %1$s is a date.
 #: assets/src/js/recurring-totals/index.js:142
-#: core-legacy/build/index.js:9
+#, js-format
 msgid "Due: %1$s"
 msgstr ""
 
 #. Translators: %1$s is a date.
 #: assets/src/js/recurring-totals/index.js:147
-#: core-legacy/build/index.js:11
+#, js-format
 msgid "Starting: %1$s"
 msgstr ""
 
 #: assets/src/js/recurring-totals/index.js:261
-#: core-legacy/build/index.js:17
 msgid "Details"
 msgstr ""
 
 #: assets/src/js/utils/index.js:8
-#: core-legacy/build/index.js:1
 msgctxt "Used in recurring totals section in Cart. 2+ will need plural, 1 will need singular."
 msgid "day"
 msgid_plural "days"
@@ -7503,7 +7920,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: assets/src/js/utils/index.js:15
-#: core-legacy/build/index.js:1
 msgctxt "Used in recurring totals section in Cart. 2+ will need plural, 1 will need singular."
 msgid "week"
 msgid_plural "weeks"
@@ -7511,7 +7927,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: assets/src/js/utils/index.js:22
-#: core-legacy/build/index.js:1
 msgctxt "Used in recurring totals section in Cart. 2+ will need plural, 1 will need singular."
 msgid "month"
 msgid_plural "months"
@@ -7519,7 +7934,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: assets/src/js/utils/index.js:29
-#: core-legacy/build/index.js:1
 msgctxt "Used in recurring totals section in Cart. 2+ will need plural, 1 will need singular."
 msgid "year"
 msgid_plural "years"
@@ -7527,60 +7941,53 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: assets/src/js/utils/index.js:63
-#: core-legacy/build/index.js:11
 msgid "Daily recurring total"
 msgstr ""
 
 #: assets/src/js/utils/index.js:68
-#: core-legacy/build/index.js:11
 msgid "Weekly recurring total"
 msgstr ""
 
 #: assets/src/js/utils/index.js:73
-#: core-legacy/build/index.js:11
 msgid "Monthly recurring total"
 msgstr ""
 
 #: assets/src/js/utils/index.js:78
-#: core-legacy/build/index.js:11
 msgid "Yearly recurring total"
 msgstr ""
 
 #. translators: %1$s is week, month, year
 #: assets/src/js/utils/index.js:87
-#: core-legacy/build/index.js:13
+#, js-format
 msgid "Recurring total every 2nd %1$s"
 msgstr ""
 
 #. Translators: %1$s is week, month, year
 #: assets/src/js/utils/index.js:97
-#: core-legacy/build/index.js:15
+#, js-format
 msgid "Recurring total every 3rd %1$s"
 msgstr ""
 
 #. Translators: %1$d is number of weeks, months, days, years. %2$s is week, month, year
 #: assets/src/js/utils/index.js:106
-#: core-legacy/build/index.js:17
+#, js-format
 msgid "Recurring total every %1$dth %2$s"
 msgstr ""
 
 #. translators: %1$s is the price of the product. %2$s is the separator used e.g "every" or "/", %3$d is the length, %4$s is week, month, year
 #: assets/src/js/utils/index.js:162
-#: core-legacy/build/index.js:6
+#, js-format
 msgid "%1$s %2$s %3$d %4$s"
 msgstr ""
 
 #: assets/src/js/utils/index.js:181
-#: core-legacy/build/index.js:22
 msgid "Upgrade"
 msgstr ""
 
 #: assets/src/js/utils/index.js:184
-#: core-legacy/build/index.js:22
 msgid "Downgrade"
 msgstr ""
 
 #: assets/src/js/utils/index.js:187
-#: core-legacy/build/index.js:22
 msgid "Crossgrade"
 msgstr ""

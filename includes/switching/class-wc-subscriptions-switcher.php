@@ -2235,10 +2235,10 @@ class WC_Subscriptions_Switcher {
 
 			if ( $order_item && ! is_bool( $order_item ) ) {
 				$found_item = true;
-				$item_total = (int) $order_item->get_total();
+				$item_total = (float) $order_item->get_total();
 
 				if ( $order->get_prices_include_tax( 'edit' ) ) {
-					$item_total += (int) $order_item->get_total_tax();
+					$item_total += (float) $order_item->get_total_tax();
 				}
 
 				// Remove any signup fees if necessary.

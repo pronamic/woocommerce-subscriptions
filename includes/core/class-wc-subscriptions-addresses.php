@@ -23,10 +23,13 @@ class WC_Subscriptions_Addresses {
 
 		add_action( 'template_redirect', array( __CLASS__, 'maybe_restrict_edit_address_endpoint' ) );
 
-		add_action( 'woocommerce_after_edit_address_form_billing', __CLASS__ . '::maybe_add_edit_address_checkbox', 10 );
-		add_action( 'woocommerce_after_edit_address_form_shipping', __CLASS__ . '::maybe_add_edit_address_checkbox', 10 );
+		add_action( 'woocommerce_edit_account_form_fields', __CLASS__ . '::maybe_add_edit_addresses_checkbox' );
+
+		add_action( 'woocommerce_after_edit_address_form_billing', __CLASS__ . '::maybe_add_edit_address_checkbox' );
+		add_action( 'woocommerce_after_edit_address_form_shipping', __CLASS__ . '::maybe_add_edit_address_checkbox' );
 
 		add_action( 'woocommerce_customer_save_address', __CLASS__ . '::maybe_update_subscription_addresses', 10, 2 );
+		add_action( 'woocommerce_save_account_details', __CLASS__ . '::maybe_update_subscription_addresses_contact' );
 
 		add_filter( 'woocommerce_address_to_edit', __CLASS__ . '::maybe_populate_subscription_addresses', 10 );
 
@@ -111,7 +114,8 @@ class WC_Subscriptions_Addresses {
 				if ( isset( $wp->query_vars['edit-address'] ) ) {
 					$address_type = esc_attr( $wp->query_vars['edit-address'] );
 				} else {
-					$address_type = ( ! isset( $_GET['address'] ) ) ? esc_attr( $_GET['address'] ) : '';
+					// No need to check nonce or sanitize address below as it'll be passed via wcs_get_address_type_to_display
+					$address_type = ( isset( $_GET['address'] ) ) ? esc_attr( wp_unslash( $_GET['address'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				}
 
 				// translators: $1: address type (Shipping Address / Billing Address), $2: opening <strong> tag, $3: closing </strong> tag
@@ -123,13 +127,113 @@ class WC_Subscriptions_Addresses {
 						'type'    => 'checkbox',
 						'class'   => array( 'form-row-wide' ),
 						'label'   => $label,
-						'default' => apply_filters( 'wcs_update_all_subscriptions_addresses_checked', false ),
+						/**
+						 * Filters whether the update all subscriptions addresses checkbox should be checked by default.
+						 *
+						 * @param bool $checked Whether the checkbox should be checked by default.
+						 * @since 2.3.7 Introduced.
+						 * @since 7.5.0 Default changed to true.
+						 */
+						'default' => apply_filters( 'wcs_update_all_subscriptions_addresses_checked', true ),
 					)
 				);
 			}
 
 			wp_nonce_field( 'wcs_edit_address', '_wcsnonce' );
 
+		}
+	}
+
+	/**
+	 * Outputs the necessary markup on the "My Account" > "Edit Account" page for editing contact info (Name, Email)
+	 * to check if the customer wants to update the contact info in Billing addresses for all of their active subscriptions.
+	 *
+	 * @since 7.5.0
+	 */
+	public static function maybe_add_edit_addresses_checkbox() {
+		global $wp;
+
+		// Escape early because we're not on the edit account page.
+		if ( ! isset( $wp->query_vars['edit-account'] ) ) {
+			return;
+		}
+
+		// No need to render UI if user doesn't have subscriptions
+		if ( ! wcs_user_has_subscription() ) {
+			return;
+		}
+
+		// translators: $1: address type (Billing Address), $2: opening <strong> tag, $3: closing </strong> tag
+		$label = sprintf( esc_html__( 'Update the %1$s contact used for %2$sall%3$s future renewals of my active subscriptions', 'woocommerce-subscriptions' ), wcs_get_address_type_to_display( 'billing' ), '<strong>', '</strong>' );
+		woocommerce_form_field(
+			'update_all_subscriptions_billing_contact',
+			array(
+				'type'    => 'checkbox',
+				'class'   => array( 'form-row-wide' ),
+				'label'   => $label,
+				'default' => true, // Default to checked, intentionally not passed through the filter.
+			)
+		);
+
+		// Note, there is no need to add one more nonce here, we'll rely on existing save-account-details-nonce.
+	}
+
+	/**
+	 * When user's contact info is successfully updated, check if the subscriber
+	 * has also requested to update the contact info in addresses on existing subscriptions and if so, go ahead and update
+	 * the addresses on the initial order for each subscription.
+	 *
+	 * @param int $user_id The ID of a user who own's the subscription (and address)
+	 * @since 7.5.0
+	 */
+	public static function maybe_update_subscription_addresses_contact( $user_id ) {
+		// Verify nonce will take care of validation, and wc_get_var will check if the value is set.
+		$nonce = isset( $_POST['save-account-details-nonce'] ) ? wp_unslash( $_POST['save-account-details-nonce'] ) : ( isset( $_POST['_wpnonce'] ) ? wp_unslash( $_POST['_wpnonce'] ) : '' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$nonce = wc_get_var( $nonce, '' );
+		if ( ! wp_verify_nonce( $nonce, 'save_account_details' ) ) {
+			return;
+		}
+
+		// Verify that the current user is updating their own account
+		$current_user_id = get_current_user_id();
+		if ( $current_user_id <= 0 || $current_user_id !== $user_id ) {
+			return;
+		}
+
+		// Check if user has subscriptions and if they've checked the update checkbox
+		if ( ! wcs_user_has_subscription( $current_user_id ) || ! isset( $_POST['update_all_subscriptions_billing_contact'] ) || wc_notice_count( 'error' ) > 0 ) {
+			return;
+		}
+
+		// Get user data directly from the user object instead of POST data
+		$user = get_userdata( $user_id );
+
+		if ( ! $user ) {
+			return;
+		}
+
+		// Get the contact information from the user object
+		$contact_info = array(
+			'first_name' => $user->first_name,
+			'last_name'  => $user->last_name,
+			'email'      => $user->user_email,
+		);
+
+		// Only proceed if we have contact information to update
+		if ( empty( $contact_info['first_name'] ) && empty( $contact_info['last_name'] ) && empty( $contact_info['email'] ) ) {
+			return;
+		}
+
+		// Get all active subscriptions for the user
+		$users_subscriptions = wcs_get_users_subscriptions( $user_id );
+
+		// Update the billing contact info for each active subscription
+		foreach ( $users_subscriptions as $subscription ) {
+			if ( $subscription->has_status( array( 'active', 'on-hold' ) ) ) {
+				// Update the billing address with the new contact information
+				wcs_set_order_address( $subscription, $contact_info, 'billing' );
+				$subscription->save();
+			}
 		}
 	}
 
@@ -147,7 +251,7 @@ class WC_Subscriptions_Addresses {
 			return;
 		}
 
-		$address_type   = ( 'billing' == $address_type || 'shipping' == $address_type ) ? $address_type : '';
+		$address_type   = ( 'billing' === $address_type || 'shipping' === $address_type ) ? $address_type : '';
 		$address_fields = WC()->countries->get_address_fields( esc_attr( $_POST[ $address_type . '_country' ] ), $address_type . '_' );
 		$address        = array();
 
