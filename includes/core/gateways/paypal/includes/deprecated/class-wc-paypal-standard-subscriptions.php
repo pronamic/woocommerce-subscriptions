@@ -91,10 +91,11 @@ class WC_PayPal_Standard_Subscriptions {
 	/**
 	 * Returns a PayPal Subscription ID/Recurring Payment Profile ID based on a user ID and subscription key
 	 *
-	 * @param WC_Order|WC_Subscription A WC_Order object or child object (i.e. WC_Subscription)
+	 * @param WC_Order|WC_Subscription $order_id A WC_Order object or child object (i.e. WC_Subscription)
+	 * @param int $product_id The product ID.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.1
 	 */
-	public static function get_subscriptions_paypal_id( $order_id, $product_id = '' ) {
+	public static function get_subscriptions_paypal_id( $order_id, $product_id = 0 ) {
 		_deprecated_function( __METHOD__, '2.0', 'wcs_get_paypal_id( $order_id )' );
 		return wcs_get_paypal_id( $order_id );
 	}
@@ -176,9 +177,12 @@ class WC_PayPal_Standard_Subscriptions {
 	/**
 	 * When a store manager or user cancels a subscription in the store, also cancel the subscription with PayPal.
 	 *
+	 * @param WC_Order $order A WC_Order object.
+	 * @param int $product_id The ID of the product.
+	 * @param string $profile_id The ID of the profile.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.1
 	 */
-	public static function cancel_subscription_with_paypal( $order, $product_id = '', $profile_id = '' ) {
+	public static function cancel_subscription_with_paypal( $order, $product_id = 0, $profile_id = '' ) {
 		_deprecated_function( __METHOD__, '2.0', 'WCS_PayPal_Status_Manager::cancel_subscription( $subscription )' );
 		foreach ( wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'parent' ) ) as $subscription ) {
 			self::change_subscription_status( $profile_id, 'Cancel', $subscription );

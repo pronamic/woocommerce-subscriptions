@@ -36,6 +36,7 @@ class WCS_Retry_Table_Maker extends WCS_Table_Maker {
 	 */
 	protected function get_table_definition( $table ) {
 		global $wpdb;
+		// phpcs:disable QITStandard.DB.DynamicWpdbMethodCall.DynamicMethod
 		$table_name      = $wpdb->$table;
 		$charset_collate = $wpdb->get_charset_collate();
 

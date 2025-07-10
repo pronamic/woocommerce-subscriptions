@@ -121,6 +121,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 		// Log any exceptions caught by the exception listener in action logs.
 		if ( ! empty( $context['exceptions'] ) ) {
 			foreach ( $context['exceptions'] as $exception_message ) {
+				// @phpstan-ignore-next-line
 				ActionScheduler_Logger::instance()->log( $action_id, $exception_message );
 			}
 		}
@@ -243,7 +244,7 @@ class WCS_Failed_Scheduled_Action_Manager {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
 	 */
 	protected function maybe_disable_admin_notice() {
-		if ( isset( $_GET['_wcsnonce'] ) && wp_verify_nonce( $_GET['_wcsnonce'], 'wcs_scheduled_action_timeout_error_notice' ) && isset( $_GET['wcs_scheduled_action_timeout_error_notice'] ) ) {
+		if ( isset( $_GET['_wcsnonce'] ) && wp_verify_nonce( wc_clean( wp_unslash( $_GET['_wcsnonce'] ) ), 'wcs_scheduled_action_timeout_error_notice' ) && isset( $_GET['wcs_scheduled_action_timeout_error_notice'] ) ) {
 			delete_option( WC_Subscriptions_Admin::$option_prefix . '_failed_scheduled_actions' );
 		}
 	}

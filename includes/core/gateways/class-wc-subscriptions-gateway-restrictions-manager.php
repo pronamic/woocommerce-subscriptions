@@ -51,8 +51,8 @@ class WC_Subscriptions_Gateway_Restrictions_Manager {
 			 *
 			 * @since 1.5.0
 			 *
-			 * @param false|float The minimum amount that can be processed in the given currency.
-			 * @param string      The currency.
+			 * @param false|float $minimum_processable_amount The minimum amount that can be processed in the given currency.
+			 * @param string      $currency The currency.
 			 */
 			$minimum_processable_amount = apply_filters( 'woocommerce_subscriptions_minimum_processable_recurring_amount', false, get_woocommerce_currency() );
 
@@ -68,4 +68,3 @@ class WC_Subscriptions_Gateway_Restrictions_Manager {
 		}
 	}
 }
-

@@ -566,6 +566,19 @@ a.close-subscriptions-search {
 	display: inline-block;
 	font-weight: bold;
 }
+
+#woocommerce-subscription-schedule .date-fields.has-error {
+	color: #d63638;
+}
+
+#woocommerce-subscription-schedule .date-fields .message {
+	margin: 0;
+}
+
+#woocommerce-subscription-schedule .date-fields.has-error input {
+	border-color: #d63638;
+}
+
 #woocommerce-subscription-schedule
 	.wcs-date-input
 	input[type='text']:first-of-type {

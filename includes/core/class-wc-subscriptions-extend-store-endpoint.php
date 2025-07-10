@@ -53,8 +53,11 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 			return;
 		}
 
+		// @phpstan-ignore class.notFound
 		self::$schema             = class_exists( 'Automattic\WooCommerce\StoreApi\StoreApi' ) ? Automattic\WooCommerce\StoreApi\StoreApi::container()->get( Automattic\WooCommerce\StoreApi\SchemaController::class ) : Package::container()->get( Automattic\WooCommerce\Blocks\StoreApi\SchemaController::class );
+		// @phpstan-ignore class.notFound
 		self::$money_formatter    = function_exists( 'woocommerce_store_api_get_formatter' ) ? woocommerce_store_api_get_formatter( 'money' ) : Package::container()->get( ExtendRestApi::class )->get_formatter( 'money' );
+		// @phpstan-ignore class.notFound
 		self::$currency_formatter = function_exists( 'woocommerce_store_api_get_formatter' ) ? woocommerce_store_api_get_formatter( 'currency' ) : Package::container()->get( ExtendRestApi::class )->get_formatter( 'currency' );
 		self::extend_store();
 	}
@@ -68,6 +71,7 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 		if ( function_exists( 'woocommerce_store_api_register_endpoint_data' ) ) {
 			woocommerce_store_api_register_endpoint_data( $args );
 		} else {
+			// @phpstan-ignore class.notFound
 			Package::container()->get( ExtendRestApi::class )->register_endpoint_data( $args );
 		}
 	}
@@ -81,6 +85,7 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 		if ( function_exists( 'woocommerce_store_api_register_payment_requirements' ) ) {
 			woocommerce_store_api_register_payment_requirements( $args );
 		} else {
+			// @phpstan-ignore class.notFound
 			Package::container()->get( ExtendRestApi::class )->register_payment_requirements( $args );
 		}
 	}
@@ -92,6 +97,7 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 		// Register into `cart/items`
 		self::register_endpoint_data(
 			array(
+				// @phpstan-ignore class.notFound
 				'endpoint'        => CartItemSchema::IDENTIFIER,
 				'namespace'       => self::IDENTIFIER,
 				'data_callback'   => array( 'WC_Subscriptions_Extend_Store_Endpoint', 'extend_cart_item_data' ),
@@ -103,6 +109,7 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 		// Register into `cart`
 		self::register_endpoint_data(
 			array(
+				// @phpstan-ignore class.notFound
 				'endpoint'        => CartSchema::IDENTIFIER,
 				'namespace'       => self::IDENTIFIER,
 				'data_callback'   => array( 'WC_Subscriptions_Extend_Store_Endpoint', 'extend_cart_data' ),
@@ -266,7 +273,7 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 		// Add extra package data to array.
 		if ( count( $packages ) ) {
 			$packages = array_map(
-				function( $key, $package, $index ) use ( $cart, $cart_key ) {
+				function( $key, $package, $index ) use ( $cart ) {
 					$package['package_id']   = isset( $package['package_id'] ) ? $package['package_id'] : $key;
 					$package['package_name'] = isset( $package['package_name'] ) ? $package['package_name'] : self::get_shipping_package_name( $package, $cart );
 					return $package;

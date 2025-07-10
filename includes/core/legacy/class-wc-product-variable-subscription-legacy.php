@@ -210,10 +210,10 @@ class WC_Product_Variable_Subscription_Legacy extends WC_Product_Variable_Subscr
 	/**
 	 * Sync variable product prices with the children lowest/highest prices.
 	 *
-	 * @access public
+	 * @param int $product_id The ID of the product.
 	 * @return void
 	 */
-	public function variable_product_sync( $product_id = '' ) {
+	public function variable_product_sync( $product_id = 0 ) {
 
 		WC_Product_Variable::variable_product_sync( $product_id );
 

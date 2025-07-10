@@ -321,7 +321,10 @@ class WC_Subscriptions_Synchroniser {
 					?>
 					</select>
 				</span>
-				<?php echo wcs_help_tip( self::$sync_description_year ); ?>
+				<?php
+					// @phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo wcs_help_tip( self::$sync_description_year );
+				?>
 			</p><?php
 
 			echo '</div>';
@@ -370,7 +373,7 @@ class WC_Subscriptions_Synchroniser {
 	 */
 	public static function save_subscription_meta( $post_id ) {
 
-		if ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( $_POST['_wcsnonce'], 'wcs_subscription_meta' ) ) {
+		if ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_subscription_meta' ) ) {
 			return;
 		}
 
@@ -382,8 +385,8 @@ class WC_Subscriptions_Synchroniser {
 		if ( 'year' == $_POST['_subscription_period'] ) { // save the day & month for the date rather than just the day
 
 			$_POST[ self::$post_meta_key ] = array(
-				'day'   => isset( $_POST[ self::$post_meta_key_day ] ) ? $_POST[ self::$post_meta_key_day ] : 0,
-				'month' => isset( $_POST[ self::$post_meta_key_month ] ) ? $_POST[ self::$post_meta_key_month ] : '01',
+				'day'   => isset( $_POST[ self::$post_meta_key_day ] ) ? wc_clean( wp_unslash( $_POST[ self::$post_meta_key_day ] ) ) : 0,
+				'month' => isset( $_POST[ self::$post_meta_key_month ] ) ? wc_clean( wp_unslash( $_POST[ self::$post_meta_key_month ] ) ) : '01',
 			);
 
 		} else {
@@ -393,7 +396,7 @@ class WC_Subscriptions_Synchroniser {
 			}
 		}
 
-		update_post_meta( $post_id, self::$post_meta_key, $_POST[ self::$post_meta_key ] );
+		update_post_meta( $post_id, self::$post_meta_key, wc_clean( wp_unslash( $_POST[ self::$post_meta_key ] ) ) );
 	}
 
 	/**
@@ -403,7 +406,7 @@ class WC_Subscriptions_Synchroniser {
 	 */
 	public static function process_product_meta_variable_subscription( $post_id ) {
 
-		if ( empty( $_POST['_wcsnonce_save_variations'] ) || ! wp_verify_nonce( $_POST['_wcsnonce_save_variations'], 'wcs_subscription_variations' ) || ! isset( $_POST['variable_post_id'] ) || ! is_array( $_POST['variable_post_id'] ) ) {
+		if ( empty( $_POST['_wcsnonce_save_variations'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce_save_variations'] ) ), 'wcs_subscription_variations' ) || ! isset( $_POST['variable_post_id'] ) || ! is_array( $_POST['variable_post_id'] ) ) {
 			return;
 		}
 
@@ -418,7 +421,7 @@ class WC_Subscriptions_Synchroniser {
 	 */
 	public static function save_product_variation( $variation_id, $index ) {
 
-		if ( empty( $_POST['_wcsnonce_save_variations'] ) || ! wp_verify_nonce( $_POST['_wcsnonce_save_variations'], 'wcs_subscription_variations' ) || ! isset( $_POST['variable_post_id'] ) || ! is_array( $_POST['variable_post_id'] ) ) {
+		if ( empty( $_POST['_wcsnonce_save_variations'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce_save_variations'] ) ), 'wcs_subscription_variations' ) || ! isset( $_POST['variable_post_id'] ) || ! is_array( $_POST['variable_post_id'] ) ) {
 			return;
 		}
 
@@ -428,15 +431,15 @@ class WC_Subscriptions_Synchroniser {
 		if ( 'year' == $_POST['variable_subscription_period'][ $index ] ) { // save the day & month for the date rather than just the day
 
 			$_POST[ 'variable' . self::$post_meta_key ][ $index ] = array(
-				'day'   => isset( $_POST[ $day_field ][ $index ] ) ? $_POST[ $day_field ][ $index ] : 0,
-				'month' => isset( $_POST[ $month_field ][ $index ] ) ? $_POST[ $month_field ][ $index ] : 0,
+				'day'   => isset( $_POST[ $day_field ][ $index ] ) ? wc_clean( wp_unslash( $_POST[ $day_field ][ $index ] ) ) : 0,
+				'month' => isset( $_POST[ $month_field ][ $index ] ) ? wc_clean( wp_unslash( $_POST[ $month_field ][ $index ] ) ) : 0,
 			);
 
 		} elseif ( ! isset( $_POST[ 'variable' . self::$post_meta_key ][ $index ] ) ) {
 			$_POST[ 'variable' . self::$post_meta_key ][ $index ] = 0;
 		}
 
-		update_post_meta( $variation_id, self::$post_meta_key, $_POST[ 'variable' . self::$post_meta_key ][ $index ] );
+		update_post_meta( $variation_id, self::$post_meta_key, wc_clean( wp_unslash( $_POST[ 'variable' . self::$post_meta_key ][ $index ] ) ) );
 	}
 
 	/**
@@ -608,6 +611,7 @@ class WC_Subscriptions_Synchroniser {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5
 	 */
 	public static function calculate_first_payment_date( $product, $type = 'mysql', $from_date = '' ) {
+		$first_payment_timestamp = 0;
 
 		if ( ! is_object( $product ) ) {
 			$product = wc_get_product( $product );
@@ -645,7 +649,7 @@ class WC_Subscriptions_Synchroniser {
 		if ( 'week' == $period ) {
 
 			// Get the day of the week for the from date
-			$from_day = gmdate( 'N', $from_timestamp );
+			$from_day = (int) gmdate( 'N', $from_timestamp );
 
 			// To account for rollover of the weekdays. For example, if from day is Saturday and the payment date is Monday,
 			// and the grace period is 2, Saturday is day 6 and Monday is day 1.
@@ -665,7 +669,7 @@ class WC_Subscriptions_Synchroniser {
 				$payment_day = gmdate( 't', $from_timestamp ); // the number of days in the month
 			}
 
-			$from_day = gmdate( 'j', $from_timestamp );
+			$from_day = (int) gmdate( 'j', $from_timestamp );
 
 			// If 'from day' is before 'sync day' in the month
 			if ( $from_day <= $payment_day ) {
@@ -677,7 +681,7 @@ class WC_Subscriptions_Synchroniser {
 					$month_number = gmdate( 'm', wcs_add_months( $from_timestamp, $interval - 1 ) );
 				}
 			} else { // If 'from day' is after 'sync day' in the month
-				$days_in_month = gmdate( 't', $from_timestamp );
+				$days_in_month = (int) gmdate( 't', $from_timestamp );
 				// Use 'days in month' to account for end of month dates
 				if ( $from_day + $no_fee_days - $days_in_month >= $payment_day ) { // In grace period
 					$month        = gmdate( 'F', wcs_add_months( $from_timestamp, 1 ) );
@@ -722,6 +726,8 @@ class WC_Subscriptions_Synchroniser {
 			if ( $from_month_day > $payment_month_day ) { // If 'from day' is after 'sync day' in the year
 				$year++;
 			}
+
+			$first_payment_timestamp = 0;
 
 			if ( $from_timestamp + ( $no_fee_days * DAY_IN_SECONDS ) >=
 				wcs_strtotime_dark_knight( "{$payment_day['day']} {$month} {$year}" ) ) { // In grace period
@@ -1037,10 +1043,9 @@ class WC_Subscriptions_Synchroniser {
 	 * Filters WC_Subscriptions_Order::get_sign_up_fee() to make sure the sign-up fee for a subscription product
 	 * that is synchronised is returned correctly.
 	 *
-	 * @param float The initial sign-up fee charged when the subscription product in the order was first purchased, if any.
-	 * @param mixed $order A WC_Order object or the ID of the order which the subscription was purchased in.
+	 * @param float $sign_up_fee The initial sign-up fee charged when the subscription product in the order was first purchased, if any.
+	 * @param WC_Subscription $subscription The subscription object.
 	 * @param int $product_id The post ID of the subscription WC_Product object purchased in the order. Defaults to the ID of the first product purchased in the order.
-	 * @return float The initial sign-up fee charged when the subscription product in the order was first purchased, if any.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function get_synced_sign_up_fee( $sign_up_fee, $subscription, $product_id ) {
@@ -1072,15 +1077,17 @@ class WC_Subscriptions_Synchroniser {
 				return $price;
 			}
 
+			$days_in_cycle = 0;
+
 			switch ( WC_Subscriptions_Product::get_period( $product ) ) {
 				case 'week':
 					$days_in_cycle = 7 * WC_Subscriptions_Product::get_interval( $product );
 					break;
 				case 'month':
-					$days_in_cycle = gmdate( 't' ) * WC_Subscriptions_Product::get_interval( $product );
+					$days_in_cycle = (int) gmdate( 't' ) * WC_Subscriptions_Product::get_interval( $product );
 					break;
 				case 'year':
-					$days_in_cycle = ( 365 + gmdate( 'L' ) ) * WC_Subscriptions_Product::get_interval( $product );
+					$days_in_cycle = ( 365 + (int) gmdate( 'L' ) ) * WC_Subscriptions_Product::get_interval( $product );
 					break;
 			}
 
@@ -1132,7 +1139,7 @@ class WC_Subscriptions_Synchroniser {
 	 *
 	 * @param integer $qty the original quantity that would be taken out of the stock level
 	 * @param array $order order data
-	 * @param array $item item data for each item in the order
+	 * @param array $order_item item data for each item in the order
 	 *
 	 * @return int
 	 */
@@ -1159,7 +1166,7 @@ class WC_Subscriptions_Synchroniser {
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 *
-	 * @param WC_Subscription|int Subscription object or ID.
+	 * @param WC_Subscription|int $subscription Subscription object or ID.
 	 */
 	public static function maybe_add_subscription_meta( $subscription ) {
 		if ( ! is_object( $subscription ) ) {
@@ -1167,6 +1174,7 @@ class WC_Subscriptions_Synchroniser {
 		}
 
 		if ( $subscription && ! self::subscription_contains_synced_product( $subscription ) ) {
+			/** @var WC_Order_Item_Product $item */
 			foreach ( $subscription->get_items() as $item ) {
 				$product = $item->get_product();
 
@@ -1183,8 +1191,8 @@ class WC_Subscriptions_Synchroniser {
 	 * When adding an item to an order/subscription via the Add/Edit Subscription administration interface, check if we should be setting
 	 * the sync meta on the subscription.
 	 *
-	 * @param int The order item ID of an item that was just added to the order
-	 * @param array The order item details
+	 * @param int $item_id The order item ID of an item that was just added to the order
+	 * @param array $item The order item details
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function ajax_maybe_add_meta_for_item( $item_id, $item ) {
@@ -1200,9 +1208,9 @@ class WC_Subscriptions_Synchroniser {
 	 * When adding a product to an order/subscription via the WC_Subscription::add_product() method, check if we should be setting
 	 * the sync meta on the subscription.
 	 *
-	 * @param int The post ID of a WC_Order or child object
-	 * @param int The order item ID of an item that was just added to the order
-	 * @param object The WC_Product for which an item was just added
+	 * @param int $subscription_id The post ID of a WC_Order or child object
+	 * @param int $item_id The order item ID of an item that was just added to the order
+	 * @param object $product The WC_Product for which an item was just added
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_add_meta_for_new_product( $subscription_id, $item_id, $product ) {
@@ -1216,7 +1224,7 @@ class WC_Subscriptions_Synchroniser {
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 *
-	 * @param int|WC_Subscription Accepts either a subscription object or ID.
+	 * @param int|WC_Subscription $subscription Accepts either a subscription object or ID.
 	 * @return bool True if the subscription is synced, false otherwise.
 	 */
 	public static function subscription_contains_synced_product( $subscription ) {
@@ -1257,9 +1265,9 @@ class WC_Subscriptions_Synchroniser {
 	 *
 	 * Attached to WC 3.0+ hooks and uses WC 3.0 methods.
 	 *
-	 * @param int The new line item id
-	 * @param WC_Order_Item
-	 * @param int The post ID of a WC_Subscription
+	 * @param int $item_id The new line item id
+	 * @param WC_Order_Item $item
+	 * @param int $subscription_id The post ID of a WC_Subscription
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.3
 	 */
 	public static function maybe_add_meta_for_new_line_item( $item_id, $item, $subscription_id ) {
@@ -1552,7 +1560,7 @@ class WC_Subscriptions_Synchroniser {
 	 * Filters WC_Subscriptions_Order::get_sign_up_fee() to make sure the sign-up fee for a subscription product
 	 * that is synchronised is returned correctly.
 	 *
-	 * @param float The initial sign-up fee charged when the subscription product in the order was first purchased, if any.
+	 * @param float $sign_up_fee The initial sign-up fee charged when the subscription product in the order was first purchased, if any.
 	 * @param mixed $order A WC_Order object or the ID of the order which the subscription was purchased in.
 	 * @param int $product_id The post ID of the subscription WC_Product object purchased in the order. Defaults to the ID of the first product purchased in the order.
 	 * @return float The initial sign-up fee charged when the subscription product in the order was first purchased, if any.

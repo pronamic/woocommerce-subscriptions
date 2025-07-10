@@ -678,8 +678,8 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	 * Used when switching payment methods with PayPal Standard to make sure that
 	 * the old subscription's profile ID is cancelled, not the new one.
 	 *
-	 * @param WC_Subscription A subscription object
-	 * @param string A PayPal Subscription Profile ID
+	 * @param WC_Subscription $subscription A subscription object
+	 * @param string $old_paypal_subscriber_id A PayPal Subscription Profile ID
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	protected static function cancel_subscription( $subscription, $old_paypal_subscriber_id ) {
@@ -733,9 +733,9 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	/**
 	 * Get an order associated with a subscription that has a specified transaction id.
 	 *
-	 * @param WC_Subscription object $subscription
+	 * @param WC_Subscription $subscription
 	 * @param int $transaction_id Id from transaction details as provided by PayPal
-	 * @param array|string Order type we want. Defaults to any.
+	 * @param array|string $order_types Order type we want. Defaults to any.
 	 *
 	 * @return WC_Order|null If order with that transaction id, WC_Order object, otherwise null
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.3
@@ -757,7 +757,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	/**
 	* Get a renewal order associated with a subscription that has a specified transaction id.
 	*
-	* @param WC_Subscription object $subscription
+	* @param WC_Subscription $subscription
 	* @param int $transaction_id Id from transaction details as provided by PayPal
 	* @return WC_Order|null If order with that transaction id, WC_Order object, otherwise null
 	* @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
@@ -769,7 +769,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 	/**
 	 * Get a parent order associated with a subscription that has a specified transaction id.
 	 *
-	 * @param WC_Subscription object $subscription
+	 * @param WC_Subscription $subscription
 	 * @param int $transaction_id Id from transaction details as provided by PayPal
 	 *
 	 * @return WC_Order|null If order with that transaction id, WC_Order object, otherwise null

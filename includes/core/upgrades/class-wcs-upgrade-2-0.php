@@ -205,6 +205,7 @@ class WCS_Upgrade_2_0 {
 
 		$wpdb->query( 'SET SQL_BIG_SELECTS = 1;' );
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$raw_subscriptions = $wpdb->get_results( $query );
 
 		$subscriptions = array();
@@ -427,11 +428,13 @@ class WCS_Upgrade_2_0 {
 		// Now that we've copied over the old data, prefix some the subscription meta keys with _wcs_migrated to deprecate it without deleting it (yet)
 		$subscription_item_meta_key_string = implode( "','", esc_sql( self::$subscription_item_meta_keys ) );
 
-		$rows_affected = $wpdb->query( $wpdb->prepare(
-			"UPDATE `{$wpdb->prefix}woocommerce_order_itemmeta` SET `meta_key` = concat( '_wcs_migrated', `meta_key` )
-			WHERE `order_item_id` = %d AND `meta_key` IN ('{$subscription_item_meta_key_string}')",
-			$order_item_id
-		) );
+		$rows_affected = $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE `{$wpdb->prefix}woocommerce_order_itemmeta` SET `meta_key` = concat( '_wcs_migrated', `meta_key` )
+				WHERE `order_item_id` = %d AND `meta_key` IN ('{$subscription_item_meta_key_string}')", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$order_item_id
+			)
+		);
 
 		return $rows_affected;
 	}
@@ -662,11 +665,13 @@ class WCS_Upgrade_2_0 {
 
 		// Do a single bulk insert instead of using update_post_meta() to massively reduce query time
 		if ( ! empty( $query_meta_values ) ) {
-			$rows_affected = $wpdb->query( $wpdb->prepare(
-				"INSERT INTO {$wpdb->postmeta} (post_id, meta_key, meta_value)
-				 VALUES " . implode( ', ', $query_placeholders ),
-				$query_meta_values
-			) );
+			$rows_affected = $wpdb->query(
+				$wpdb->prepare(
+					"INSERT INTO {$wpdb->postmeta} (post_id, meta_key, meta_value)
+					VALUES " . implode( ', ', $query_placeholders ), // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.NotPrepared
+					$query_meta_values
+				)
+			);
 
 			WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: %d rows of post meta added', $subscription_id, $rows_affected ) );
 		}
@@ -710,11 +715,13 @@ class WCS_Upgrade_2_0 {
 
 		$post_meta_to_deprecate = implode( "','", esc_sql( $post_meta_to_deprecate ) );
 
-		$rows_affected = $wpdb->query( $wpdb->prepare(
-			"UPDATE {$wpdb->postmeta} SET `meta_key` = concat( '_wcs_migrated', `meta_key` )
-			WHERE `post_id` = %d AND `meta_key` IN ('{$post_meta_to_deprecate}')",
-			$order_id
-		) );
+		$rows_affected = $wpdb->query(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"UPDATE {$wpdb->postmeta} SET `meta_key` = concat( '_wcs_migrated', `meta_key` ) WHERE `post_id` = %d AND `meta_key` IN ('{$post_meta_to_deprecate}')",
+				$order_id
+			)
+		);
 
 		return $rows_affected;
 	}
@@ -735,12 +742,17 @@ class WCS_Upgrade_2_0 {
 			"UPDATE {$wpdb->comments} SET `comment_post_ID` = %d
 			WHERE `comment_post_id` = %d
 			AND (
-				`comment_content` LIKE '%%subscription%%'
-				OR `comment_content` LIKE '%%Recurring%%'
-				OR `comment_content` LIKE '%%Renewal%%'
-				OR `comment_content` LIKE '%%Simplify payment error%%'
+				`comment_content` LIKE %s
+				OR `comment_content` LIKE %s
+				OR `comment_content` LIKE %s
+				OR `comment_content` LIKE %s
 			)",
-			$subscription_id, $order_id
+			$subscription_id,
+			$order_id,
+			'%' . $wpdb->esc_like( 'subscription' ) . '%',
+			'%' . $wpdb->esc_like( 'Recurring' ) . '%',
+			'%' . $wpdb->esc_like( 'Renewal' ) . '%',
+			'%' . $wpdb->esc_like( 'Simplify payment error' ) . '%'
 		) );
 
 		WCS_Upgrade_Logger::add( sprintf( 'For subscription %d: migrated %d order notes', $subscription_id, $rows_affected ) );

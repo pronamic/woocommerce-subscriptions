@@ -161,10 +161,13 @@ class WC_Subscriptions_Core_Plugin {
 		add_action( 'plugins_loaded', array( $this, 'init_version_dependant_classes' ) );
 
 		// Initialised the related order and customter data store instances.
+		// @phpstan-ignore return.void
 		add_action( 'plugins_loaded', 'WCS_Related_Order_Store::instance' );
+		// @phpstan-ignore return.void
 		add_action( 'plugins_loaded', 'WCS_Customer_Store::instance' );
 
 		// Initialise the batch processing controller.
+		// @phpstan-ignore return.void
 		add_action( 'init', 'WCS_Batch_Processing_Controller::instance' );
 
 		// Initialise the scheduler.
@@ -213,7 +216,7 @@ class WC_Subscriptions_Core_Plugin {
 		/**
 		 * Allow third-party code to enable running v2.0 hook deprecation handling for stores that might want to check for deprecated code.
 		 *
-		 * @param bool Whether the hook deprecation handlers should be loaded. False by default.
+		 * @param bool $value Whether the hook deprecation handlers should be loaded. False by default.
 		 */
 		if ( apply_filters( 'woocommerce_subscriptions_load_deprecation_handlers', false ) ) {
 			new WCS_Action_Deprecator();
@@ -527,11 +530,11 @@ class WC_Subscriptions_Core_Plugin {
 			}
 
 			// if this is the first time activating WooCommerce Subscription we want to enable PayPal debugging by default.
-			if ( '0' == get_option( WC_Subscriptions_Admin::$option_prefix . '_previous_version', '0' ) && false == get_option( WC_Subscriptions_admin::$option_prefix . '_paypal_debugging_default_set', false ) ) {
+			if ( '0' == get_option( WC_Subscriptions_Admin::$option_prefix . '_previous_version', '0' ) && false == get_option( WC_Subscriptions_Admin::$option_prefix . '_paypal_debugging_default_set', false ) ) {
 				$paypal_settings          = get_option( 'woocommerce_paypal_settings' );
 				$paypal_settings['debug'] = 'yes';
 				update_option( 'woocommerce_paypal_settings', $paypal_settings );
-				update_option( WC_Subscriptions_admin::$option_prefix . '_paypal_debugging_default_set', 'true' );
+				update_option( WC_Subscriptions_Admin::$option_prefix . '_paypal_debugging_default_set', 'true' );
 			}
 
 			// Enable customer notifications by default for new stores.

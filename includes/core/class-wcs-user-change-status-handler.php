@@ -28,9 +28,9 @@ class WCS_User_Change_Status_Handler {
 		if ( isset( $_GET['change_subscription_to'], $_GET['subscription_id'], $_GET['_wpnonce'] ) && ! empty( $_GET['_wpnonce'] ) ) {
 			$user_id      = get_current_user_id();
 			$subscription = wcs_get_subscription( absint( $_GET['subscription_id'] ) );
-			$new_status   = wc_clean( $_GET['change_subscription_to'] );
+			$new_status   = wc_clean( wp_unslash( $_GET['change_subscription_to'] ) );
 
-			if ( self::validate_request( $user_id, $subscription, $new_status, $_GET['_wpnonce'] ) ) {
+			if ( self::validate_request( $user_id, $subscription, $new_status, wc_clean( wp_unslash( $_GET['_wpnonce'] ) ) ) ) {
 				self::change_users_subscription( $subscription, $new_status );
 
 				wp_safe_redirect( $subscription->get_view_order_url() );
@@ -45,6 +45,7 @@ class WCS_User_Change_Status_Handler {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function change_users_subscription( $subscription, $new_status ) {
+		/** @var WC_Subscription $subscription */
 		$subscription = ( ! is_object( $subscription ) ) ? wcs_get_subscription( $subscription ) : $subscription;
 		$changed      = false;
 

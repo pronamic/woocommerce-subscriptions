@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-echo $email_heading . "\n\n";
+echo esc_html( $email_heading ) . "\n\n";
 
 /* translators: %s: Customer first name */
 echo sprintf( esc_html__( 'Hi %s,', 'woocommerce-subscriptions' ), esc_html( $order->get_billing_first_name() ) ) . "\n\n";
@@ -18,7 +18,7 @@ echo sprintf( esc_html__( 'Hi %s,', 'woocommerce-subscriptions' ), esc_html( $or
 echo sprintf( esc_html_x( 'The automatic payment to renew your subscription has failed. We will retry the payment %s.', 'In customer renewal invoice email', 'woocommerce-subscriptions' ), esc_html( wcs_get_human_time_diff( $retry->get_time() ) ) ) . "\n\n";
 
 // translators: %1$s: link to checkout payment url, note: no full stop due to url at the end
-echo sprintf( esc_html_x( 'To reactivate the subscription now, you can also log in and pay for the renewal from your account page: %1$s', 'In customer renewal invoice email', 'woocommerce-subscriptions' ), esc_attr( $order->get_checkout_payment_url() ) );
+echo sprintf( esc_html_x( 'To reactivate the subscription now, you can also log in and pay for the renewal from your account page: %1$s', 'In customer renewal invoice email', 'woocommerce-subscriptions' ), esc_url( $order->get_checkout_payment_url() ) );
 
 echo "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";
 
@@ -34,4 +34,4 @@ if ( $additional_content ) {
 	echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
 }
 
-echo apply_filters( 'woocommerce_email_footer_text', get_option( 'woocommerce_email_footer_text' ) );
+echo wp_kses_post( apply_filters( 'woocommerce_email_footer_text', get_option( 'woocommerce_email_footer_text' ) ) );

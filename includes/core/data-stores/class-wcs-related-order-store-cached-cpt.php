@@ -147,6 +147,7 @@ class WCS_Related_Order_Store_Cached_CPT extends WCS_Related_Order_Store_CPT imp
 	 */
 	public function get_related_order_ids( WC_Order $subscription, $relation_type ) {
 		$related_order_ids = $this->get_related_order_ids_from_cache( $subscription, $relation_type );
+		$transient_key     = null;
 
 		// get_related_order_ids_from_cache() returns false if the ID is invalid. This can arise when the subscription hasn't been created yet. In any case, the related IDs should be an empty array to avoid a boolean return from this function.
 		if ( false === $related_order_ids ) {
@@ -219,8 +220,8 @@ class WCS_Related_Order_Store_Cached_CPT extends WCS_Related_Order_Store_CPT imp
 	/**
 	 * Finds orders related to a given subscription in a given way from the cache.
 	 *
-	 * @param WC_Subscription|int $subscription_id The Subscription ID or subscription object to fetch related orders.
-	 * @param string              $relation_type   The relationship between the subscription and the orders. Must be 'renewal', 'switch' or 'resubscribe.
+	 * @param WC_Subscription|int $subscription  The subscription to fetch related orders.
+	 * @param string              $relation_type The relationship between the subscription and the orders. Must be 'renewal', 'switch' or 'resubscribe.
 	 *
 	 * @return string|array An array of related orders in the cache, or an empty string when no matching row is found for the given key, meaning it's cache is not set yet or has been deleted
 	 */
@@ -388,7 +389,7 @@ class WCS_Related_Order_Store_Cached_CPT extends WCS_Related_Order_Store_CPT imp
 	/**
 	 * Clears all related order caches for a given subscription.
 	 *
-	 * @param WC_Subscription|int $subscription_id The ID of a subscription that may have linked orders.
+	 * @param WC_Subscription|int $subscription The subscription that may have linked orders.
 	 * @param string              $relation_type   The relationship between the subscription and the order. Must be 'renewal', 'switch' or 'resubscribe' unless custom relationships are implemented. Use 'any' to delete all cached.
 	 */
 	public function delete_caches_for_subscription( $subscription, $relation_type = 'any' ) {

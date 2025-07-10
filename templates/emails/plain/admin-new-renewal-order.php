@@ -10,10 +10,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-echo $email_heading . "\n\n";
+echo esc_html( $email_heading ) . "\n\n";
 
 // translators: $1: customer's billing first name and last name
-printf( _x( 'You have received a subscription renewal order from %1$s. Their order is as follows:', 'Used in admin email: new renewal order', 'woocommerce-subscriptions' ), $order->get_formatted_billing_full_name() );
+printf( esc_html_x( 'You have received a subscription renewal order from %1$s. Their order is as follows:', 'Used in admin email: new renewal order', 'woocommerce-subscriptions' ), esc_html( $order->get_formatted_billing_full_name() ) );
 
 echo "\n\n";
 
@@ -41,4 +41,4 @@ if ( $additional_content ) {
 	echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
 }
 
-echo apply_filters( 'woocommerce_email_footer_text', get_option( 'woocommerce_email_footer_text' ) );
+echo wp_kses_post( apply_filters( 'woocommerce_email_footer_text', get_option( 'woocommerce_email_footer_text' ) ) );

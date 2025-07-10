@@ -62,7 +62,7 @@ class WCS_Privacy_Background_Updater {
 	 * Schedule subscription related order anonymization, if it's not already scheduled.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
-	 * @param int The subscription ID.
+	 * @param int $subscription_id The subscription ID.
 	 */
 	protected function schedule_subscription_orders_anonymization( $subscription_id ) {
 		$action_args = array( 'subscription_id' => intval( $subscription_id ) );
@@ -76,7 +76,7 @@ class WCS_Privacy_Background_Updater {
 	 * Unschedule a specific subscription's related order anonymization hook.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
-	 * @param int The subscription ID.
+	 * @param int $subscription_id The subscription ID.
 	 */
 	protected function unschedule_subscription_orders_anonymization( $subscription_id ) {
 		as_unschedule_action( $this->subscription_orders_anonymization_hook, array( 'subscription_id' => intval( $subscription_id ) ) );
@@ -86,7 +86,7 @@ class WCS_Privacy_Background_Updater {
 	 * Schedule a specific order's anonymization action.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
-	 * @param int The order ID.
+	 * @param int $order_id The order ID.
 	 */
 	protected function schedule_order_anonymization( $order_id ) {
 		as_schedule_single_action( time(), $this->order_anonymization_hook, array( 'order_id' => intval( $order_id ) ) );
@@ -96,7 +96,7 @@ class WCS_Privacy_Background_Updater {
 	 * Check if an order has a scheduled anonymization action.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
-	 * @param int The order ID.
+	 * @param int $order_id The order ID.
 	 * @return bool Whether the order has a scheduled anonymization action.
 	 */
 	protected function order_anonymization_is_scheduled( $order_id ) {
@@ -209,7 +209,7 @@ class WCS_Privacy_Background_Updater {
 	/**
 	 * Anonymize an order.
 	 *
-	 * @param int The ID of the order to be anonymized.
+	 * @param int $order_id The ID of the order to be anonymized.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 */
 	public function anonymize_order( $order_id ) {

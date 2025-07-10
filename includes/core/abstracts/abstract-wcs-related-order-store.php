@@ -58,7 +58,6 @@ abstract class WCS_Related_Order_Store {
 			/**
 			 * Allow third-parties to register their own custom order relationship types which should be handled by this store.
 			 *
-			 * @param array An array of order relationship types.
 			 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 			 */
 			foreach ( (array) apply_filters( 'wcs_additional_related_order_relation_types', array() ) as $relation_type ) {
@@ -153,7 +152,7 @@ abstract class WCS_Related_Order_Store {
 	 * Get related order IDs grouped by relation type.
 	 *
 	 * @param WC_Order $subscription  The subscription to find related orders.
-	 * @param array    $relation_type An array of relation types to fetch. Must be an array containing 'renewal', 'switch' or 'resubscribe' unless custom relationships are implemented.
+	 * @param array    $relation_types An array of relation types to fetch. Must be an array containing 'renewal', 'switch' or 'resubscribe' unless custom relationships are implemented.
 	 *
 	 * @return array An associative array where keys are relation types and values are arrays of related order IDs.
 	 */

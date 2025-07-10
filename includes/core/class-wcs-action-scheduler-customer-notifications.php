@@ -50,7 +50,7 @@ class WCS_Action_Scheduler_Customer_Notifications extends WCS_Scheduler {
 
 		add_action( 'woocommerce_before_subscription_object_save', [ $this, 'update_notifications' ], 10, 2 );
 
-		add_action( 'update_option_' . WC_Subscriptions_Admin::$option_prefix . WC_Subscriptions_Email_Notifications::$offset_setting_string, [ $this, 'set_time_offset_from_option' ], 5, 3 );
+		add_action( 'update_option_' . WC_Subscriptions_Admin::$option_prefix . WC_Subscriptions_Email_Notifications::$offset_setting_string, [ $this, 'set_time_offset_from_option' ], 5, 2 );
 		add_action( 'add_option_' . WC_Subscriptions_Admin::$option_prefix . WC_Subscriptions_Email_Notifications::$offset_setting_string, [ $this, 'set_time_offset_from_option' ], 5, 2 );
 	}
 

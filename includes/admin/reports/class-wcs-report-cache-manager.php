@@ -217,7 +217,16 @@ class WCS_Report_Cache_Manager {
 		// Load report class dependencies
 		require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 
-		$wc_core_dir = getenv( 'CI' ) ? ( getenv( 'WC_CORE_DIR' ) ? getenv( 'WC_CORE_DIR' ) : '/tmp/woocommerce' ) : WC()->plugin_path() . '/woocommerce';
+		$within_ci_environment = getenv( 'CI' );
+		$wc_core_dir_from_env  = getenv( 'WC_CORE_DIR' );
+
+		if ( $within_ci_environment && ! empty( $wc_core_dir_from_env ) ) {
+			$wc_core_dir = $wc_core_dir_from_env;
+		} elseif ( $within_ci_environment ) {
+			$wc_core_dir = '/tmp/woocommerce';
+		} else {
+			$wc_core_dir = WC()->plugin_path();
+		}
 
 		require_once( $wc_core_dir . '/includes/admin/reports/class-wc-admin-report.php' );
 

@@ -242,21 +242,65 @@ jQuery( function ( $ ) {
 		// Update the UTC timestamp sent to the server
 		date_pieces = $date_input.val().split( '-' );
 
+		var newTimeStampValue = moment( {
+			years: date_pieces[ 0 ],
+			months: date_pieces[ 1 ] - 1,
+			date: date_pieces[ 2 ],
+			hours: $hour_input.val(),
+			minutes: $minute_input.val(),
+			seconds: one_hour_from_now.format( 'ss' ),
+		} )
+			.utc()
+			.unix();
+
+
+		// Moment will return NaN if the date is invalid, that's why we need to check for NaN only.
+		if ( isNaN( newTimeStampValue ) ) {
+			wcsShowDateFieldError( date_type );
+		} else {
+			wcsHideDateFieldError( date_type );
+		}
+
+		// Intentionally do not prevent timestamp updates if the date is invalid.
+		// This way it's easier to catch invalid fields during submit event if attempted without editing invalid values.
 		$( '#' + date_type + '_timestamp_utc' ).val(
-			moment( {
-				years: date_pieces[ 0 ],
-				months: date_pieces[ 1 ] - 1,
-				date: date_pieces[ 2 ],
-				hours: $hour_input.val(),
-				minutes: $minute_input.val(),
-				seconds: one_hour_from_now.format( 'ss' ),
-			} )
-				.utc()
-				.unix()
+			newTimeStampValue
 		);
 
 		$( 'body' ).trigger( 'wcs-updated-date', date_type );
 	} );
+
+	function wcsShowDateFieldError( date_type ) {
+		var $fieldContainer = $( '#subscription-' + date_type + '-date' );
+		$fieldContainer.addClass( 'has-error' );
+		var $messageContainer = $fieldContainer.find( '.message' );
+		var $messageContent = $messageContainer.find( '.message-content' );
+		
+		// Clear and set content before showing to ensure screen readers announce the new message
+		$messageContent.text('');
+		$messageContainer.show();
+		
+		// Use setTimeout to ensure DOM update occurs before adding new text
+		setTimeout(function() {
+			// If the focus switched to the next field voice over skips announcing the error message.
+			// This is a workaround to ensure the error message is announced.
+			$fieldContainer
+				.find( `input#${date_type}` )
+				.trigger( 'focus' )
+				.trigger( 'blur' );
+			$messageContent.text( wcs_admin_meta_boxes.i18n_invalid_date_notice );
+		}, 100);
+	}
+
+	function wcsHideDateFieldError( date_type ) {
+		var $fieldContainer = $( '#subscription-' + date_type + '-date' );
+		$fieldContainer.removeClass( 'has-error' );
+		var $messageContainer = $fieldContainer.find( '.message' );
+		var $messageContent = $messageContainer.find( '.message-content' );
+		
+		$messageContainer.hide();
+		$messageContent.text('');
+	}
 
 	function zeroise( val ) {
 		return val > 9 ? val : '0' + val;
@@ -326,6 +370,26 @@ jQuery( function ( $ ) {
 		} );
 		return false;
 	}
+
+	$( 'body.post-type-shop_subscription #post, body.woocommerce_page_wc-orders--shop_subscription #order' ).on( 'submit', function ( evt ) {
+		var invalid_dates = [];
+		$( '.woocommerce-subscriptions.date-picker' ).each( function () {
+			var $date_input = $( this );
+			var date_type = $date_input.attr( 'id' );
+			var timestamp = $( '#' + date_type + '_timestamp_utc' ).val();
+			// At this point, timestamp is a string, not a number.
+			// We check for NaN only because everything else should be a valid timestamp set during the change event.
+			if ( timestamp === 'NaN' ) {
+				invalid_dates.push( date_type );
+			}
+		} );
+		
+		if ( invalid_dates.length > 0 ) {
+			// Focus the first invalid date to make it noticeable.
+			$( '#subscription-' + invalid_dates[0] + '-date' ).find( '.wcs-date-input input' ).first().focus();
+			return false;
+		}
+	} )
 
 	$( 'body.post-type-shop_subscription #post, body.woocommerce_page_wc-orders--shop_subscription #order' ).on( 'submit', function () {
 		if (

@@ -46,8 +46,8 @@ class WCS_Meta_Box_Schedule {
 	 *
 	 * @see woocommerce_process_shop_order_meta
 	 *
-	 * @param int                     $subscription_id The subscription ID to save the schedule for.
-	 * @param WC_Subscription/WP_Post $subscription    The subscription object to save the schedule for.
+	 * @param int             $subscription_id The subscription ID to save the schedule for.
+	 * @param WC_Subscription $subscription    The subscription object to save the schedule for.
 	 */
 	public static function save( $subscription_id, $subscription ) {
 
@@ -71,7 +71,8 @@ class WCS_Meta_Box_Schedule {
 			$subscription->set_billing_period( wc_clean( wp_unslash( $_POST['_billing_period'] ) ) );
 		}
 
-		$dates = array();
+		$dates         = array();
+		$invalid_dates = array();
 
 		foreach ( wcs_get_subscription_date_types() as $date_type => $date_label ) {
 			$date_key = wcs_normalise_date_type_key( $date_type );
@@ -91,7 +92,13 @@ class WCS_Meta_Box_Schedule {
 				continue;
 			}
 
-			$dates[ $date_key ] = gmdate( 'Y-m-d H:i:s', $datetime );
+			$timestamp = wcs_date_to_time( $datetime );
+
+			if ( null !== $timestamp ) {
+				$dates[ $date_key ] = $timestamp;
+			} else {
+				$invalid_dates[ $date_key ] = $datetime;
+			}
 		}
 
 		try {
@@ -101,10 +108,57 @@ class WCS_Meta_Box_Schedule {
 			if ( ! wcs_is_custom_order_tables_usage_enabled() ) {
 				wp_cache_delete( $subscription_id, 'posts' );
 			}
-		} catch ( Exception $e ) {
+
+			$subscription->save();
+
+			if ( ! empty( $invalid_dates ) ) {
+				$subscription_date_types = wcs_get_subscription_date_types();
+				$invalid_dates_labels    = array_map(
+					function ( $date_type ) use ( $subscription_date_types ) {
+						// Fallback to the date type key in case there is no translation string.
+						return isset( $subscription_date_types[ $date_type ] ) ? $subscription_date_types[ $date_type ] : $date_type;
+					},
+					array_keys( $invalid_dates )
+				);
+
+				$warning_message = sprintf(
+					// translators: 1$ is a comma-separated list of invalid dates fields like "Start Date", "Next Payment", 2$-3$: opening and closing <strong> tags.
+					__( 'Some subscription dates could not be updated because they contain invalid values: %2$s%1$s%3$s. Please correct these dates and save the changes.', 'woocommerce-subscriptions' ),
+					esc_html( implode( ', ', $invalid_dates_labels ) ),
+					'<strong>',
+					'</strong>'
+				);
+
+				wc_get_logger()->warning(
+					$warning_message,
+					array(
+						'subscription_id' => $subscription_id,
+						'invalid_dates'   => $invalid_dates,
+					)
+				);
+
+				wcs_add_admin_notice(
+					$warning_message,
+					'error', // There is no warning level for admin notices, so using error level.
+					get_current_user_id(),
+					get_current_screen()->id
+				);
+			}
+		} catch ( \Throwable $e ) {
+			// Log the error.
+			wc_get_logger()->error(
+				sprintf(
+					'Error updating subscription #%d: %s',
+					$subscription_id,
+					$e->getMessage(),
+				),
+				array(
+					'stack_trace' => $e->getTraceAsString(),
+				)
+			);
+
+			// Display an admin notice.
 			wcs_add_admin_notice( $e->getMessage(), 'error' );
 		}
-
-		$subscription->save();
 	}
 }

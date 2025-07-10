@@ -97,7 +97,8 @@ abstract class WCS_Background_Updater {
 		$this->schedule_background_update();
 
 		// If the update is being run via WP CLI, we don't need to worry about the request time, just the processing time for this method
-		$start_time = $this->is_wp_cli_request() ? gmdate( 'U' ) : WCS_INIT_TIMESTAMP;
+		// @phpstan-ignore constant.notFound
+		$start_time = $this->is_wp_cli_request() ? (int) gmdate( 'U' ) : WCS_INIT_TIMESTAMP;
 
 		do {
 
@@ -107,7 +108,7 @@ abstract class WCS_Background_Updater {
 
 				$this->update_item( $item );
 
-				$time_elapsed = ( gmdate( 'U' ) - $start_time );
+				$time_elapsed = (int) gmdate( 'U' ) - $start_time;
 
 				if ( $time_elapsed >= $this->time_limit ) {
 					break 2;
@@ -127,7 +128,7 @@ abstract class WCS_Background_Updater {
 	protected function schedule_background_update() {
 		// A timestamp is returned if there's a pending action already scheduled. Otherwise true if its running or false if one doesn't exist.
 		if ( ! is_numeric( as_next_scheduled_action( $this->scheduled_hook ) ) ) {
-			as_schedule_single_action( gmdate( 'U' ) + $this->time_limit, $this->scheduled_hook );
+			as_schedule_single_action( (int) gmdate( 'U' ) + $this->time_limit, $this->scheduled_hook );
 		}
 	}
 

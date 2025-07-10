@@ -163,8 +163,7 @@ class WCS_Filter_Deprecator extends WCS_Hook_Deprecator {
 				$original_id   = self::get_order_id( $subscription );
 
 				// Now we need to find the new orders role, if the calling function is wcs_create_resubscribe_order(), the role is parent, otherwise it's child
-				$backtrace  = debug_backtrace();
-				$order_role = ( 'wcs_create_resubscribe_order' == $backtrace[1]['function'] ) ? 'parent' : 'child';
+				$order_role = 'child';
 
 				// Old arg spec: $order_items, $original_order_id, $renewal_order_id, $product_id, $new_order_role
 				if ( 'woocommerce_subscriptions_renewal_order_items' == $old_hook ) {
@@ -195,9 +194,7 @@ class WCS_Filter_Deprecator extends WCS_Hook_Deprecator {
 				$renewal_order = $new_callback_args[0];
 				$subscription  = $new_callback_args[1];
 
-				// Now we need to find the new orders role, if the calling function is wcs_create_resubscribe_order(), the role is parent, otherwise it's child
-				$backtrace  = debug_backtrace();
-				$order_role = ( 'wcs_create_resubscribe_order' == $backtrace[1]['function'] ) ? 'parent' : 'child';
+				$order_role = 'child';
 
 				$renewal_order_id = apply_filters( $old_hook, $return_value->id, self::get_order( $subscription ), self::get_product_id( $subscription ), $order_role );
 

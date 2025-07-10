@@ -24,7 +24,7 @@ class WCS_Initial_Cart_Stock_Manager extends WCS_Renewal_Cart_Stock_Manager {
 		parent::attach_callbacks();
 
 		// The parent class attaches a filter not needed for initial carts. So we remove it and attach the parent order equivalent.
-		remove_action( 'wcs_before_renewal_setup_cart_subscription', 'WCS_Renewal_Cart_Stock_Manager::maybe_adjust_stock_cart', 10, 2 );
+		remove_action( 'wcs_before_renewal_setup_cart_subscription', 'WCS_Renewal_Cart_Stock_Manager::maybe_adjust_stock_cart', 10 );
 		add_action( 'wcs_before_parent_order_setup_cart', array( get_called_class(), 'maybe_adjust_stock_cart' ), 10, 2 );
 	}
 

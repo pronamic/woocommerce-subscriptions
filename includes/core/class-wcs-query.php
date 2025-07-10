@@ -117,7 +117,7 @@ class WCS_Query extends WC_Query {
 	/**
 	 * Insert the new endpoint into the My Account menu.
 	 *
-	 * @param array $items
+	 * @param array $menu_items
 	 * @return array
 	 */
 	public function add_menu_items( $menu_items ) {
@@ -281,8 +281,8 @@ class WCS_Query extends WC_Query {
 	/**
 	 * Add UI option for changing Subscription endpoints in WC settings
 	 *
-	 * @param mixed $account_settings
-	 * @return mixed $account_settings
+	 * @param mixed $settings
+	 * @return mixed $settings
 	 */
 	public function add_endpoint_account_settings( $settings ) {
 		$subscriptions_endpoint_setting = array(

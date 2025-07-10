@@ -1,5 +1,18 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-07-09 - version 7.7.0
+* Fix: Restores normal behavior for the report caching updates scheduled action, which was failing due to a bad filepath.
+* Fix: Fix error when placing an order with a valid card after using a declined one.
+* Fix: Fix order renewal errors when using some plugins. 
+* Fix: Prevent fatal errors when loading or deleting subscriptions with corrupted date values stored in a database.
+* Fix: Prevent fatal errors when trying to save invalid date values and display better error messages instead.
+* Fix: Fix broken blocks and javascript translations.
+* Fix: Keep newly created subscriptions in pending status when initial payment fails instead of putting them on hold.
+* Dev: Improve test suite bootstrap process by postponing interactions with Action Scheduler until it has fully initialized.
+* Dev: Plugin upgrade routines will now be triggered by changes in the main plugin version (and not the core library version).
+* Dev: Update wcs_is_paypal_profile_a() so it handles non-string parameters more gracefully. This is principally to reduce noise levels when running the test suite.
+* Dev: Proactively reviewed and hardened code to improve our security posture going forward.
+
 2025-06-11 - version 7.6.0
 * Update: Allow updating billing info on existing subscriptions when customer changes account details.
 * Fix: Use floats instead of integers for tax calculation in subscription switching when prices include tax.

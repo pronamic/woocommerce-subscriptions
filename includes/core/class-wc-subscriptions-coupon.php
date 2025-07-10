@@ -90,7 +90,7 @@ class WC_Subscriptions_Coupon {
 
 		add_filter( 'woocommerce_cart_totals_coupon_label', __CLASS__ . '::get_pseudo_coupon_label', 10, 2 );
 
-		add_filter( 'woocommerce_cart_totals_coupon_html', __CLASS__ . '::mark_recurring_coupon_in_initial_cart_for_hiding', 10, 3 );
+		add_filter( 'woocommerce_cart_totals_coupon_html', __CLASS__ . '::mark_recurring_coupon_in_initial_cart_for_hiding', 10, 2 );
 
 		add_filter( 'woocommerce_coupon_is_valid_for_product', array( __CLASS__, 'validate_subscription_coupon_for_product' ), 10, 3 );
 		add_filter( 'woocommerce_coupon_get_apply_quantity', array( __CLASS__, 'override_applied_quantity_for_recurring_carts' ), 10, 3 );
@@ -101,7 +101,7 @@ class WC_Subscriptions_Coupon {
 	* Mark such recurring coupons with a dummy span with class wcs-hidden-coupon so that it can be hidden.
 	*
 	* @param string $coupon_html Html string of the recurring coupon's cell in the Cart totals table
-	* @param WC_coupon $coupon WC_Coupon object of the recurring coupon
+	* @param WC_Coupon $coupon WC_Coupon object of the recurring coupon
 	* @return string $coupon_html Modified html string of the coupon containing the marking
 	* @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3
 	*/
@@ -300,6 +300,8 @@ class WC_Subscriptions_Coupon {
 			 * This is so rows with different tax rates get a fair discount, and so rows with no price (free) don't get discounted.
 			 *
 			 * BUT... we also need the subtotal to exclude non renewal products, so user the renewal subtotal
+			 *
+			 * @phpstan-ignore binaryOp.invalid
 			 */
 			$discount_percent = ( $discounting_amount * $cart_item['quantity'] ) / self::get_renewal_subtotal( wcs_get_coupon_property( $coupon, 'code' ) );
 
@@ -562,6 +564,7 @@ class WC_Subscriptions_Coupon {
 			 * @param WC_Coupon $coupon           The coupon object.
 			 * @param string    $coupon_type      The coupon's discount_type property.
 			 * @param string    $calculation_type The current calculation type.
+			 * @param WC_Cart   $cart             The cart object.
 			 */
 			if ( apply_filters( 'wcs_bypass_coupon_removal', false, $coupon, $coupon_type, $calculation_type, $cart ) ) {
 				continue;
@@ -925,6 +928,8 @@ class WC_Subscriptions_Coupon {
 
 	/**
 	 * Restores discount coupons which had been removed for special subscription calculations.
+	 *
+	 * @param WC_Cart $cart The cart object.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.5
 	 */

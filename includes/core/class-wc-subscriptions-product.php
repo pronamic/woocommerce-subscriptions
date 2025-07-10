@@ -61,8 +61,8 @@ class WC_Subscriptions_Product {
 		add_action( 'wp_scheduled_delete', __CLASS__ . '::prevent_scheduled_deletion', 9 );
 
 		// Trash variations instead of deleting them to prevent headaches from deleted products
-		add_action( 'wp_ajax_woocommerce_remove_variation', __CLASS__ . '::remove_variations', 9, 2 );
-		add_action( 'wp_ajax_woocommerce_remove_variations', __CLASS__ . '::remove_variations', 9, 2 );
+		add_action( 'wp_ajax_woocommerce_remove_variation', __CLASS__ . '::remove_variations', 9 );
+		add_action( 'wp_ajax_woocommerce_remove_variations', __CLASS__ . '::remove_variations', 9 );
 
 		// Handle bulk edits to subscription data in WC 2.4
 		add_action( 'woocommerce_bulk_edit_variations', __CLASS__ . '::bulk_edit_variations', 10, 4 );
@@ -202,7 +202,7 @@ class WC_Subscriptions_Product {
 	 * For example "$20 per Month for 3 Months with a $10 sign-up fee".
 	 *
 	 * @param WC_Product|int $product A WC_Product object or ID of a WC_Product.
-	 * @param array $inclusions An associative array of flags to indicate how to calculate the price and what to include, values:
+	 * @param array $include An associative array of flags to indicate how to calculate the price and what to include, values:
 	 *    'tax_calculation'     => false to ignore tax, 'include_tax' or 'exclude_tax' To indicate that tax should be added or excluded respectively
 	 *    'subscription_length' => true to include subscription's length (default) or false to exclude it
 	 *    'sign_up_fee'         => true to include subscription's sign up fee (default) or false to exclude it
@@ -537,7 +537,6 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param int|WC_Product $product The product instance or product/post ID of a subscription product.
 	 * @param mixed $from_date A MySQL formatted date/time string from which to calculate the expiration date, or empty (default), which will use today's date/time.
-	 * @param string $type The return format for the date, either 'mysql', or 'timezone'. Default 'mysql'.
 	 * @param string $timezone The timezone for the returned date, either 'site' for the site's timezone, or 'gmt'. Default, 'site'.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
@@ -560,7 +559,6 @@ class WC_Subscriptions_Product {
 	 *
 	 * @param int|WC_Product $product The product instance or product/post ID of a subscription product.
 	 * @param mixed $from_date A MySQL formatted date/time string from which to calculate the expiration date, or empty (default), which will use today's date/time.
-	 * @param string $type The return format for the date, either 'mysql', or 'timezone'. Default 'mysql'.
 	 * @param string $timezone The timezone for the returned date, either 'site' for the site's timezone, or 'gmt'. Default, 'site'.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
@@ -816,14 +814,14 @@ class WC_Subscriptions_Product {
 	public static function prevent_scheduled_deletion() {
 		global $wpdb;
 
-		$query = "UPDATE $wpdb->postmeta
-					INNER JOIN $wpdb->posts ON $wpdb->postmeta.post_id = $wpdb->posts.ID
-					SET $wpdb->postmeta.meta_key = '_wc_trash_meta_time'
-					WHERE $wpdb->postmeta.meta_key = '_wp_trash_meta_time'
-					AND $wpdb->posts.post_type IN ( 'product', 'product_variation')
-					AND $wpdb->posts.post_status = 'trash'";
-
-		$wpdb->query( $query );
+		$wpdb->query(
+			"UPDATE $wpdb->postmeta
+				INNER JOIN $wpdb->posts ON $wpdb->postmeta.post_id = $wpdb->posts.ID
+				SET $wpdb->postmeta.meta_key = '_wc_trash_meta_time'
+				WHERE $wpdb->postmeta.meta_key = '_wp_trash_meta_time'
+				AND $wpdb->posts.post_type IN ( 'product', 'product_variation')
+				AND $wpdb->posts.post_status = 'trash'"
+		);
 	}
 
 	/**
@@ -842,12 +840,12 @@ class WC_Subscriptions_Product {
 		if ( isset( $_POST['variation_id'] ) ) { // removing single variation
 
 			check_ajax_referer( 'delete-variation', 'security' );
-			$variation_ids = array( $_POST['variation_id'] );
+			$variation_ids = array( wc_clean( wp_unslash( $_POST['variation_id'] ) ) );
 
 		} else {  // removing multiple variations
 
 			check_ajax_referer( 'delete-variations', 'security' );
-			$variation_ids = (array) $_POST['variation_ids'];
+			$variation_ids = (array) wc_clean( wp_unslash( $_POST['variation_ids'] ) );
 
 		}
 
@@ -910,7 +908,7 @@ class WC_Subscriptions_Product {
 			return;
 		} else {
 			// Since 2.5 we have the product type information available so we don't have to wait for the product to be saved to check if it is a subscription
-			if ( empty( $_POST['security'] ) || ! wp_verify_nonce( $_POST['security'], 'bulk-edit-variations' ) || 'variable-subscription' !== $_POST['product_type'] ) {
+			if ( empty( $_POST['security'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['security'] ) ), 'bulk-edit-variations' ) || 'variable-subscription' !== $_POST['product_type'] ) {
 				return;
 			}
 		}
@@ -936,8 +934,10 @@ class WC_Subscriptions_Product {
 
 				if ( '%' === substr( $value, -1 ) ) {
 					$percent = wc_format_decimal( substr( $value, 0, -1 ) );
+					// @phpstan-ignore binaryOp.invalid
 					$subscription_price += ( ( $subscription_price / 100 ) * $percent ) * "{$operator}1";
 				} else {
+					// @phpstan-ignore binaryOp.invalid
 					$subscription_price += $value * "{$operator}1";
 				}
 
@@ -987,7 +987,7 @@ class WC_Subscriptions_Product {
 
 		check_admin_referer( 'one_time_shipping', 'nonce' );
 
-		$product                = wc_get_product( $_POST['product_id'] );
+		$product                = wc_get_product( wc_clean( wp_unslash( $_POST['product_id'] ) ) );
 		$is_synced_or_has_trial = false;
 
 		if ( WC_Subscriptions_Product::is_subscription( $product ) ) {
@@ -1028,15 +1028,15 @@ class WC_Subscriptions_Product {
 
 		check_admin_referer( 'one_time_shipping', 'nonce' );
 
-		$one_time_shipping_enabled      = $_POST['one_time_shipping_enabled'];
-		$one_time_shipping_selected     = $_POST['one_time_shipping_selected'];
+		$one_time_shipping_enabled      = wc_clean( wp_unslash( $_POST['one_time_shipping_enabled'] ) );
+		$one_time_shipping_selected     = wc_clean( wp_unslash( $_POST['one_time_shipping_selected'] ) );
 		$subscription_one_time_shipping = 'no';
 
 		if ( 'false' !== $one_time_shipping_enabled && 'true' === $one_time_shipping_selected ) {
 			$subscription_one_time_shipping = 'yes';
 		}
 
-		update_post_meta( $_POST['product_id'], '_subscription_one_time_shipping', $subscription_one_time_shipping );
+		update_post_meta( wc_clean( wp_unslash( $_POST['product_id'] ) ), '_subscription_one_time_shipping', $subscription_one_time_shipping );
 
 		wp_send_json( array( 'one_time_shipping' => $subscription_one_time_shipping ) );
 	}
@@ -1148,7 +1148,7 @@ class WC_Subscriptions_Product {
 	/**
 	 * Get an array of parent IDs from a potential child product, used to determine if a product belongs to a group.
 	 *
-	 * @param WC_Product The product object to get parents from.
+	 * @param WC_Product $product The product object to get parents from.
 	 * @return array Parent IDs
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.4
 	 */
@@ -1159,12 +1159,13 @@ class WC_Subscriptions_Product {
 		if ( wcs_is_woocommerce_pre( '3.0' ) && isset( $product->post->post_parent ) ) {
 			$parent_product_ids[] = $product->get_parent();
 		} else {
-			$parent_product_ids = $wpdb->get_col( $wpdb->prepare(
-				"SELECT post_id
-				FROM {$wpdb->prefix}postmeta
-				WHERE meta_key = '_children' AND meta_value LIKE '%%i:%d;%%'",
-				$product->get_id()
-			) );
+			$parent_product_ids = $wpdb->get_col(
+				$wpdb->prepare(
+					// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery
+					"SELECT post_id FROM {$wpdb->prefix}postmeta WHERE meta_key = '_children' AND meta_value LIKE '%%i:%d;%%'",
+					$product->get_id()
+				)
+			);
 		}
 
 		return $parent_product_ids;
@@ -1175,7 +1176,7 @@ class WC_Subscriptions_Product {
 	 *
 	 * Unlike @see WC_Subscriptions_Product::get_parent_ids(), this function will return parent products which still exist, are visible and are a grouped product.
 	 *
-	 * @param WC_Product The product object to get parents from.
+	 * @param WC_Product $product The product object to get parents from.
 	 * @return array The product's grouped parent IDs.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.0
 	 */
@@ -1254,7 +1255,6 @@ class WC_Subscriptions_Product {
 	/**
 	 * Check if the current session has an order awaiting payment for a subscription to a specific product line item.
 	 *
-	 * @return 2.0.13
 	 * @return bool
 	 **/
 	protected static function order_awaiting_payment_for_product( $product_id ) {

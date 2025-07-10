@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Returns a PayPal Subscription ID or Billing Agreement ID use to process payment for a given subscription or order.
  *
- * @param int The ID of a WC_Order or WC_Subscription object
+ * @param int|object $order The ID of a WC_Order or WC_Subscription object
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_paypal_id( $order ) {
@@ -32,8 +32,8 @@ function wcs_get_paypal_id( $order ) {
 /**
  * Stores a PayPal Standard Subscription ID or Billing Agreement ID in the post meta of a given order and the user meta of the order's user.
  *
- * @param int|object A WC_Order or WC_Subscription object or the ID of a WC_Order or WC_Subscription object
- * @param string A PayPal Standard Subscription ID or Express Checkout Billing Agreement ID
+ * @param int|WC_Order|WC_Subscription $order A WC_Order or WC_Subscription object or the ID of a WC_Order or WC_Subscription object
+ * @param string $paypal_subscription_id A PayPal Standard Subscription ID or Express Checkout Billing Agreement ID
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_set_paypal_id( $order, $paypal_subscription_id ) {
@@ -65,6 +65,8 @@ function wcs_set_paypal_id( $order, $paypal_subscription_id ) {
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_is_paypal_profile_a( $profile_id, $profile_type ) {
+	$profile_id   = (string) $profile_id;
+	$profile_type = (string) $profile_type;
 
 	if ( 'billing_agreement' === $profile_type && 'B-' == substr( $profile_id, 0, 2 ) ) {
 		$is_a = true;
@@ -160,9 +162,8 @@ function wcs_calculate_paypal_trial_periods_until( $future_timestamp ) {
  * like from WC_Subscriptions_Product::is_purchasable() and WC_Product_Subscription_Variation::is_purchasable(),
  * both of which are called within WC_Cart::get_cart_from_session(), which is run before query vars are setup.
  *
- * @return 2.0.13
  * @return bool
  **/
 function wcs_is_paypal_api_page() {
-	return ( false !== strpos( $_SERVER['REQUEST_URI'], 'wc-api/wcs_paypal' ) );
+	return ( false !== strpos( wc_clean( wp_unslash( $_SERVER['REQUEST_URI'] ) ), 'wc-api/wcs_paypal' ) );
 }

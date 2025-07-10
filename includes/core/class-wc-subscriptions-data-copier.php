@@ -157,6 +157,7 @@ class WC_Subscriptions_Data_Copier {
 		 * }
 		 * @param WC_Order $from_object The object to copy data from.
 		 * @param WC_Order $to_object   The object to copy data to.
+		 * @param string   $copy_type   The type of copy. Can be 'subscription', 'parent', 'renewal_order' or 'resubscribe_order'.
 		 */
 		$data = apply_filters( 'wc_subscriptions_object_data', $data, $this->to_object, $this->from_object, $this->copy_type );
 
@@ -376,6 +377,9 @@ class WC_Subscriptions_Data_Copier {
 		}
 
 		if ( $this->has_filter_on_meta_query_hook() ) {
+			$data_copier_to_object = $this->to_object;
+			$data_copier_from_object = $this->from_object;
+
 			/**
 			 * Filters the data to be copied from one object to another.
 			 *
@@ -388,10 +392,10 @@ class WC_Subscriptions_Data_Copier {
 			 * @deprecated subscriptions-core 2.5.0
 			 *
 			 * @param string   $meta_query        The SQL query to fetch the meta data to be copied.
-			 * @param WC_Order $this->to_object   The object to copy data to.
-			 * @param WC_Order $this->from_object The object to copy data from.
+			 * @param WC_Order $data_copier_to_object   The object to copy data to.
+			 * @param WC_Order $data_copier_from_object The object to copy data from.
 			 */
-			$meta_query = apply_filters( "wcs_{$this->copy_type}_meta_query", $meta_query, $this->to_object, $this->from_object );
+			$meta_query = apply_filters( "wcs_{$this->copy_type}_meta_query", $meta_query, $data_copier_to_object, $data_copier_from_object );
 			wcs_deprecated_hook( "wcs_{$this->copy_type}_meta_query", 'subscriptions-core 2.5.0', "wc_subscriptions_{$this->copy_type}_data" );
 		}
 
@@ -424,6 +428,9 @@ class WC_Subscriptions_Data_Copier {
 
 		wcs_deprecated_hook( "wcs_{$this->copy_type}_meta", 'wcs-core 2.5.0', "wc_subscriptions_{$this->copy_type}_data" );
 
+		$data_copier_to_object = $this->to_object;
+		$data_copier_from_object = $this->from_object;
+
 		/**
 		 * Filters the data to be copied from one object to another.
 		 *
@@ -445,10 +452,10 @@ class WC_Subscriptions_Data_Copier {
 		 *          @type mixed  $meta_value The meta value to be copied.
 		 *     }
 		 * }
-		 * @param WC_Order $this->to_object   The object to copy data to.
-		 * @param WC_Order $this->from_object The object to copy data from.
+		 * @param WC_Order $data_copier_to_object   The object to copy data to.
+		 * @param WC_Order $data_copier_from_object The object to copy data from.
 		 */
-		$data_array = apply_filters( "wcs_{$this->copy_type}_meta", $data_array, $this->to_object, $this->from_object );
+		$data_array = apply_filters( "wcs_{$this->copy_type}_meta", $data_array, $data_copier_to_object, $data_copier_from_object );
 
 		// Return the data to a key => value format.
 		return wp_list_pluck( $data_array, 'meta_value', 'meta_key' );

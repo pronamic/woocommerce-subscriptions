@@ -317,7 +317,7 @@ class WCS_Customer_Store_Cached_CPT extends WCS_Customer_Store_CPT implements WC
 	/**
 	 * Run the update for a single item.
 	 *
-	 * @param mixed $item The item to update.
+	 * @param mixed $user_id The user ID to update.
 	 */
 	public function update_items_cache( $user_id ) {
 		// Getting the subscription IDs also sets the cache when it's not already set

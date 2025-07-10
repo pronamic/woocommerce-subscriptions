@@ -98,7 +98,7 @@ abstract class WCS_Background_Repairer extends WCS_Background_Upgrader {
 	 */
 	protected function update_item( $item ) {
 		// Schedule the individual repair actions to run in 1 hr to give us the best chance at scheduling all the actions before they start running and clogging up the queue.
-		as_schedule_single_action( gmdate( 'U' ) + HOUR_IN_SECONDS, $this->repair_hook, array( 'repair_object' => $item ) );
+		as_schedule_single_action( (int) gmdate( 'U' ) + HOUR_IN_SECONDS, $this->repair_hook, array( 'repair_object' => $item ) );
 		unset( $this->items_to_repair[ $item ] );
 	}
 

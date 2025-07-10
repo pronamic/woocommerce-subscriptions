@@ -98,7 +98,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 		} elseif (
 			! wcs_cart_contains_renewal() &&
 			! WC_Subscriptions_Cart::cart_contains_subscription() &&
-			( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) )
+			( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( wc_clean( wp_unslash( $_GET['order_id'] ) ) ) )
 		) {
 			return $available_gateways;
 		}
@@ -114,8 +114,6 @@ class WC_Subscriptions_Core_Payment_Gateways {
 
 	/**
 	 * Check the content of the cart and add required payment methods.
-	 *
-	 * @param array $features of required features for the cart checkout.
 	 *
 	 * @return array list of features required by cart items.
 	 */
@@ -327,7 +325,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	 *
 	 * @param string $title   Widget title.
 	 * @param array $instance Array of widget data.
-	 * @param string $widget  ID/name of the widget being displayed.
+	 * @param string $widget_id  ID/name of the widget being displayed.
 	 *
 	 * @return string
 	 */
@@ -346,7 +344,7 @@ class WC_Subscriptions_Core_Payment_Gateways {
 	 *
 	 * @param string $title   Widget title.
 	 * @param array $instance Array of widget data.
-	 * @param string $widget  ID/name of the widget being displayed.
+	 * @param string $widget_id  ID/name of the widget being displayed.
 	 *
 	 * @return string
 	 */

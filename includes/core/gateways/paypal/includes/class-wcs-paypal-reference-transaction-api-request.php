@@ -675,7 +675,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 		 *
 		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.3.0
 		 * @param bool $skip_line_items True if line items should be skipped, false otherwise
-		 * @param WC_Order/null $order The WC_Order object or null.
+		 * @param WC_Order|null $order The WC_Order object or null.
 		 */
 		return apply_filters( 'wcs_paypal_reference_transaction_skip_line_items', $skip_line_items, $order );
 	}

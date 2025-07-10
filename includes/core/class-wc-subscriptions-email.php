@@ -45,7 +45,7 @@ class WC_Subscriptions_Email {
 		add_action( 'woocommerce_subscriptions_email_order_details', __CLASS__ . '::order_download_details', 10, 4 );
 		add_action( 'woocommerce_subscriptions_email_order_details', __CLASS__ . '::order_details', 10, 4 );
 
-		add_action( 'woocommerce_subscription_status_pending-cancel_to_active', __CLASS__ . '::maybe_clear_cancelled_email_flag', 10, 4 );
+		add_action( 'woocommerce_subscription_status_pending-cancel_to_active', __CLASS__ . '::maybe_clear_cancelled_email_flag', 10 );
 	}
 
 	/**
@@ -102,9 +102,9 @@ class WC_Subscriptions_Email {
 			return;
 		}
 
-		add_action( 'woocommerce_subscription_status_updated', __CLASS__ . '::send_cancelled_email', 10, 2 );
-		add_action( 'woocommerce_subscription_status_expired', __CLASS__ . '::send_expired_email', 10, 2 );
-		add_action( 'woocommerce_customer_changed_subscription_to_on-hold', __CLASS__ . '::send_on_hold_email', 10, 2 );
+		add_action( 'woocommerce_subscription_status_updated', __CLASS__ . '::send_cancelled_email', 10 );
+		add_action( 'woocommerce_subscription_status_expired', __CLASS__ . '::send_expired_email', 10 );
+		add_action( 'woocommerce_customer_changed_subscription_to_on-hold', __CLASS__ . '::send_on_hold_email', 10 );
 		add_action( 'woocommerce_subscriptions_switch_completed', __CLASS__ . '::send_switch_order_email', 10 );
 
 		foreach ( $order_email_actions as $action ) {
@@ -268,7 +268,7 @@ class WC_Subscriptions_Email {
 	 * @param WC_Order $order
 	 * @param bool $sent_to_admin Whether the email is sent to admin - defaults to false
 	 * @param bool $plain_text Whether the email should use plain text templates - defaults to false
-	 * @param WC_Email $email
+	 * @param string $email
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
 	 */
 	public static function order_details( $order, $sent_to_admin = false, $plain_text = false, $email = '' ) {
@@ -336,8 +336,8 @@ class WC_Subscriptions_Email {
 	/**
 	 * Detach WC transactional emails from a specific hook.
 	 *
-	 * @param string Optional. The action hook or filter to detach WC core's transactional emails from. Defaults to the current filter.
-	 * @param int Optional. The priority the function runs on. Default 10.
+	 * @param string $hook Optional. The action hook or filter to detach WC core's transactional emails from. Defaults to the current filter.
+	 * @param int $priority Optional. The priority the function runs on. Default 10.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.3
 	 */
 	public static function detach_woocommerce_transactional_email( $hook = '', $priority = 10 ) {
@@ -354,9 +354,9 @@ class WC_Subscriptions_Email {
 	/**
 	 * Attach WC transactional emails to a specific hook.
 	 *
-	 * @param string Optional. The action hook or filter to attach WC core's transactional emails to. Defaults to the current filter.
-	 * @param int Optional. The priority the function should run on. Default 10.
-	 * @param int Optional. The number of arguments the function accepts. Default 10.
+	 * @param string $hook Optional. The action hook or filter to attach WC core's transactional emails to. Defaults to the current filter.
+	 * @param int $priority Optional. The priority the function should run on. Default 10.
+	 * @param int $accepted_args Optional. The number of arguments the function accepts. Default 10.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.3
 	 */
 	public static function attach_woocommerce_transactional_email( $hook = '', $priority = 10, $accepted_args = 10 ) {
@@ -378,7 +378,7 @@ class WC_Subscriptions_Email {
 	 * @param WC_Order $order
 	 * @param bool $sent_to_admin Whether the email is sent to admin - defaults to false
 	 * @param bool $plain_text Whether the email should use plain text templates - defaults to false
-	 * @param WC_Email $email
+	 * @param string $email
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.17
 	 */
 	public static function order_download_details( $order, $sent_to_admin = false, $plain_text = false, $email = '' ) {

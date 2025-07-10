@@ -116,7 +116,7 @@ class WC_Subscriptions_Checkout {
 	 * The function doesn't validate whether the cart item is a subscription product, meaning it can be used for any cart item,
 	 * but the item will need a `subscription_period` and `subscription_period_interval` value set on it, at a minimum.
 	 *
-	 * @param WC_Order $order
+	 * @param WC_Subscription $order
 	 * @param WC_Cart $cart
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
@@ -152,6 +152,7 @@ class WC_Subscriptions_Checkout {
 			}
 
 			// Set the subscription's billing and shipping address
+			/** @var WC_Subscription $subscription */
 			$subscription = wcs_copy_order_address( $order, $subscription );
 
 			$subscription->update_dates(
@@ -336,7 +337,7 @@ class WC_Subscriptions_Checkout {
 	/**
 	 * Remove the Backordered meta data from subscription line items added on the checkout.
 	 *
-	 * @param WC_Order_Item_Product $order_item
+	 * @param WC_Order_Item_Product $item
 	 * @param string $cart_item_key The hash used to identify the item in the cart
 	 * @param array $cart_item The cart item's data.
 	 * @param WC_Order|WC_Subscription $subscription The order or subscription object to which the line item relates
@@ -451,9 +452,9 @@ class WC_Subscriptions_Checkout {
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.10
 	 *
-	 * @param WC_Line_Item_Product $line_item     The line item added to the order/subscription.
-	 * @param string               $cart_item_key The key of the cart item being added to the cart.
-	 * @param array                $cart_item     The cart item data.
+	 * @param WC_Order_Item_Product $line_item     The line item added to the order/subscription.
+	 * @param string                $cart_item_key The key of the cart item being added to the cart.
+	 * @param array                 $cart_item     The cart item data.
 	 */
 	public static function store_line_item_base_location_taxes( $line_item, $cart_item_key, $cart_item ) {
 		if ( isset( $cart_item['_subtracted_base_location_taxes'] ) ) {
@@ -671,6 +672,7 @@ class WC_Subscriptions_Checkout {
 		$switch_items     = wcs_cart_contains_switches();
 		$renewal_item     = wcs_cart_contains_renewal();
 		$resubscribe_item = wcs_cart_contains_resubscribe();
+		$subscription_id  = null;
 
 		if ( ! $switch_items && ! $renewal_item && ! $resubscribe_item ) {
 			return $ship_to_different_address;

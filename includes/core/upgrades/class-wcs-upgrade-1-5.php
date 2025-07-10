@@ -26,16 +26,20 @@ class WCS_Upgrade_1_5 {
 	public static function upgrade_products() {
 		global $wpdb;
 
-		$sql = "SELECT DISTINCT ID FROM {$wpdb->posts} as posts
-			JOIN {$wpdb->postmeta} as postmeta
-				ON posts.ID = postmeta.post_id
-				AND (postmeta.meta_key LIKE '_subscription%')
-			JOIN  {$wpdb->postmeta} AS soldindividually
-				ON posts.ID = soldindividually.post_id
-				AND ( soldindividually.meta_key LIKE '_sold_individually' AND soldindividually.meta_value !=  'yes' )
-			WHERE posts.post_type = 'product'";
-
-		$subscription_product_ids = $wpdb->get_results( $sql );
+		$subscription_product_ids = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT DISTINCT ID FROM {$wpdb->posts} as posts
+				JOIN {$wpdb->postmeta} as postmeta
+					ON posts.ID = postmeta.post_id
+					AND (postmeta.meta_key LIKE %s)
+				JOIN  {$wpdb->postmeta} AS soldindividually
+					ON posts.ID = soldindividually.post_id
+					AND ( soldindividually.meta_key LIKE %s AND soldindividually.meta_value !=  'yes' )
+				WHERE posts.post_type = 'product'",
+				$wpdb->esc_like( '_subscription' ) . '%',
+				$wpdb->esc_like( '_sold_individually' )
+			)
+		);
 
 		foreach ( $subscription_product_ids as $product_id ) {
 			update_post_meta( $product_id->ID, '_sold_individually', 'yes' );

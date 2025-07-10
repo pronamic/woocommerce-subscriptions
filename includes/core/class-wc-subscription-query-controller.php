@@ -75,8 +75,8 @@ class WC_Subscription_Query_Controller {
 	/**
 	 * Filters the subscription query results by product ID or variation ID.
 	 *
-	 * @param WC_Subscriptions[] $subscriptions
-	 * @return WC_Subscriptions[] The filtered subscriptions.
+	 * @param WC_Subscription[] $subscriptions
+	 * @return WC_Subscription[] The filtered subscriptions.
 	 */
 	public function filter_subscriptions( $subscriptions ) {
 		$filtered_subscriptions = [];

@@ -61,6 +61,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php else : ?>
 			<?php echo esc_html( $the_subscription->get_date_to_display( $internal_date_key ) ); ?>
 		<?php endif; ?>
+		<div class="message" aria-live="assertive" aria-atomic="true" role="alert" style="display: none;">
+			<span class="screen-reader-text"><?php esc_html_e( 'Error:', 'woocommerce-subscriptions' ); ?></span>
+			<span class="message-content"></span>
+		</div>
 	</div>
 	<?php endforeach; ?>
 	<p><?php esc_html_e( 'Timezone:', 'woocommerce-subscriptions' ); ?> <span id="wcs-timezone"><?php esc_html_e( 'Error: unable to find timezone of your browser.', 'woocommerce-subscriptions' ); ?></span></p>

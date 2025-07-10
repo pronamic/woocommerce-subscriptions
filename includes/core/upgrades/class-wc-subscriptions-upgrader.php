@@ -8,18 +8,38 @@
  * the data be upgraded to the new schema without hassle. A hassle could easily occur if 100,000 orders were being
  * modified - memory exhaustion, script time out etc.
  *
+ * ⚠️ Since 7.7.0, when triggering migrations and upgrade routines we should reference self::$active_plugin_version
+ *    (which corresponds with the actual plugin version) and not self::$active_core_library_version (which is the
+ *    Subscriptions Core library version, and therefore a historic side-effect of a time when development was split
+ *    across two repositories).
+ *
  * @author      Prospress
  * @category    Admin
  * @package     WooCommerce Subscriptions/Admin/Upgrades
  * @version     1.0.0 - Migrated from WooCommerce Subscriptions v2.0.0
  * @since       1.0.0 - Migrated from WooCommerce Subscriptions v1.2
+ * @since       7.7.0 Added support for upgrades based on the plugin version number, as opposed to the core library version number.
  */
 class WC_Subscriptions_Upgrader {
+	/**
+	 * @var   string The database-persisted version number of the Subscriptions Core framework. Retained to support historic migrations.
+	 * @since 7.7.0
+	 */
+	private static string $stored_core_library_version;
 
 	/**
-	 * @var string The database version of Subscriptions.
+	 * @var   string The database-persisted version number of WooCommerce Subscriptions.
+	 * @since 7.7.0
 	 */
-	private static $active_version;
+	private static string $stored_plugin_version;
+
+	/**
+	 * Indicates if plugin upgrade routines should potentially be triggered.
+	 *
+	 * @var   bool
+	 * @since 7.7.0
+	 */
+	private static bool $plugin_upgrades_may_be_needed = false;
 
 	/**
 	 * @var string The minimum supported version that this class can upgrade from.
@@ -27,9 +47,18 @@ class WC_Subscriptions_Upgrader {
 	private static $minimum_supported_version = '3.0';
 
 	/**
+	 * Indicates if core library upgrade routines should potentially be triggered.
+	 *
+	 * @var   bool
+	 * @since 7.7.0
+	 */
+	private static bool $core_library_upgrades_may_be_needed = false;
+
+	/**
 	 * @var array An array of WCS_Background_Updater objects used to run upgrade scripts in the background.
 	 */
 	protected static $background_updaters = array();
+
 
 	/**
 	 * Deprecated variables.
@@ -49,12 +78,14 @@ class WC_Subscriptions_Upgrader {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function init() {
-		self::$active_version = get_option( WC_Subscriptions_Admin::$option_prefix . '_active_version', '0' );
-		self::$about_page_url = admin_url( 'admin.php?page=wc-admin' );
-		$version_out_of_date  = version_compare( self::$active_version, WC_Subscriptions_Core_Plugin::instance()->get_library_version(), '<' );
+		self::$stored_core_library_version         = (string) get_option( WC_Subscriptions_Admin::$option_prefix . '_active_version', '0' );
+		self::$stored_plugin_version               = (string) get_option( WC_Subscriptions::PLUGIN_VERSION_OPTION_NAME, '0' );
+		self::$about_page_url                      = admin_url( 'admin.php?page=wc-admin' );
+		self::$plugin_upgrades_may_be_needed       = version_compare( self::$stored_plugin_version, WC_Subscriptions::$version, '<' );
+		self::$core_library_upgrades_may_be_needed = version_compare( self::$stored_core_library_version, WC_Subscriptions_Core_Plugin::instance()->get_library_version(), '<' );
 
 		// Show warning that upgrades are no longer supported.
-		if ( '0' !== self::$active_version && version_compare( self::$active_version, self::$minimum_supported_version, '<=' ) ) {
+		if ( '0' !== self::$stored_core_library_version && version_compare( self::$stored_core_library_version, self::$minimum_supported_version, '<=' ) ) {
 			add_action(
 				'admin_notices',
 				function () {
@@ -64,7 +95,7 @@ class WC_Subscriptions_Upgrader {
 			return;
 		}
 
-		if ( @current_user_can( 'activate_plugins' ) && $version_out_of_date ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors
+		if ( @current_user_can( 'activate_plugins' ) && ( self::$plugin_upgrades_may_be_needed || self::$core_library_upgrades_may_be_needed ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors
 			// Run upgrades as soon as admin hits site
 			add_action( 'wp_loaded', [ __CLASS__, 'upgrade' ], 11 );
 		}
@@ -78,16 +109,53 @@ class WC_Subscriptions_Upgrader {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function upgrade() {
-		global $wpdb;
-
-		update_option( WC_Subscriptions_Admin::$option_prefix . '_previous_version', self::$active_version );
+		update_option( WC_Subscriptions_Admin::$option_prefix . '_previous_version', self::$stored_core_library_version );
+		update_option( WC_Subscriptions::PLUGIN_VERSION_OPTION_NAME . '_previous', self::$stored_plugin_version );
 
 		/**
-		 * before upgrade hook.
+		 * Runs before the plugin upgrade process begins.
+		 *
+		 * Note that, since 7.7.0, the plugin version and active plugin version are the values we are most intereted in.
+		 * The core library and active core library version numbers are retained to support migrations from historic
+		 * versions of the plugin.
+		 *
+		 * @since 7.7.0 Added $plugin_version and $active_plugin_version.
+		 *
+		 * @param string $core_library_version        The current Subscriptions Core library version number.
+		 * @param string $stored_core_library_version The database-persisted Subscriptions Core library version number (what we are updating from).
+		 * @param string $plugin_version              The current plugin version number.
+		 * @param string $stored_plugin_version       The database-persisted plugin version number (what we are updating from).
 		 */
-		do_action( 'woocommerce_subscriptions_before_upgrade', WC_Subscriptions_Core_Plugin::instance()->get_library_version(), self::$active_version );
+		do_action(
+			'woocommerce_subscriptions_before_upgrade',
+			WC_Subscriptions_Core_Plugin::instance()->get_library_version(),
+			self::$stored_core_library_version,
+			WC_Subscriptions::$version,
+			self::$stored_plugin_version,
+		);
 
-		if ( '0' === self::$active_version ) {
+		if ( self::$core_library_upgrades_may_be_needed ) {
+			self::legacy_core_library_upgrades();
+		}
+
+		self::plugin_upgrades();
+		self::upgrade_complete();
+	}
+
+	/**
+	 * This method contains migrations for changes introduced before WooCommerce Subscriptions 7.7.0.
+	 *
+	 * The version numbers tested here are core library version numbers. For any new migrations or upgrade routines,
+	 * we should use the actual plugin version number. This boils down to one simple rule:
+	 *
+	 * ⚠️ New migrations/upgrade routines should not be added to this method.
+	 *
+	 * @return void
+	 */
+	private static function legacy_core_library_upgrades(): void {
+		global $wpdb;
+
+		if ( '0' === self::$stored_core_library_version ) {
 			// Update the hold stock notification to be one week (if it's still at the default 60 minutes) to prevent cancelling subscriptions using manual renewals and payment methods that can take more than 1 hour (i.e. PayPal eCheck)
 			$hold_stock_duration = get_option( 'woocommerce_hold_stock_minutes' );
 
@@ -106,39 +174,53 @@ class WC_Subscriptions_Upgrader {
 		}
 
 		// Delete old subscription period string ranges transients.
-		if ( version_compare( self::$active_version, '3.0.10', '<' ) ) {
+		if ( version_compare( self::$stored_core_library_version, '3.0.10', '<' ) ) {
 			$deleted_rows = $wpdb->query( "DELETE FROM {$wpdb->options} WHERE `option_name` LIKE '_transient_timeout_wcs-sub-ranges-%' OR `option_name` LIKE '_transient_wcs-sub-ranges-%'" );
 		}
 
 		// When upgrading from version 3.0.12, delete `switch_totals_calc_base_length` meta from product post meta as it was saved rather than set in memory.
-		if ( version_compare( self::$active_version, '3.0.12', '==' ) ) {
+		if ( version_compare( self::$stored_core_library_version, '3.0.12', '==' ) ) {
 			$deleted_rows = $wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE `meta_key` = '_switch_totals_calc_base_length'" );
 		}
 
-		if ( version_compare( self::$active_version, '3.1.0', '<' ) ) {
+		if ( version_compare( self::$stored_core_library_version, '3.1.0', '<' ) ) {
 			// Upon upgrading to 3.1.0 from a version after 3.0.10, repair subscriptions _subtracted_base_location_tax line item meta.
-			if ( version_compare( self::$active_version, '3.0.10', '>=' ) ) {
+			if ( version_compare( self::$stored_core_library_version, '3.0.10', '>=' ) ) {
 				self::$background_updaters['3.1']['subtracted_base_tax_repair']->schedule_repair();
 			}
 
 			WCS_Upgrade_3_1_0::migrate_subscription_webhooks_using_api_version_3();
 		}
 
-		if ( version_compare( self::$active_version, '6.8.0', '<' ) ) {
+		if ( version_compare( self::$stored_core_library_version, '6.8.0', '<' ) ) {
 			// Upon upgrading to 6.8.0 delete the 'wcs_cleanup_big_logs' WP Cron job that is no longer used.
 			wp_unschedule_hook( 'wcs_cleanup_big_logs' );
 		}
 
-		if ( version_compare( self::$active_version, '8.0.0', '<' ) ) {
+		if ( version_compare( self::$stored_core_library_version, '8.0.0', '<' ) ) {
 			// As of Subscriptions 7.2.0 (Core 8.0.0), admin notices are stored one transient per-user.
 			delete_transient( '_wcs_admin_notices' );
 		}
 
-		if ( version_compare( self::$active_version, '8.3.0', '<' ) ) {
+		if ( version_compare( self::$stored_core_library_version, '8.3.0', '<' ) ) {
 			WCS_Upgrade_8_3_0::migrate_subscription_email_templates();
 		}
+	}
 
-		self::upgrade_complete();
+	/**
+	 * Plugin upgrades should be triggered from this method.
+	 *
+	 * Here is an example of doing some work when the user updates to 8.0.0:
+	 *
+	 *     if ( version_compare( self::$stored_plugin_version, '8.0.0', '<' ) ) {
+	 *         self::do_something_when_updating_to_8_0_0();
+	 *     }
+	 *
+	 * @return void
+	 */
+	private static function plugin_upgrades(): void {
+		// This method is currently just a placeholder. Once we're ready to add a migration in a future release, this
+		// comment can of course be deleted.
 	}
 
 	/**
@@ -148,7 +230,29 @@ class WC_Subscriptions_Upgrader {
 	 */
 	public static function upgrade_complete() {
 		update_option( WC_Subscriptions_Admin::$option_prefix . '_active_version', WC_Subscriptions_Core_Plugin::instance()->get_library_version() );
-		do_action( 'woocommerce_subscriptions_upgraded', WC_Subscriptions_Core_Plugin::instance()->get_library_version(), self::$active_version );
+		update_option( WC_Subscriptions::PLUGIN_VERSION_OPTION_NAME, WC_Subscriptions::$version );
+
+		/**
+		 * Runs after plugin upgrades have been set in motion.
+		 *
+		 * Note that, since 7.7.0, the plugin version and active plugin version are the values we are most interested in.
+		 * The core library and active core library version numbers are retained only to support migrations from historic
+		 * versions of the plugin.
+		 *
+		 * @since 7.7.0 Added $plugin_version and $active_plugin_version.
+		 *
+		 * @param string $core_library_version        The current Subscriptions Core library version number.
+		 * @param string $stored_core_library_version The database-persisted Subscriptions Core library version number (what we are updating from).
+		 * @param string $plugin_version              The current plugin version number.
+		 * @param string $stored_plugin_version       The database-persisted plugin version number (what we are updating from).
+		 */
+		do_action(
+			'woocommerce_subscriptions_upgraded',
+			WC_Subscriptions_Core_Plugin::instance()->get_library_version(),
+			self::$stored_core_library_version,
+			WC_Subscriptions::$version,
+			self::$stored_plugin_version,
+		);
 	}
 
 	/**
@@ -216,7 +320,7 @@ class WC_Subscriptions_Upgrader {
 		// If WC hasn't run the update routine yet we can hook into theirs to update subscriptions, otherwise we'll need to schedule our own update.
 		if ( version_compare( get_option( 'woocommerce_db_version' ), '3.5.0', '<' ) ) {
 			self::$background_updaters['2.4']['subscription_post_author']->hook_into_wc_350_update();
-		} elseif ( version_compare( self::$active_version, '2.4.0', '<' ) ) {
+		} elseif ( version_compare( self::$stored_core_library_version, '2.4.0', '<' ) ) {
 			self::$background_updaters['2.4']['subscription_post_author']->schedule_repair();
 		}
 	}
@@ -244,7 +348,7 @@ class WC_Subscriptions_Upgrader {
 		wcs_deprecated_function( __METHOD__, '1.2.0' );
 
 		// If there's no downgrade, exit early. self::$active_version is a bit of a misnomer here but in an upgrade context it refers to the database version of the plugin.
-		if ( ! version_compare( wcs_get_minor_version_string( self::$active_version ), wcs_get_minor_version_string( WC_Subscriptions_Core_Plugin::instance()->get_library_version() ), '>' ) ) {
+		if ( ! version_compare( wcs_get_minor_version_string( self::$stored_core_library_version ), wcs_get_minor_version_string( WC_Subscriptions_Core_Plugin::instance()->get_library_version() ), '>' ) ) {
 			return;
 		}
 
@@ -255,7 +359,7 @@ class WC_Subscriptions_Upgrader {
 				esc_html__( '%1$sWarning!%2$s It appears that you have downgraded %1$sWooCommerce Subscriptions%2$s from %3$s to %4$s. Downgrading the plugin in this way may cause issues. Please update to %3$s or higher, or %5$sopen a new support ticket%6$s for further assistance. %7$sLearn more &raquo;%8$s', 'woocommerce-subscriptions' ),
 				'<strong>',
 				'</strong>',
-				'<code>' . self::$active_version . '</code>',
+				'<code>' . self::$stored_core_library_version . '</code>',
 				'<code>' . WC_Subscriptions_Core_Plugin::instance()->get_library_version() . '</code>',
 				'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">',
 				'</a>',
@@ -338,7 +442,7 @@ class WC_Subscriptions_Upgrader {
 	private static function ajax_upgrade_handler() {
 		wcs_deprecated_function( __METHOD__, 'subscriptions-core 7.7.0' );
 
-		$_GET['wcs_upgrade_step'] = ( ! isset( $_GET['wcs_upgrade_step'] ) ) ? 0 : $_GET['wcs_upgrade_step'];
+		$_GET['wcs_upgrade_step'] = ( ! isset( $_GET['wcs_upgrade_step'] ) ) ? 0 : wc_clean( wp_unslash( $_GET['wcs_upgrade_step'] ) );
 
 		switch ( (int) $_GET['wcs_upgrade_step'] ) {
 			case 1:
@@ -375,7 +479,7 @@ class WC_Subscriptions_Upgrader {
 
 		self::set_upgrade_limits();
 
-		WCS_Upgrade_Logger::add( sprintf( 'Starting upgrade step: %s', $_POST['upgrade_step'] ) );
+		WCS_Upgrade_Logger::add( sprintf( 'Starting upgrade step: %s', wc_clean( wp_unslash( $_POST['upgrade_step'] ) ) ) );
 
 		if ( ini_get( 'max_execution_time' ) < 600 ) {
 			@set_time_limit( 600 );
@@ -428,7 +532,7 @@ class WC_Subscriptions_Upgrader {
 
 				} catch ( Exception $e ) {
 
-					WCS_Upgrade_Logger::add( sprintf( 'Error on upgrade step: %s. Error: %s', $_POST['upgrade_step'], $e->getMessage() ) );
+					WCS_Upgrade_Logger::add( sprintf( 'Error on upgrade step: %s. Error: %s', wc_clean( wp_unslash( $_POST['upgrade_step'] ) ), $e->getMessage() ) );
 
 					$results = array(
 						'upgraded_count' => 0,
@@ -474,7 +578,7 @@ class WC_Subscriptions_Upgrader {
 
 				} catch ( Exception $e ) {
 
-					WCS_Upgrade_Logger::add( sprintf( 'Error on upgrade step: %s. Error: %s', $_POST['upgrade_step'], $e->getMessage() ) );
+					WCS_Upgrade_Logger::add( sprintf( 'Error on upgrade step: %s. Error: %s', wc_clean( wp_unslash( $_POST['upgrade_step'] ) ), $e->getMessage() ) );
 
 					$results = array(
 						'repaired_count'   => 0,
@@ -501,9 +605,10 @@ class WC_Subscriptions_Upgrader {
 			}
 		}
 
-		WCS_Upgrade_Logger::add( sprintf( 'Completed upgrade step: %s', $_POST['upgrade_step'] ) );
+		WCS_Upgrade_Logger::add( sprintf( 'Completed upgrade step: %s', wc_clean( wp_unslash( $_POST['upgrade_step'] ) ) ) );
 
 		header( 'Content-Type: application/json; charset=utf-8' );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo wcs_json_encode( $results );
 		exit();
 	}
@@ -517,7 +622,7 @@ class WC_Subscriptions_Upgrader {
 	private static function upgrade_really_old_versions() {
 		wcs_deprecated_function( __METHOD__, 'subscriptions-core 7.7.0' );
 
-		if ( '0' != self::$active_version && version_compare( self::$active_version, '1.2', '<' ) ) {
+		if ( '0' !== self::$stored_core_library_version && version_compare( self::$stored_core_library_version, '1.2', '<' ) ) {
 			WCS_Upgrade_1_2::init();
 			self::generate_renewal_orders();
 			update_option( WC_Subscriptions_Admin::$option_prefix . '_active_version', '1.2' );
@@ -525,14 +630,14 @@ class WC_Subscriptions_Upgrader {
 		}
 
 		// Add Variable Subscription product type term
-		if ( '0' != self::$active_version && version_compare( self::$active_version, '1.3', '<' ) ) {
+		if ( '0' !== self::$stored_core_library_version && version_compare( self::$stored_core_library_version, '1.3', '<' ) ) {
 			WCS_Upgrade_1_3::init();
 			update_option( WC_Subscriptions_Admin::$option_prefix . '_active_version', '1.3' );
 			$upgraded_versions .= '1.3 & ';
 		}
 
 		// Moving subscription meta out of user meta and into item meta
-		if ( '0' != self::$active_version && version_compare( self::$active_version, '1.4', '<' ) ) {
+		if ( '0' !== self::$stored_core_library_version && version_compare( self::$stored_core_library_version, '1.4', '<' ) ) {
 			WCS_Upgrade_1_4::init();
 			update_option( WC_Subscriptions_Admin::$option_prefix . '_active_version', '1.4' );
 			$upgraded_versions .= '1.4.';
@@ -700,7 +805,7 @@ class WC_Subscriptions_Upgrader {
 	public static function admin_css() {
 		wcs_deprecated_function( __METHOD__, 'subscriptions-core 7.7.0' );
 
-		wp_enqueue_style( 'woocommerce-subscriptions-about', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'assets/css/about.css' ), array(), self::$active_version );
+		wp_enqueue_style( 'woocommerce-subscriptions-about', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'assets/css/about.css' ), array(), self::$stored_core_library_version );
 	}
 
 	/**
@@ -719,7 +824,7 @@ class WC_Subscriptions_Upgrader {
 	public static function about_screen() {
 		wcs_deprecated_function( __METHOD__, 'subscriptions-core 7.7.0' );
 
-		$active_version = self::$active_version;
+		$active_version = self::$stored_core_library_version;
 		$settings_page  = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
 
 		include_once( dirname( __FILE__ ) . '/templates/wcs-about.php' );
@@ -765,11 +870,11 @@ class WC_Subscriptions_Upgrader {
 
 		$query = self::get_subscription_query();
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$wpdb->get_results( $query );
 
 		return $wpdb->num_rows;
 	}
-
 
 	/**
 	 * Single source of truth for the query
@@ -782,30 +887,34 @@ class WC_Subscriptions_Upgrader {
 
 		if ( null === $batch_size ) {
 			$select = 'SELECT DISTINCT items.order_item_id';
-			$limit = '';
+			$limit  = '';
 		} else {
 			$select = 'SELECT meta.*, items.*';
-			$limit = sprintf( ' LIMIT 0, %d', $batch_size );
+			$limit  = sprintf( ' LIMIT 0, %d', $batch_size );
 		}
 
-		$query = sprintf( "%s FROM `{$wpdb->prefix}woocommerce_order_itemmeta` AS meta
-			LEFT JOIN `{$wpdb->prefix}woocommerce_order_items` AS items USING (order_item_id)
-			LEFT JOIN (
-				SELECT a.order_item_id FROM `{$wpdb->prefix}woocommerce_order_itemmeta` AS a
+		$query = sprintf(
+			"%s FROM `{$wpdb->prefix}woocommerce_order_itemmeta` AS meta
+				LEFT JOIN `{$wpdb->prefix}woocommerce_order_items` AS items USING (order_item_id)
 				LEFT JOIN (
-					SELECT `{$wpdb->prefix}woocommerce_order_itemmeta`.order_item_id FROM `{$wpdb->prefix}woocommerce_order_itemmeta`
-					WHERE `{$wpdb->prefix}woocommerce_order_itemmeta`.meta_key = '_subscription_status'
-				) AS s
-				USING (order_item_id)
-				WHERE 1=1
-				AND a.order_item_id = s.order_item_id
-				AND a.meta_key = '_subscription_start_date'
-				ORDER BY CASE WHEN CAST(a.meta_value AS DATETIME) IS NULL THEN 1 ELSE 0 END, CAST(a.meta_value AS DATETIME) ASC
-				%s
-			) AS a3 USING (order_item_id)
-			WHERE meta.meta_key REGEXP '_subscription_(.*)|_product_id|_variation_id'
-			AND meta.order_item_id = a3.order_item_id
-			AND items.order_item_id IS NOT NULL", $select, $limit );
+					SELECT a.order_item_id FROM `{$wpdb->prefix}woocommerce_order_itemmeta` AS a
+					LEFT JOIN (
+						SELECT `{$wpdb->prefix}woocommerce_order_itemmeta`.order_item_id FROM `{$wpdb->prefix}woocommerce_order_itemmeta`
+						WHERE `{$wpdb->prefix}woocommerce_order_itemmeta`.meta_key = '_subscription_status'
+					) AS s
+					USING (order_item_id)
+					WHERE 1=1
+					AND a.order_item_id = s.order_item_id
+					AND a.meta_key = '_subscription_start_date'
+					ORDER BY CASE WHEN CAST(a.meta_value AS DATETIME) IS NULL THEN 1 ELSE 0 END, CAST(a.meta_value AS DATETIME) ASC
+					%s
+				) AS a3 USING (order_item_id)
+				WHERE meta.meta_key REGEXP '_subscription_(.*)|_product_id|_variation_id'
+				AND meta.order_item_id = a3.order_item_id
+				AND items.order_item_id IS NOT NULL",
+			$select,
+			$limit
+		);
 
 		return $query;
 	}
@@ -908,7 +1017,7 @@ class WC_Subscriptions_Upgrader {
 		$action      = 'wcs_external_cache_warning';
 
 		// First, check if the notice is being dismissed.
-		if ( isset( $_GET[ $action ], $_GET[ $nonce ] ) && wp_verify_nonce( $_GET[ $nonce ], $action ) ) {
+		if ( isset( $_GET[ $action ], $_GET[ $nonce ] ) && wp_verify_nonce( wc_clean( wp_unslash( $_GET[ $nonce ] ) ), $action ) ) {
 			delete_option( $option_name );
 			return;
 		}

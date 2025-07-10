@@ -71,7 +71,7 @@ class WCS_PayPal_Admin {
 	 */
 	public static function maybe_check_account() {
 
-		if ( isset( $_GET['wcs_paypal'] ) && 'check_reference_transaction_support' === $_GET['wcs_paypal'] && wp_verify_nonce( $_GET['_wpnonce'], __CLASS__ ) ) {
+		if ( isset( $_GET['wcs_paypal'] ) && 'check_reference_transaction_support' === $_GET['wcs_paypal'] && wp_verify_nonce( wc_clean( wp_unslash( $_GET['_wpnonce'] ) ), __CLASS__ ) ) {
 
 			$redirect_url = remove_query_arg( array( 'wcs_paypal', '_wpnonce' ) );
 
@@ -237,7 +237,7 @@ class WCS_PayPal_Admin {
 	public static function maybe_update_credentials_error_flag() {
 
 		// Check if the API credentials are being saved - we can't do this on the 'woocommerce_update_options_payment_gateways_paypal' hook because it is triggered after 'admin_notices'
-		if ( ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'woocommerce-settings' ) && isset( $_POST['woocommerce_paypal_api_username'] ) || isset( $_POST['woocommerce_paypal_api_password'] ) || isset( $_POST['woocommerce_paypal_api_signature'] ) ) {
+		if ( ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( wc_clean( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'woocommerce-settings' ) && ( isset( $_POST['woocommerce_paypal_api_username'] ) || isset( $_POST['woocommerce_paypal_api_password'] ) || isset( $_POST['woocommerce_paypal_api_signature'] ) ) ) {
 
 			$credentials_updated = false;
 

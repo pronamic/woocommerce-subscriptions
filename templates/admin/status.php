@@ -19,7 +19,10 @@ if ( ! isset( $debug_data ) || ! is_array( $debug_data ) ) {
 	<tr>
 		<th colspan="3" data-export-label="<?php echo esc_attr( $section_title ); ?>">
 			<h2><?php echo esc_html( $section_title ); ?>
-				<?php echo wcs_help_tip( $section_tooltip ); ?>
+				<?php
+					// @phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo wcs_help_tip( $section_tooltip );
+				?>
 			</h2></th>
 	</tr>
 	</thead>
@@ -44,7 +47,7 @@ if ( ! isset( $debug_data ) || ! is_array( $debug_data ) ) {
 		}
 		?>
 		<tr class="<?php echo sanitize_html_class( $section ); ?>">
-			<td data-export-label="<?php echo esc_attr( $data['label'] ) ?>"><?php echo esc_html( $data['name'] ) ?>:</td>
+			<td data-export-label="<?php echo esc_attr( $data['label'] ); ?>"><?php echo esc_html( $data['name'] ); ?>:</td>
 			<td class="help">&nbsp;</td>
 			<td>
 				<?php

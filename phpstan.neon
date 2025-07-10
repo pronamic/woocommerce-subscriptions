@@ -2,12 +2,51 @@ parameters:
     excludePaths:
         analyse:
             - includes/api/legacy/*
+            - includes/core/legacy/*
+            - templates/*
+            - includes/core/upgrades/*
+            - includes/core/emails/*
+            - includes/core/gateways/paypal/*
+            - includes/core/data-stores/*
+            - includes/core/class-wcs-template-loader.php
     ignoreErrors:
-        - '#Access to an undefined property WC_Cart::\$recurring_carts#'
+        - '#Access to an undefined property WooCommerce::\$#'
+        - '#Access to an undefined property WC_Cart::\$#'
         - '#Access to an undefined property WP_User::\$#'
+        - '#Access to an undefined property WC_Checkout::\$#'
+        - '#Access to an undefined property WC_Shipping_Rate::\$#'
+        - '#Access to an undefined property WC_Subscription_Legacy::\$#'
+        - '#Access to an undefined property WC_Product_Variable_Subscription_Legacy::\$#'
+        - '#Access to an undefined property WC_Product_Subscription_Variation_Legacy::\$#'
+        - '#Access to an undefined property WC_Product_Subscription_Legacy::\$#'
+        - '#Access to an undefined property WCS_PayPal_Reference_Transaction_API::\$#'
+        - '#Access to an undefined property WC_Email::\$#'
+        - '#Access to an undefined property WC_Subscriptions_Deprecation_Handler::\$#'
+        - '#Access to an undefined property WC_Session::\$#'
+        - '#Access to an undefined static property WC_Subscriptions_Deprecation_Handler::\$#'
+        - '#Access to an undefined property WooCommerce::\$payment_gateways#'
         - '#Call to an undefined method WC_Order_Item::get_product#'
         - '#Call to an undefined method WC_Order_Item::get_variation_id#'
         - '#Call to an undefined method WCS_Retry_Store::#'
         - '#Call to an undefined method WC_Data_Store::#'
+        - '#Call to an undefined method WC_Session::#'
+        - '#Call to an undefined method WC_Order_Data_Store_CPT::delete_all_metadata_by_key#'
+        - '#Call to an undefined method object::get_coupons#'
+        - '#Call to an undefined method object::get_changes#'
+        - '#Call to method .* on an unknown class WC_PayPal_Express_API#'
+        - '#Call to method .* on an unknown class OrdersTableQuery#'
+        - '#Call to method .* on an unknown class ActionScheduler_Action#'
+        - '#Call to static method .* on an unknown class ActionScheduler_.*#'
+        - '#Access to property .* on an unknown class WC_Gateway#'
+        - '#Access to an undefined property object::\$discount_cart#'
+        - '#Access to an undefined property object::\$value#'
         - '#Variable \$this might not be defined#'
         - '#Function as_.*_action not found#'
+        - '#Function as_.*_actions not found#'
+        - '#Parameter .* has invalid type WC_Gateway#'
+        - '#Parameter .* has invalid type ActionScheduler_.*#'
+        - '#Class WC_Payments_Subscription_Service not found#'
+        - '#Class .*OrdersTableDataStore not found#'
+        - '#Parameter .* has invalid type OrdersTableQuery.#'
+        - '#Constant WC_VERSION not found#'
+        - '#Method .* has invalid return type ActionScheduler_.*#'

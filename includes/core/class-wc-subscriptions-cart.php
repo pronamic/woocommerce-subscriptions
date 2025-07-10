@@ -502,7 +502,6 @@ class WC_Subscriptions_Cart {
 	 * This is attached as a callback to hooks triggered whenever a product is removed from the cart.
 	 *
 	 * @param $cart_item_key string The key for a cart item about to be removed from the cart.
-	 * @return null
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.15
 	 */
 	public static function maybe_reset_chosen_shipping_methods( $cart_item_key ) {
@@ -1131,7 +1130,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Checks the cart to see if it contains a specific product.
 	 *
-	 * @param int The product ID or variation ID to look for.
+	 * @param int $product_id The product ID or variation ID to look for.
 	 * @return bool Whether the product is in the cart.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.13
 	 */
@@ -1154,7 +1153,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Checks the cart to see if it contains any subscription product other than a specific product.
 	 *
-	 * @param int The product ID or variation ID other than which to look for.
+	 * @param int $product_id The product ID or variation ID other than which to look for.
 	 * @return bool Whether another subscription product is in the cart.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.5
 	 */
@@ -1252,7 +1251,7 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Allow third-parties to apply fees which apply to the cart to recurring carts.
 	 *
-	 * @param WC_Cart
+	 * @param WC_Cart $cart
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.16
 	 */
 	public static function apply_recurring_fees( $cart ) {
@@ -1367,7 +1366,7 @@ class WC_Subscriptions_Cart {
 	 * @param array  $available_methods set of shipping rates for this calculation
 	 * @param int    $package_index WC doesn't pass the package index to callbacks on the 'woocommerce_shipping_chosen_method' filter (yet) so we set a default value of 0 for it in the function params
 	 *
-	 * @return $default_method
+	 * @return string
 	 */
 	public static function set_chosen_shipping_method( $default_method, $available_methods, $package_index = 0 ) {
 		$chosen_methods             = WC()->session->get( 'chosen_shipping_methods', array() );
@@ -1409,8 +1408,8 @@ class WC_Subscriptions_Cart {
 			return $url;
 		}
 
-		$quantity   = isset( $_REQUEST['quantity'] ) ? $_REQUEST['quantity'] : 1;
-		$product_id = $_REQUEST['add-to-cart'];
+		$quantity   = isset( $_REQUEST['quantity'] ) ? wc_clean( wp_unslash( $_REQUEST['quantity'] ) ) : 1;
+		$product_id = wc_clean( wp_unslash( $_REQUEST['add-to-cart'] ) );
 
 		$add_to_cart_notice = wc_add_to_cart_message( array( $product_id => $quantity ), true, true );
 
@@ -1497,12 +1496,15 @@ class WC_Subscriptions_Cart {
 	 *
 	 * Returns the cart_item containing the product renewal, else false.
 	 *
+	 * @param string $role The role of the cart item to check for.
+	 * @return array|false The cart item containing the renewal, else false.
+	 *
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3
 	 */
 	public static function cart_contains_subscription_renewal( $role = '' ) {
 		_deprecated_function( __METHOD__, '2.0', 'wcs_cart_contains_renewal( $role )' );
-		return wcs_cart_contains_renewal( $role );
+		return wcs_cart_contains_renewal();
 	}
 
 	/**
@@ -1590,8 +1592,8 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Returns individual coupon's formatted discount amount for WooCommerce 2.1+
 	 *
-	 * @param string $discount_html String of the coupon's discount amount
-	 * @param string $coupon WC_Coupon object for the coupon to which this line item relates
+	 * @param string $cart_totals_fee_html String of the coupon's discount amount
+	 * @param string $fee WC_Coupon object for the coupon to which this line item relates
 	 * @return string formatted subscription price string if the cart includes a coupon being applied to recurring amount
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4.6
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
@@ -1695,6 +1697,8 @@ class WC_Subscriptions_Cart {
 	public static function get_cart_subscription_period() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
 
+		$period = '';
+
 		if ( self::cart_contains_subscription() ) {
 			foreach ( WC()->cart->cart_contents as $cart_item ) {
 				if ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
@@ -1717,6 +1721,8 @@ class WC_Subscriptions_Cart {
 	 */
 	public static function get_cart_subscription_interval() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
+
+		$interval = 0;
 
 		foreach ( WC()->cart->cart_contents as $cart_item ) {
 			if ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
@@ -2110,6 +2116,8 @@ class WC_Subscriptions_Cart {
 	public static function calculate_recurring_shipping() {
 		_deprecated_function( __METHOD__, '2.0', 'values from WC()->cart->recurring_carts' );
 
+		$recurring_total = 0;
+
 		foreach ( WC()->cart->recurring_carts as $cart ) {
 			$recurring_total = $cart->shipping_total;
 		}
@@ -2302,8 +2310,8 @@ class WC_Subscriptions_Cart {
 	/**
 	 * Return a localized free trial period string.
 	 *
-	 * @param int An interval in the range 1-6
-	 * @param string One of day, week, month or year.
+	 * @param int $number An interval in the range 1-6
+	 * @param string $period One of day, week, month or year.
 	 */
 	public static function format_free_trial_period( $number, $period ) {
 		if ( 'day' === $period ) {
@@ -2399,6 +2407,8 @@ class WC_Subscriptions_Cart {
 				}
 				break;
 		}
+
+		return '';
 	}
 	/**
 	 * Adds meta data so it can be displayed in the Cart.
@@ -2456,7 +2466,7 @@ class WC_Subscriptions_Cart {
 	 * sends the shipping methods with a numerical index.
 	 *
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
-	 * @return null
+	 * @return void
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.12
 	 */
 	public static function add_shipping_method_post_data() {
@@ -2467,7 +2477,7 @@ class WC_Subscriptions_Cart {
 
 		check_ajax_referer( 'update-order-review', 'security' );
 
-		parse_str( $_POST['post_data'], $form_data );
+		parse_str( wc_clean( wp_unslash( $_POST['post_data'] ) ), $form_data );
 
 		// In case we have only free trials/sync'd products in the cart and shipping methods aren't being displayed
 		if ( ! isset( $_POST['shipping_method'] ) ) {

@@ -53,7 +53,7 @@ final class WCS_Debug_Tool_Factory {
 	/**
 	 * Get the string used to identify the tool.
 	 *
-	 * @param string The name of the cache tool being created
+	 * @param string $tool_name The name of the cache tool being created
 	 * @return string The key used to identify the tool - sanitized name with wcs_ prefix.
 	 */
 	protected static function get_tool_key( $tool_name ) {

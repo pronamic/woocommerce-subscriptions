@@ -332,7 +332,7 @@ class WC_Subscription extends WC_Order {
 
 		switch ( $new_status ) {
 			case 'pending':
-				if ( $this->has_status( array( 'auto-draft', 'draft' ) ) ) {
+				if ( $this->has_status( array( 'auto-draft', 'draft', 'on-hold' ) ) ) {
 					$can_be_updated = true;
 				} else {
 					$can_be_updated = false;
@@ -358,7 +358,7 @@ class WC_Subscription extends WC_Order {
 				break;
 			case 'failed': // core WC order status mapped internally to avoid exceptions
 			case 'on-hold':
-				if ( $this->payment_method_supports( 'subscription_suspension' ) && $this->has_status( array( 'active', 'pending' ) ) ) {
+				if ( $this->payment_method_supports( 'subscription_suspension' ) && $this->has_status( array( 'active' ) ) ) {
 					$can_be_updated = true;
 				} else {
 					$can_be_updated = false;
@@ -420,11 +420,12 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * @param string $new_status Status to change the order to. No internal wc- prefix is required.
 	 * @param string $note (default: '') Optional note to add
+	 * @return bool
 	 */
 	public function update_status( $new_status, $note = '', $manual = false ) {
 
 		if ( ! $this->get_id() ) {
-			return;
+			return false;
 		}
 
 		// Standardise status names.
@@ -574,6 +575,8 @@ class WC_Subscription extends WC_Order {
 				throw $e;
 			}
 		}
+
+		return true;
 	}
 
 	/**
@@ -662,9 +665,9 @@ class WC_Subscription extends WC_Order {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param string $new_status The new status.
-	 * @param string $note       Optional. The note to add to the subscription.
-	 * @param bool   $manual     Optional. Is the status change triggered manually? Default is false.
+	 * @param string $new_status    The new status.
+	 * @param string $note          Optional. The note to add to the subscription.
+	 * @param bool   $manual_update Optional. Is the status change triggered manually? Default is false.
 	 */
 	public function set_status( $new_status, $note = '', $manual_update = false ) {
 		if ( ! $this->object_read && in_array( $new_status, [ 'draft', 'auto-draft' ], true ) ) {
@@ -1191,7 +1194,7 @@ class WC_Subscription extends WC_Order {
 	 * Used for WC 3.0 compatibility and for WC_Subscription_Legacy to override.
 	 *
 	 * @param string $date_type 'trial_end', 'next_payment', 'cancelled', 'payment_retry' or 'end'
-	 * @param string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
+	 * @param string|integer|null $value UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
 	 */
 	protected function set_date_prop( $date_type, $value ) {
 		parent::set_date_prop( $this->get_date_prop_key( $date_type ), $value );
@@ -1323,7 +1326,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Formats a subscription date timestamp for display.
 	 *
-	 * @param int    $timestamp The subscription date in a timestamp format.
+	 * @param int    $timestamp_gmt The subscription date in a timestamp format.
 	 * @param string $date_type The subscription date type to display. @see WC_Subscription::get_valid_date_types()
 	 *
 	 * @return string The formatted date to display.
@@ -1385,14 +1388,67 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Set the dates on the subscription.
 	 *
-	 * Because dates are interdependent on each other, this function will take an array of dates, make sure that all
-	 * dates are in the right order in the right format, that there is at least something to update.
+	 * This method is more strict than update_valid_dates() in that it will throw an exception if any of the dates are not in the correct format or are not compatible with the current subscription dates.
+	 *
+	 * @see update_valid_dates() for a more permissive alternative that allows ignoring invalid dates.
 	 *
 	 * @param array $dates array containing dates with keys: 'date_created', 'trial_end', 'next_payment', 'last_order_date_created' or 'end'. Values are MySQL formatted date/time strings in UTC timezone.
 	 * @param string $timezone The timezone of the $datetime param. Default 'gmt'.
+	 * @return bool True if the dates were updated, false otherwise.
+	 * @throws InvalidArgumentException if the dates are not in the correct format or are not compatible with the current subscription dates.
 	 */
-	public function update_dates( $dates, $timezone = 'gmt' ) {
-		$dates = $this->validate_date_updates( $dates, $timezone );
+	public function update_dates( $dates, $timezone = 'gmt' ): bool {
+		return $this->flexible_update_dates(
+			$dates,
+			array(
+				'timezone'             => $timezone,
+				'ignore_invalid_dates' => false,
+			)
+		);
+	}
+
+	/**
+	 * Set the dates on the subscription.
+	 *
+	 * This method is more permissive than update_dates() in that it will ignore invalid date values and save only valid values.
+	 * It still throws an exception if the date values are in the wrong order.
+	 *
+	 * @see update_dates() for a more strict alternative that will throw an exception if any of the dates are not in the correct format or are not compatible with the current subscription dates.
+	 *
+	 * @param array $dates array containing dates with keys: 'date_created', 'trial_end', 'next_payment', 'last_order_date_created' or 'end'. Values are MySQL formatted date/time strings in UTC timezone.
+	 * @param string $timezone The timezone of the $datetime param. Default 'gmt'.
+	 * @return bool True if the dates were updated, false otherwise.
+	 * @throws InvalidArgumentException if the dates are not in the correct format or are not compatible with the current subscription dates.
+	 *
+	 * @since 7.7.0 More permissive alternative to update_dates().
+	 */
+	public function update_valid_dates( $dates, $timezone = 'gmt' ): bool {
+		return $this->flexible_update_dates(
+			$dates,
+			array(
+				'timezone'             => $timezone,
+				'ignore_invalid_dates' => true,
+			)
+		);
+	}
+
+	/**
+	 * Set the dates on the subscription.
+	 *
+	 * Because dates are interdependent on each other, this function will take an array of dates,
+	 * make sure that all dates are in the right order in the right format, and that there is at least something to update.
+	 *
+	 * @param array $dates array containing dates with keys: 'date_created', 'trial_end', 'next_payment', 'last_order_date_created' or 'end'. Values are MySQL formatted date/time strings in UTC timezone.
+	 * @param array $validation_options array containing the following validation options:
+	 * - timezone: The timezone of the $datetime param. Default 'gmt'.
+	 * - ignore_invalid_dates: Whether to ignore invalid dates. Default false. When invalid date is ignored, the current value stored on subscription (if any) is used instead.
+	 * @return bool True if the dates were updated, false otherwise.
+	 * @throws InvalidArgumentException if the dates are not in the correct format or are not compatible with the current subscription dates.
+	 *
+	 * @since 7.7.0 Shared logic for update_dates() and update_valid_dates().
+	 */
+	private function flexible_update_dates( $dates, $validation_options = array() ): bool {
+		$dates = $this->prepare_dates_for_update( $dates, $validation_options );
 
 		// If an exception hasn't been thrown by this point, we can safely update the dates
 		$is_updated = false;
@@ -1454,6 +1510,8 @@ class WC_Subscription extends WC_Order {
 				do_action( 'woocommerce_subscription_date_updated', $this, $date_type, $datetime );
 			}
 		}
+
+		return $is_updated;
 	}
 
 	/**
@@ -1907,11 +1965,12 @@ class WC_Subscription extends WC_Order {
 	 * Process payment on the subscription, which mainly means processing it for the last order on the subscription.
 	 *
 	 * @param $transaction_id string Optional transaction id to store in post meta
+	 * @return bool
 	 */
 	public function payment_complete( $transaction_id = '' ) {
 
 		if ( WC_Subscriptions_Change_Payment_Gateway::$is_request_to_change_payment ) {
-			return;
+			return false;
 		}
 
 		// Clear the cached renewal payment counts, kept here for backward compat even though it's also reset in $this->process_payment_complete()
@@ -1927,12 +1986,14 @@ class WC_Subscription extends WC_Order {
 		}
 
 		$this->payment_complete_for_order( $last_order );
+
+		return true;
 	}
 
 	/**
 	 * When payment is completed for a related order, reset any renewal related counters and reactive the subscription.
 	 *
-	 * @param WC_Order $order
+	 * @param WC_Order $last_order
 	 */
 	public function payment_complete_for_order( $last_order ) {
 
@@ -2370,6 +2431,7 @@ class WC_Subscription extends WC_Order {
 					if ( is_a( $payment_method, 'WC_Payment_Gateway' ) ) {
 						$payment_gateway  = $payment_method;
 					} else {
+						// @phpstan-ignore property.notFound
 						$payment_gateways = WC()->payment_gateways->payment_gateways();
 						$payment_gateway  = isset( $payment_gateways[ $payment_method_id ] ) ? $payment_gateways[ $payment_method_id ] : null;
 					}
@@ -2444,7 +2506,7 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Check if the subscription has a line item for a specific product, by ID.
 	 *
-	 * @param int A product or variation ID to check for.
+	 * @param int $product_id A product or variation ID to check for.
 	 * @return bool
 	 */
 	public function has_product( $product_id ) {
@@ -2498,14 +2560,15 @@ class WC_Subscription extends WC_Order {
 	 * The single quantity sign-up fee will be returned instead of the total sign-up fee paid. For example, if 3 x a product
 	 * with a 10 BTC sign-up fee was purchased, a total 30 BTC was paid as the sign-up fee but this function will return 10 BTC.
 	 *
-	 * @param array|int Either an order item (in the array format returned by self::get_items()) or the ID of an order item.
-	 * @param  string $tax_inclusive_or_exclusive Whether or not to adjust sign up fee if prices inc tax - ensures that the sign up fee paid amount includes the paid tax if inc
+	 * @param WC_Order_Item_Product|int $line_item Either an order item (in the array format returned by self::get_items()) or the ID of an order item.
+	 * @param string            $tax_inclusive_or_exclusive Whether or not to adjust sign up fee if prices inc tax - ensures that the sign up fee paid amount includes the paid tax if inc
 	 * @return bool
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function get_items_sign_up_fee( $line_item, $tax_inclusive_or_exclusive = 'exclusive_of_tax' ) {
 
 		if ( ! is_object( $line_item ) ) {
+			/** @var WC_Order_Item_Product $line_item */
 			$line_item = wcs_get_order_item( $line_item, $this );
 		}
 
@@ -2517,12 +2580,10 @@ class WC_Subscription extends WC_Order {
 			$sign_up_fee = 0;
 
 		} else {
-
-			$original_order_item = '';
-
 			// Find the matching item on the order
 			foreach ( $parent_order->get_items() as $order_item ) {
 				if ( wcs_get_canonical_product_id( $line_item ) == wcs_get_canonical_product_id( $order_item ) ) {
+					/** @var WC_Order_Item_Product $original_order_item */
 					$original_order_item = $order_item;
 					break;
 				}
@@ -2541,7 +2602,7 @@ class WC_Subscription extends WC_Order {
 
 				// The synced sign up fee meta contains the raw product sign up fee, if the subscription totals are inclusive of tax, we need to adjust the synced sign up fee to match tax inclusivity.
 				if ( $this->get_prices_include_tax() ) {
-					$line_item_total    = (float) $original_order_item->get_total( 'edit' ) + $original_order_item->get_total_tax( 'edit' );
+					$line_item_total    = (float) $original_order_item->get_total( 'edit' ) + (float) $original_order_item->get_total_tax( 'edit' );
 					$signup_fee_portion = $sign_up_fee / $line_item_total;
 					$sign_up_fee        = (float) $original_order_item->get_total( 'edit' ) * $signup_fee_portion;
 				}
@@ -2555,8 +2616,8 @@ class WC_Subscription extends WC_Order {
 
 			// If prices don't inc tax, ensure that the sign up fee amount includes the tax.
 			if ( 'inclusive_of_tax' === $tax_inclusive_or_exclusive && ! empty( $original_order_item ) && ! empty( $sign_up_fee ) ) {
-				$sign_up_fee_proportion = $sign_up_fee / ( $original_order_item->get_total( 'edit' ) / $original_order_item->get_quantity( 'edit' ) );
-				$sign_up_fee_tax        = $original_order_item->get_total_tax( 'edit' ) * $sign_up_fee_proportion;
+				$sign_up_fee_proportion = $sign_up_fee / ( (float) $original_order_item->get_total( 'edit' ) / $original_order_item->get_quantity( 'edit' ) );
+				$sign_up_fee_tax        = (float) $original_order_item->get_total_tax( 'edit' ) * $sign_up_fee_proportion;
 
 				$sign_up_fee += $sign_up_fee_tax;
 				$sign_up_fee  = wc_format_decimal( $sign_up_fee, wc_get_price_decimals() );
@@ -2632,11 +2693,43 @@ class WC_Subscription extends WC_Order {
 	 * Validates subscription date updates ensuring the proposed date changes are in the correct format and are compatible with
 	 * the current subscription dates. Also returns the dates in the gmt timezone - ready for setting/deleting.
 	 *
-	 * @param array $dates array containing dates with keys: 'date_created', 'trial_end', 'next_payment', 'last_order_date_created' or 'end'. Values are MySQL formatted date/time strings in UTC timezone.
+	 * @see prepare_dates_for_update() as a preferrable and more flexible alternative.
+	 *
+	 * @param array $dates array containing dates with keys: 'date_created', 'trial_end', 'next_payment', 'last_order_date_created' or 'end'. Values are timestamps or MySQL formatted date/time strings in UTC timezone.
 	 * @param string $timezone The timezone of the $datetime param. Default 'gmt'.
 	 * @return array $dates array of dates in gmt timezone.
+	 * @throws InvalidArgumentException if the dates are not in the correct format or are not compatible with the current subscription dates.
+	 *
+	 * @deprecated 7.7.0 - Use prepare_dates_for_update() instead. This method remains in place for backwards compatibility.
 	 */
-	public function validate_date_updates( $dates, $timezone = 'gmt' ) {
+	public function validate_date_updates( array $dates, string $timezone = 'gmt' ): array {
+		return $this->prepare_dates_for_update(
+			$dates,
+			array(
+				'timezone'             => $timezone,
+				'ignore_invalid_dates' => false,
+			)
+		);
+	}
+
+	/**
+	 * Prepares the dates for setting/deleting by validating values and adjusting to the gmt timezone.
+	 *
+	 * Validates subscription date updates ensuring the proposed date changes are in the correct format and are compatible with
+	 * the current subscription dates. Also allows excluding invalid dates from the results.
+	 *
+	 * @param array $dates array containing dates with keys: 'date_created', 'trial_end', 'next_payment', 'last_order_date_created' or 'end'. Values are timestamps or MySQL formatted date/time strings in UTC timezone.
+	 * @param array $options array containing the following validation options:
+	 * - timezone: The timezone of the $datetime param. Default 'gmt'.
+	 * - ignore_invalid_dates: Whether to ignore invalid dates. Default false. When invalid date is ignored, the current value stored on subscription (if any) is used instead.
+	 * @return array $dates array of dates in gmt timezone.
+	 * @throws InvalidArgumentException if the dates are not in the correct format or are not compatible with the current subscription dates.
+	 *
+	 * @since 7.7.0 Alternative to validate_date_updates() for more flexible validation options.
+	 */
+	public function prepare_dates_for_update( $dates, $options = array() ): array {
+		$timezone             = isset( $options['timezone'] ) ? $options['timezone'] : 'gmt';
+		$ignore_invalid_dates = isset( $options['ignore_invalid_dates'] ) ? $options['ignore_invalid_dates'] : false;
 
 		if ( ! is_array( $dates ) ) {
 			throw new InvalidArgumentException( __( 'Invalid format. First parameter needs to be an array.', 'woocommerce-subscriptions' ) );
@@ -2654,9 +2747,10 @@ class WC_Subscription extends WC_Order {
 		}
 
 		// Use the normalised keys for the array
-		$dates = array_combine( $passed_date_keys, array_values( $dates ) );
-
-		$timestamps = $delete_date_types = array();
+		$dates             = array_combine( $passed_date_keys, array_values( $dates ) );
+		$timestamps        = array();
+		$delete_date_types = array();
+		$messages          = array();
 
 		// Get a full set of subscription dates made up of passed and current dates
 		foreach ( $this->get_valid_date_types() as $date_type ) {
@@ -2675,15 +2769,39 @@ class WC_Subscription extends WC_Order {
 			if ( isset( $dates[ $date_type ] ) ) {
 				$datetime = $dates[ $date_type ];
 
-				if ( ! empty( $datetime ) && false === wcs_is_datetime_mysql_format( $datetime ) ) {
-					// translators: placeholder is date type (e.g. "end", "next_payment"...)
-					throw new InvalidArgumentException( sprintf( _x( 'Invalid %s date. The date must be of the format: "Y-m-d H:i:s".', 'appears in an error message if date is wrong format', 'woocommerce-subscriptions' ), $date_type ) );
-				}
-
-				if ( empty( $datetime ) ) {
-
+				// When timestamp is passed, we don't need to convert into time string and backwards.
+				if ( wcs_is_timestamp( $datetime ) ) {
+					// Timestamps could be passed as strings, so we need to cast them to int.
+					$timestamps[ $date_type ] = (int) $datetime;
+				} elseif ( empty( $datetime ) ) {
 					$timestamps[ $date_type ] = 0;
+				} elseif ( false === wcs_is_datetime_mysql_format( $datetime ) ) {
+					// Date in invalid format passed, so we might need to handle it gracefully.
+					if ( $ignore_invalid_dates ) {
+						// Fallback to the current subscription time instead.
+						$timestamps[ $date_type ] = $this->get_time( $date_type );
 
+						// Skip invalid date formats instead of throwing an exception - corrupted dates are ignored during update.
+						$logger = wc_get_logger();
+						$logger->warning(
+							sprintf(
+								'Value for %1$s is ignored due to invalid date format. Value: %2$s',
+								$date_type,
+								esc_html( $datetime ),
+							),
+							array(
+								'subscription_id' => $this->get_id(),
+								'date_type'       => $date_type,
+							)
+						);
+					} else {
+						$timestamps[ $date_type ] = 0;
+						$messages[]               = sprintf(
+							// translators: placeholder is date type (e.g. "end", "next_payment"...)
+							_x( 'Invalid %s date. The date must be of the format: "Y-m-d H:i:s".', 'appears in an error message if date is wrong format', 'woocommerce-subscriptions' ),
+							esc_html( $date_type )
+						);
+					}
 				} else {
 
 					if ( 'gmt' !== strtolower( $timezone ) ) {
@@ -2692,22 +2810,20 @@ class WC_Subscription extends WC_Order {
 
 					$timestamps[ $date_type ] = wcs_date_to_time( $datetime );
 				}
-			// otherwise get the current subscription time
+				// Otherwise get the current subscription time.
 			} else {
 				$timestamps[ $date_type ] = $this->get_time( $date_type );
 			}
 
-			if ( 0 == $timestamps[ $date_type ] ) {
+			if ( 0 === (int) $timestamps[ $date_type ] ) {
 				// Last payment is not in the UI, and it should NOT be deleted as that would mess with scheduling
-				if ( 'last_order_date_created' != $date_type && 'date_created' != $date_type ) {
+				if ( 'last_order_date_created' !== $date_type && 'date_created' !== $date_type ) {
 					// We need to separate the dates which need deleting, so they don't interfere in the remaining validation
 					$delete_date_types[ $date_type ] = 0;
 				}
 				unset( $timestamps[ $date_type ] );
 			}
 		}
-
-		$messages = array();
 
 		// And then iterate over them checking the relationships between them.
 		foreach ( $timestamps as $date_type => $timestamp ) {
@@ -2741,7 +2857,7 @@ class WC_Subscription extends WC_Order {
 					}
 			}
 
-			$dates[ $date_type ] = gmdate( 'Y-m-d H:i:s', $timestamp );
+			$dates[ $date_type ] = gmdate( wcs_get_db_datetime_format(), $timestamp );
 		}
 
 		// Don't validate dates while the subscription is being read, only dates set outside of instantiation require the strict validation rules to apply
@@ -2757,9 +2873,9 @@ class WC_Subscription extends WC_Order {
 	 * Add a product line item to the subscription.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.4
-	 * @param WC_Product product
-	 * @param int line item quantity.
-	 * @param array args
+	 * @param WC_Product $product
+	 * @param int $qty quantity.
+	 * @param array $args
 	 * @return int|bool Item ID or false.
 	 */
 	public function add_product( $product, $qty = 1, $args = array() ) {

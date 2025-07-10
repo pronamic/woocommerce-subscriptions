@@ -36,7 +36,7 @@ function wcs_order_contains_switch( $order ) {
 /**
  * Get the subscriptions that had an item switch for a given order (if any).
  *
- * @param int|WC_Order $order_id The post_id of a shop_order post or an instance of a WC_Order object
+ * @param int|WC_Order $order The post_id of a shop_order post or an instance of a WC_Order object
  * @return array Subscription details in post_id => WC_Subscription form.
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */

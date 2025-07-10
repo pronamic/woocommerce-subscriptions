@@ -160,12 +160,10 @@ class WC_Subscriptions_Admin {
 	 * triggered.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.1
-	 *
-	 * @return null
 	 */
 	public static function clear_subscriptions_transients() {
 		global $wpdb;
-		if ( empty( $_GET['action'] ) || empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'debug_action' ) ) {
+		if ( empty( $_GET['action'] ) || empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'debug_action' ) ) {
 			return;
 		}
 
@@ -202,7 +200,7 @@ class WC_Subscriptions_Admin {
 	/**
 	 * Add the 'subscriptions' product type to the WooCommerce product type select box.
 	 *
-	 * @param array Array of Product types & their labels, excluding the Subscription product type.
+	 * @param array $product_types Array of Product types & their labels, excluding the Subscription product type.
 	 * @return array Array of Product types & their labels, including the Subscription product type.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
@@ -331,7 +329,10 @@ class WC_Subscriptions_Admin {
 				<?php } ?>
 				</select>
 			</span>
-			<?php echo wcs_help_tip( $price_tooltip ); ?>
+			<?php
+				// @phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo wcs_help_tip( $price_tooltip );
+			?>
 		</p>
 		<?php
 
@@ -381,7 +382,10 @@ class WC_Subscriptions_Admin {
 					<?php } ?>
 				</select>
 			</span>
-			<?php echo wcs_help_tip( $trial_tooltip ); ?>
+			<?php
+				// @phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo wcs_help_tip( $trial_tooltip );
+			?>
 		</p>
 		<?php
 
@@ -493,13 +497,12 @@ class WC_Subscriptions_Admin {
 	/**
 	 * Save meta data for simple subscription product type when the "Edit Product" form is submitted.
 	 *
-	 * @param array Array of Product types & their labels, excluding the Subscription product type.
-	 * @return array Array of Product types & their labels, including the Subscription product type.
+	 * @param int $post_id The ID of the post being saved.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function save_subscription_meta( $post_id ) {
 
-		if ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( $_POST['_wcsnonce'], 'wcs_subscription_meta' ) || false === self::is_subscription_product_save_request( $post_id, apply_filters( 'woocommerce_subscription_product_types', array( WC_Subscriptions_Core_Plugin::instance()->get_product_type_name() ) ) ) ) {
+		if ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_subscription_meta' ) || false === self::is_subscription_product_save_request( $post_id, apply_filters( 'woocommerce_subscription_product_types', array( WC_Subscriptions_Core_Plugin::instance()->get_product_type_name() ) ) ) ) {
 			return;
 		}
 
@@ -544,7 +547,7 @@ class WC_Subscriptions_Admin {
 			$_POST['_subscription_trial_length'] = $max_trial_length;
 		}
 
-		update_post_meta( $post_id, '_subscription_trial_length', $_POST['_subscription_trial_length'] );
+		update_post_meta( $post_id, '_subscription_trial_length', wc_clean( wp_unslash( $_POST['_subscription_trial_length'] ) ) );
 
 		$_REQUEST['_subscription_sign_up_fee']       = wc_format_decimal( $_REQUEST['_subscription_sign_up_fee'] );
 		$_REQUEST['_subscription_one_time_shipping'] = isset( $_REQUEST['_subscription_one_time_shipping'] ) ? 'yes' : 'no';
@@ -572,13 +575,12 @@ class WC_Subscriptions_Admin {
 	/**
 	 * Save meta data for variable subscription product type when the "Edit Product" form is submitted.
 	 *
-	 * @param array Array of Product types & their labels, excluding the Subscription product type.
-	 * @return array Array of Product types & their labels, including the Subscription product type.
+	 * @param int $post_id The ID of the post being saved.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function save_variable_subscription_meta( $post_id ) {
 
-		if ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( $_POST['_wcsnonce'], 'wcs_subscription_meta' ) || false === self::is_subscription_product_save_request( $post_id, apply_filters( 'woocommerce_subscription_variable_product_types', array( 'variable-subscription' ) ) ) ) {
+		if ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_subscription_meta' ) || false === self::is_subscription_product_save_request( $post_id, apply_filters( 'woocommerce_subscription_variable_product_types', array( 'variable-subscription' ) ) ) ) {
 			return;
 		}
 
@@ -596,7 +598,6 @@ class WC_Subscriptions_Admin {
 	 * Calculate and set a simple subscription's prices when edited via the bulk edit
 	 *
 	 * @param object $product An instance of a WC_Product_* object.
-	 * @return null
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3.9
 	 */
 	public static function bulk_edit_save_subscription_meta( $product ) {
@@ -621,7 +622,7 @@ class WC_Subscriptions_Admin {
 					break;
 				case 2:
 					if ( strstr( $regular_price, '%' ) ) {
-						$percent   = str_replace( '%', '', $regular_price ) / 100;
+						$percent   = (float) str_replace( '%', '', $regular_price ) / 100;
 						$new_price = $old_regular_price + ( $old_regular_price * $percent );
 					} else {
 						$new_price = $old_regular_price + $regular_price;
@@ -629,7 +630,7 @@ class WC_Subscriptions_Admin {
 					break;
 				case 3:
 					if ( strstr( $regular_price, '%' ) ) {
-						$percent   = str_replace( '%', '', $regular_price ) / 100;
+						$percent   = (float) str_replace( '%', '', $regular_price ) / 100;
 						$new_price = $old_regular_price - ( $old_regular_price * $percent );
 					} else {
 						$new_price = $old_regular_price - $regular_price;
@@ -655,7 +656,7 @@ class WC_Subscriptions_Admin {
 					break;
 				case 2:
 					if ( strstr( $sale_price, '%' ) ) {
-						$percent   = str_replace( '%', '', $sale_price ) / 100;
+						$percent   = (float) str_replace( '%', '', $sale_price ) / 100;
 						$new_price = $old_sale_price + ( $old_sale_price * $percent );
 					} else {
 						$new_price = $old_sale_price + $sale_price;
@@ -663,7 +664,7 @@ class WC_Subscriptions_Admin {
 					break;
 				case 3:
 					if ( strstr( $sale_price, '%' ) ) {
-						$percent   = str_replace( '%', '', $sale_price ) / 100;
+						$percent   = (float) str_replace( '%', '', $sale_price ) / 100;
 						$new_price = $old_sale_price - ( $old_sale_price * $percent );
 					} else {
 						$new_price = $old_sale_price - $sale_price;
@@ -671,7 +672,7 @@ class WC_Subscriptions_Admin {
 					break;
 				case 4:
 					if ( strstr( $sale_price, '%' ) ) {
-						$percent   = str_replace( '%', '', $sale_price ) / 100;
+						$percent   = (float) str_replace( '%', '', $sale_price ) / 100;
 						$new_price = $product->get_regular_price() - ( $product->get_regular_price() * $percent );
 					} else {
 						$new_price = $product->get_regular_price() - $sale_price;
@@ -706,17 +707,16 @@ class WC_Subscriptions_Admin {
 	 * subscription product type (or the bulk edit product is saved).
 	 *
 	 * @param int $post_id ID of the parent WC_Product_Variable_Subscription
-	 * @return null
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3
 	 */
 	public static function process_product_meta_variable_subscription( $post_id ) {
 
-		if ( ! WC_Subscriptions_Product::is_subscription( $post_id ) || empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( $_POST['_wcsnonce'], 'wcs_subscription_meta' ) ) {
+		if ( ! WC_Subscriptions_Product::is_subscription( $post_id ) || empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_subscription_meta' ) ) {
 			return;
 		}
 
 		// Make sure WooCommerce calculates correct prices
-		$_POST['variable_regular_price'] = isset( $_POST['variable_subscription_price'] ) ? $_POST['variable_subscription_price'] : 0;
+		$_POST['variable_regular_price'] = isset( $_POST['variable_subscription_price'] ) ? wc_clean( wp_unslash( $_POST['variable_subscription_price'] ) ) : 0;
 
 		// Sync the min variation price
 		if ( wcs_is_woocommerce_pre( '3.0' ) ) {
@@ -731,13 +731,12 @@ class WC_Subscriptions_Admin {
 	 * Save meta info for subscription variations
 	 *
 	 * @param int $variation_id
-	 * @param int $i
-	 * return void
+	 * @param int $index
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function save_product_variation( $variation_id, $index ) {
 
-		if ( ! WC_Subscriptions_Product::is_subscription( $variation_id ) || empty( $_POST['_wcsnonce_save_variations'] ) || ! wp_verify_nonce( $_POST['_wcsnonce_save_variations'], 'wcs_subscription_variations' ) ) {
+		if ( ! WC_Subscriptions_Product::is_subscription( $variation_id ) || empty( $_POST['_wcsnonce_save_variations'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce_save_variations'] ) ), 'wcs_subscription_variations' ) ) {
 			return;
 		}
 
@@ -793,15 +792,14 @@ class WC_Subscriptions_Admin {
 	 *
 	 * @param string $old_status Previous status of the subscription in update_status
 	 * @param string $new_status New status of the subscription in update_status
-	 * @param WC_Subscription $subscription The subscription being saved
+	 * @param WC_Subscription $subscription The subscription being savedf
 	 *
-	 * @return null
 	 * @throws Exception in case there was no user found / there's no customer attached to it
 	 */
 	public static function check_customer_is_set( $old_status, $new_status, $subscription ) {
 		global $post;
 
-		if ( is_admin() && 'active' == $new_status && isset( $_POST['woocommerce_meta_nonce'] ) && wp_verify_nonce( $_POST['woocommerce_meta_nonce'], 'woocommerce_save_data' ) && isset( $_POST['customer_user'] ) && ! empty( $post ) && 'shop_subscription' === $post->post_type ) {
+		if ( is_admin() && 'active' == $new_status && isset( $_POST['woocommerce_meta_nonce'] ) && wp_verify_nonce( wc_clean( wp_unslash( $_POST['woocommerce_meta_nonce'] ) ), 'woocommerce_save_data' ) && isset( $_POST['customer_user'] ) && ! empty( $post ) && 'shop_subscription' === $post->post_type ) {
 
 			$user = new WP_User( absint( $_POST['customer_user'] ) );
 
@@ -816,7 +814,6 @@ class WC_Subscriptions_Admin {
 	 * Set default values for subscription dropdown fields when bulk adding variations to fix issue #1342
 	 *
 	 * @param int $variation_id ID the post_id of the variation being added
-	 * @return null
 	 */
 	public static function set_variation_meta_defaults_on_bulk_add( $variation_id ) {
 
@@ -831,8 +828,6 @@ class WC_Subscriptions_Admin {
 	/**
 	 * Adds all necessary admin styles.
 	 *
-	 * @param array Array of Product types & their labels, excluding the Subscription product type.
-	 * @return array Array of Product types & their labels, including the Subscription product type.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function enqueue_styles_scripts() {
@@ -1008,7 +1003,7 @@ class WC_Subscriptions_Admin {
 		<?php $subscriptions_table->search_box( __( 'Search Subscriptions', 'woocommerce-subscriptions' ), 'subscription' ); ?>
 		<input type="hidden" name="page" value="subscriptions" />
 		<?php if ( isset( $_REQUEST['status'] ) ) { ?>
-			<input type="hidden" name="status" value="<?php echo esc_attr( $_REQUEST['status'] ); ?>" />
+			<input type="hidden" name="status" value="<?php echo esc_attr( wc_clean( wp_unslash( $_REQUEST['status'] ) ) ); ?>" />
 		<?php } ?>
 	</form>
 	<form id="subscriptions-filter" action="" method="get">
@@ -1070,6 +1065,7 @@ class WC_Subscriptions_Admin {
 	public static function get_subscriptions_list_table() {
 
 		if ( ! isset( self::$subscriptions_list_table ) ) {
+			// @phpstan-ignore class.notFound
 			self::$subscriptions_list_table = new WC_Subscriptions_List_Table();
 		}
 
@@ -1085,7 +1081,7 @@ class WC_Subscriptions_Admin {
 	 */
 	public static function update_subscription_settings() {
 
-		if ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( $_POST['_wcsnonce'], 'wcs_subscription_settings' ) ) {
+		if ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_subscription_settings' ) ) {
 			return;
 		}
 
@@ -1484,7 +1480,7 @@ class WC_Subscriptions_Admin {
 
 		// Map the order or subscription type to their respective keys and type key.
 		$object_type      = 'shop_order' === $typenow ? 'order' : 'subscription';
-		$cache_report_key = isset( $_GET[ "_{$object_type}s_list_key" ] ) ? $_GET[ "_{$object_type}s_list_key" ] : '';
+		$cache_report_key = isset( $_GET[ "_{$object_type}s_list_key" ] ) ? wc_clean( wp_unslash( $_GET[ "_{$object_type}s_list_key" ] ) ) : '';
 
 		// If the report key or report arg is empty exit early.
 		if ( empty( $cache_report_key ) || empty( $_GET['_report'] ) ) {
@@ -1492,7 +1488,7 @@ class WC_Subscriptions_Admin {
 			return $where;
 		}
 
-		$cache = get_transient( $_GET['_report'] );
+		$cache = get_transient( wc_clean( wp_unslash( $_GET['_report'] ) ) );
 
 		// Display an admin notice if we cannot find the report data requested.
 		if ( ! isset( $cache[ $cache_report_key ] ) ) {
@@ -1522,6 +1518,7 @@ class WC_Subscriptions_Admin {
 
 		// $format = '%d, %d, %d, %d, %d, [...]'
 		$format = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 		$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID IN ($format)", $ids );
 
 		return $where;
@@ -1541,7 +1538,7 @@ class WC_Subscriptions_Admin {
 			return $where;
 		}
 
-		$user_id = $_GET['_paid_subscription_orders_for_customer_user'];
+		$user_id = wc_clean( wp_unslash( $_GET['_paid_subscription_orders_for_customer_user'] ) );
 
 		// Unset the GET arg so that it doesn't interfere with the query for user's subscriptions.
 		unset( $_GET['_paid_subscription_orders_for_customer_user'] );
@@ -1559,7 +1556,7 @@ class WC_Subscriptions_Admin {
 			$where .= " AND {$wpdb->posts}.ID = 0";
 		} else {
 			// Orders with paid status
-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_status IN ( 'wc-processing', 'wc-completed' )" );
+			$where .= " AND {$wpdb->posts}.post_status IN ( 'wc-processing', 'wc-completed' )";
 			$where .= sprintf( " AND {$wpdb->posts}.ID IN (%s)", implode( ',', array_unique( $users_subscription_orders ) ) );
 		}
 
@@ -1711,7 +1708,7 @@ class WC_Subscriptions_Admin {
 	/**
 	 * Adds Subscriptions specific details to the WooCommerce System Status report.
 	 *
-	 * @param array $attributes Shortcode attributes.
+	 * @param array $debug_data
 	 * @return array
 	 */
 	public static function add_system_status_items( $debug_data ) {
@@ -1946,14 +1943,15 @@ class WC_Subscriptions_Admin {
 	/**
 	 * Check if subscription product meta data should be saved for the current request.
 	 *
-	 * @param array Array of product types.
+	 * @param int $post_id The ID of the post being saved.
+	 * @param array $product_types Array of product types.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
 	 */
 	private static function is_subscription_product_save_request( $post_id, $product_types ) {
 
 		if ( self::$saved_product_meta ) {
 			$is_subscription_product_save_request = false;
-		} elseif ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( $_POST['_wcsnonce'], 'wcs_subscription_meta' ) ) {
+		} elseif ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_subscription_meta' ) ) {
 			$is_subscription_product_save_request = false;
 		} elseif ( ! isset( $_POST['product-type'] ) || ! in_array( $_POST['product-type'], $product_types ) ) {
 			$is_subscription_product_save_request = false;
@@ -2059,7 +2057,7 @@ class WC_Subscriptions_Admin {
 	 */
 	public static function validate_product_type_change( $product_id ) {
 
-		if ( empty( $_POST['woocommerce_meta_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['woocommerce_meta_nonce'] ), 'woocommerce_save_data' ) || empty( $_POST['product-type'] ) ) {
+		if ( empty( $_POST['woocommerce_meta_nonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['woocommerce_meta_nonce'] ) ), 'woocommerce_save_data' ) || empty( $_POST['product-type'] ) ) {
 			return;
 		}
 

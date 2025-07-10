@@ -208,7 +208,7 @@ class WCS_PayPal {
 				}
 
 				// get token to retrieve checkout details with
-				$token = esc_attr( $_GET['token'] );
+				$token = wc_clean( wp_unslash( $_GET['token'] ) );
 
 				try {
 
@@ -284,7 +284,7 @@ class WCS_PayPal {
 
 					wc_add_notice( __( 'An error occurred, please try again or try an alternate form of payment.', 'woocommerce-subscriptions' ), 'error' );
 
-					wp_redirect( wc_get_cart_url() );
+					wp_safe_redirect( wc_get_cart_url() );
 				}
 
 				exit;

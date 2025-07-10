@@ -20,7 +20,10 @@ global $wp_locale;
 		<div class="subscription_sync_week_month" style="<?php echo esc_attr( $display_week_month_select ); ?>">
 			<label for="variable_subscription_payment_sync_date[<?php echo esc_attr( $loop ); ?>]">
 				<?php echo esc_html( WC_Subscriptions_Synchroniser::$sync_field_label ); ?>
-				<?php echo wcs_help_tip( WC_Subscriptions_Synchroniser::$sync_description ); ?>
+				<?php
+					// @phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo wcs_help_tip( WC_Subscriptions_Synchroniser::$sync_description );
+				?>
 			</label>
 			<select name="variable_subscription_payment_sync_date[<?php echo esc_attr( $loop ); ?>]" class="wc_input_subscription_payment_sync wc-enhanced-select">
 			<?php foreach ( WC_Subscriptions_Synchroniser::get_billing_period_ranges( $subscription_period ) as $key => $value ) : ?>
@@ -31,7 +34,10 @@ global $wp_locale;
 		<div class="subscription_sync_annual" style="<?php echo esc_attr( $display_annual_select ); ?>">
 			<label for="variable_subscription_payment_sync_date_day[<?php esc_attr( $loop ); ?>]">
 				<?php echo esc_html( WC_Subscriptions_Synchroniser::$sync_field_label ); ?>
-				<?php echo wcs_help_tip( WC_Subscriptions_Synchroniser::$sync_description_year ); ?>
+				<?php
+					// @phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo wcs_help_tip( WC_Subscriptions_Synchroniser::$sync_description_year );
+				?>
 			</label>
 			<select name="variable_subscription_payment_sync_date_month[<?php echo esc_attr( $loop ); ?>]" class="wc_input_subscription_payment_sync wc_input_subscription_payment_sync_month wc-enhanced-select">
 				<?php foreach ( WC_Subscriptions_Synchroniser::get_year_sync_options() as $key => $value ) : ?>

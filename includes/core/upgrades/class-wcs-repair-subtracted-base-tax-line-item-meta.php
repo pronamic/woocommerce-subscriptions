@@ -56,10 +56,14 @@ class WCS_Repair_Subtracted_Base_Tax_Line_Item_Meta extends WCS_Background_Repai
 		$offset = ( $page - 1 ) * $limit;
 
 		return $wpdb->get_col(
-			"SELECT DISTINCT order_item_id
-			FROM {$wpdb->prefix}woocommerce_order_itemmeta
-			WHERE `meta_key` = '_subtracted_base_location_tax'
-			LIMIT {$offset}, {$limit}"
+			$wpdb->prepare(
+				"SELECT DISTINCT order_item_id
+				FROM {$wpdb->prefix}woocommerce_order_itemmeta
+				WHERE `meta_key` = '_subtracted_base_location_tax'
+				LIMIT %d, %d",
+				$offset,
+				$limit
+			)
 		);
 	}
 

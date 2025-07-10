@@ -140,7 +140,7 @@ function wcs_get_objects_property( $object, $property, $single = 'single', $defa
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @return mixed
  */
-function wcs_set_objects_property( &$object, $key, $value, $save = 'save', $meta_id = '', $prefix_meta_key = 'prefix_meta_key' ) {
+function wcs_set_objects_property( &$object, $key, $value, $save = 'save', $meta_id = 0, $prefix_meta_key = 'prefix_meta_key' ) {
 
 	$prefixed_key = wcs_maybe_prefix_key( $key );
 
@@ -194,13 +194,13 @@ function wcs_set_objects_property( &$object, $key, $value, $save = 'save', $meta
  *
  * @param WC_Order|WC_Product|WC_Subscription $object The object whose property we want to access.
  * @param string $key The meta key name without '_' prefix
- * @param mixed $value The data to set as the value of the meta
  * @param string $save Whether to save the data or not, 'save' to save the data, otherwise it won't be saved.
+ * @param int $meta_id The meta ID.
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @deprecated 2.4.0 Use of this compatibility function is no longer required, setters should be used on the objects instead.
  * @return mixed
  */
-function wcs_delete_objects_property( &$object, $key, $save = 'save', $meta_id = '' ) {
+function wcs_delete_objects_property( &$object, $key, $save = 'save', $meta_id = 0 ) {
 
 	$prefixed_key = wcs_maybe_prefix_key( $key );
 
@@ -477,7 +477,8 @@ function wcs_is_rest_api_request() {
 		return false;
 	}
 
-	$rest_prefix         = trailingslashit( rest_get_url_prefix() );
+	$rest_prefix = trailingslashit( rest_get_url_prefix() );
+	// @phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 	$is_rest_api_request = ( false !== strpos( $_SERVER['REQUEST_URI'], $rest_prefix ) );
 
 	return apply_filters( 'woocommerce_is_rest_api_request', $is_rest_api_request );
@@ -567,7 +568,7 @@ function wcs_add_woocommerce_dependent_action( $tag, $function, $woocommerce_ver
  *
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  *
- * @param  string The version string to check in a version_compare() compatible format.
+ * @param string $version The version string to check in a version_compare() compatible format.
  * @return bool   Whether the installed version of WC is prior to the given version string.
  */
 function wcs_is_woocommerce_pre( $version ) {

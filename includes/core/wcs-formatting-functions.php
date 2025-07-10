@@ -285,7 +285,7 @@ function wp_kses_allow_underscores( $content, $allowed_html ) {
  *
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
  *
- * @param string The number to append the ordinal suffix to.
+ * @param string $number The number to append the ordinal suffix to.
  * @return string
  */
 function wcs_append_numeral_suffix( $number ) {

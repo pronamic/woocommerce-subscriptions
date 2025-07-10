@@ -72,7 +72,7 @@ class WCS_Select2 {
 				$value = wcs_json_encode( $value );
 			}
 
-			$html[] = $this->get_property_name( $property ) . '="' . esc_attr( $value, 'woocommerce-subscriptions' ) . '"';
+			$html[] = $this->get_property_name( $property ) . '="' . esc_attr( $value ) . '"';
 		}
 
 		return implode( ' ', $html );
@@ -87,6 +87,7 @@ class WCS_Select2 {
 		$allowed_attributes = array_map( array( $this, 'get_property_name' ), array_keys( $this->attributes ) );
 		$allowed_attributes = array_fill_keys( $allowed_attributes, array() );
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo wp_kses_allow_underscores(
 			$this->get_html(),
 			array(

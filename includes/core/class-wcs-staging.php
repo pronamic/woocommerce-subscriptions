@@ -107,7 +107,7 @@ class WCS_Staging {
 
 		if ( self::is_duplicate_site() && current_user_can( 'manage_options' ) ) {
 
-			if ( ! empty( $_REQUEST['_wcsnonce'] ) && wp_verify_nonce( $_REQUEST['_wcsnonce'], 'wcs_duplicate_site' ) && isset( $_GET['wc_subscription_duplicate_site'] ) ) {
+			if ( ! empty( $_REQUEST['_wcsnonce'] ) && wp_verify_nonce( wc_clean( wp_unslash( $_REQUEST['_wcsnonce'] ) ), 'wcs_duplicate_site' ) && isset( $_GET['wc_subscription_duplicate_site'] ) ) {
 
 				if ( 'update' === $_GET['wc_subscription_duplicate_site'] ) {
 

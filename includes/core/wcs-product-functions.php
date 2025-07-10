@@ -144,7 +144,7 @@ function wcs_get_min_max_variation_data( $variable_product, $child_variation_ids
  * Determine the minimum and maximum values for a set of structured subscription
  * price data in a form created by @see wcs_get_min_max_variation_data()
  *
- * @param array $child_variation_ids the IDs of product variation children ids
+ * @param array $variations_data the IDs of product variation children ids
  * @return array
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  */

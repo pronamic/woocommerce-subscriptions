@@ -132,7 +132,7 @@ class WC_Subscriptions_Cart_Validator {
 	 *
 	 * @return bool Whether the product can be added to the cart.
 	 */
-	public static function can_add_product_to_cart( $can_add, $product_id, $quantity, $variation_id = '', $variations = array(), $item_data = array() ) {
+	public static function can_add_product_to_cart( $can_add, $product_id, $quantity, $variation_id = 0, $variations = array(), $item_data = array() ) {
 		if ( $can_add && ! isset( $item_data['subscription_renewal'] ) && wcs_cart_contains_renewal() ) {
 			wc_add_notice( __( 'That product can not be added to your cart as it already contains a subscription renewal.', 'woocommerce-subscriptions' ), 'error' );
 
@@ -161,7 +161,7 @@ class WC_Subscriptions_Cart_Validator {
 
 		# Force error on add_to_cart() to redirect
 		add_filter( 'woocommerce_add_to_cart_validation', '__return_false', 10 );
-		add_filter( 'woocommerce_cart_redirect_after_error', 'wc_get_cart_url', 10, 2 );
+		add_filter( 'woocommerce_cart_redirect_after_error', 'wc_get_cart_url', 10 );
 		do_action( 'wc_ajax_add_to_cart' );
 
 		return $fragments;

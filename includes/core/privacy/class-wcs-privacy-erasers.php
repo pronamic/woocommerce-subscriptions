@@ -161,7 +161,7 @@ class WCS_Privacy_Erasers {
 				 * Expose a way to control the anonymized value of a prop via 3rd party code.
 				 *
 				 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
-				 * @param bool     $anonymized_data Value of this prop after anonymization.
+				 * @param string     $anonymized_data Value of this prop after anonymization.
 				 * @param string   $prop Name of the prop being removed.
 				 * @param string   $value Current value of the data.
 				 * @param string   $data_type Type of data.

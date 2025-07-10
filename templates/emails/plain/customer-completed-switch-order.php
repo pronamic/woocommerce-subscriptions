@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-echo $email_heading . "\n\n";
+echo esc_html( $email_heading ) . "\n\n";
 
 /* translators: %s: Customer first name */
 echo sprintf( esc_html__( 'Hi %s,', 'woocommerce-subscriptions' ), esc_html( $order->get_billing_first_name() ) ) . "\n\n";
@@ -21,7 +21,7 @@ echo "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\
 do_action( 'woocommerce_subscriptions_email_order_details', $order, $sent_to_admin, $plain_text, $email );
 
 // translators: placeholder is order's view url
-echo "\n" . sprintf( __( 'View your order: %s', 'woocommerce-subscriptions' ), $order->get_view_order_url() );
+echo "\n" . sprintf( esc_html__( 'View your order: %s', 'woocommerce-subscriptions' ), esc_url( $order->get_view_order_url() ) );
 
 echo "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";
 
@@ -32,7 +32,7 @@ foreach ( $subscriptions as $subscription ) {
 	do_action( 'woocommerce_subscriptions_email_order_details', $subscription, $sent_to_admin, $plain_text, $email );
 
 	// translators: placeholder is subscription's view url
-	echo "\n" . sprintf( __( 'View your subscription: %s', 'woocommerce-subscriptions' ), $subscription->get_view_order_url() );
+	echo "\n" . sprintf( esc_html__( 'View your subscription: %s', 'woocommerce-subscriptions' ), esc_url( $subscription->get_view_order_url() ) );
 }
 echo "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";
 
@@ -48,4 +48,4 @@ if ( $additional_content ) {
 	echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
 }
 
-echo apply_filters( 'woocommerce_email_footer_text', get_option( 'woocommerce_email_footer_text' ) );
+echo wp_kses_post( apply_filters( 'woocommerce_email_footer_text', get_option( 'woocommerce_email_footer_text' ) ) );

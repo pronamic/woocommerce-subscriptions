@@ -82,7 +82,7 @@ class WC_Subscriptions_Addresses {
 
 		if ( ! self::can_user_edit_subscription_address( absint( $_GET['subscription'] ) ) ) {
 			wc_add_notice( 'Invalid subscription.', 'error' );
-			wp_redirect( wc_get_account_endpoint_url( 'dashboard' ) );
+			wp_safe_redirect( wc_get_account_endpoint_url( 'dashboard' ) );
 			exit();
 		}
 	}
@@ -252,7 +252,7 @@ class WC_Subscriptions_Addresses {
 		}
 
 		$address_type   = ( 'billing' === $address_type || 'shipping' === $address_type ) ? $address_type : '';
-		$address_fields = WC()->countries->get_address_fields( esc_attr( $_POST[ $address_type . '_country' ] ), $address_type . '_' );
+		$address_fields = WC()->countries->get_address_fields( esc_attr( wc_clean( wp_unslash( $_POST[ $address_type . '_country' ] ) ) ), $address_type . '_' );
 		$address        = array();
 
 		foreach ( $address_fields as $key => $field ) {

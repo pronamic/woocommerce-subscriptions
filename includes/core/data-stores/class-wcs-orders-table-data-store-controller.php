@@ -30,7 +30,7 @@ class WCS_Orders_Table_Data_Store_Controller {
 	 * @return void
 	 */
 	public function init_hooks() {
-		add_filter( 'woocommerce_subscription_data_store', array( $this, 'get_orders_table_data_store' ), 10, 2 );
+		add_filter( 'woocommerce_subscription_data_store', array( $this, 'get_orders_table_data_store' ), 10 );
 	}
 
 	/**

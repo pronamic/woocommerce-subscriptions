@@ -44,7 +44,7 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 		}
 
 		// Pay for existing order
-		$order_key = $_GET['key'];
+		$order_key = wc_clean( wp_unslash( $_GET['key'] ) );
 		$order_id  = absint( $wp->query_vars['order-pay'] );
 		$order     = wc_get_order( $order_id );
 
@@ -135,11 +135,11 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 	/**
 	 * Get the order object used to construct the initial payment cart.
 	 *
-	 * @param Array The initial payment cart item.
-	 * @return WC_Order | The order object
+	 * @param array $cart_item The initial payment cart item.
+	 * @return WC_Order The order object
 	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0.13
 	 */
-	protected function get_order( $cart_item = '' ) {
+	protected function get_order( $cart_item = array() ) {
 		$order = false;
 
 		if ( empty( $cart_item ) ) {

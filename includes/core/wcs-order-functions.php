@@ -255,6 +255,7 @@ function wcs_create_order_from_subscription( $subscription, $type ) {
 
 			// If the line item we're adding is a product line item and that product still exists, set any applicable backorder meta.
 			if ( $item->is_type( 'line_item' ) && $item->get_product() ) {
+				// @phpstan-ignore-next-line
 				$order_item->set_backorder_meta();
 				$order_item->save();
 			}
@@ -631,7 +632,8 @@ function wcs_update_order_item_type( $item_id, $new_type, $order_or_subscription
 /**
  * Get an instance of WC_Order_Item_Meta for an order item
  *
- * @param array
+ * @param  WC_Order_Item $item
+ * @param  WC_Product $product
  * @return WC_Order_Item_Meta
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
@@ -706,7 +708,7 @@ function wcs_get_order_item_name( $order_item, $include = array() ) {
  * Get the full name for a order/subscription line item, including the items non hidden meta
  * (i.e. attributes), as a flat string.
  *
- * @param array
+ * @param array $line_item
  * @return string
  */
 function wcs_get_line_item_name( $line_item ) {
@@ -762,7 +764,7 @@ function wcs_get_line_item_name( $line_item ) {
  * Display item meta data in a version compatible way.
  *
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
- * @param  WC_Item $item
+ * @param  WC_Order_Item $item
  * @param  WC_Order $order
  * @return void
  */
@@ -778,7 +780,7 @@ function wcs_display_item_meta( $item, $order ) {
  * Display item download links in a version compatible way.
  *
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
- * @param  WC_Item $item
+ * @param  WC_Order_Item $item
  * @param  WC_Order $order
  * @return void
  */
@@ -828,6 +830,7 @@ function wcs_copy_order_item( $from_item, &$to_item ) {
 			) );
 			break;
 		case 'shipping':
+			/** @var WC_Order_Item_Shipping $to_item */
 			/** @var WC_Order_Item_Shipping $from_item */
 			$to_item->set_props( array(
 				'method_id' => $from_item->get_method_id(),
@@ -966,6 +969,8 @@ function wcs_seconds_since_order_created( $order ) {
 function wcs_find_matching_line_item( $order, $subscription_item, $match_type = 'match_product_ids' ) {
 	$matching_item = false;
 
+	$subscription_item_attributes = array();
+
 	if ( 'match_attributes' === $match_type ) {
 		$subscription_item_attributes = wp_list_pluck( $subscription_item->get_formatted_meta_data( '_', true ), 'value', 'key' );
 	}
@@ -1051,7 +1056,7 @@ function wcs_order_contains_early_renewal( $order ) {
  *
  * @return string The item's subscription grouping key.
  */
-function wcs_get_subscription_item_grouping_key( $item, $renewal_time = '' ) {
+function wcs_get_subscription_item_grouping_key( $item, $renewal_time = 0 ) {
 	return apply_filters( 'woocommerce_subscriptions_item_grouping_key', wcs_get_subscription_grouping_key( $item->get_product(), $renewal_time ), $item );
 }
 
@@ -1063,7 +1068,7 @@ function wcs_get_subscription_item_grouping_key( $item, $renewal_time = '' ) {
  *
  * Note: If the line item has a custom total that doesn't match the expected price, don't override it.
  *
- * @param WC_Order_Item $item Subscription line item.
+ * @param WC_Order_Item_Product $item Subscription line item.
  */
 function wcs_set_recurring_item_total( &$item ) {
 	$product = $item->get_product();

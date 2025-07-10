@@ -113,6 +113,12 @@ class WCS_Switch_Cart_Item {
 	public $is_switch_after_fully_reduced_prepaid_term;
 
 	/**
+	 * The last switch order for this subscription.
+	 * @var WC_Order|null
+	 */
+	private $switch_order = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 2.6.0
@@ -263,12 +269,19 @@ class WCS_Switch_Cart_Item {
 	public function get_total_paid_for_current_period() {
 
 		if ( ! isset( $this->total_paid_for_current_period ) ) {
+			$orders_to_include = array();
+
 			// If the last order was a switch with a fully reduced pre-paid term, the amount the customer has paid is just the total in that order.
 			if ( $this->is_switch_after_fully_reduced_prepaid_term() ) {
-				$this->total_paid_for_current_period = WC_Subscriptions_Switcher::calculate_total_paid_since_last_order( $this->subscription, $this->existing_item, 'exclude_sign_up_fees', array( $this->get_last_switch_order() ) );
-			} else {
-				$this->total_paid_for_current_period = WC_Subscriptions_Switcher::calculate_total_paid_since_last_order( $this->subscription, $this->existing_item, 'exclude_sign_up_fees' );
+				$orders_to_include[] = $this->get_last_switch_order();
 			}
+
+			$this->total_paid_for_current_period = WC_Subscriptions_Switcher::calculate_total_paid_since_last_order(
+				$this->subscription,
+				$this->existing_item,
+				'exclude_sign_up_fees',
+				$orders_to_include
+			);
 		}
 
 		return apply_filters( 'wcs_switch_total_paid_for_current_period', $this->total_paid_for_current_period, $this->subscription, $this->existing_item );
@@ -443,13 +456,11 @@ class WCS_Switch_Cart_Item {
 	 * @return WC_Order|Null The last switch order or null if one doesn't exist.
 	 */
 	protected function get_last_switch_order() {
-		static $switch_order = null;
-
-		if ( ! $switch_order ) {
-			$switch_order = $this->subscription->get_last_order( 'all', 'switch', [ 'checkout-draft' ] );
+		if ( ! $this->switch_order ) {
+			$this->switch_order = $this->subscription->get_last_order( 'all', 'switch', array( 'checkout-draft' ) );
 		}
 
-		return $switch_order;
+		return $this->switch_order;
 	}
 
 	/**
@@ -473,32 +484,45 @@ class WCS_Switch_Cart_Item {
 	protected function is_switch_after_fully_reduced_prepaid_term() {
 
 		if ( ! isset( $this->is_switch_after_fully_reduced_prepaid_term ) ) {
-			$last_switch_order = $this->get_last_switch_order();
-
-			if ( empty( $last_switch_order ) || ! $last_switch_order->get_date_paid() ) {
-				$this->is_switch_after_fully_reduced_prepaid_term = false;
-				return false;
-			}
-
-			$switch_paid_date = $last_switch_order->get_date_paid();
-
-			// If the last switch order occurred before the last payment order (parent or renewal), then the last order wasn't a switch.
-			if ( $switch_paid_date->getTimestamp() < $this->get_last_order_paid_time() ) {
-				$this->is_switch_after_fully_reduced_prepaid_term = false;
-				return false;
-			}
-
-			/**
-			 * If the last switch resulted in the customer being charged the pull cost upfront, the customer must have been entitled to fewer days than had already elapsed - see reduce_prepaid_term().
-			 * This means the subscription billing term would have started from that switch order's date, not the last order (parent/renewal) date.
-			 */
-			$first_payment_after_switch = WC_Subscriptions_Product::get_first_renewal_payment_time( $this->existing_item->get_product(), gmdate( 'Y-m-d H:i:s', $switch_paid_date->format( 'U' ) ) );
-
-			// If the first payment date after the last switch is roughly equal (+- 1 hour) to the next payment date, then it was a fully reduced pre-paid term switch.
-			$this->is_switch_after_fully_reduced_prepaid_term = ( $this->next_payment_timestamp - HOUR_IN_SECONDS <= $first_payment_after_switch ) && ( $first_payment_after_switch <= $this->next_payment_timestamp + HOUR_IN_SECONDS );
+			$this->is_switch_after_fully_reduced_prepaid_term = $this->calculate_is_switch_after_fully_reduced_prepaid_term();
 		}
 
 		return $this->is_switch_after_fully_reduced_prepaid_term;
+	}
+
+	/**
+	 * Calculates whether the last order was a switch and it fully reduced the prepaid term.
+	 *
+	 * @since 7.6.0
+	 * @return bool
+	 */
+	public function calculate_is_switch_after_fully_reduced_prepaid_term() {
+		$last_switch_order = $this->get_last_switch_order();
+
+		// If there is no last switch order or it hasn't been paid for, the customer hasn't switched before.
+		// Therefore, this can't be a switch after a fully reduced prepaid term.
+		if ( empty( $last_switch_order ) || ! $last_switch_order->get_date_paid() ) {
+			return false;
+		}
+
+		$switch_paid_date = $last_switch_order->get_date_paid();
+
+		// If the last switch order occurred before the last payment order (parent or renewal), then the last order wasn't a switch.
+		if ( $switch_paid_date->getTimestamp() < $this->get_last_order_paid_time() ) {
+			return false;
+		}
+
+		/**
+		 * If the last switch resulted in the customer being charged the pull cost upfront, the customer must have been entitled to fewer days than had already elapsed - see reduce_prepaid_term().
+		 * This means the subscription billing term would have started from that switch order's date, not the last order (parent/renewal) date.
+		 */
+		$first_payment_after_switch = WC_Subscriptions_Product::get_first_renewal_payment_time(
+			$this->existing_item->get_product(),
+			gmdate( 'Y-m-d H:i:s', $switch_paid_date->format( 'U' ) )
+		);
+
+		// Check if the first payment after switch is within 1 hour of the next payment timestamp.
+		return abs( $first_payment_after_switch - $this->next_payment_timestamp ) <= HOUR_IN_SECONDS;
 	}
 
 	/**

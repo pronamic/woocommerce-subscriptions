@@ -28,7 +28,7 @@ class WC_Subscriptions_Renewal_Order {
 		add_filter( 'wcs_renewal_order_created', array( __CLASS__, 'add_order_note' ), 10, 2 );
 
 		// Prevent customers from cancelling renewal orders. Needs to be hooked before WC_Form_Handler::cancel_order() (20)
-		add_action( 'wp_loaded', array( __CLASS__, 'prevent_cancelling_renewal_orders' ), 19, 3 );
+		add_action( 'wp_loaded', array( __CLASS__, 'prevent_cancelling_renewal_orders' ), 19 );
 
 		// Don't copy switch order item meta to renewal order items
 		add_filter( 'wcs_new_order_items', array( __CLASS__, 'remove_switch_item_meta_keys' ), 10, 1 );
@@ -51,7 +51,7 @@ class WC_Subscriptions_Renewal_Order {
 	 * Check if a given renewal order was created to replace a failed renewal order.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.12
-	 * @param int ID of the renewal order you want to check against
+	 * @param int $renewal_order_id ID of the renewal order you want to check against
 	 * @return mixed If the renewal order did replace a failed order, the ID of the fail order, else false
 	 */
 	public static function get_failed_order_replaced_by( $renewal_order_id ) {
@@ -170,7 +170,7 @@ class WC_Subscriptions_Renewal_Order {
 
 			$order_id = absint( $_GET['order_id'] );
 			$order    = wc_get_order( $order_id );
-			$redirect = $_GET['redirect'];
+			$redirect = wc_clean( wp_unslash( $_GET['redirect'] ) );
 
 			if ( wcs_order_contains_renewal( $order ) ) {
 				remove_action( 'wp_loaded', 'WC_Form_Handler::cancel_order', 20 );
@@ -268,6 +268,7 @@ class WC_Subscriptions_Renewal_Order {
 	 */
 	public static function maybe_generate_manual_renewal_order( $user_id, $subscription_key ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::maybe_create_manual_renewal_order( WC_Subscription $subscription )' );
+		// @phpstan-ignore staticMethod.notFound
 		self::maybe_create_manual_renewal_order( wcs_get_subscription_from_key( $subscription_key ) );
 	}
 
@@ -277,7 +278,7 @@ class WC_Subscriptions_Renewal_Order {
 	 * Deprecated because a subscription's details are now stored in a WC_Subscription object, not the
 	 * parent order.
 	 *
-	 * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
+	 * @param WC_Order|int $renewal_order The WC_Order object or ID of a WC_Order order.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
@@ -295,7 +296,7 @@ class WC_Subscriptions_Renewal_Order {
 	 * Deprecated because a subscription's details are now stored in a WC_Subscription object, not the
 	 * parent order.
 	 *
-	 * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
+	 * @param WC_Order|int $renewal_order The WC_Order object or ID of a WC_Order order.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0, self::get_parent_subscription() is the better function to use now as a renewal order
 	 */
@@ -367,7 +368,7 @@ class WC_Subscriptions_Renewal_Order {
 	 *
 	 * Deprecated because the use of a $subscription_key is deprecated.
 	 *
-	 * @param string $subscription_key A subscription key of the form created by @see WC_Subscriptions_Manager::get_subscription_key()
+	 * @param string $product_id The ID of the product to renew.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
@@ -386,7 +387,7 @@ class WC_Subscriptions_Renewal_Order {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
-	public static function can_subscription_be_renewed( $subscription_key, $user_id = '' ) {
+	public static function can_subscription_be_renewed( $subscription_key, $user_id = 0 ) {
 		_deprecated_function( __METHOD__, '2.0', 'wcs_can_user_resubscribe_to( $subscription, $user_id )' );
 		return wcs_can_user_resubscribe_to( wcs_get_subscription_from_key( $subscription_key ), $user_id );
 	}
@@ -417,7 +418,7 @@ class WC_Subscriptions_Renewal_Order {
 	/**
 	 * Created a new order for renewing a subscription product based on the details of a previous order.
 	 *
-	 * @param WC_Order|int $order The WC_Order object or ID of the order for which the a new order should be created.
+	 * @param WC_Order|int $original_order The WC_Order object or ID of the order for which the a new order should be created.
 	 * @param string $product_id The ID of the subscription product in the order which needs to be added to the new order.
 	 * @param array $args (optional) An array of name => value flags:
 	 *         'new_order_role' string A flag to indicate whether the new order should become the master order for the subscription. Accepts either 'parent' or 'child'. Defaults to 'parent' - replace the existing order.
@@ -531,6 +532,9 @@ class WC_Subscriptions_Renewal_Order {
 	 *
 	 * This is particularly important to ensure renewals of limited subscriptions can be completed.
 	 *
+	 * @param string $pay_url The URL to the payment page.
+	 * @param WC_Order|int $order The WC_Order object or ID of a WC_Order order.
+	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5.5
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
@@ -554,7 +558,7 @@ class WC_Subscriptions_Renewal_Order {
 	 * @see WC_Subscriptions_Manager::process_subscription_payments_on_order() function would
 	 * never be called. This function makes sure it is called.
 	 *
-	 * @param WC_Order|int $order A WC_Order object or ID of a WC_Order order.
+	 * @param int $order_id The ID of a WC_Order object.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
@@ -574,7 +578,7 @@ class WC_Subscriptions_Renewal_Order {
 	/**
 	 * Records manual payment of a renewal order against a subscription.
 	 *
-	 * @param WC_Order|int $order A WC_Order object or ID of a WC_Order order.
+	 * @param int $order_id The ID of a WC_Order object.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
@@ -594,7 +598,7 @@ class WC_Subscriptions_Renewal_Order {
 	/**
 	 * Records manual payment of a renewal order against a subscription.
 	 *
-	 * @param WC_Order|int $order A WC_Order object or ID of a WC_Order order.
+	 * @param WC_Order|int $order_id A WC_Order object or ID of a WC_Order order.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
@@ -615,8 +619,9 @@ class WC_Subscriptions_Renewal_Order {
 	 * If the payment for a renewal order has previously failed and is then paid, we need to make sure the
 	 * subscription payment function is called.
 	 *
-	 * @param int $user_id The id of the user who purchased the subscription
-	 * @param string $subscription_key A subscription key of the form created by @see WC_Subscriptions_Manager::get_subscription_key()
+	 * @param int $order_id The ID of a WC_Order object.
+	 * @param string $payment_status The status of the payment.
+	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */

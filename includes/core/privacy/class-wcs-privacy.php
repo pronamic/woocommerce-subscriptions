@@ -69,10 +69,10 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 		add_filter( 'woocommerce_account_settings', array( __CLASS__, 'add_subscription_data_retention_settings' ) );
 
 		// Attach callbacks to prevent subscription related orders being trashed or anonymized
-		add_filter( 'woocommerce_trash_pending_orders_query_args', array( __CLASS__, 'remove_subscription_orders_from_anonymization_query' ), 10, 2 );
-		add_filter( 'woocommerce_trash_failed_orders_query_args', array( __CLASS__, 'remove_subscription_orders_from_anonymization_query' ), 10, 2 );
-		add_filter( 'woocommerce_trash_cancelled_orders_query_args', array( __CLASS__, 'remove_subscription_orders_from_anonymization_query' ), 10, 2 );
-		add_filter( 'woocommerce_anonymize_completed_orders_query_args', array( __CLASS__, 'remove_subscription_orders_from_anonymization_query' ), 10, 2 );
+		add_filter( 'woocommerce_trash_pending_orders_query_args', array( __CLASS__, 'remove_subscription_orders_from_anonymization_query' ) );
+		add_filter( 'woocommerce_trash_failed_orders_query_args', array( __CLASS__, 'remove_subscription_orders_from_anonymization_query' ) );
+		add_filter( 'woocommerce_trash_cancelled_orders_query_args', array( __CLASS__, 'remove_subscription_orders_from_anonymization_query' ) );
+		add_filter( 'woocommerce_anonymize_completed_orders_query_args', array( __CLASS__, 'remove_subscription_orders_from_anonymization_query' ) );
 
 		add_action( 'woocommerce_cleanup_personal_data', array( $this, 'queue_cleanup_personal_data' ) );
 

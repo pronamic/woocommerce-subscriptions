@@ -36,14 +36,22 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 
 		// Mock a free trial on the cart item to make sure the resubscribe total doesn't include any recurring amount when honoring prepaid term
 		add_filter( 'woocommerce_before_calculate_totals', array( &$this, 'maybe_set_free_trial' ), 100, 1 );
+		// @phpstan-ignore return.void
 		add_action( 'woocommerce_subscription_cart_before_grouping', array( &$this, 'maybe_unset_free_trial' ) );
+		// @phpstan-ignore return.void
 		add_action( 'woocommerce_subscription_cart_after_grouping', array( &$this, 'maybe_set_free_trial' ) );
+		// @phpstan-ignore return.void
 		add_action( 'wcs_recurring_cart_start_date', array( &$this, 'maybe_unset_free_trial' ), 0, 1 );
+		// @phpstan-ignore return.void
 		add_action( 'wcs_recurring_cart_end_date', array( &$this, 'maybe_set_free_trial' ), 100, 1 );
 		add_filter( 'woocommerce_subscriptions_calculated_total', array( &$this, 'maybe_unset_free_trial' ), 10000, 1 );
+		// @phpstan-ignore return.void
 		add_action( 'woocommerce_cart_totals_before_shipping', array( &$this, 'maybe_set_free_trial' ) );
+		// @phpstan-ignore return.void
 		add_action( 'woocommerce_cart_totals_after_shipping', array( &$this, 'maybe_unset_free_trial' ) );
+		// @phpstan-ignore return.void
 		add_action( 'woocommerce_review_order_before_shipping', array( &$this, 'maybe_set_free_trial' ) );
+		// @phpstan-ignore return.void
 		add_action( 'woocommerce_review_order_after_shipping', array( &$this, 'maybe_unset_free_trial' ) );
 
 		add_action( 'woocommerce_order_status_changed', array( &$this, 'maybe_cancel_existing_subscription' ), 10, 3 );
@@ -62,15 +70,12 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 
 		if ( isset( $_GET['resubscribe'] ) && isset( $_GET['_wpnonce'] ) ) {
 
-			$subscription = wcs_get_subscription( $_GET['resubscribe'] );
+			$subscription = wcs_get_subscription( wc_clean( wp_unslash( $_GET['resubscribe'] ) ) );
 			$redirect_to  = get_permalink( wc_get_page_id( 'myaccount' ) );
 
-			if ( wp_verify_nonce( $_GET['_wpnonce'], $subscription->get_id() ) === false ) {
-
+			if ( wp_verify_nonce( wc_clean( wp_unslash( $_GET['_wpnonce'] ) ), $subscription->get_id() ) === false ) {
 				wc_add_notice( __( 'There was an error with your request to resubscribe. Please try again.', 'woocommerce-subscriptions' ), 'error' );
-
 			} elseif ( empty( $subscription ) ) {
-
 				wc_add_notice( __( 'That subscription does not exist. Has it been deleted?', 'woocommerce-subscriptions' ), 'error' );
 
 			} elseif ( ! current_user_can( 'subscribe_again', $subscription->get_id() ) ) {
@@ -80,7 +85,6 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 			} elseif ( ! wcs_can_user_resubscribe_to( $subscription ) ) {
 
 				wc_add_notice( __( 'You can not resubscribe to that subscription. Please contact us if you need assistance.', 'woocommerce-subscriptions' ), 'error' );
-
 			} else {
 
 				$this->setup_cart( $subscription, array(
@@ -101,7 +105,7 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 
 			$order_id     = ( isset( $wp->query_vars['order-pay'] ) ) ? $wp->query_vars['order-pay'] : absint( $_GET['order_id'] );
 			$order        = wc_get_order( $wp->query_vars['order-pay'] );
-			$order_key    = $_GET['key'];
+			$order_key    = wc_clean( wp_unslash( $_GET['key'] ) );
 
 			if ( wcs_get_objects_property( $order, 'order_key' ) == $order_key && $order->has_status( array( 'pending', 'failed' ) ) && wcs_order_contains_resubscribe( $order ) ) {
 
@@ -200,21 +204,21 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	 *
 	 * @see wcs_cart_contains_resubscribe()
 	 * @param WC_Cart $cart The cart object to search in.
-	 * @return bool | Array The cart item containing the renewal, else false.
+	 * @return bool|array The cart item containing the renewal, else false.
 	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0.10
 	 */
-	protected function cart_contains( $cart = '' ) {
+	protected function cart_contains( $cart = null ) {
 		return wcs_cart_contains_resubscribe( $cart );
 	}
 
 	/**
 	 * Get the subscription object used to construct the resubscribe cart.
 	 *
-	 * @param Array The resubscribe cart item.
-	 * @return WC_Subscription | The subscription object.
+	 * @param array $cart_item The resubscribe cart item.
+	 * @return WC_Subscription The subscription object.
 	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0.13
 	 */
-	protected function get_order( $cart_item = '' ) {
+	protected function get_order( $cart_item = null ) {
 		$subscription = false;
 
 		if ( empty( $cart_item ) ) {

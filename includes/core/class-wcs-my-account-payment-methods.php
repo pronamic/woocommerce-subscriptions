@@ -34,8 +34,8 @@ class WCS_My_Account_Payment_Methods {
 	/**
 	 * Add additional query args to delete token URLs which are being used for subscription automatic payments.
 	 *
-	 * @param  array data about the token including a list of actions which can be triggered by the customer from their my account page
-	 * @param  WC_Payment_Token payment token object
+	 * @param array $payment_token_data data about the token including a list of actions which can be triggered by the customer from their my account page
+	 * @param WC_Payment_Token $payment_token payment token object
 	 * @return array payment token data
 	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
@@ -63,8 +63,8 @@ class WCS_My_Account_Payment_Methods {
 					 *
 					 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
 					 *
-					 * @param bool Whether the delete button should be shown for tokens linked to a subscription. true - show, false - not shown (default).
-					 * @param WC_Payment_Token The payment token in question.
+					 * @param bool $allow_deletion Whether the delete button should be shown for tokens linked to a subscription. true - show, false - not shown (default).
+					 * @param WC_Payment_Token $payment_token The payment token in question.
 					 */
 					if ( isset( $payment_token_data['actions']['delete'] ) && ! apply_filters( 'wc_subscriptions_allow_subscription_token_deletion', false, $payment_token ) ) {
 						// Cannot delete a token used for active subscriptions where there is no alternative.
@@ -99,7 +99,7 @@ class WCS_My_Account_Payment_Methods {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
 	public static function maybe_update_subscriptions_payment_meta( $deleted_token_id, $deleted_token ) {
-		if ( ! isset( $_GET['delete_subscription_token'] ) || empty( $_GET['wcs_nonce'] ) || ! wp_verify_nonce( $_GET['wcs_nonce'], 'delete_subscription_token_' . $_GET['delete_subscription_token'] ) ) {
+		if ( ! isset( $_GET['delete_subscription_token'] ) || empty( $_GET['wcs_nonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_GET['wcs_nonce'] ) ), 'delete_subscription_token_' . wc_clean( wp_unslash( $_GET['delete_subscription_token'] ) ) ) ) {
 			return;
 		}
 
@@ -108,6 +108,7 @@ class WCS_My_Account_Payment_Methods {
 
 		$new_token = WCS_Payment_Tokens::get_customers_alternative_token( $deleted_token );
 
+		// @phpstan-ignore empty.variable
 		if ( empty( $new_token ) ) {
 			$notice = esc_html__( 'The deleted payment method was used for automatic subscription payments, we couldn\'t find an alternative token payment method token to change your subscriptions to.', 'woocommerce-subscriptions' );
 			wc_add_notice( $notice, 'error' );
@@ -146,7 +147,7 @@ class WCS_My_Account_Payment_Methods {
 	 *
 	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.7.2
 	 *
-	 * @param  WC_Payment_Token payment token object
+	 * @param WC_Payment_Token $token payment token object
 	 * @return string WC_Payment_Token label
 	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
@@ -207,14 +208,14 @@ class WCS_My_Account_Payment_Methods {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3.3
 	 */
 	public static function update_subscription_tokens() {
-		if ( ! isset( $_GET['update-subscription-tokens'], $_GET['token-id'], $_GET['_wcsnonce'] ) || ! wp_verify_nonce( $_GET['_wcsnonce'], 'wcs-update-subscription-tokens' ) ) {
+		if ( ! isset( $_GET['update-subscription-tokens'], $_GET['token-id'], $_GET['_wcsnonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_GET['_wcsnonce'] ) ), 'wcs-update-subscription-tokens' ) ) {
 			return;
 		}
 
 		// init payment gateways
 		WC()->payment_gateways();
 
-		$default_token_id = $_GET['token-id'];
+		$default_token_id = wc_clean( wp_unslash( $_GET['token-id'] ) );
 		$default_token    = WC_Payment_Tokens::get( $default_token_id );
 
 		if ( ! $default_token ) {
@@ -233,7 +234,7 @@ class WCS_My_Account_Payment_Methods {
 			}
 		}
 
-		wp_redirect( remove_query_arg( array( 'update-subscription-tokens', 'token-id', '_wcsnonce' ) ) );
+		wp_safe_redirect( remove_query_arg( array( 'update-subscription-tokens', 'token-id', '_wcsnonce' ) ) );
 		exit();
 	}
 

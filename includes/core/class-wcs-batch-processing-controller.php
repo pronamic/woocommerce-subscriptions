@@ -78,8 +78,7 @@ class WCS_Batch_Processing_Controller {
 			function ( $batch_process ) {
 				$this->process_next_batch_for_single_processor( $batch_process );
 			},
-			10,
-			2
+			10
 		);
 
 		add_action(
@@ -271,7 +270,7 @@ class WCS_Batch_Processing_Controller {
 	 * @param float                   $time_taken Time take by the batch to complete processing.
 	 * @param \Exception|null         $last_error Exception object in processing the batch, if there was one.
 	 */
-	private function update_processor_state( WCS_Batch_Processor $batch_processor, float $time_taken, \Exception $last_error = null ): void {
+	private function update_processor_state( WCS_Batch_Processor $batch_processor, float $time_taken, ?\Exception $last_error = null ): void {
 		$current_status                      = $this->get_process_details( $batch_processor );
 		$current_status['total_time_spent'] += $time_taken;
 		$current_status['last_error']        = null !== $last_error ? $last_error->getMessage() : null;
@@ -333,7 +332,8 @@ class WCS_Batch_Processing_Controller {
 	 * @throws \Exception If it's not possible to get an instance of the class.
 	 */
 	private function get_processor_instance( string $processor_class_name ): WCS_Batch_Processor {
-		if ( ! isset( $processor ) && class_exists( $processor_class_name ) ) {
+		$processor = null;
+		if ( class_exists( $processor_class_name ) ) {
 			// This is a fallback for when the batch processor is not registered in the container.
 			$processor = new $processor_class_name();
 		}

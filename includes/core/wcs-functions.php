@@ -301,8 +301,8 @@ function wcs_get_subscription_date_types() {
 /**
  * Find whether to display a specific date type in the admin area
  *
- * @param string A subscription date type key. One of the array key values returned by @see wcs_get_subscription_date_types().
- * @param WC_Subscription
+ * @param string $date_type A subscription date type key. One of the array key values returned by @see wcs_get_subscription_date_types().
+ * @param WC_Subscription $subscription
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
  * @return bool
  */
@@ -471,9 +471,6 @@ function wcs_get_subscriptions( $args ) {
 		// just in case we need to filter or order by meta values later
 		'meta_query' => isset( $working_args['meta_query'] ) ? $working_args['meta_query'] : array(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 	);
-
-	// Remove Subscriptions-specific args which exist as aliases of regular order query args.
-	unset( $query_args['subscription_status'], $query_args['subscriptions_per_page'] );
 
 	// Maybe only get subscriptions created by a certain order
 	if ( 0 !== $working_args['order_id'] && is_numeric( $working_args['order_id'] ) ) {
@@ -646,12 +643,12 @@ function wcs_get_subscriptions_for_product( $product_ids, $fields = 'ids', $args
 /**
  * Get all subscription items which have a trial.
  *
- * @param mixed WC_Subscription|post_id
+ * @param mixed $subscription_id WC_Subscription|post_id
  * @return array
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_line_items_with_a_trial( $subscription_id ) {
-
+	/** @var WC_Subscription $subscription */
 	$subscription = ( is_object( $subscription_id ) ) ? $subscription_id : wcs_get_subscription( $subscription_id );
 	$trial_items  = array();
 
@@ -684,7 +681,7 @@ function wcs_can_items_be_removed( $subscription ) {
 /**
  * Checks if the user can be granted the permission to remove a particular line item from the subscription.
  *
- * @param WC_Order_item $item An instance of a WC_Order_item object
+ * @param WC_Order_Item $item An instance of a WC_Order_item object
  * @param WC_Subscription $subscription An instance of a WC_Subscription object
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.15
  */
@@ -696,7 +693,7 @@ function wcs_can_item_be_removed( $item, $subscription ) {
  * Get the Product ID for an order's line item (only the product ID, not the variation ID, even if the order item
  * is for a variation).
  *
- * @param int An order item ID
+ * @param int $item_id An order item ID
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_get_order_items_product_id( $item_id ) {
@@ -719,7 +716,7 @@ function wcs_get_order_items_product_id( $item_id ) {
  * items representing a variation, that means the 'variation_id' value, if the item is not a variation, that means
  * the 'product_id value. This function helps save keystrokes on the idiom to check if an item is to a variation or not.
  *
- * @param array or object $item Either a cart item, order/subscription line item, or a product.
+ * @param array|object $item_or_product Either a cart item, order/subscription line item, or a product.
  */
 function wcs_get_canonical_product_id( $item_or_product ) {
 
@@ -817,22 +814,24 @@ function wcs_subscription_search( $term ) {
 					FROM {$wpdb->postmeta} p1
 					INNER JOIN {$wpdb->postmeta} p2 ON p1.post_id = p2.post_id
 					WHERE
-						( p1.meta_key = '_billing_first_name' AND p2.meta_key = '_billing_last_name' AND CONCAT(p1.meta_value, ' ', p2.meta_value) LIKE '%%%s%%' )
+						( p1.meta_key = '_billing_first_name' AND p2.meta_key = '_billing_last_name' AND CONCAT(p1.meta_value, ' ', p2.meta_value) LIKE %s )
 					OR
-						( p1.meta_key = '_shipping_first_name' AND p2.meta_key = '_shipping_last_name' AND CONCAT(p1.meta_value, ' ', p2.meta_value) LIKE '%%%s%%' )
+						( p1.meta_key = '_shipping_first_name' AND p2.meta_key = '_shipping_last_name' AND CONCAT(p1.meta_value, ' ', p2.meta_value) LIKE %s )
 					OR
-						( p1.meta_key IN ('" . implode( "','", esc_sql( $search_fields ) ) . "') AND p1.meta_value LIKE '%%%s%%' )
+						( p1.meta_key IN ('" . implode( "','", esc_sql( $search_fields ) ) . "') AND p1.meta_value LIKE %s )
 					",
-					esc_attr( $term ), esc_attr( $term ), esc_attr( $term )
+					'%' . $wpdb->esc_like( esc_attr( $term ) ) . '%',
+					'%' . $wpdb->esc_like( esc_attr( $term ) ) . '%',
+					'%' . $wpdb->esc_like( esc_attr( $term ) ) . '%'
 				)
 			),
 			$wpdb->get_col(
 				$wpdb->prepare( "
 					SELECT order_id
 					FROM {$wpdb->prefix}woocommerce_order_items as order_items
-					WHERE order_item_name LIKE '%%%s%%'
+					WHERE order_item_name LIKE %s
 					",
-					esc_attr( $term )
+					'%' . $wpdb->esc_like( esc_attr( $term ) ) . '%'
 				)
 			),
 			$wpdb->get_col(
@@ -841,11 +840,11 @@ function wcs_subscription_search( $term ) {
 					FROM {$wpdb->posts} p1
 					INNER JOIN {$wpdb->postmeta} p2 ON p1.ID = p2.post_id
 					INNER JOIN {$wpdb->users} u ON p2.meta_value = u.ID
-					WHERE u.user_email LIKE '%%%s%%'
+					WHERE u.user_email LIKE %s
 					AND p2.meta_key = '_customer_user'
 					AND p1.post_type = 'shop_subscription'
 					",
-					esc_attr( $term )
+					'%' . $wpdb->esc_like( esc_attr( $term ) ) . '%'
 				)
 			),
 			array( $search_order_id )
@@ -897,7 +896,7 @@ function wcs_set_payment_meta( $subscription, $payment_meta ) {
  *
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
  *
- * @param WC_Order|WC_Subscription $subscription Order or subscription object.
+ * @param WC_Order|WC_Subscription $order Order or subscription object.
  * @param WC_Product $product                    The product to get the total quantity of.
  * @param string $product_match_method           The way to find matching products. Optional. Default is 'stock_managed' Can be:
  *     'stock_managed'  - Products with matching stock managed IDs are grouped. Helpful for getting the total quantity of variation parents if they are managed on the product level, not on the variation level - @see WC_Product::get_stock_managed_by_id().

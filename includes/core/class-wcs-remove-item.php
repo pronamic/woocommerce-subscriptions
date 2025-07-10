@@ -69,14 +69,14 @@ class WCS_Remove_Item {
 	public static function maybe_remove_or_add_item_to_subscription() {
 
 		if ( isset( $_GET['subscription_id'] ) && ( isset( $_GET['remove_item'] ) || isset( $_GET['undo_remove_item'] ) ) && isset( $_GET['_wpnonce'] ) ) {
-
-			$subscription = wcs_is_subscription( $_GET['subscription_id'] ) ? wcs_get_subscription( $_GET['subscription_id'] ) : false;
-			$undo_request = isset( $_GET['undo_remove_item'] );
-			$item_id      = $undo_request ? $_GET['undo_remove_item'] : $_GET['remove_item'];
+			$subscription_id = wc_clean( wp_unslash( $_GET['subscription_id'] ) );
+			$subscription    = wcs_get_subscription( $subscription_id );
+			$undo_request    = isset( $_GET['undo_remove_item'] );
+			$item_id         = wc_clean( wp_unslash( $undo_request ? $_GET['undo_remove_item'] : $_GET['remove_item'] ) );
 
 			if ( false === $subscription ) {
 				// translators: %d: subscription ID.
-				wc_add_notice( sprintf( _x( 'Subscription #%d does not exist.', 'hash before subscription ID', 'woocommerce-subscriptions' ), $_GET['subscription_id'] ), 'error' );
+				wc_add_notice( sprintf( _x( 'Subscription #%d does not exist.', 'hash before subscription ID', 'woocommerce-subscriptions' ), $subscription_id ), 'error' );
 				wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) );
 				exit;
 			}
@@ -175,7 +175,7 @@ class WCS_Remove_Item {
 		$subscription_items = $subscription->get_items();
 		$response           = false;
 
-		if ( ! wp_verify_nonce( $_GET['_wpnonce'], $_GET['subscription_id'] ) ) {
+		if ( ! wp_verify_nonce( wc_clean( wp_unslash( $_GET['_wpnonce'] ) ), wc_clean( wp_unslash( $_GET['subscription_id'] ) ) ) ) {
 
 			wc_add_notice( __( 'Security error. Please contact us if you need assistance.', 'woocommerce-subscriptions' ), 'error' );
 

@@ -58,7 +58,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 	 *
 	 * All columns are inherited from orders except the `transaction_id` column isn't used for subscriptions.
 	 *
-	 * @var \string[][]
+	 * @var string[]
 	 */
 	protected $order_column_mapping = array(
 		'id'                   => array(
@@ -139,7 +139,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 	 * - recorded_sales
 	 * - date_completed_gmt
 	 *
-	 * @var \string[][]
+	 * @var string[]
 	 */
 	protected $operational_data_column_mapping = array(
 		'id'                          => array( 'type' => 'int' ),
@@ -337,7 +337,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 	/**
 	 * Attempts to restore the specified subscription back to its original status (after having been trashed).
 	 *
-	 * @param \WC_Subscription $order The order to be untrashed.
+	 * @param \WC_Subscription $subscription The subscription to be untrashed.
 	 *
 	 * @return bool If the operation was successful.
 	 */
@@ -593,6 +593,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 			$is_date_prop = ( 'schedule_' === substr( $prop, 0, 9 ) );
 
 			if ( $is_date_prop ) {
+				// @phpstan-ignore method.notFound
 				$meta_value = $subscription->get_date( $prop );
 			} else {
 				$meta_value = $subscription->{"get_$prop"}( 'edit' );
@@ -612,6 +613,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 			if ( empty( $existing_meta_data ) ) {
 				// If we're saving a start date for the first time and it's empty, set it to the created date as a default.
 				if ( '_schedule_start' === $new_meta_data['key'] && empty( $new_meta_data['value'] ) ) {
+					// @phpstan-ignore method.notFound
 					$new_meta_data['value'] = $subscription->get_date( 'date_created' );
 				}
 
@@ -626,7 +628,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 	/**
 	 * Initializes the subscription based on data received from the database.
 	 *
-	 * @param WC_Abstract_Order $subscription      The subscription object.
+	 * @param WC_Subscription   $subscription      The subscription object.
 	 * @param int               $subscription_id   The subscription's ID.
 	 * @param stdClass          $subscription_data All the subscription's data, retrieved from the database.
 	 */
@@ -643,8 +645,8 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 
 		// Set subscription specific properties that we store in meta.
 		$meta_data    = wp_list_pluck( $subscription_data->meta_data, 'meta_value', 'meta_key' );
-		$dates_to_set = [];
-		$props_to_set = [];
+		$dates_to_set = array();
+		$props_to_set = array();
 
 		foreach ( $this->subscription_meta_keys_to_props as $meta_key => $prop_key ) {
 			$is_scheduled_date = 0 === strpos( $prop_key, 'schedule' );
@@ -657,6 +659,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 
 			// If we're reading in the start date and it's missing, set it in memory to the created date.
 			if ( 'schedule_start' === $prop_key && empty( $meta_data[ $meta_key ] ) ) {
+				// @phpstan-ignore method.notFound
 				$meta_data[ $meta_key ] = $subscription->get_date( 'date_created' );
 			}
 
@@ -673,8 +676,9 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 		}
 
 		// Set the dates and props.
-		if ( $dates_to_set ) {
-			$subscription->update_dates( $dates_to_set );
+		if ( $dates_to_set && $subscription instanceof \WC_Subscription ) {
+			// @phpstan-ignore method.notFound
+			$subscription->update_valid_dates( $dates_to_set );
 		}
 
 		$subscription->set_props( $props_to_set );
@@ -784,6 +788,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 			$existing_meta_data = $subscription_meta_data[ $meta_key ] ?? false;
 			$new_meta_data      = [
 				'key'   => $meta_key,
+				// @phpstan-ignore method.notFound
 				'value' => $subscription->get_date( $date_type ),
 			];
 
@@ -794,6 +799,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 				$this->data_store_meta->add_meta( $subscription, (object) $new_meta_data );
 			}
 
+			// @phpstan-ignore method.notFound
 			$dates_saved[ $date_prop ] = wcs_get_datetime_from( $subscription->get_time( $date_type ) );
 		}
 
@@ -835,7 +841,7 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 	 *
 	 * This function is hooked onto the 'woocommerce_order_table_search_query_meta_keys' filter.
 	 *
-	 * @param array The default order search fields.
+	 * @param array $search_fields The default order search fields.
 	 *
 	 * @return array The subscription search fields.
 	 */

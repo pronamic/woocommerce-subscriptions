@@ -117,7 +117,7 @@ class WCS_Upgrade_2_2_9 {
 	/**
 	 * Add a message to the wcs-upgrade-subscriptions-containing-synced-variations log
 	 *
-	 * @param string The message to be logged
+	 * @param string $message The message to be logged
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
 	 */
 	protected static function log( $message ) {

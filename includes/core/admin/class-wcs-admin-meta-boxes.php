@@ -49,7 +49,7 @@ class WCS_Admin_Meta_Boxes {
 		add_action( 'woocommerce_order_action_wcs_retry_renewal_payment', array( __CLASS__, 'process_retry_renewal_payment_action_request' ), 10, 1 );
 
 		// Disable stock management while adding line items to a subscription via AJAX.
-		add_action( 'option_woocommerce_manage_stock', array( __CLASS__, 'override_stock_management' ) );
+		add_filter( 'option_woocommerce_manage_stock', array( __CLASS__, 'override_stock_management' ) );
 
 		// Parent order line item price lock option.
 		add_action( 'woocommerce_order_item_add_action_buttons', array( __CLASS__, 'output_price_lock_html' ) );
@@ -178,6 +178,7 @@ class WCS_Admin_Meta_Boxes {
 						'i18n_trial_end_start_notice'    => __( 'Please enter a date after the start date.', 'woocommerce-subscriptions' ),
 						'i18n_trial_end_next_notice'     => __( 'Please enter a date before the next payment.', 'woocommerce-subscriptions' ),
 						'i18n_end_date_notice'           => __( 'Please enter a date after the next payment.', 'woocommerce-subscriptions' ),
+						'i18n_invalid_date_notice'       => __( 'Invalid date', 'woocommerce-subscriptions' ),
 						'process_renewal_action_warning' => __( "Are you sure you want to process a renewal?\n\nThis will charge the customer and email them the renewal order (if emails are enabled).", 'woocommerce-subscriptions' ),
 						'payment_method'                 => $subscription->get_payment_method(),
 						'search_customers_nonce'         => wp_create_nonce( 'search-customers' ),
@@ -244,7 +245,7 @@ class WCS_Admin_Meta_Boxes {
 	/**
 	 * Handles the action request to process a renewal order.
 	 *
-	 * @param array $subscription
+	 * @param WC_Subscription $subscription
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function process_renewal_action_request( $subscription ) {
@@ -321,7 +322,7 @@ class WCS_Admin_Meta_Boxes {
 	/**
 	 * Handles the action request to create a pending parent order.
 	 *
-	 * @param array $subscription
+	 * @param WC_Subscription $subscription
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.3
 	 */
 	public static function create_pending_parent_action_request( $subscription ) {
@@ -351,7 +352,7 @@ class WCS_Admin_Meta_Boxes {
 	/**
 	 * Removes order related emails from the available actions.
 	 *
-	 * @param array $available_emails
+	 * @param array $email_actions
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function remove_order_email_actions( $email_actions ) {
@@ -398,6 +399,7 @@ class WCS_Admin_Meta_Boxes {
 	private static function can_renewal_order_be_retried( $order ) {
 
 		$can_be_retried = false;
+		$is_automatic   = false;
 
 		if ( wcs_order_contains_renewal( $order ) && $order->needs_payment() && '' != wcs_get_objects_property( $order, 'payment_method' ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			$supports_date_changes          = false;
@@ -461,11 +463,14 @@ class WCS_Admin_Meta_Boxes {
 
 		$needs_price_lock = false;
 
+		/**
+		 * @var WC_Order_Item_Product $line_item
+		 */
 		foreach ( $order->get_items() as $line_item ) {
 			$product = $line_item->get_product();
 
 			// If the line item price is above the current live price.
-			if ( $product && ( $line_item->get_subtotal() / $line_item->get_quantity() ) > $product->get_price() ) {
+			if ( $product && ( (float) $line_item->get_subtotal() / $line_item->get_quantity() ) > $product->get_price() ) {
 				$needs_price_lock = true;
 				break;
 			}
@@ -520,7 +525,7 @@ class WCS_Admin_Meta_Boxes {
 	 *
 	 * @param int                   $item_id   The ID of the order item added.
 	 * @param WC_Order_Item_Product $line_item The line item added.
-	 * @param WC_Abstract_Order     $order     The order or subscription the product was added to.
+	 * @param WC_Order              $order     The order or subscription the product was added to.
 	 */
 	public static function store_item_base_location_tax( $item_id, $line_item, $order ) {
 		if ( ! apply_filters( 'woocommerce_adjust_non_base_location_prices', true ) ) {
@@ -687,21 +692,25 @@ class WCS_Admin_Meta_Boxes {
 				continue;
 			}
 
+			/**
+			 * @var WC_Order_Item_Product $line_item
+			 */
 			$new_line_subtotal           = wc_format_decimal( $new_line_subtotal );
 			$current_base_location_taxes = $line_item->get_meta( '_subtracted_base_location_taxes' );
 			$old_line_subtotal           = $line_item->get_subtotal();
 			$old_line_quantity           = $line_item->get_quantity();
 			$new_line_quantity           = absint( $item_data['order_item_qty'][ $line_item_id ] );
+			$new_base_taxes              = array();
 
 			if ( $line_item->meta_exists( '_subtracted_base_location_rates' ) ) {
 				$base_tax_rates = $line_item->get_meta( '_subtracted_base_location_rates' );
-				$product_price  = ( $new_line_subtotal + array_sum( WC_Tax::calc_exclusive_tax( $new_line_subtotal, $base_tax_rates ) ) ) / $new_line_quantity;
+				$product_price  = ( (float) $new_line_subtotal + array_sum( WC_Tax::calc_exclusive_tax( $new_line_subtotal, $base_tax_rates ) ) ) / $new_line_quantity;
 
 				$new_base_taxes = WC_Tax::calc_tax( $product_price, $base_tax_rates, true );
 			} else {
 				// Update all the base taxes for the new product subtotal.
 				foreach ( $current_base_location_taxes as $rate_id => $tax_amount ) {
-					$new_base_taxes[ $rate_id ] = ( ( $new_line_subtotal / $new_line_quantity ) / ( $old_line_subtotal / $old_line_quantity ) ) * $tax_amount;
+					$new_base_taxes[ $rate_id ] = ( ( (float) $new_line_subtotal / $new_line_quantity ) / ( (float) $old_line_subtotal / $old_line_quantity ) ) * $tax_amount;
 				}
 			}
 

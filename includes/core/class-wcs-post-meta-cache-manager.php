@@ -22,8 +22,8 @@ class WCS_Post_Meta_Cache_Manager {
 	/**
 	 * Constructor
 	 *
-	 * @param string The post type this cache manage acts on.
-	 * @param array The post meta keys this cache manager should act on.
+	 * @param string $post_type The post type this cache manage acts on.
+	 * @param array $meta_keys The post meta keys this cache manager should act on.
 	 */
 	public function __construct( $post_type, $meta_keys ) {
 		$this->post_type = $post_type;
@@ -48,10 +48,10 @@ class WCS_Post_Meta_Cache_Manager {
 		add_action( 'deleted_post_meta', array( $this, 'meta_deleted' ), 10, 4 );
 
 		// Special handling for meta updates containing a previous order ID to make sure we also delete any previously linked relationship
-		add_action( 'update_post_metadata', array( $this, 'meta_updated_with_previous' ), 10, 5 );
+		add_filter( 'update_post_metadata', array( $this, 'meta_updated_with_previous' ), 10, 5 );
 
 		// Special handling for meta deletion on all posts/orders, not a specific post/order ID
-		add_action( 'delete_post_metadata', array( $this, 'meta_deleted_all' ), 100, 5 );
+		add_filter( 'delete_post_metadata', array( $this, 'meta_deleted_all' ), 100, 5 );
 	}
 
 	/**

@@ -163,7 +163,7 @@ class WCS_Limiter {
 		}
 
 		// Adding to cart
-		if ( isset( $_GET['switch-subscription'] ) && array_key_exists( $_GET['switch-subscription'], self::get_user_subscriptions_to_product( $product, $user_id, $product_limitation ) ) ) {
+		if ( isset( $_GET['switch-subscription'] ) && array_key_exists( wc_clean( wp_unslash( $_GET['switch-subscription'] ) ), self::get_user_subscriptions_to_product( $product, $user_id, $product_limitation ) ) ) {
 			$is_purchasable = true;
 		} else {
 			// If we have a variation product get the variable product's ID. We can't use the variation ID for comparison because this function sometimes receives a variable product.
@@ -198,9 +198,10 @@ class WCS_Limiter {
 	 */
 	public static function is_purchasable_renewal( $is_purchasable, $product ) {
 		if ( false === $is_purchasable && false === self::is_purchasable_product( $is_purchasable, $product ) ) {
+			$resubscribe_cart_item = wcs_cart_contains_resubscribe();
 
 			// Resubscribe logic
-			if ( isset( $_GET['resubscribe'] ) || false !== ( $resubscribe_cart_item = wcs_cart_contains_resubscribe() ) ) {
+			if ( isset( $_GET['resubscribe'] ) || false !== $resubscribe_cart_item ) {
 				$subscription_id       = ( isset( $_GET['resubscribe'] ) ) ? absint( $_GET['resubscribe'] ) : $resubscribe_cart_item['subscription_resubscribe']['subscription_id'];
 				$subscription          = wcs_get_subscription( $subscription_id );
 

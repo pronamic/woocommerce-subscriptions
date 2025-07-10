@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Display date/time input fields
  *
- * @param int (optional) A timestamp for a certain date in the site's timezome. If left empty, or 0, it will be set to today's date.
+ * @param int|null $timestamp (optional) A timestamp for a certain date in the site's timezome. If left empty, or 0, it will be set to today's date.
  * @param array $args A set of name => value pairs to customise the input fields
  *    'id_attr': (string) the date to display in the selector in MySQL format ('Y-m-d H:i:s'). Required.
  *    'date': (string) the date to display in the selector in MySQL format ('Y-m-d H:i:s'). Required.
@@ -121,7 +121,7 @@ function wcs_json_encode( $data ) {
  * @param $haystack An array to insert the element into
  * @param $new_key The key to insert
  * @param $new_value An value to insert
- * @return The new array if the $needle key exists, otherwise an unmodified $haystack
+ * @return array The new array if the $needle key exists, otherwise an unmodified $haystack
  */
 function wcs_array_insert_after( $needle, $haystack, $new_key, $new_value ) {
 
@@ -314,7 +314,7 @@ function wcs_trial_has_passed( $subscription ) {
  * @param array  $array    The array of items to check.
  * @param array  $property The name of object's property to check. Optional. Default is '' - the array element value as a boolean will be used, the same as array_filter().
  */
-function wcs_apply_array_filter( $filter, $array, $property = '' ) {
+function wcs_apply_array_filter( $filter, $array, $property = array() ) {
 
 	foreach ( $array as $index => $element ) {
 		$value = empty( $property ) ? $element : $element->{$property};

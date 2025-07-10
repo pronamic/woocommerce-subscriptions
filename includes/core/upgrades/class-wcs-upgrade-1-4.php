@@ -26,8 +26,6 @@ class WCS_Upgrade_1_4 {
 		global $wpdb;
 
 		$subscriptions_meta_key = $wpdb->get_blog_prefix() . 'woocommerce_subscriptions';
-		$order_items_table      = $wpdb->get_blog_prefix() . 'woocommerce_order_items';
-		$order_item_meta_table  = $wpdb->get_blog_prefix() . 'woocommerce_order_itemmeta';
 
 		// Get the IDs of all users who have a subscription
 		$users_to_upgrade = get_users(
@@ -69,7 +67,7 @@ class WCS_Upgrade_1_4 {
 
 				$wpdb->query(
 					$wpdb->prepare(
-						"INSERT INTO $order_item_meta_table (order_item_id, meta_key, meta_value)
+						"INSERT INTO {$wpdb->prefix}woocommerce_order_itemmeta (order_item_id, meta_key, meta_value)
 						VALUES
 						(%d,%s,%s),
 						(%d,%s,%s),
@@ -128,9 +126,9 @@ class WCS_Upgrade_1_4 {
 
 		// Get the ID of all orders for a subscription with a free trial and no sign-up fee
 		$order_ids = $wpdb->get_col(
-			"SELECT order_items.order_id FROM $order_items_table AS order_items
-				LEFT JOIN $order_item_meta_table AS itemmeta USING (order_item_id)
-				LEFT JOIN $order_item_meta_table AS itemmeta2 USING (order_item_id)
+			"SELECT order_items.order_id FROM {$wpdb->prefix}woocommerce_order_itemmeta AS order_items
+				LEFT JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS itemmeta USING (order_item_id)
+				LEFT JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS itemmeta2 USING (order_item_id)
 			WHERE itemmeta.meta_key = '_subscription_trial_length'
 			AND itemmeta.meta_value > 0
 			AND itemmeta2.meta_key = '_subscription_sign_up_fee'
@@ -145,19 +143,18 @@ class WCS_Upgrade_1_4 {
 				"UPDATE $wpdb->postmeta
 				SET `meta_value` = 0
 				WHERE `meta_key` IN ( '_order_total', '_order_tax', '_order_shipping_tax', '_order_shipping', '_order_discount', '_cart_discount' )
-				AND `post_id` IN ( $order_ids )"
+				AND `post_id` IN ( $order_ids )" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			);
 
 			// Now set the line totals to $0
 			$wpdb->query(
-				"UPDATE $order_item_meta_table
+				"UPDATE {$wpdb->prefix}woocommerce_order_itemmeta
 				 SET `meta_value` = 0
 				 WHERE `meta_key` IN ( '_line_subtotal', '_line_subtotal_tax', '_line_total', '_line_tax', 'tax_amount', 'shipping_tax_amount' )
 				 AND `order_item_id` IN (
-					SELECT `order_item_id` FROM $order_items_table
+					SELECT `order_item_id` FROM {$wpdb->prefix}woocommerce_order_items
 					WHERE `order_item_type` IN ('tax','line_item')
-					AND `order_id` IN ( $order_ids )
-				)"
+					AND `order_id` IN ( $order_ids ) )" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			);
 		}
 

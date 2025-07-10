@@ -45,8 +45,11 @@ class WCS_Change_Payment_Method_Admin {
 
 		} elseif ( count( $valid_payment_methods ) == 1 ) {
 			echo '<strong>' . esc_html__( 'Payment method', 'woocommerce-subscriptions' ) . '</strong><br/>' . esc_html( current( $valid_payment_methods ) );
-			// translators: %s: gateway ID.
-			echo wcs_help_tip( sprintf( _x( 'Gateway ID: [%s]', 'The gateway ID displayed on the Edit Subscriptions screen when editing payment method.', 'woocommerce-subscriptions' ), key( $valid_payment_methods ) ) );
+			// @phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo wcs_help_tip(
+				// translators: %s: gateway ID.
+				sprintf( _x( 'Gateway ID: [%s]', 'The gateway ID displayed on the Edit Subscriptions screen when editing payment method.', 'woocommerce-subscriptions' ), key( $valid_payment_methods ) )
+			);
 			echo '<input type="hidden" value="' . esc_attr( key( $valid_payment_methods ) ) . '" id="_payment_method" name="_payment_method">';
 		}
 
@@ -101,7 +104,7 @@ class WCS_Change_Payment_Method_Admin {
 	 */
 	public static function save_meta( $subscription ) {
 
-		if ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( $_POST['_wcsnonce'], 'wcs_change_payment_method_admin' ) ) {
+		if ( empty( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_change_payment_method_admin' ) ) {
 			return;
 		}
 
@@ -125,7 +128,7 @@ class WCS_Change_Payment_Method_Admin {
 				}
 
 				foreach ( $meta as $meta_key => $meta_data ) {
-					$payment_method_meta[ $meta_table ][ $meta_key ]['value'] = isset( $_POST['_payment_method_meta'][ $payment_method ][ $meta_table ][ $meta_key ] ) ? $_POST['_payment_method_meta'][ $payment_method ][ $meta_table ][ $meta_key ] : '';
+					$payment_method_meta[ $meta_table ][ $meta_key ]['value'] = isset( $_POST['_payment_method_meta'][ $payment_method ][ $meta_table ][ $meta_key ] ) ? wc_clean( wp_unslash( $_POST['_payment_method_meta'][ $payment_method ][ $meta_table ][ $meta_key ] ) ) : '';
 				}
 			}
 		}
@@ -158,8 +161,8 @@ class WCS_Change_Payment_Method_Admin {
 	 * Get a list of possible gateways that a subscription could be changed to by admins.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
-	 * @param $subscription int | WC_Subscription
-	 * @return
+	 * @param int|WC_Subscription $subscription The subscription object
+	 * @return array
 	 */
 	public static function get_valid_payment_methods( $subscription ) {
 

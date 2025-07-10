@@ -299,7 +299,7 @@ abstract class WCS_SV_API_Base {
 		 *
 		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.1.0
 		 * @param string $uri current request URI
-		 * @param \WCS_SV_API_Base class instance
+		 * @param \WCS_SV_API_Base $this class instance
 		 */
 		return apply_filters( 'wc_' . $this->get_api_id() . '_api_request_uri', $uri, $this );
 	}
@@ -335,7 +335,7 @@ abstract class WCS_SV_API_Base {
 		 *
 		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 		 * @param array $args request arguments
-		 * @param \WCS_SV_API_Base class instance
+		 * @param \WCS_SV_API_Base $this class instance
 		 */
 		return apply_filters( 'wc_' . $this->get_api_id() . '_http_request_args', $args, $this );
 	}

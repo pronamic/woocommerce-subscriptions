@@ -55,8 +55,8 @@ class WCS_Payment_Tokens extends WC_Payment_Tokens {
 		/**
 		 * Enable third-party plugins to run their own updates and filter whether the token was updated or not.
 		 *
-		 * @param bool Whether the token was updated. Default is true.
-		 * @param WC_Subscription  $subscription
+		 * @param bool $updated Whether the token was updated. Default is true.
+		 * @param WC_Subscription $subscription
 		 * @param WC_Payment_Token $new_token
 		 * @param WC_Payment_Token $old_token
 		 */
@@ -137,13 +137,13 @@ class WCS_Payment_Tokens extends WC_Payment_Tokens {
 	/**
 	 * Get a list of customer payment tokens. Caches results to avoid multiple database queries per request
 	 *
-	 * @param  int (optional) The customer id - defaults to the current user.
-	 * @param  string (optional) Gateway ID for getting tokens for a specific gateway.
+	 * @param int $customer_id (optional) The customer id - defaults to the current user.
+	 * @param string $gateway_id (optional) Gateway ID for getting tokens for a specific gateway.
 	 * @return array of WC_Payment_Token objects.
 	 * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.7
 	 */
-	public static function get_customer_tokens( $customer_id = '', $gateway_id = '' ) {
-		if ( '' === $customer_id ) {
+	public static function get_customer_tokens( $customer_id = 0, $gateway_id = '' ) {
+		if ( 0 === $customer_id ) {
 			$customer_id = get_current_user_id();
 		}
 

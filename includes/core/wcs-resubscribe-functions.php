@@ -105,11 +105,11 @@ function wcs_get_users_resubscribe_link_for_product( $product_id ) {
 /**
  * Checks the cart to see if it contains a subscription product renewal.
  *
- * @param  bool | Array The cart item containing the renewal, else false.
+ * @param bool|array $cart The cart item containing the renewal, else false.
  * @return string
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
-function wcs_cart_contains_resubscribe( $cart = '' ) {
+function wcs_cart_contains_resubscribe( $cart = null ) {
 
 	$contains_resubscribe = false;
 
@@ -153,12 +153,12 @@ function wcs_get_subscriptions_for_resubscribe_order( $order ) {
  * 5. have a recurring amount greater than $0, to avoid allowing resubscribes to subscriptions
  *    where the entire cost is charged in a sign-up fee
  *
- * @param  int | WC_Subscription $subscription Post ID of a 'shop_subscription' post, or instance of a WC_Subscription object
- * @param  int The ID of a user
+ * @param int|WC_Subscription $subscription Post ID of a 'shop_subscription' post, or instance of a WC_Subscription object
+ * @param int $user_id The ID of a user
  * @return bool
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
-function wcs_can_user_resubscribe_to( $subscription, $user_id = '' ) {
+function wcs_can_user_resubscribe_to( $subscription, $user_id = 0 ) {
 
 	if ( ! is_object( $subscription ) ) {
 		$subscription = wcs_get_subscription( $subscription );

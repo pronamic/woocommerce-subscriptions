@@ -21,8 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
  * @param  string $function
+ * @param  string $message
  * @param  string $version
- * @param  string $replacement
  */
 function wcs_doing_it_wrong( $function, $message, $version ) {
 
@@ -70,7 +70,7 @@ function wcs_deprecated_function( $function, $version, $replacement = null ) {
  * Reimplement similar logic to wc_deprecated_argument() without the first parameter confusion.
  *
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
- * @param  string $argument
+ * @param  string $function
  * @param  string $version
  * @param  string $message
  */
@@ -174,6 +174,7 @@ function wcs_get_subscription_from_key( $subscription_key ) {
 		$subscription = wcs_get_subscription( $subscription_id );
 	}
 
+	// @phpstan-ignore variable.undefined
 	if ( ! is_object( $subscription ) ) {
 		// translators: placeholder is either subscription key or a subscription id, or, failing that, empty (e.g. "145_21" or "145")
 		throw new InvalidArgumentException( sprintf( __( 'Could not get subscription. Most likely the subscription key does not refer to a subscription. The key was: "%s".', 'woocommerce-subscriptions' ), $subscription_key ) );
@@ -282,7 +283,7 @@ function wcs_deprecated_hook( $hook, $version, $replacement = null, $message = n
 
 			error_log( $log_string . $message );
 		} else {
-			_deprecated_hook( $hook, $version, $replacement, $message );
+			wc_deprecated_hook( $hook, $version, $replacement, $message );
 		}
 	}
 }

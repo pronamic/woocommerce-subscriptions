@@ -18,9 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Display a recurring cart's subtotal
  *
- * @access public
  * @param WC_Cart $cart The cart do print the subtotal html for.
- * @return string
  */
 function wcs_cart_totals_subtotal_html( $cart ) {
 	$subtotal_html = wcs_cart_price_string( wc_price( $cart->get_displayed_subtotal() ), $cart );
@@ -38,8 +36,6 @@ function wcs_cart_totals_subtotal_html( $cart ) {
 
 /**
  * Get recurring shipping methods.
- *
- * @access public
  */
 function wcs_cart_totals_shipping_html() {
 	$initial_packages        = WC()->shipping->get_packages();
@@ -164,7 +160,6 @@ function wcs_cart_totals_shipping_html() {
  * @param  object $shipping_method
  * @param  string $chosen_method
  * @param  string $input_type
- * @return null
  */
 function wcs_cart_print_shipping_input( $shipping_method_index, $shipping_method, $chosen_method = '', $input_type = 'hidden' ) {
 
@@ -332,7 +327,7 @@ function wcs_cart_totals_coupon_html( $coupon, $cart ) {
 /**
  * Gets recurring total html including inc tax if needed.
  *
- * @param WC_Cart The cart to display the total for.
+ * @param WC_Cart $cart The cart to display the total for.
  */
 function wcs_cart_totals_order_total_html( $cart ) {
 	$order_total_html           = '<strong>' . $cart->get_total() . '</strong> ';

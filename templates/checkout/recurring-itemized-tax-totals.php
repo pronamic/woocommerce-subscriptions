@@ -38,11 +38,12 @@ foreach ( WC()->cart->get_taxes() as $tax_id => $tax_total ) {
 			<?php if ( $display_heading ) { ?>
 				<?php $display_heading = false; ?>
 				<th><?php echo esc_html( $recurring_tax->label ); ?></th>
-				<td data-title="<?php echo esc_attr( $recurring_tax->label ); ?>"><?php echo $tax_amount; // XSS ok ?></td>
+				<td data-title="<?php echo esc_attr( $recurring_tax->label ); ?>"><?php echo $tax_amount; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
 			<?php } else { ?>
 				<th></th>
-				<td><?php echo $tax_amount; // XSS ok ?></td>
-			<?php }
+				<td><?php echo $tax_amount; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
+				<?php
+			}
 		}
 	}
 	$display_heading = true;

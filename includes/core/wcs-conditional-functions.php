@@ -21,10 +21,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * in some cases, like WC_Subscriptions_Product::is_purchasable() and WC_Product_Subscription_Variation::is_purchasable(), both
  * called within WC_Cart::get_cart_from_session(), which is run before query vars are setup.
  *
- * @return 2.0.13
  * @return bool
  **/
 function wcs_is_order_received_page() {
-	return ( false !== strpos( $_SERVER['REQUEST_URI'], 'order-received' ) );
-}
+	// @phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+	$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( $_SERVER['REQUEST_URI'] ) : '';
 
+	return ( false !== strpos( $request_uri, 'order-received' ) );
+}

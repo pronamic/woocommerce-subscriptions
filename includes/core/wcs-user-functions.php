@@ -46,7 +46,7 @@ function wcs_maybe_make_user_inactive( $user_id ) {
  * Handy for hooks that pass a subscription object.
  *
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.9
- * @param WC_Subscription|WC_Order
+ * @param WC_Subscription|WC_Order $subscription
  */
 function wcs_maybe_make_user_inactive_for( $subscription ) {
 	wcs_maybe_make_user_inactive( $subscription->get_user_id() );
@@ -130,7 +130,7 @@ function wcs_get_new_user_role_names( $role_new ) {
  *
  * @return bool
  */
-function wcs_user_has_subscription( $user_id = 0, $product_id = '', $status = 'any' ) {
+function wcs_user_has_subscription( $user_id = 0, $product_id = 0, $status = 'any' ) {
 
 	$subscriptions = wcs_get_users_subscriptions( $user_id );
 
@@ -170,7 +170,7 @@ function wcs_user_has_subscription( $user_id = 0, $product_id = '', $status = 'a
  * @return WC_Subscription[]
  */
 function wcs_get_users_subscriptions( $user_id = 0 ) {
-	if ( 0 === $user_id || empty( $user_id ) ) {
+	if ( 0 === $user_id ) {
 		$user_id = get_current_user_id();
 	}
 
@@ -185,7 +185,7 @@ function wcs_get_users_subscriptions( $user_id = 0 ) {
 		}
 	}
 
-	if ( empty( $subscriptions ) && 0 !== $user_id && ! empty( $user_id ) ) {
+	if ( empty( $subscriptions ) && 0 !== $user_id ) {
 		$subscription_ids = WCS_Customer_Store::instance()->get_users_subscription_ids( $user_id );
 
 		foreach ( $subscription_ids as $subscription_id ) {

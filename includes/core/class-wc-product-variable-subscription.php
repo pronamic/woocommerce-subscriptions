@@ -287,8 +287,10 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 	}
 
 	/**
+	 * Use WC core add-to-cart handlers for subscription products.
 	 *
-	 * @param string $product_type A string representation of a product type
+	 * @param string     $handler The name of the handler to use when adding product to the cart
+	 * @param WC_Product $product
 	 */
 	public function add_to_cart_handler( $handler, $product ) {
 		wcs_deprecated_function( __METHOD__, '2.2.0', 'WC_Subscriptions_Cart::add_to_cart_handler( $handler, $product )' );
@@ -298,10 +300,11 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 	/**
 	 * Sync variable product prices with the children lowest/highest prices.
 	 *
-	 * @access public
+	 * @param int $product_id The ID of the product to sync.
+	 *
 	 * @return void
 	 */
-	public function variable_product_sync( $product_id = '' ) {
+	public function variable_product_sync( $product_id = 0 ) {
 		wcs_deprecated_function( __METHOD__, '2.2,0', 'WC_Subscriptions_Product::variable_subscription_product_sync( $this )' );
 
 		if ( empty( $product_id ) ) {

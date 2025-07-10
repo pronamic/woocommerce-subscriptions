@@ -367,7 +367,7 @@ class WCS_Template_Loader {
 	 * @param string $template_name
 	 * @param array  $args
 	 * @param string $template_path
-	 * @param
+	 * @param string $default_path
 	 */
 	public static function handle_relocated_templates( $template, $template_name, $args, $template_path, $default_path ) {
 		// We only want to relocate subscription template files that can't be found.

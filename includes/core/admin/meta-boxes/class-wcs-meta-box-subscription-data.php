@@ -44,7 +44,10 @@ class WCS_Meta_Box_Subscription_Data extends WC_Meta_Box_Order_Data {
 			#post-body-content, #titlediv, #major-publishing-actions, #minor-publishing-actions, #visibility, #submitdiv { display:none }
 		</style>
 		<div class="panel-wrap woocommerce">
-			<input name="post_title" type="hidden" value="<?php echo empty( $order_title ) ? esc_attr( get_post_type_object( $subscription->get_type() )->labels->singular_name ) : esc_attr( $subscription_title ); ?>" />
+			<input name="post_title" type="hidden" value="<?php
+				// @phpstan-ignore empty.variable
+				echo empty( $order_title ) ? esc_attr( get_post_type_object( $subscription->get_type() )->labels->singular_name ) : esc_attr( $subscription_title );
+			?>" />
 			<input name="post_status" type="hidden" value="<?php echo esc_attr( 'wc-' . $subscription->get_status() ); ?>" />
 			<div id="order_data" class="panel">
 

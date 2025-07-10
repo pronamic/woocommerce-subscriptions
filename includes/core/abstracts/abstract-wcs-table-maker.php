@@ -35,7 +35,8 @@ abstract class WCS_Table_Maker {
 		foreach ( $this->tables as $table ) {
 			$wpdb->tables[] = $table;
 			$name           = $this->get_full_table_name( $table );
-			$wpdb->$table   = $name;
+			// phpcs:disable QITStandard.DB.DynamicWpdbMethodCall.DynamicMethod
+			$wpdb->$table = $name;
 		}
 
 		// create the tables

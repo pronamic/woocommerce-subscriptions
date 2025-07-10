@@ -51,8 +51,8 @@ class WCS_Object_Data_Cache_Manager extends WCS_Post_Meta_Cache_Manager {
 	/**
 	 * Constructor.
 	 *
-	 * @param string The post type this cache manage acts on.
-	 * @param array The post meta keys this cache manager should act on.
+	 * @param string $object_type The post type this cache manage acts on.
+	 * @param array $data_keys The post meta keys this cache manager should act on.
 	 */
 	public function __construct( $object_type, $data_keys ) {
 		$this->object_type = $object_type;
@@ -82,33 +82,35 @@ class WCS_Object_Data_Cache_Manager extends WCS_Post_Meta_Cache_Manager {
 	 * Relevant changes to the object's data is stored in the $this->object_changes property
 	 * to be processed after the object is saved. See $this->action_object_cache_changes().
 	 *
-	 * @param WC_Data $object        The object which is being saved.
-	 * @param string  $generate_type Optional. The data to generate the changes from. Defaults to 'changes_only' which will generate the data from changes to the object. 'all_fields' will fetch data from the object for all tracked data keys.
+	 * @param WC_Subscription $subscription        The object which is being saved.
+	 * @param string          $generate_type Optional. The data to generate the changes from. Defaults to 'changes_only' which will generate the data from changes to the object. 'all_fields' will fetch data from the object for all tracked data keys.
 	 */
-	public function prepare_object_changes( $object, $generate_type = 'changes_only' ) {
+	public function prepare_object_changes( $subscription, $generate_type = 'changes_only' ) {
 		// If the object hasn't been created yet, we can't do anything yet. We'll have to wait until after the object is saved.
-		if ( ! $object->get_id() ) {
+		if ( ! $subscription->get_id() ) {
 			return;
 		}
 
 		$force_all_fields = 'all_fields' === $generate_type;
-		$changes          = $object->get_changes();
-		$base_data        = $object->get_base_data();
-		$meta_data        = $object->get_meta_data();
+		// @phpstan-ignore-next-line
+		$changes   = $subscription->get_changes();
+		$base_data = $subscription->get_base_data();
+		// @phpstan-ignore-next-line
+		$meta_data = $subscription->get_meta_data();
 
 		// Deleted meta won't be included in the changes, so we need to fetch the previous value via the raw meta data.
-		$data_store       = $object->get_data_store();
-		$raw_meta_data    = $data_store->read_meta( $object );
+		$data_store       = $subscription->get_data_store();
+		$raw_meta_data    = $data_store->read_meta( $subscription );
 		$raw_meta_key_map = wp_list_pluck( $raw_meta_data, 'meta_key' );
 
 		// Record the object ID so we know that it has been handled in $this->action_object_cache_changes().
-		$this->object_changes[ $object->get_id() ] = [];
+		$this->object_changes[ $subscription->get_id() ] = [];
 
 		foreach ( $this->data_keys as $data_key ) {
 
 			// Check if the data key is a base property and if it has changed.
 			if ( isset( $changes[ $data_key ] ) ) {
-				$this->object_changes[ $object->get_id() ][ $data_key ] = [
+				$this->object_changes[ $subscription->get_id() ][ $data_key ] = [
 					'new'      => $changes[ $data_key ],
 					'previous' => isset( $base_data[ $data_key ] ) ? $base_data[ $data_key ] : null,
 					'type'     => 'update',
@@ -117,7 +119,7 @@ class WCS_Object_Data_Cache_Manager extends WCS_Post_Meta_Cache_Manager {
 				continue;
 			} elseif ( isset( $base_data[ $data_key ] ) && $force_all_fields ) {
 				// If we're forcing all fields, fetch the base data as the new value.
-				$this->object_changes[ $object->get_id() ][ $data_key ] = [
+				$this->object_changes[ $subscription->get_id() ][ $data_key ] = [
 					'new'  => $base_data[ $data_key ],
 					'type' => 'add',
 				];
@@ -135,20 +137,22 @@ class WCS_Object_Data_Cache_Manager extends WCS_Post_Meta_Cache_Manager {
 
 				if ( empty( $meta->id ) ) {
 					// If the value is being added.
-					$this->object_changes[ $object->get_id() ][ $data_key ] = [
+					$this->object_changes[ $subscription->get_id() ][ $data_key ] = [
 						'new'  => $meta->value,
 						'type' => 'add',
 					];
 				} elseif ( $meta->get_changes() ) {
 					// If the value is being updated.
-					$this->object_changes[ $object->get_id() ][ $data_key ] = [
+					$this->object_changes[ $subscription->get_id() ][ $data_key ] = [
+						// @phpstan-ignore-next-line
 						'new'      => $meta->value,
 						'previous' => isset( $previous_meta['value'] ) ? $previous_meta['value'] : null,
 						'type'     => 'update',
 					];
 				} elseif ( $force_all_fields ) {
 					// If we're forcing all fields to be recorded.
-					$this->object_changes[ $object->get_id() ][ $data_key ] = [
+					$this->object_changes[ $subscription->get_id() ][ $data_key ] = [
+						// @phpstan-ignore-next-line
 						'new'  => $meta->value,
 						'type' => 'add',
 					];
@@ -159,10 +163,10 @@ class WCS_Object_Data_Cache_Manager extends WCS_Post_Meta_Cache_Manager {
 			}
 
 			// If we got this far, then the data key is stored as meta and has been deleted.
-			// When meta is deleted it won't be returned by $object->get_meta_data(). So we need to check the raw meta data.
+			// When meta is deleted it won't be returned by $subscription->get_meta_data(). So we need to check the raw meta data.
 			if ( in_array( $data_key, $raw_meta_key_map, true ) ) {
 				$previous_meta = $raw_meta_data[ array_search( $data_key, $raw_meta_key_map, true ) ]->meta_value;
-				$this->object_changes[ $object->get_id() ][ $data_key ] = [
+				$this->object_changes[ $subscription->get_id() ][ $data_key ] = [
 					'previous' => $previous_meta,
 					'type'     => 'delete',
 				];
@@ -316,7 +320,7 @@ class WCS_Object_Data_Cache_Manager extends WCS_Post_Meta_Cache_Manager {
 	/**
 	 * Fetches an instance of the object with the given ID.
 	 *
-	 * @param int $object_id The ID of the object to fetch.
+	 * @param int $id The ID of the object to fetch.
 	 *
 	 * @return mixed The object instance, or null if it doesn't exist.
 	 */
