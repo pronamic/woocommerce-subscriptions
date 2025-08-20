@@ -163,26 +163,4 @@ class WCS_Email_Completed_Renewal_Order extends WC_Email_Customer_Completed_Orde
 			$this->template_base
 		);
 	}
-
-	/**
-	 * Gets the deprecated public variables for backwards compatibility.
-	 *
-	 * @param string $key Key.
-	 *
-	 * @return string|null
-	 */
-	public function __get( $key ) {
-		if ( 'heading_downloadable' === $key ) {
-			wcs_deprecated_argument( __CLASS__ . '::$' . $key, '5.6.0', 'The heading_downloadable property used for emails with downloadable files was removed in WooCommerce 3.1. Use the heading property instead.' );
-			return $this->get_option( 'heading_downloadable', _x( 'Your subscription renewal order is complete - download your files', 'Default email heading for email with downloadable files in it', 'woocommerce-subscriptions' ) );
-
-		} elseif ( 'subject_downloadable' === $key ) {
-			wcs_deprecated_argument( __CLASS__ . '::$' . $key, '5.6.0', 'The subject_downloadabl property used for emails with downloadable files was removed in WooCommerce 3.1. Use the subject property instead.' );
-			// translators: $1: {site_title}, $2: {order_date}, variables will be substituted when email is sent out
-			return $this->get_option( 'subject_downloadable', sprintf( _x( 'Your %1$s subscription renewal order from %2$s is complete - download your files', 'Default email subject for email with downloadable files in it', 'woocommerce-subscriptions' ), '{site_title}', '{order_date}' ) );
-
-		} else {
-			return;
-		}
-	}
 }

@@ -406,6 +406,27 @@ jQuery( function ( $ ) {
 					$( this ).addClass( 'wcs_moved' );
 				} );
 		},
+		moveSubscriptionGiftingFields: function () {
+			$( '#variable_product_options .variable_subscription_gifting' )
+				.not( '.wcs_gifting_moved' )
+				.each( function () {
+					var $trialSignUpRow = $( this ).siblings(
+							'.variable_subscription_trial_sign_up'
+						),
+						$subscriptionPricingRow = $( this ).siblings(
+							'.variable_subscription_pricing'
+						);
+
+					// Position gifting field after trial sign up row if it exists, otherwise after subscription pricing
+					if ( $trialSignUpRow.length > 0 ) {
+						$( this ).insertAfter( $trialSignUpRow );
+					} else if ( $subscriptionPricingRow.length > 0 ) {
+						$( this ).insertAfter( $subscriptionPricingRow );
+					}
+
+					$( this ).addClass( 'wcs_gifting_moved' );
+				} );
+		},
 		getVariationBulkEditValue: function ( variation_action ) {
 			var value;
 
@@ -632,18 +653,27 @@ jQuery( function ( $ ) {
 		$( '.options_group.subscription_pricing' )
 	);
 
-	// Move the subscription variation pricing section to a better location in the DOM on load
+	// Move the subscription variation pricing and gifting sections to a better location in the DOM on load
+	// We do this because these sections are initially loaded at the end of the variable product options section,
+	// which is not the best location for them, so we move to before the "Sale price" section.
 	if (
 		$( '#variable_product_options .variable_subscription_pricing' ).length >
 		0
 	) {
 		$.moveSubscriptionVariationFields();
 	}
+	if (
+		$( '#variable_product_options .variable_subscription_gifting' ).length >
+		0
+	) {
+		$.moveSubscriptionGiftingFields();
+	}
 	// When a variation is added
 	$( '#woocommerce-product-data' ).on(
 		'woocommerce_variations_added woocommerce_variations_loaded',
 		function () {
 			$.moveSubscriptionVariationFields();
+			$.moveSubscriptionGiftingFields();
 			$.showHideVariableSubscriptionMeta();
 			$.showHideSyncOptions();
 			$.setSubscriptionLengths();
@@ -1028,6 +1058,33 @@ jQuery( function ( $ ) {
 				$customerNotificationOffsetRow.fadeOut();
 			}
 		} );
+	}
+
+	var $giftingEnableCheckbox = $(
+		document.getElementById( 'woocommerce_subscriptions_gifting_enable_gifting' )
+	),
+	$giftingRadios = $(
+		'.wc-settings-row-gifting-radios'
+	);
+
+	if ( $giftingEnableCheckbox.length > 0 ) {
+		function toggleGiftingCheckbox( checked ) {
+			if ( checked ) {
+				$giftingRadios.show();
+				$giftingEnableCheckbox.closest( 'tr' ).addClass( 'checked' );
+
+				return;
+			}
+
+			$giftingRadios.hide();
+			$giftingEnableCheckbox.closest( 'tr' ).removeClass( 'checked' );
+		}
+
+		$giftingEnableCheckbox.on( 'change', function() {
+			toggleGiftingCheckbox( this.checked );
+		} );
+
+		toggleGiftingCheckbox( $giftingEnableCheckbox.is(':checked') );
 	}
 
 	// Don't display the variation notice for variable subscription products

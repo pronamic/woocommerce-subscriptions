@@ -64,6 +64,8 @@ class WC_Subscriptions_Order {
 		add_action( 'woocommerce_subscription_details_after_subscription_table', __CLASS__ . '::get_related_orders_template' );
 		add_action( 'woocommerce_subscription_details_after_subscription_related_orders_table', __CLASS__ . '::get_related_orders_pagination_template', 5, 4 );
 
+		add_action( 'woocommerce_subscription_status_cancelled', array( __CLASS__, 'cancel_pending_related_orders' ), 10, 1 );
+
 		add_filter( 'woocommerce_my_account_my_orders_actions', __CLASS__ . '::maybe_remove_pay_action', 10, 2 );
 
 		add_action( 'woocommerce_order_fully_refunded', __CLASS__ . '::maybe_cancel_subscription_on_full_refund' );
@@ -382,7 +384,6 @@ class WC_Subscriptions_Order {
 				)
 			);
 		}
-
 	}
 
 	/**
@@ -586,6 +587,36 @@ class WC_Subscriptions_Order {
 
 		if ( $was_activated ) {
 			do_action( 'subscriptions_activated_for_order', $order_id );
+		}
+	}
+
+	/**
+	 * Cancel related orders when a subscription is cancelled.
+	 *
+	 * @param WC_Subscription $subscription The subscription that was cancelled.
+	 */
+	public static function cancel_pending_related_orders( $subscription ) {
+		if ( ! is_a( $subscription, WC_Subscription::class ) ) {
+			wc_get_logger()->warning(
+				'Failed to cancel pending related orders on subscription cancellation. Subscription is not a WC_Subscription object.',
+				array(
+					'subscription' => $subscription,
+				),
+			);
+			return;
+		}
+		$related_orders = $subscription->get_related_orders( 'all', array( 'parent', 'renewal', 'switch', 'resubscribe' ) );
+
+		foreach ( $related_orders as $order ) {
+			if ( $order->has_status( 'pending' ) && $order->needs_payment() ) {
+				$note = sprintf(
+					// translators: %d: subscription ID.
+					__( 'Order cancelled due to subscription #%d cancellation.', 'woocommerce-subscriptions' ),
+					$subscription->get_id()
+				);
+				$order->update_status( 'cancelled', $note );
+				$order->save();
+			}
 		}
 	}
 

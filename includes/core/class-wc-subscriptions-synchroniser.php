@@ -822,9 +822,18 @@ class WC_Subscriptions_Synchroniser {
 	}
 
 	/**
-	 * Return a string explaining when the first payment will be completed for the subscription.
+	 * Return a string explaining when the first payment will be completed for a synchronized subscription product.
+	 *
+	 * For synchronized subscription products, this method calculates and formats a human-readable string
+	 * indicating when the first payment will be processed. The string will indicate if the payment is:
+	 * - Due today
+	 * - Prorated with the next payment date
+	 * - Just the first payment date
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.5
+	 *
+	 * @param WC_Product|WC_Product_Subscription|WC_Product_Variable_Subscription $product The subscription product to get the first payment date for.
+	 * @return string A formatted string explaining the first payment date. Empty string if product is not synchronized.
 	 */
 	public static function get_products_first_payment_date( $product ) {
 

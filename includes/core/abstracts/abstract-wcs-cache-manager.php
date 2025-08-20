@@ -21,13 +21,6 @@ abstract class WCS_Cache_Manager {
 	}
 
 	/**
-	 * WCS_Cache_Manager constructor.
-	 *
-	 * Loads the logger if it's not overwritten.
-	 */
-	abstract function __construct();
-
-	/**
 	 * Initialises some form of logger
 	 */
 	abstract public function load_logger();

@@ -1259,8 +1259,15 @@ class WC_Subscriptions_Switcher {
 	 * @since 2.0
 	 */
 	public static function cart_contains_switch_for_product( $product ) {
+		if ( ! is_object( $product ) ) {
+			$product = wc_get_product( $product );
+		}
 
-		$product_id         = ( is_object( $product ) ) ? $product->get_id() : $product;
+		if ( ! $product ) {
+			return false;
+		}
+
+		$product_id         = $product->get_id();
 		$switch_items       = self::cart_contains_switches();
 		$switch_product_ids = array();
 

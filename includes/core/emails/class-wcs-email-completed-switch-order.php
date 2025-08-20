@@ -172,25 +172,4 @@ class WCS_Email_Completed_Switch_Order extends WC_Email_Customer_Completed_Order
 			$this->template_base
 		);
 	}
-
-	/**
-	 * Gets the deprecated public variables for backwards compatibility.
-	 *
-	 * @param string $key Key.
-	 *
-	 * @return string|null
-	 */
-	public function __get( $key ) {
-		if ( 'heading_downloadable' === $key ) {
-			wcs_deprecated_argument( __CLASS__ . '::$' . $key, '5.6.0', 'The heading_downloadable property used for emails with downloadable files was removed in WooCommerce 3.1. Use the heading property instead.' );
-			return $this->get_option( 'heading_downloadable', __( 'Your subscription change is complete - download your files', 'woocommerce-subscriptions' ) );
-
-		} elseif ( 'subject_downloadable' === $key ) {
-			wcs_deprecated_argument( __CLASS__ . '::$' . $key, '5.6.0', 'The subject_downloadable property used for emails with downloadable files was removed in WooCommerce 3.1. Use the subject property instead.' );
-			return $this->get_option( 'subject_downloadable', __( 'Your {site_title} subscription change from {order_date} is complete - download your files', 'woocommerce-subscriptions' ) );
-
-		} else {
-			return;
-		}
-	}
 }

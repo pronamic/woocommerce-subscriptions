@@ -23,6 +23,7 @@ class WC_Subscriptions_Product {
 		'_subscription_length',
 		'_subscription_trial_period',
 		'_subscription_trial_length',
+		'_subscription_gifting',
 	);
 
 	/**
@@ -112,6 +113,28 @@ class WC_Subscriptions_Product {
 		}
 
 		return apply_filters( 'woocommerce_is_subscription', $is_subscription, $product_id, $product );
+	}
+
+	/**
+	 * Checks a given product to determine if it is a variable subscription.
+	 *
+	 * @param int|WC_Product $product Either a product object or product's post ID.
+	 * @since 7.8.0
+	 * @see WC_Subscriptions_Product::is_subscription()
+	 */
+	public static function is_variable_subscription( $product ) {
+
+		$is_variable_subscription = false;
+
+		$product = self::maybe_get_product_instance( $product );
+
+		if ( is_object( $product ) ) {
+			if ( $product->is_type( array( 'variable-subscription' ) ) ) {
+				$is_variable_subscription = true;
+			}
+		}
+
+		return $is_variable_subscription;
 	}
 
 	/**
@@ -529,6 +552,17 @@ class WC_Subscriptions_Product {
 	 */
 	public static function get_sign_up_fee( $product ) {
 		return apply_filters( 'woocommerce_subscriptions_product_sign_up_fee', self::get_meta_data( $product, 'subscription_sign_up_fee', 0, 'use_default_value' ), self::maybe_get_product_instance( $product ) );
+	}
+
+	/**
+	 * Returns the gifting setting for a subscription, if it is a subscription.
+	 *
+	 * @param mixed $product A WC_Product object or product ID
+	 * @return string The value of the gifting setting, or '' if the product it is using the global setting.
+	 * @since 7.8.0
+	 */
+	public static function get_gifting( $product ) {
+		return apply_filters( 'woocommerce_subscriptions_product_gifting', self::get_meta_data( $product, 'subscription_gifting', '' ), self::maybe_get_product_instance( $product ) ); // phpcs:ignore WooCommerce.Commenting.CommentHooks.MissingHookComment
 	}
 
 	/**
@@ -1202,7 +1236,14 @@ class WC_Subscriptions_Product {
 	 * @return string The add to cart text.
 	 */
 	public static function get_add_to_cart_text() {
-		return apply_filters( 'wc_subscription_product_add_to_cart_text', __( 'Sign up now', 'woocommerce-subscriptions' ) );
+		/**
+		 * Filter the "Add to cart" button text for subscription products.
+		 *
+		 * @since 7.8.0
+		 * @param string $button_text The "Add to cart" button text.
+		 * @return string The "Add to cart" button text.
+		 */
+		return apply_filters( 'wc_subscription_product_add_to_cart_text', __( 'Add to cart', 'woocommerce-subscriptions' ) );
 	}
 
 	/**
@@ -1234,7 +1275,7 @@ class WC_Subscriptions_Product {
 		global $product;
 
 		if ( self::is_subscription( $product ) || in_array( $product_type, array( 'subscription', 'subscription-variation' ) ) ) {
-			$button_text = get_option( WC_Subscriptions_Admin::$option_prefix . '_add_to_cart_button_text', __( 'Sign up now', 'woocommerce-subscriptions' ) );
+			$button_text = get_option( WC_Subscriptions_Admin::$option_prefix . '_add_to_cart_button_text', __( 'Add to cart', 'woocommerce-subscriptions' ) );
 		}
 
 		return $button_text;

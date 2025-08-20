@@ -82,7 +82,6 @@ class WC_Subscriptions_Frontend_Scripts {
 				'media'   => 'all',
 			);
 		}
-
 		return $styles;
 	}
 }

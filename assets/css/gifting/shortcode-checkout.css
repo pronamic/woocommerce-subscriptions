@@ -1,0 +1,30 @@
+.wc-shortcode-components-validation-error {
+    display: none;
+}
+
+#shortcode-validate-error-invalid-gifting-recipient {
+    font-size: 0.75em;
+    display: flex;
+    align-items: center;
+    margin-top: -12px;
+    margin-bottom: 20px;
+
+}
+
+#shortcode-validate-error-invalid-gifting-recipient svg {
+    fill: var(--wc-red, #cc1818);
+
+}
+
+#shortcode-validate-error-invalid-gifting-recipient span {
+    color: var(--wc-red, #cc1818);
+    font-size: 12px;
+    font-weight: 500;
+    font-style: normal;
+    line-height: 16px;
+}
+
+.woocommerce .woocommerce_subscriptions_gifting_recipient_email .input-text.recipient_email.wcsg-email-error {
+    border-color: var(--wc-red, #cc1818);
+    color: var(--wc-red, #cc1818);
+}

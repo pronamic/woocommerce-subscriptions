@@ -117,7 +117,11 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 
 	/**
 	 * Get report data.
-	 * @return stdClass
+	 *
+	 * @see WCS_Report_Cache_Manager::update_cache() - This method is called by the cache manager to update the cache.
+	 *
+	 * @param array $args The arguments for the report.
+	 * @return stdClass[] - Upcoming renewal data grouped by scheduled date.
 	 */
 	public function get_data( $args = array() ) {
 		global $wpdb;
@@ -131,55 +135,99 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 
 		// Query based on whole days, not minutes/hours so that we can cache the query for at least 24 hours
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The $this->group_by_query clause is hard coded.
-		$base_query = $wpdb->prepare(
-			"SELECT
-				DATE(ms.meta_value) as scheduled_date,
-				SUM(mo.meta_value) as recurring_total,
-				COUNT(mo.meta_value) as total_renewals,
-				group_concat(p.ID) as subscription_ids,
-				group_concat(mi.meta_value) as billing_intervals,
-				group_concat(mp.meta_value) as billing_periods,
-				group_concat(me.meta_value) as scheduled_ends,
-				group_concat(mo.meta_value) as subscription_totals
-					FROM {$wpdb->prefix}posts p
-				LEFT JOIN {$wpdb->prefix}postmeta ms
-					ON p.ID = ms.post_id
-				LEFT JOIN {$wpdb->prefix}postmeta mo
-					ON p.ID = mo.post_id
-				LEFT JOIN {$wpdb->prefix}postmeta mi
-					ON p.ID = mi.post_id
-				LEFT JOIN {$wpdb->prefix}postmeta mp
-					ON p.ID = mp.post_id
-				LEFT JOIN {$wpdb->prefix}postmeta me
-					ON p.ID = me.post_id
-			WHERE p.post_type = 'shop_subscription'
-				AND p.post_status = 'wc-active'
-				AND mo.meta_key = '_order_total'
-				AND ms.meta_key = '_schedule_next_payment'
-				AND ( ( ms.meta_value < %s AND me.meta_value = 0 ) OR ( me.meta_value > %s AND ms.meta_value < %s ) )
-				AND mi.meta_key = '_billing_interval'
-				AND mp.meta_key = '_billing_period'
-				AND me.meta_key = '_schedule_end '
-			GROUP BY {$this->group_by_query}
-			ORDER BY ms.meta_value ASC",
-			date( 'Y-m-d', strtotime( '+1 DAY', $this->end_date ) ),
-			date( 'Y-m-d', $this->start_date ),
-			date( 'Y-m-d', strtotime( '+1 DAY', $this->end_date ) )
-		);
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			$query = $wpdb->prepare(
+				"SELECT
+					DATE(meta_next_payment.meta_value) as scheduled_date,
+					SUM(subscriptions.total_amount) as recurring_total,
+					COUNT(subscriptions.total_amount) as total_renewals,
+					group_concat(subscriptions.ID) as subscription_ids,
+					group_concat(meta_billing_interval.meta_value) as billing_intervals,
+					group_concat(meta_billing_period.meta_value) as billing_periods,
+					group_concat(meta_schedule_end.meta_value) as scheduled_ends,
+					group_concat(subscriptions.total_amount) as subscription_totals
+						FROM {$wpdb->prefix}wc_orders subscriptions
+					LEFT JOIN {$wpdb->prefix}wc_orders_meta meta_next_payment
+						ON subscriptions.ID = meta_next_payment.order_id
+					LEFT JOIN {$wpdb->prefix}wc_orders_meta meta_billing_interval
+						ON subscriptions.ID = meta_billing_interval.order_id
+					LEFT JOIN {$wpdb->prefix}wc_orders_meta meta_billing_period
+						ON subscriptions.ID = meta_billing_period.order_id
+					LEFT JOIN {$wpdb->prefix}wc_orders_meta meta_schedule_end
+						ON subscriptions.ID = meta_schedule_end.order_id
+				WHERE subscriptions.type = 'shop_subscription'
+					AND subscriptions.status = 'wc-active'
+					AND meta_next_payment.meta_key = '_schedule_next_payment'
+					AND ( ( meta_next_payment.meta_value < %s AND meta_schedule_end.meta_value = 0 ) OR ( meta_schedule_end.meta_value > %s AND meta_next_payment.meta_value < %s ) )
+					AND meta_billing_interval.meta_key = '_billing_interval'
+					AND meta_billing_period.meta_key = '_billing_period'
+					AND meta_schedule_end.meta_key = '_schedule_end'
+				GROUP BY {$this->group_by_query}
+				ORDER BY meta_next_payment.meta_value ASC",
+				date( 'Y-m-d', strtotime( '+1 DAY', $this->end_date ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date -- Keep date formatting from original report.
+				date( 'Y-m-d', $this->start_date ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date -- Keep date formatting from original report.
+				date( 'Y-m-d', strtotime( '+1 DAY', $this->end_date ) ) // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date -- Keep date formatting from original report.
+			);
+		} else {
+			$query = $wpdb->prepare(
+				"SELECT
+					DATE(meta_next_payment.meta_value) as scheduled_date,
+					SUM(meta_order_total.meta_value) as recurring_total,
+					COUNT(meta_order_total.meta_value) as total_renewals,
+					group_concat(posts.ID) as subscription_ids,
+					group_concat(meta_billing_interval.meta_value) as billing_intervals,
+					group_concat(meta_billing_period.meta_value) as billing_periods,
+					group_concat(meta_schedule_end.meta_value) as scheduled_ends,
+					group_concat(meta_order_total.meta_value) as subscription_totals
+						FROM {$wpdb->prefix}posts posts
+					LEFT JOIN {$wpdb->prefix}postmeta meta_next_payment
+						ON posts.ID = meta_next_payment.post_id
+					LEFT JOIN {$wpdb->prefix}postmeta meta_order_total
+						ON posts.ID = meta_order_total.post_id
+					LEFT JOIN {$wpdb->prefix}postmeta meta_billing_interval
+						ON posts.ID = meta_billing_interval.post_id
+					LEFT JOIN {$wpdb->prefix}postmeta meta_billing_period
+						ON posts.ID = meta_billing_period.post_id
+					LEFT JOIN {$wpdb->prefix}postmeta meta_schedule_end
+						ON posts.ID = meta_schedule_end.post_id
+				WHERE posts.post_type = 'shop_subscription'
+					AND posts.post_status = 'wc-active'
+					AND meta_order_total.meta_key = '_order_total'
+					AND meta_next_payment.meta_key = '_schedule_next_payment'
+					AND ( ( meta_next_payment.meta_value < %s AND meta_schedule_end.meta_value = 0 ) OR ( meta_schedule_end.meta_value > %s AND meta_next_payment.meta_value < %s ) )
+					AND meta_billing_interval.meta_key = '_billing_interval'
+					AND meta_billing_period.meta_key = '_billing_period'
+					AND meta_schedule_end.meta_key = '_schedule_end'
+				GROUP BY {$this->group_by_query}
+				ORDER BY meta_next_payment.meta_value ASC",
+				date( 'Y-m-d', strtotime( '+1 DAY', $this->end_date ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date -- Keep date formatting from original report.
+				date( 'Y-m-d', $this->start_date ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date -- Keep date formatting from original report.
+				date( 'Y-m-d', strtotime( '+1 DAY', $this->end_date ) ) // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date -- Keep date formatting from original report.
+			);
+		}
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		$cached_results = get_transient( strtolower( get_class( $this ) ) );
-		$query_hash     = md5( $base_query );
+		$query_hash     = md5( $query );
 
 		// Set a default value for cached results for PHP 8.2+ compatibility.
 		if ( empty( $cached_results ) ) {
-			$cached_results = [];
+			$cached_results = array();
 		}
 
 		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
-			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_upcoming_recurring_revenue_data', $wpdb->get_results( $base_query, OBJECT_K ), $args );
+			$results = $wpdb->get_results( $query, OBJECT_K ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
+			/**
+			 * Filter the upcoming recurring revenue data.
+			 *
+			 * @param array $results The upcoming recurring revenue data.
+			 * @param array $args The arguments for the report.
+			 * @since 2.1.0
+			 */
+			$results = apply_filters( 'wcs_reports_upcoming_recurring_revenue_data', $results, $args );
+
+			$cached_results[ $query_hash ] = $results;
 			set_transient( strtolower( get_class( $this ) ), $cached_results, WEEK_IN_SECONDS );
 		}
 
@@ -418,12 +466,12 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 		// Group by
 		switch ( $this->chart_groupby ) {
 			case 'day':
-				$this->group_by_query = 'YEAR(ms.meta_value), MONTH(ms.meta_value), DAY(ms.meta_value)';
+				$this->group_by_query = 'YEAR(meta_next_payment.meta_value), MONTH(meta_next_payment.meta_value), DAY(meta_next_payment.meta_value)';
 				$this->chart_interval = ceil( max( 0, ( $this->end_date - $this->start_date ) / ( 60 * 60 * 24 ) ) );
 				$this->barwidth       = 60 * 60 * 24 * 1000;
 			break;
 			case 'month':
-				$this->group_by_query = 'YEAR(ms.meta_value), MONTH(ms.meta_value), DAY(ms.meta_value)';
+				$this->group_by_query = 'YEAR(meta_next_payment.meta_value), MONTH(meta_next_payment.meta_value), DAY(meta_next_payment.meta_value)';
 				$this->chart_interval = 0;
 				$min_date             = $this->start_date;
 				while ( ( $min_date = wcs_add_months( $min_date, '1' ) ) <= $this->end_date ) {
@@ -449,6 +497,8 @@ class WCS_Report_Upcoming_Recurring_Revenue extends WC_Admin_Report {
 
 	/**
 	 * Clears the cached query results.
+	 *
+	 * @see WCS_Report_Cache_Manager::update_cache() - This method is called by the cache manager before updating the cache.
 	 *
 	 * @since 3.0.10
 	 */

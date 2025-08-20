@@ -138,7 +138,10 @@ class WC_Subscriptions_Upgrader {
 			self::legacy_core_library_upgrades();
 		}
 
-		self::plugin_upgrades();
+		if ( self::$plugin_upgrades_may_be_needed ) {
+			self::plugin_upgrades();
+		}
+
 		self::upgrade_complete();
 	}
 
@@ -219,8 +222,10 @@ class WC_Subscriptions_Upgrader {
 	 * @return void
 	 */
 	private static function plugin_upgrades(): void {
-		// This method is currently just a placeholder. Once we're ready to add a migration in a future release, this
-		// comment can of course be deleted.
+		// Enable Gifting by default if the Gifting plugin is enabled.
+		if ( version_compare( self::$stored_plugin_version, '7.8.0', '<' ) ) {
+			WCS_Plugin_Upgrade_7_8_0::check_gifting_plugin_is_enabled();
+		}
 	}
 
 	/**
@@ -493,7 +498,7 @@ class WC_Subscriptions_Upgrader {
 
 			case 'really_old_version':
 				$upgraded_versions = self::upgrade_really_old_versions();
-				$results = array(
+				$results           = array(
 					// translators: placeholder is a list of version numbers (e.g. "1.3 & 1.4 & 1.5")
 					'message' => sprintf( __( 'Database updated to version %s', 'woocommerce-subscriptions' ), $upgraded_versions ),
 				);
@@ -501,7 +506,7 @@ class WC_Subscriptions_Upgrader {
 
 			case 'products':
 				$upgraded_product_count = WCS_Upgrade_1_5::upgrade_products();
-				$results = array(
+				$results                = array(
 					// translators: placeholder is number of upgraded subscriptions
 					'message' => sprintf( _x( 'Marked %s subscription products as "sold individually".', 'used in the subscriptions upgrader', 'woocommerce-subscriptions' ), $upgraded_product_count ),
 				);
@@ -509,7 +514,7 @@ class WC_Subscriptions_Upgrader {
 
 			case 'hooks':
 				$upgraded_hook_count = WCS_Upgrade_1_5::upgrade_hooks( self::$upgrade_limit_hooks );
-				$results = array(
+				$results             = array(
 					'upgraded_count' => $upgraded_hook_count,
 					// translators: 1$: number of action scheduler hooks upgraded, 2$: "{execution_time}", will be replaced on front end with actual time
 					'message'        => sprintf( __( 'Migrated %1$s subscription related hooks to the new scheduler (in %2$s seconds).', 'woocommerce-subscriptions' ), $upgraded_hook_count, '{execution_time}' ),
@@ -763,7 +768,7 @@ class WC_Subscriptions_Upgrader {
 		$about_page_url = self::$about_page_url;
 
 		@header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
-		include_once( dirname( __FILE__ ) . '/templates/wcs-upgrade.php' );
+		include_once __DIR__ . '/templates/wcs-upgrade.php';
 		WCS_Upgrade_Logger::add( 'Loaded database upgrade helper' );
 	}
 
@@ -780,7 +785,7 @@ class WC_Subscriptions_Upgrader {
 	public static function upgrade_in_progress_notice() {
 		wcs_deprecated_function( __METHOD__, 'subscriptions-core 7.7.0' );
 
-		include_once( dirname( __FILE__ ) . '/templates/wcs-upgrade-in-progress.php' );
+		include_once __DIR__ . '/templates/wcs-upgrade-in-progress.php';
 		WCS_Upgrade_Logger::add( 'Loaded database upgrade in progress notice...' );
 	}
 
@@ -827,7 +832,7 @@ class WC_Subscriptions_Upgrader {
 		$active_version = self::$stored_core_library_version;
 		$settings_page  = admin_url( 'admin.php?page=wc-settings&tab=subscriptions' );
 
-		include_once( dirname( __FILE__ ) . '/templates/wcs-about.php' );
+		include_once __DIR__ . '/templates/wcs-about.php';
 	}
 
 	/**
@@ -1031,16 +1036,20 @@ class WC_Subscriptions_Upgrader {
 			sprintf(
 				// translators: 1-2: opening/closing <strong> tags, 3-4: opening/closing tags linked to ticket form.
 				esc_html__( '%1$sWarning!%2$s We discovered an issue in %1$sWooCommerce Subscriptions 2.3.0 - 2.3.2%2$s that may cause your subscription renewal order and customer subscription caches to contain invalid data. For information about how to update the cached data, please %3$sopen a new support ticket%4$s.', 'woocommerce-subscriptions' ),
-				'<strong>', '</strong>',
-				'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">', '</a>'
+				'<strong>',
+				'</strong>',
+				'<a href="https://woocommerce.com/my-account/marketplace-ticket-form/" target="_blank">',
+				'</a>'
 			)
 		);
-		$admin_notice->set_actions( array(
+		$admin_notice->set_actions(
 			array(
-				'name' => 'Dismiss',
-				'url'  => wp_nonce_url( add_query_arg( $action, 'dismiss' ), $action, $nonce ),
-			),
-		) );
+				array(
+					'name' => 'Dismiss',
+					'url'  => wp_nonce_url( add_query_arg( $action, 'dismiss' ), $action, $nonce ),
+				),
+			)
+		);
 
 		$admin_notice->display();
 	}

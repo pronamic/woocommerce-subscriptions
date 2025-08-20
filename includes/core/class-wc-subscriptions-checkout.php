@@ -655,7 +655,14 @@ class WC_Subscriptions_Checkout {
 			return $button_text;
 		}
 
-		return apply_filters( 'wcs_place_subscription_order_text', __( 'Sign up now', 'woocommerce-subscriptions' ) );
+		/**
+		 * Filter the "Add to cart" button text for subscription carts.
+		 *
+		 * @since 7.8.0
+		 * @param string $button_text The "Add to cart" button text.
+		 * @return string The "Add to cart" button text.
+		 */
+		return apply_filters( 'wcs_place_subscription_order_text', __( 'Add to cart', 'woocommerce-subscriptions' ) );
 	}
 
 	/**

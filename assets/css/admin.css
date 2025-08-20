@@ -85,7 +85,8 @@ a.close-subscriptions-search {
 	float: right;
 }
 #woocommerce-product-data .variable_subscription_pricing ._subscription_length_field .wc_input_subscription_length + .select2,
-#woocommerce-product-data .variable_subscription_sync .subscription_sync_week_month .wc_input_subscription_payment_sync + .select2 {
+#woocommerce-product-data .variable_subscription_sync .subscription_sync_week_month .wc_input_subscription_payment_sync + .select2,
+#woocommerce-product-data .variable_subscription_gifting ._subscription_gifting_field .wc_input_subscription_gifting + .select2 {
 	width: 100% !important;
 }
 /* Simple Subscription Product Sync Settings */
@@ -98,6 +99,31 @@ a.close-subscriptions-search {
 #general_product_data .subscription_sync_annual .select2-container:not( :last-child ) {
 	width: 50% !important;
 }
+/* Simple Subscription Product Gifting Settings */
+._subscription_gifting_field .select2-container {
+	width: 50% !important;
+}
+p.show_if_variable-subscription._subscription_gifting_field {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+p._subscription_gifting_field.overriding-store-settings {
+	margin-bottom: 0;
+}
+p._subscription_gifting_field_description.form-field {
+	padding-top: 0 !important;
+	margin-top: 0;
+}
+p._subscription_gifting_field_description.form-field .description {
+	display: block;
+	clear: both;
+	margin-left: 0;
+}
+.variable_subscription_gifting p._subscription_gifting_field_description {
+	margin-bottom: 0;
+	margin-top: 6px;
+}
+
 
 @media only screen and ( max-width: 1280px ) {
 	.woocommerce_options_panel ._subscription_price_fields .wrap,
@@ -106,6 +132,9 @@ a.close-subscriptions-search {
 		._subscription_payment_sync_date_day_field
 		.wrap {
 		width: 80%;
+	}
+	._subscription_gifting_field .select2-container {
+		width: 80% !important;
 	}
 }
 .woocommerce_options_panel ._subscription_price_fields .wrap input,
@@ -359,6 +388,7 @@ a.close-subscriptions-search {
 /* Variation Pricing Fields with WooCommerce 3.0+ */
 .wc-metaboxes-wrapper .variable_subscription_trial label,
 .wc-metaboxes-wrapper .variable_subscription_pricing label,
+.wc-metaboxes-wrapper .variable_subscription_gifting label,
 .wc-metaboxes-wrapper .variable_subscription_sync label {
 	display: block;
 }
@@ -946,4 +976,24 @@ table.form-table input#woocommerce_subscriptions_customer_notifications_offset {
 }
 .show_if_subscription .select2-selection, .show_if_variable-subscription .select2-selection {
 	font-size: 14px;
+}
+.wc-settings-row-enable-gifting.checked .titledesc {
+	padding-bottom: 14px;
+}
+.wc-settings-row-enable-gifting.checked .forminp-checkbox {
+	padding-bottom: 0;
+	margin-bottom: 0;
+}
+.wc-settings-row-gifting-radios td {
+	padding-top: 0;
+}
+.wc-settings-row-gifting-radios th {
+	padding-top: 0;
+}
+.wc-settings-row-gifting-radios li:nth-child(2) label {
+	margin-bottom: 0 !important;
+}
+.wc-settings-row-gifting-radios p {
+	margin: 2px 0 5px;
+	color: #646970;
 }

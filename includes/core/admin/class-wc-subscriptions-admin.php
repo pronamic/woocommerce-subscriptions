@@ -389,6 +389,34 @@ class WC_Subscriptions_Admin {
 		</p>
 		<?php
 
+		// Maybe show gifting options. The method_exists check is required for cases where the standalone Gifting
+		// extension is active (in which case, a different version of WCSG_Admin will be loaded).
+		if ( method_exists( WCSG_Admin::class, 'is_gifting_enabled' ) && WCSG_Admin::is_gifting_enabled() ) {
+			$product_gifting                     = WC_Subscriptions_Product::get_gifting( $post->ID );
+			$is_following_gifting_global_setting = empty( $product_gifting );
+
+			woocommerce_wp_select(
+				array(
+					'id'            => '_subscription_gifting',
+					'class'         => 'select short wc-enhanced-select',
+					'wrapper_class' => '_subscription_gifting_field' . ( ! $is_following_gifting_global_setting ? ' overriding-store-settings' : '' ),
+					'label'         => __( 'Gifting', 'woocommerce-subscriptions' ),
+					'value'         => $product_gifting,
+					'options'       => array(
+						''         => WCSG_Admin::get_gifting_option_text(),
+						'enabled'  => __( 'Enabled', 'woocommerce-subscriptions' ),
+						'disabled' => __( 'Disabled', 'woocommerce-subscriptions' ),
+					),
+					'desc_tip'      => true,
+					'description'   => __( 'Allow shoppers to purchase a subscription as a gift.', 'woocommerce-subscriptions' ),
+				)
+			);
+
+			if ( ! $is_following_gifting_global_setting ) {
+				WCSG_Admin::get_gifting_global_override_text();
+			}
+		}
+
 		do_action( 'woocommerce_subscriptions_product_options_pricing' );
 
 		wp_nonce_field( 'wcs_subscription_meta', '_wcsnonce' );
@@ -429,7 +457,6 @@ class WC_Subscriptions_Admin {
 		if ( ! $needs_html_fix ) {
 			echo '</div>';
 		}
-
 	}
 
 	/**
@@ -560,6 +587,7 @@ class WC_Subscriptions_Admin {
 			'_subscription_trial_period',
 			'_subscription_limit',
 			'_subscription_one_time_shipping',
+			'_subscription_gifting',
 		);
 
 		foreach ( $subscription_fields as $field_name ) {
@@ -772,6 +800,7 @@ class WC_Subscriptions_Admin {
 			'_subscription_length',
 			'_subscription_trial_period',
 			'_subscription_trial_length',
+			'_subscription_gifting',
 		);
 
 		foreach ( $subscription_fields as $field_name ) {
@@ -938,8 +967,8 @@ class WC_Subscriptions_Admin {
 		}
 
 		if ( $is_woocommerce_screen || 'edit-product' == $screen->id || ( isset( $_GET['page'], $_GET['tab'] ) && 'wc-reports' === $_GET['page'] && 'subscriptions' === $_GET['tab'] ) ) {
-			wp_enqueue_style( 'woocommerce_admin_styles', WC()->plugin_url() . '/assets/css/admin.css', [ 'wc-components' ], WC_Subscriptions_Core_Plugin::instance()->get_library_version() );
-			wp_enqueue_style( 'woocommerce_subscriptions_admin', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'assets/css/admin.css' ), array( 'woocommerce_admin_styles' ), WC_Subscriptions_Core_Plugin::instance()->get_library_version() );
+			wp_enqueue_style( 'woocommerce_admin_styles', WC()->plugin_url() . '/assets/css/admin.css', [ 'wc-components' ], WC_Subscriptions::$version );
+			wp_enqueue_style( 'woocommerce_subscriptions_admin', WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'assets/css/admin.css' ), array( 'woocommerce_admin_styles' ), WC_Subscriptions::$version );
 		}
 	}
 
@@ -1248,7 +1277,6 @@ class WC_Subscriptions_Admin {
 				),
 			)
 		);
-
 	}
 
 	/**

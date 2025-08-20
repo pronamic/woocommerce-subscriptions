@@ -1,5 +1,16 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-08-19 - version 7.8.0
+* Add: Native support for subscriptions gifting. Gifting for WooCommerce Subscriptions extension is no longer required.
+* Add: Enable subscriptions gifting storewide and per product.
+* Add: Blocks support for gifting on product, cart, and checkout pages.
+* Update: Make WooCommerce Subscriptions reports compatible with High Performance Order Storage.
+* Update: Rename Subscribe now button to Add to Cart to follow WooCommerce convention.
+* Fix: Fix integration with WooCommerce dashboard widget.
+* Fix: Cancel pending related orders when a subscription is cancelled to prevent orphaned orders that need payment.
+* Fix: Allow manual payments for pending renewal orders of Product Bundles or Composite Products when Mixed Checkout options is disabled.
+* Dev: Update moment.js package to the latest version 2.30.1
+
 2025-07-09 - version 7.7.0
 * Fix: Restores normal behavior for the report caching updates scheduled action, which was failing due to a bad filepath.
 * Fix: Fix error when placing an order with a valid card after using a declined one.

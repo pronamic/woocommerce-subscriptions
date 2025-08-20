@@ -165,5 +165,9 @@ jQuery( function ( $ ) {
 
 	$early_renewal_modal_submit.on( 'click', blockEarlyRenewalModal );
 	$( document ).on( 'wcs_show_modal', shouldShowEarlyRenewalModal );
-	$( document ).on( 'click', '.wcs_block_ui_on_click', blockActionsOnTrigger );
+	$( document ).on(
+		'click',
+		'.wcs_block_ui_on_click',
+		blockActionsOnTrigger
+	);
 } );

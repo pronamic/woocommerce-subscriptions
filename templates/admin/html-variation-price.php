@@ -96,3 +96,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</span>
 	</p>
 </div>
+<?php
+if ( WCSG_Admin::is_gifting_enabled() ) {
+	$variation_product_gifting           = WC_Subscriptions_Product::get_gifting( $variation_product );
+	$is_following_gifting_global_setting = empty( $variation_product_gifting );
+	?>
+<fieldset class="variable_subscription_gifting show_if_variable-subscription">
+	<p class="form-row form-field show_if_variable-subscription _subscription_gifting_field">
+		<label for="variable_subscription_gifting[<?php echo esc_attr( $loop ); ?>]">
+			<?php esc_html_e( 'Gifting', 'woocommerce-subscriptions' ); ?>
+			<?php
+				// @phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo wcs_help_tip( __( 'Allow shoppers to purchase a subscription as a gift.', 'woocommerce-subscriptions' ) );
+			?>
+		</label>
+		<select id="variable_subscription_gifting[<?php echo esc_attr( $loop ); ?>]" name="variable_subscription_gifting[<?php echo esc_attr( $loop ); ?>]" class="wc_input_subscription_gifting wc-enhanced-select">
+			<option value="" <?php selected( '', WC_Subscriptions_Product::get_gifting( $variation_product ) ); ?>>
+				<?php echo esc_html( WCSG_Admin::get_gifting_option_text() ); ?>
+			</option>
+			<option value="enabled" <?php selected( 'enabled', $variation_product_gifting ); ?>><?php esc_html_e( 'Enabled', 'woocommerce-subscriptions' ); ?></option>
+			<option value="disabled" <?php selected( 'disabled', $variation_product_gifting ); ?>><?php esc_html_e( 'Disabled', 'woocommerce-subscriptions' ); ?></option>
+		</select>
+	</p>
+	<?php
+	if ( ! $is_following_gifting_global_setting ) {
+		WCSG_Admin::get_gifting_global_override_text();
+	}
+	?>
+</fieldset>
+<?php } ?>

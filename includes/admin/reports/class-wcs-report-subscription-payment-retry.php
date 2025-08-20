@@ -36,71 +36,35 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 		global $wpdb;
 
 		// Convert from Decimal format(eg. 11.5) to a suitable format(eg. +11:30) for CONVERT_TZ() of SQL query.
-		$offset  = get_option( 'gmt_offset' );
-		$site_timezone = sprintf( '%+02d:%02d', (int) $offset, ( $offset - floor( $offset ) ) * 60 );
-		$retry_date_in_local_time = $wpdb->prepare( "CONVERT_TZ(retries.date_gmt, '+00:00', %s)", $site_timezone );
+		$offset                         = get_option( 'gmt_offset' );
+		$site_timezone                  = sprintf( '%+02d:%02d', (int) $offset, ( $offset - floor( $offset ) ) * 60 );
+		$retry_date_in_local_time_query = $wpdb->prepare( "CONVERT_TZ(retries.date_gmt, '+00:00', %s)", $site_timezone );
 
 		// We need to compute this on our own since 'group_by_query' from the parent class uses posts table column names.
 		switch ( $this->chart_groupby ) {
 			case 'day':
-				$this->group_by_query = "YEAR({$retry_date_in_local_time}), MONTH({$retry_date_in_local_time}), DAY({$retry_date_in_local_time})";
+				$this->group_by_query = "YEAR({$retry_date_in_local_time_query}), MONTH({$retry_date_in_local_time_query}), DAY({$retry_date_in_local_time_query})";
 				break;
 			case 'month':
-				$this->group_by_query = "YEAR({$retry_date_in_local_time}), MONTH({$retry_date_in_local_time})";
+				$this->group_by_query = "YEAR({$retry_date_in_local_time_query}), MONTH({$retry_date_in_local_time_query})";
 				break;
 		}
 
 		$this->report_data = new stdClass;
 
-		$query_start_date = get_gmt_from_date( date( 'Y-m-d H:i:s', $this->start_date ) );
-		$query_end_date   = get_gmt_from_date( date( 'Y-m-d H:i:s', wcs_strtotime_dark_knight( '+1 day', $this->end_date ) ) );
-
-		// Get the sum of order totals for completed retries (i.e. retries which eventually succeeded in processing the failed payment)
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The $this->group_by_query clause is hard coded.
-		$this->report_data->renewal_data = $wpdb->get_results(
-			$wpdb->prepare(
-				"
-				SELECT COUNT(DISTINCT retries.retry_id) as count, MIN(retries.date_gmt) AS retry_date_gmt, MIN(%s) AS retry_date, SUM(meta_order_total.meta_value) AS renewal_totals
-					FROM {$wpdb->posts} AS orders
-					INNER JOIN {$wpdb->prefix}wcs_payment_retries AS retries ON ( orders.ID = retries.order_id )
-					LEFT JOIN {$wpdb->postmeta} AS meta_order_total ON ( orders.ID = meta_order_total.post_id AND meta_order_total.meta_key = '_order_total' )
-				WHERE retries.status = 'complete'
-					AND retries.date_gmt >= %s
-					AND retries.date_gmt < %s
-				GROUP BY {$this->group_by_query}
-				ORDER BY retry_date_gmt ASC
-				",
-				$retry_date_in_local_time,
-				$query_start_date,
-				$query_end_date
-			)
+		$query_options = array(
+			'site_timezone'    => $site_timezone,
+			'query_start_date' => get_gmt_from_date( date( 'Y-m-d H:i:s', $this->start_date ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+			'query_end_date'   => get_gmt_from_date( date( 'Y-m-d H:i:s', wcs_strtotime_dark_knight( '+1 day', $this->end_date ) ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-		// Get the counts for all retries, grouped by day or month and status
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The $this->group_by_query clause is hard coded.
-		$this->report_data->retry_data = $wpdb->get_results(
-			$wpdb->prepare(
-				"
-				SELECT COUNT(DISTINCT retries.retry_id) AS count, retries.status AS status, MIN(retries.date_gmt) AS retry_date_gmt, MIN(%s) AS retry_date
-					FROM {$wpdb->prefix}wcs_payment_retries AS retries
-				WHERE retries.status IN ( 'complete', 'failed', 'pending' )
-				AND retries.date_gmt >= %s
-				AND retries.date_gmt < %s
-				GROUP BY {$this->group_by_query}, status
-				ORDER BY retry_date_gmt ASC
-				",
-				$retry_date_in_local_time,
-				$query_start_date,
-				$query_end_date
-			)
-		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$this->fetch_renewal_data( $query_options );
+		$this->fetch_retry_data( $query_options );
 
 		// Total up the query data
-		$this->report_data->retry_failed_count   = absint( array_sum( wp_list_pluck( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'failed' ) ), 'count' ) ) );
-		$this->report_data->retry_success_count  = absint( array_sum( wp_list_pluck( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'complete' ) ), 'count' ) ) );
-		$this->report_data->retry_pending_count  = absint( array_sum( wp_list_pluck( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'pending' ) ), 'count' ) ) );
+		$this->report_data->retry_failed_count  = absint( array_sum( wp_list_pluck( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'failed' ) ), 'count' ) ) );
+		$this->report_data->retry_success_count = absint( array_sum( wp_list_pluck( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'complete' ) ), 'count' ) ) );
+		$this->report_data->retry_pending_count = absint( array_sum( wp_list_pluck( wp_list_filter( $this->report_data->retry_data, array( 'status' => 'pending' ) ), 'count' ) ) );
 
 		$this->report_data->renewal_total_count  = absint( array_sum( wp_list_pluck( $this->report_data->renewal_data, 'count' ) ) );
 		$this->report_data->renewal_total_amount = array_sum( wp_list_pluck( $this->report_data->renewal_data, 'renewal_totals' ) );
@@ -413,5 +377,87 @@ class WCS_Report_Subscription_Payment_Retry extends WC_Admin_Report {
 		} else {
 			return wc_format_decimal( $amount, wc_get_price_decimals() );
 		}
+	}
+
+	/**
+	 * Get the sum of order totals for completed retries (i.e. retries which eventually succeeded in processing the failed payment)
+	 *
+	 * @param array $query_options Query options.
+	 */
+	private function fetch_renewal_data( $query_options ) {
+		global $wpdb;
+		$site_timezone    = $query_options['site_timezone'];
+		$query_start_date = $query_options['query_start_date'];
+		$query_end_date   = $query_options['query_end_date'];
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The $this->group_by_query clause is hard coded.
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			$query = $wpdb->prepare(
+				"
+				SELECT COUNT(DISTINCT retries.retry_id) as count, MIN(retries.date_gmt) AS retry_date_gmt, MIN(CONVERT_TZ(retries.date_gmt, '+00:00', %s)) AS retry_date, SUM(orders.total_amount) AS renewal_totals
+					FROM {$wpdb->prefix}wcs_payment_retries AS retries 
+					INNER JOIN {$wpdb->prefix}wc_orders AS orders ON ( orders.id = retries.order_id )
+				WHERE retries.status = 'complete'
+					AND retries.date_gmt >= %s
+					AND retries.date_gmt < %s
+				GROUP BY {$this->group_by_query}
+				ORDER BY retry_date_gmt ASC
+				",
+				$site_timezone,
+				$query_start_date,
+				$query_end_date
+			);
+		} else {
+			$query = $wpdb->prepare(
+				"
+				SELECT COUNT(DISTINCT retries.retry_id) as count, MIN(retries.date_gmt) AS retry_date_gmt, MIN(CONVERT_TZ(retries.date_gmt, '+00:00', %s)) AS retry_date, SUM(meta_order_total.meta_value) AS renewal_totals
+					FROM {$wpdb->posts} AS orders
+					INNER JOIN {$wpdb->prefix}wcs_payment_retries AS retries ON ( orders.ID = retries.order_id )
+					LEFT JOIN {$wpdb->postmeta} AS meta_order_total ON ( orders.ID = meta_order_total.post_id AND meta_order_total.meta_key = '_order_total' )
+				WHERE retries.status = 'complete'
+					AND retries.date_gmt >= %s
+					AND retries.date_gmt < %s
+				GROUP BY {$this->group_by_query}
+				ORDER BY retry_date_gmt ASC
+				",
+				$site_timezone,
+				$query_start_date,
+				$query_end_date
+			);
+		}
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		$this->report_data->renewal_data = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	}
+
+	/**
+	 * Get the counts for all retries, grouped by day or month and status
+	 *
+	 * @param array $query_options Query options.
+	 */
+	private function fetch_retry_data( $query_options ) {
+		global $wpdb;
+		$site_timezone    = $query_options['site_timezone'];
+		$query_start_date = $query_options['query_start_date'];
+		$query_end_date   = $query_options['query_end_date'];
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The $this->group_by_query clause is hard coded.
+		// We don't use HPOS tables here, so we can use it for both CPT and HPOS data stores.
+		$query = $wpdb->prepare(
+			"
+			SELECT COUNT(DISTINCT retries.retry_id) AS count, retries.status AS status, MIN(retries.date_gmt) AS retry_date_gmt, MIN(CONVERT_TZ(retries.date_gmt, '+00:00', %s)) AS retry_date
+				FROM {$wpdb->prefix}wcs_payment_retries AS retries
+			WHERE retries.status IN ( 'complete', 'failed', 'pending' )
+			AND retries.date_gmt >= %s
+			AND retries.date_gmt < %s
+			GROUP BY {$this->group_by_query}, status
+			ORDER BY retry_date_gmt ASC
+			",
+			$site_timezone,
+			$query_start_date,
+			$query_end_date
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared	
+		$this->report_data->retry_data = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 }

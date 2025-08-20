@@ -4,12 +4,16 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInita51a12f10512101ced9101792e7253f5
+class ComposerStaticInit32625eaf0064549a4f20b6231a37a93c
 {
     public static $prefixLengthsPsr4 = array (
         'C' => 
         array (
             'Composer\\Installers\\' => 20,
+        ),
+        'A' => 
+        array (
+            'Automattic\\Jetpack\\Autoloader\\' => 30,
         ),
     );
 
@@ -18,9 +22,18 @@ class ComposerStaticInita51a12f10512101ced9101792e7253f5
         array (
             0 => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers',
         ),
+        'Automattic\\Jetpack\\Autoloader\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/automattic/jetpack-autoloader/src',
+        ),
     );
 
     public static $classMap = array (
+        'Automattic\\Jetpack\\Autoloader\\AutoloadFileWriter' => __DIR__ . '/..' . '/automattic/jetpack-autoloader/src/AutoloadFileWriter.php',
+        'Automattic\\Jetpack\\Autoloader\\AutoloadGenerator' => __DIR__ . '/..' . '/automattic/jetpack-autoloader/src/AutoloadGenerator.php',
+        'Automattic\\Jetpack\\Autoloader\\AutoloadProcessor' => __DIR__ . '/..' . '/automattic/jetpack-autoloader/src/AutoloadProcessor.php',
+        'Automattic\\Jetpack\\Autoloader\\CustomAutoloaderPlugin' => __DIR__ . '/..' . '/automattic/jetpack-autoloader/src/CustomAutoloaderPlugin.php',
+        'Automattic\\Jetpack\\Autoloader\\ManifestGenerator' => __DIR__ . '/..' . '/automattic/jetpack-autoloader/src/ManifestGenerator.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Composer\\Installers\\AglInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/AglInstaller.php',
         'Composer\\Installers\\AkauntingInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/AkauntingInstaller.php',
@@ -121,14 +134,36 @@ class ComposerStaticInita51a12f10512101ced9101792e7253f5
         'Composer\\Installers\\YawikInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/YawikInstaller.php',
         'Composer\\Installers\\ZendInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/ZendInstaller.php',
         'Composer\\Installers\\ZikulaInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/ZikulaInstaller.php',
+        'WCSG_Admin' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-admin.php',
+        'WCSG_Admin_System_Status' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-admin-system-status.php',
+        'WCSG_Admin_Welcome_Announcement' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-admin-welcome-announcement.php',
+        'WCSG_Cart' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-cart.php',
+        'WCSG_Checkout' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-checkout.php',
+        'WCSG_Download_Handler' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-download-handler.php',
+        'WCSG_Email' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-email.php',
+        'WCSG_Email_Completed_Renewal_Order' => __DIR__ . '/../..' . '/includes/gifting/emails/class-wcsg-email-completed-renewal-order.php',
+        'WCSG_Email_Customer_New_Account' => __DIR__ . '/../..' . '/includes/gifting/emails/class-wcsg-email-customer-new-account.php',
+        'WCSG_Email_Processing_Renewal_Order' => __DIR__ . '/../..' . '/includes/gifting/emails/class-wcsg-email-processing-renewal-order.php',
+        'WCSG_Email_Recipient_New_Initial_Order' => __DIR__ . '/../..' . '/includes/gifting/emails/class-wcsg-email-recipient-new-initial-order.php',
+        'WCSG_Memberships_Integration' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-memberships-integration.php',
+        'WCSG_Privacy' => __DIR__ . '/../..' . '/includes/gifting/privacy/class-wcsg-privacy.php',
+        'WCSG_Privacy_Erasers' => __DIR__ . '/../..' . '/includes/gifting/privacy/class-wcsg-privacy-erasers.php',
+        'WCSG_Privacy_Exporters' => __DIR__ . '/../..' . '/includes/gifting/privacy/class-wcsg-privacy-exporters.php',
+        'WCSG_Product' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-product.php',
+        'WCSG_Query' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-query.php',
+        'WCSG_Recipient_Addresses' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-recipient-addresses.php',
+        'WCSG_Recipient_Details' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-recipient-details.php',
+        'WCSG_Recipient_Management' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-recipient-management.php',
+        'WCSG_Template_Loader' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-template-loader.php',
+        'WCS_Gifting' => __DIR__ . '/../..' . '/includes/gifting/class-wcs-gifting.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInita51a12f10512101ced9101792e7253f5::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInita51a12f10512101ced9101792e7253f5::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInita51a12f10512101ced9101792e7253f5::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit32625eaf0064549a4f20b6231a37a93c::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit32625eaf0064549a4f20b6231a37a93c::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit32625eaf0064549a4f20b6231a37a93c::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -5,34 +5,25 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
- * Version: 7.7.0
+ * Version: 7.8.0
  * Requires Plugins: woocommerce
  *
  * WC requires at least: 9.8.5
  * WC tested up to: 9.9.5
+ *
+ * License: GNU General Public License v3.0
+ * License URI: http://www.gnu.org/licenses/gpl-3.0.html
+ * Copyright: © 2025 WooCommerce
+ *
  * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
- *
- * Copyright 2019 WooCommerce
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package WooCommerce Subscriptions
  * @author  WooCommerce.
  * @since   1.0
  */
 
-require_once( __DIR__ . '/includes/class-wc-subscriptions-dependency-manager.php' );
+require_once __DIR__ . '/vendor/autoload_packages.php';
+require_once __DIR__ . '/includes/class-wc-subscriptions-dependency-manager.php';
 $dependency_manager = new WC_Subscriptions_Dependency_Manager( WC_Subscriptions::$wc_minimum_supported_version );
 
 // Check the dependencies before loading the plugin. If the dependencies are not met, display an admin notice and exit
@@ -83,7 +74,7 @@ class WC_Subscriptions {
 	public static $plugin_file = __FILE__;
 
 	/** @var string */
-	public static $version = '7.7.0'; // WRCS: DEFINED_VERSION.
+	public static $version = '7.8.0'; // WRCS: DEFINED_VERSION.
 
 	/** @var string */
 	public static $wc_minimum_supported_version = '7.7';

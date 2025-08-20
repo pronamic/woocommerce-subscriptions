@@ -26,10 +26,10 @@ jQuery( function ( $ ) {
 	$( document ).on(
 		'change',
 		'select.shipping_method, :input[name^=shipping_method]',
-		function( event ) {
+		function ( event ) {
 			var shipping_method_option = $( event.target );
-			var shipping_method_id     = shipping_method_option.val();
-			var package_index          = shipping_method_option.data( 'index' );
+			var shipping_method_id = shipping_method_option.val();
+			var package_index = shipping_method_option.data( 'index' );
 
 			// We're only interested in the initial cart shipping method options which have int package indexes.
 			if ( ! Number.isInteger( package_index ) ) {
@@ -37,9 +37,17 @@ jQuery( function ( $ ) {
 			}
 
 			// Find all recurring cart info elements with the same package index as the changed shipping method.
-			$( '.recurring-cart-shipping-mapping-info[data-index=' + package_index + ']' ).each( function() {
+			$(
+				'.recurring-cart-shipping-mapping-info[data-index=' +
+					package_index +
+					']'
+			).each( function () {
 				// Update the corresponding subscription's hidden chosen shipping method.
-				$( 'input[name="shipping_method[' + $( this ).data( 'recurring_index' ) + ']"]' ).val( shipping_method_id );
+				$(
+					'input[name="shipping_method[' +
+						$( this ).data( 'recurring_index' ) +
+						']"]'
+				).val( shipping_method_id );
 			} );
 		}
 	);

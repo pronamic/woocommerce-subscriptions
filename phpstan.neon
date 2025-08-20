@@ -50,3 +50,8 @@ parameters:
         - '#Parameter .* has invalid type OrdersTableQuery.#'
         - '#Constant WC_VERSION not found#'
         - '#Method .* has invalid return type ActionScheduler_.*#'
+        - '#Function wc_memberships.* not found#'
+        - '#Parameter .* of method .* has invalid type WC_Memberships_Membership_Plan#'
+        - '#Access to an undefined property WCSG_Email_Completed_Renewal_Order::\$#'
+        - '#Access to an undefined property WC_Subscription::\$recipient_user#'
+        - '#Cannot access property \$order_date on bool.*#'

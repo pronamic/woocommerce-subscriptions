@@ -16,7 +16,7 @@ class WC_Subscriptions_Cart_Validator {
 	 */
 	public static function init() {
 
-		add_filter( 'woocommerce_add_to_cart_validation', array( __CLASS__, 'maybe_empty_cart' ), 10, 5 );
+		add_filter( 'woocommerce_add_to_cart_validation', array( __CLASS__, 'maybe_empty_cart' ), 10, 6 );
 		add_filter( 'woocommerce_cart_loaded_from_session', array( __CLASS__, 'validate_cart_contents_for_mixed_checkout' ), 10 );
 		add_filter( 'woocommerce_add_to_cart_validation', array( __CLASS__, 'can_add_product_to_cart' ), 10, 6 );
 
@@ -28,15 +28,31 @@ class WC_Subscriptions_Cart_Validator {
 	 *
 	 * If multiple purchase flag is set, allow them to be added at the same time.
 	 *
+	 * @param bool   $valid       Whether the product can be added to the cart.
+	 * @param int    $product_id  The product ID.
+	 * @param int    $quantity    The quantity of the product being added.
+	 * @param int    $variation_id The variation ID.
+	 * @param array  $variations  The variations of the product being added.
+	 * @param array  $item_data   The additional item data set by all plugins.
+	 *
+	 * @return bool Whether the product can be added to the cart.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
 	 */
-	public static function maybe_empty_cart( $valid, $product_id, $quantity, $variation_id = '', $variations = array() ) {
+	public static function maybe_empty_cart( $valid, $product_id, $quantity, $variation_id = 0, $variations = array(), $item_data = array() ) {
 		$is_subscription                 = WC_Subscriptions_Product::is_subscription( $product_id );
 		$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription();
 		$payment_gateways_handler        = WC_Subscriptions_Core_Plugin::instance()->get_gateways_handler_class();
 		$multiple_subscriptions_possible = $payment_gateways_handler::one_gateway_supports( 'multiple_subscriptions' );
 		$manual_renewals_enabled         = wcs_is_manual_renewal_enabled();
 		$canonical_product_id            = ! empty( $variation_id ) ? $variation_id : $product_id;
+
+		/**
+		 * These flags are used by Product Bundles and Composite Products to indicate that the product is being added as part of an order again.
+		 * We don't need to empty cart in this case but neither we need to add the product again.
+		 */
+		if ( isset( $item_data['is_order_again_composited'] ) || isset( $item_data['is_order_again_bundled'] ) ) {
+			return false;
+		}
 
 		if ( $is_subscription && 'yes' !== get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase', 'no' ) ) {
 

@@ -11,6 +11,12 @@
  * @since      2.1
  */
 class WCS_Report_Subscription_By_Customer extends WP_List_Table {
+	/**
+	 * Cached report results.
+	 *
+	 * @var array
+	 */
+	private static $cached_report_results = array();
 
 	private $totals;
 
@@ -23,6 +29,15 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 			'plural'   => __( 'Customers', 'woocommerce-subscriptions' ),
 			'ajax'     => false,
 		) );
+	}
+
+	/**
+	 * Get the totals.
+	 *
+	 * @return object
+	 */
+	public function get_totals() {
+		return $this->totals;
 	}
 
 	/**
@@ -112,8 +127,6 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 	 * Prepare subscription list items.
 	 */
 	public function prepare_items() {
-		global $wpdb;
-
 		$this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
 		$current_page          = absint( $this->get_pagenum() );
 		$per_page              = absint( apply_filters( 'wcs_reports_customers_per_page', 20 ) );
@@ -123,130 +136,148 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 
 		$active_statuses = wcs_maybe_prefix_key( apply_filters( 'wcs_reports_active_statuses', [ 'active', 'pending-cancel' ] ), 'wc-' );
 		$paid_statuses   = wcs_maybe_prefix_key( apply_filters( 'woocommerce_reports_paid_order_statuses', [ 'completed', 'processing' ] ), 'wc-' );
-
-		$active_statuses_placeholders = implode( ',', array_fill( 0, count( $active_statuses ), '%s' ) );
-		$paid_statuses_placeholders   = implode( ',', array_fill( 0, count( $paid_statuses ), '%s' ) );
-
-		// Ignored for allowing interpolation in the IN statements.
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
-		$query = apply_filters( 'wcs_reports_current_customer_query',
-			$wpdb->prepare(
-				"SELECT customer_ids.meta_value as customer_id,
-					COUNT(subscription_posts.ID) as total_subscriptions,
-					COALESCE( SUM(parent_total.meta_value), 0) as initial_order_total,
-					COUNT(DISTINCT parent_order.ID) as initial_order_count,
-					SUM(CASE
-							WHEN subscription_posts.post_status
-								IN ( {$active_statuses_placeholders} ) THEN 1
-							ELSE 0
-							END) AS active_subscriptions
-				FROM {$wpdb->posts} subscription_posts
-				INNER JOIN {$wpdb->postmeta} customer_ids
-					ON customer_ids.post_id = subscription_posts.ID
-					AND customer_ids.meta_key = '_customer_user'
-				LEFT JOIN {$wpdb->posts} parent_order
-					ON parent_order.ID = subscription_posts.post_parent
-					AND parent_order.post_status IN ( {$paid_statuses_placeholders} )
-				LEFT JOIN {$wpdb->postmeta} parent_total
-					ON parent_total.post_id = parent_order.ID
-					AND parent_total.meta_key = '_order_total'
-				WHERE subscription_posts.post_type = 'shop_subscription'
-					AND subscription_posts.post_status NOT IN ('wc-pending', 'trash')
-				GROUP BY customer_ids.meta_value
-				ORDER BY customer_id DESC
-				LIMIT %d, %d",
-				array_merge( $active_statuses, $paid_statuses, [ $offset, $per_page ] )
-			)
+		$query_options   = array(
+			'active_statuses' => $active_statuses,
+			'paid_statuses'   => $paid_statuses,
+			'offset'          => $offset,
+			'per_page'        => $per_page,
 		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
-		$this->items = $wpdb->get_results( $query );
+		$this->items  = self::fetch_subscriptions_by_customer( $query_options );
+		$customer_ids = wp_list_pluck( $this->items, 'customer_id' );
 
-		$customer_ids          = wp_list_pluck( $this->items, 'customer_id' );
-		$customer_placeholders = implode( ',', array_fill( 0, count( $customer_ids ), '%s' ) );
-
-		$paid_statuses       = wcs_maybe_prefix_key( apply_filters( 'woocommerce_reports_paid_order_statuses', [ 'completed', 'processing' ] ), 'wc-' );
-		$status_placeholders = implode( ',', array_fill( 0, count( $paid_statuses ), '%s' ) );
-
-		// Now get each customer's renewal and switch total
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Ignored for allowing interpolation in the IN statements.
-		$customer_renewal_switch_total_query = apply_filters( 'wcs_reports_current_customer_renewal_switch_total_query',
-			$wpdb->prepare(
-				"SELECT
-					customer_ids.meta_value as customer_id,
-					COALESCE( SUM(renewal_switch_totals.meta_value), 0) as renewal_switch_total,
-					COUNT(DISTINCT renewal_order_posts.ID) as renewal_switch_count
-					FROM {$wpdb->postmeta} renewal_order_ids
-					INNER JOIN {$wpdb->posts} subscription_posts
-						ON renewal_order_ids.meta_value = subscription_posts.ID
-						AND subscription_posts.post_type = 'shop_subscription'
-						AND subscription_posts.post_status NOT IN ('wc-pending', 'trash')
-					INNER JOIN {$wpdb->postmeta} customer_ids
-						ON renewal_order_ids.meta_value = customer_ids.post_id
-						AND customer_ids.meta_key = '_customer_user'
-						AND customer_ids.meta_value IN ( {$customer_placeholders} )
-					INNER JOIN {$wpdb->posts} renewal_order_posts
-						ON renewal_order_ids.post_id = renewal_order_posts.ID
-						AND renewal_order_posts.post_status IN ( {$status_placeholders} )
-					LEFT JOIN {$wpdb->postmeta} renewal_switch_totals
-						ON renewal_switch_totals.post_id = renewal_order_ids.post_id
-						AND renewal_switch_totals.meta_key = '_order_total'
-				WHERE renewal_order_ids.meta_key = '_subscription_renewal'
-					OR renewal_order_ids.meta_key = '_subscription_switch'
-					GROUP BY customer_id
-					ORDER BY customer_id",
-				array_merge( $customer_ids, $paid_statuses )
-			)
+		$related_orders_query_options = array(
+			'order_status' => $paid_statuses,
+			'customer_ids' => $customer_ids,
 		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare.
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
-		$customer_renewal_switch_totals = $wpdb->get_results( $customer_renewal_switch_total_query, OBJECT_K );
+		$related_orders_totals_by_customer = self::fetch_subscriptions_related_orders_totals_by_customer( $related_orders_query_options );
 
 		foreach ( $this->items as $index => $item ) {
-			if ( isset( $customer_renewal_switch_totals[ $item->customer_id ] ) ) {
-				$this->items[ $index ]->renewal_switch_total = $customer_renewal_switch_totals[ $item->customer_id ]->renewal_switch_total;
-				$this->items[ $index ]->renewal_switch_count = $customer_renewal_switch_totals[ $item->customer_id ]->renewal_switch_count;
+			if ( isset( $related_orders_totals_by_customer[ $item->customer_id ] ) ) {
+				$this->items[ $index ]->renewal_switch_total = $related_orders_totals_by_customer[ $item->customer_id ]->renewal_switch_total;
+				$this->items[ $index ]->renewal_switch_count = $related_orders_totals_by_customer[ $item->customer_id ]->renewal_switch_count;
 			} else {
-				$this->items[ $index ]->renewal_switch_total = $this->items[ $index ]->renewal_switch_count = 0;
+				$this->items[ $index ]->renewal_switch_total = 0;
+				$this->items[ $index ]->renewal_switch_count = 0;
 			}
 		}
 
 		/**
 		 * Pagination.
 		 */
-		$this->set_pagination_args( array(
-			'total_items' => $this->totals->total_customers,
-			'per_page'    => $per_page,
-			'total_pages' => ceil( $this->totals->total_customers / $per_page ),
-		) );
-
+		$this->set_pagination_args(
+			array(
+				'total_items' => $this->totals->total_customers,
+				'per_page'    => $per_page,
+				'total_pages' => ceil( $this->totals->total_customers / $per_page ),
+			)
+		);
 	}
 
 	/**
-	* Gather totals for customers
-	*/
+	 * Gather totals for customers.
+	 *
+	 * @see WCS_Report_Cache_Manager::update_cache() - This method is called by the cache manager to update the cache.
+	 *
+	 * @param array $args The arguments for the report.
+	 * @return object The totals for customers.
+	 */
 	public static function get_data( $args = array() ) {
-		global $wpdb;
-
 		$default_args = array(
 			'no_cache'     => false,
+			/**
+			 * Filter the order statuses considered as "paid" for the report.
+			 *
+			 * @param array $order_statuses The default paid order statuses: completed, processing.
+			 * @return array The filtered order statuses.
+			 *
+			 * @since 2.1.0
+			 */
 			'order_status' => apply_filters( 'woocommerce_reports_paid_order_statuses', array( 'completed', 'processing' ) ),
 		);
 
+		/**
+		 * Filter the arguments for the totals of subscriptions by customer report.
+		 *
+		 * @param array $args The arguments for the report.
+		 * @return array The filtered arguments.
+		 *
+		 * @since 2.1.0
+		 */
 		$args = apply_filters( 'wcs_reports_customer_total_args', $args );
 		$args = wp_parse_args( $args, $default_args );
 
+		self::init_cache();
+		$subscriptions_totals  = self::fetch_customer_subscription_totals( $args );
+		$related_orders_totals = self::fetch_customer_subscription_related_orders_totals( $args );
+
+		$subscriptions_totals->renewal_switch_total = $related_orders_totals->renewal_switch_total;
+		$subscriptions_totals->renewal_switch_count = $related_orders_totals->renewal_switch_count;
+
+		return $subscriptions_totals;
+	}
+
+	/**
+	 * Clears the cached report data.
+	 *
+	 * @see WCS_Report_Cache_Manager::update_cache() - This method is called by the cache manager before updating the cache.
+	 *
+	 * @since 3.0.10
+	 */
+	public static function clear_cache() {
+		delete_transient( strtolower( __CLASS__ ) );
+		self::$cached_report_results = array();
+	}
+
+	/**
+	 * Fetch totals by customer for subscriptions.
+	 *
+	 * @param array $args The arguments for the report.
+	 * @return object The totals by customer for subscriptions.
+	 *
+	 * @since 2.1.0
+	 */
+	public static function fetch_customer_subscription_totals( $args = array() ) {
+		global $wpdb;
+
+		/**
+		 * Filter the active subscription statuses used for reporting.
+		 *
+		 * @param array $active_statuses The default active subscription statuses: active, pending-cancel.
+		 * @return array The filtered active statuses.
+		 *
+		 * @since 2.1.0
+		 */
 		$active_statuses = wcs_maybe_prefix_key( apply_filters( 'wcs_reports_active_statuses', [ 'active', 'pending-cancel' ] ), 'wc-' );
 		$order_statuses  = wcs_maybe_prefix_key( $args['order_status'], 'wc-' );
 
 		$active_statuses_placeholders = implode( ',', array_fill( 0, count( $active_statuses ), '%s' ) );
 		$order_statuses_placeholders  = implode( ',', array_fill( 0, count( $order_statuses ), '%s' ) );
 
-		$total_query = apply_filters( 'wcs_reports_customer_total_query',
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Ignored for allowing interpolation in the IN statements.
-			$wpdb->prepare(
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Ignored for allowing interpolation in the IN statements.
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			$query = $wpdb->prepare(
+				"SELECT COUNT( DISTINCT subscriptions.customer_id) as total_customers,
+					COUNT(subscriptions.ID) as total_subscriptions,
+					COALESCE( SUM(parent_orders.total_amount), 0) as initial_order_total,
+					COUNT(DISTINCT parent_orders.ID) as initial_order_count,
+					COALESCE(SUM(CASE
+							WHEN subscriptions.status
+								IN ( {$active_statuses_placeholders} ) THEN 1
+							ELSE 0
+							END), 0) AS active_subscriptions
+				FROM {$wpdb->prefix}wc_orders subscriptions
+				LEFT JOIN {$wpdb->prefix}wc_orders parent_orders
+					ON parent_orders.ID = subscriptions.parent_order_id
+					AND parent_orders.status IN ( {$order_statuses_placeholders} )
+				WHERE subscriptions.type = 'shop_subscription'
+					AND subscriptions.status NOT IN ('wc-pending', 'auto-draft', 'wc-checkout-draft', 'trash')
+				", // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Placeholders are prepared above.
+				array_merge( $active_statuses, $order_statuses )
+			);
+		} else {
+			$query = $wpdb->prepare(
 				"SELECT COUNT( DISTINCT customer_ids.meta_value) as total_customers,
 					COUNT(subscription_posts.ID) as total_subscriptions,
 					COALESCE( SUM(parent_total.meta_value), 0) as initial_order_total,
@@ -267,43 +298,86 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 					ON parent_total.post_id = parent_order.ID
 					AND parent_total.meta_key = '_order_total'
 				WHERE subscription_posts.post_type = 'shop_subscription'
-				AND subscription_posts.post_status NOT IN ('wc-pending', 'trash')
-			",
-			array_merge( $active_statuses, $order_statuses )
-		) );
+					AND subscription_posts.post_status NOT IN ('wc-pending', 'auto-draft', 'wc-checkout-draft', 'trash')
+				", // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Placeholders are prepared above.
+				array_merge( $active_statuses, $order_statuses )
+			);
+		}
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared.
 
-		$cached_results = get_transient( strtolower( __CLASS__ ) );
-		$query_hash     = md5( $total_query );
+		/**
+		 * Filter the query used to fetch the customer subscription totals.
+		 *
+		 * @param string $query The query to fetch the customer subscription totals.
+		 * @return string The filtered query.
+		 *
+		 * @since 2.1.0
+		 */
+		$query      = apply_filters( 'wcs_reports_customer_total_query', $query );
+		$query_hash = md5( $query );
 
-		// Set a default value for cached results for PHP 8.2+ compatibility.
-		if ( empty( $cached_results ) ) {
-			$cached_results = [];
-		}
-
-		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
-			// Enable big selects for reports
+		// We expect that cache was initialized before calling this method.
+		// Skip running the query if cache is available.
+		if ( $args['no_cache'] || ! isset( self::$cached_report_results[ $query_hash ] ) ) {
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
-			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_customer_total_data', $wpdb->get_row( $total_query ) );
-			set_transient( strtolower( __CLASS__ ), $cached_results, WEEK_IN_SECONDS );
+			$query_results = $wpdb->get_row( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
+
+			/**
+			 * Filter the query results for customer totals.
+			 *
+			 * @param object $query_results The query results.
+			 * @return object The filtered query results.
+			 *
+			 * @since 2.1.0
+			 */
+			$query_results = apply_filters( 'wcs_reports_customer_total_data', $query_results );
+			self::cache_report_results( $query_hash, $query_results );
 		}
 
-		$customer_totals = $cached_results[ $query_hash ];
+		return self::$cached_report_results[ $query_hash ];
+	}
+
+	/**
+	 * Fetch totals by customer for related renewal and switch orders.
+	 *
+	 * @param array $args The arguments for the report.
+	 * @return object The totals by customer for related renewal and switch orders.
+	 *
+	 * @since 2.1.0
+	 */
+	public static function fetch_customer_subscription_related_orders_totals( $args = array() ) {
+		global $wpdb;
 
 		$status_placeholders = implode( ',', array_fill( 0, count( $args['order_status'] ), '%s' ) );
 		$statuses            = wcs_maybe_prefix_key( $args['order_status'], 'wc-' );
 
-		$renewal_switch_total_query = apply_filters( 'wcs_reports_customer_total_renewal_switch_query',
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Ignored for allowing interpolation in the IN statements.
-			$wpdb->prepare(
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Ignored for allowing interpolation in the IN statements.
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			$query = $wpdb->prepare(
+				"SELECT COALESCE( SUM(renewal_orders.total_amount), 0) as renewal_switch_total,
+					COUNT(DISTINCT renewal_orders.ID) as renewal_switch_count
+				FROM {$wpdb->prefix}wc_orders_meta renewal_order_ids
+				INNER JOIN {$wpdb->prefix}wc_orders subscriptions
+					ON renewal_order_ids.meta_value = subscriptions.ID
+					AND subscriptions.type = 'shop_subscription'
+					AND subscriptions.status NOT IN ('wc-pending', 'auto-draft', 'wc-checkout-draft', 'trash')
+				INNER JOIN {$wpdb->prefix}wc_orders renewal_orders
+					ON renewal_order_ids.order_id = renewal_orders.ID
+					AND renewal_orders.status IN ( {$status_placeholders} )
+				WHERE renewal_order_ids.meta_key = '_subscription_renewal'
+					OR renewal_order_ids.meta_key = '_subscription_switch'
+				", // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Placeholders are prepared above.
+				$statuses
+			);
+		} else {
+			$query = $wpdb->prepare(
 				"SELECT COALESCE( SUM(renewal_switch_totals.meta_value), 0) as renewal_switch_total,
 					COUNT(DISTINCT renewal_order_posts.ID) as renewal_switch_count
-					FROM {$wpdb->postmeta} renewal_order_ids
-					INNER JOIN {$wpdb->posts} subscription_posts
+				FROM {$wpdb->postmeta} renewal_order_ids
+				INNER JOIN {$wpdb->posts} subscription_posts
 					ON renewal_order_ids.meta_value = subscription_posts.ID
 					AND subscription_posts.post_type = 'shop_subscription'
-					AND subscription_posts.post_status NOT IN ('wc-pending', 'trash')
+					AND subscription_posts.post_status NOT IN ('wc-pending', 'auto-draft', 'wc-checkout-draft', 'trash')
 				INNER JOIN {$wpdb->posts} renewal_order_posts
 					ON renewal_order_ids.post_id = renewal_order_posts.ID
 					AND renewal_order_posts.post_status IN ( {$status_placeholders} )
@@ -311,34 +385,238 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 					ON renewal_switch_totals.post_id = renewal_order_ids.post_id
 					AND renewal_switch_totals.meta_key = '_order_total'
 				WHERE renewal_order_ids.meta_key = '_subscription_renewal'
-				OR renewal_order_ids.meta_key = '_subscription_switch'",
+					OR renewal_order_ids.meta_key = '_subscription_switch'
+				", // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Placeholders are prepared above.
 				$statuses
-			)
-		);
+			);
+		}
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared.
 
-		$query_hash = md5( $renewal_switch_total_query );
+		/**
+		 * Filter the query used to fetch the customer subscription related orders totals.
+		 *
+		 * @param string $query The query to fetch the customer subscription related orders totals.
+		 * @return string The filtered query.
+		 *
+		 * @since 2.1.0
+		 */
+		$query      = apply_filters( 'wcs_reports_customer_total_renewal_switch_query', $query );
+		$query_hash = md5( $query );
 
-		if ( $args['no_cache'] || ! isset( $cached_results[ $query_hash ] ) ) {
+		if ( $args['no_cache'] || ! isset( self::$cached_report_results[ $query_hash ] ) ) {
 			// Enable big selects for reports
 			$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
-			$cached_results[ $query_hash ] = apply_filters( 'wcs_reports_customer_total_renewal_switch_data', $wpdb->get_row( $renewal_switch_total_query ) );
-			set_transient( strtolower( __CLASS__ ), $cached_results, WEEK_IN_SECONDS );
+			$query_results = $wpdb->get_row( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
+
+			/**
+			 * Filter the query results for customer subscription related orders totals.
+			 *
+			 * @param object $query_results The query results.
+			 * @return object The filtered query results.
+			 *
+			 * @since 2.1.0
+			 */
+			$query_results = apply_filters( 'wcs_reports_customer_total_renewal_switch_data', $query_results );
+			self::cache_report_results( $query_hash, $query_results );
 		}
 
-		$customer_totals->renewal_switch_total = $cached_results[ $query_hash ]->renewal_switch_total;
-		$customer_totals->renewal_switch_count = $cached_results[ $query_hash ]->renewal_switch_count;
-
-		return $customer_totals;
+		return self::$cached_report_results[ $query_hash ];
 	}
 
 	/**
-	 * Clears the cached report data.
+	 * Fetch subscriptions by customer.
 	 *
-	 * @since 3.0.10
+	 * @param array $query_options The query options.
+	 * @return array The subscriptions by customer.
+	 *
+	 * @since 2.1.0
 	 */
-	public static function clear_cache() {
-		delete_transient( strtolower( __CLASS__ ) );
+	private static function fetch_subscriptions_by_customer( $query_options = array() ) {
+		global $wpdb;
+
+		$active_statuses = $query_options['active_statuses'] ?? array();
+		$paid_statuses   = $query_options['paid_statuses'] ?? array();
+		$offset          = $query_options['offset'] ?? 0;
+		$per_page        = $query_options['per_page'] ?? 20;
+
+		$active_statuses_placeholders = implode( ',', array_fill( 0, count( $active_statuses ), '%s' ) );
+		$paid_statuses_placeholders   = implode( ',', array_fill( 0, count( $paid_statuses ), '%s' ) );
+
+		// Ignored for allowing interpolation in the IN statements.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			$query = $wpdb->prepare(
+				"SELECT subscriptions.customer_id as customer_id,
+					COUNT(subscriptions.ID) as total_subscriptions,
+					COALESCE( SUM(parent_order.total_amount), 0) as initial_order_total,
+					COUNT(DISTINCT parent_order.ID) as initial_order_count,
+					SUM(CASE
+							WHEN subscriptions.status
+								IN ( {$active_statuses_placeholders} ) THEN 1
+							ELSE 0
+							END) AS active_subscriptions
+				FROM {$wpdb->prefix}wc_orders subscriptions
+				LEFT JOIN {$wpdb->prefix}wc_orders parent_order
+					ON parent_order.ID = subscriptions.parent_order_id
+					AND parent_order.status IN ( {$paid_statuses_placeholders} )
+				WHERE subscriptions.type = 'shop_subscription'
+					AND subscriptions.status NOT IN ('wc-pending','auto-draft', 'wc-checkout-draft', 'trash')
+				GROUP BY subscriptions.customer_id
+				ORDER BY customer_id DESC
+				LIMIT %d, %d
+				",
+				array_merge( $active_statuses, $paid_statuses, array( $offset, $per_page ) )
+			);
+		} else {
+			$query = $wpdb->prepare(
+				"SELECT customer_ids.meta_value as customer_id,
+					COUNT(subscription_posts.ID) as total_subscriptions,
+					COALESCE( SUM(parent_total.meta_value), 0) as initial_order_total,
+					COUNT(DISTINCT parent_order.ID) as initial_order_count,
+					SUM(CASE
+							WHEN subscription_posts.post_status
+								IN ( {$active_statuses_placeholders} ) THEN 1
+							ELSE 0
+							END) AS active_subscriptions
+				FROM {$wpdb->posts} subscription_posts
+				INNER JOIN {$wpdb->postmeta} customer_ids
+					ON customer_ids.post_id = subscription_posts.ID
+					AND customer_ids.meta_key = '_customer_user'
+				LEFT JOIN {$wpdb->posts} parent_order
+					ON parent_order.ID = subscription_posts.post_parent
+					AND parent_order.post_status IN ( {$paid_statuses_placeholders} )
+				LEFT JOIN {$wpdb->postmeta} parent_total
+					ON parent_total.post_id = parent_order.ID
+					AND parent_total.meta_key = '_order_total'
+				WHERE subscription_posts.post_type = 'shop_subscription'
+					AND subscription_posts.post_status NOT IN ('wc-pending', 'auto-draft', 'wc-checkout-draft', 'trash')
+				GROUP BY customer_ids.meta_value
+				ORDER BY customer_id DESC
+				LIMIT %d, %d
+				",
+				array_merge( $active_statuses, $paid_statuses, array( $offset, $per_page ) )
+			);
+		}
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+
+		/**
+		 * Filter the query used to fetch the subscriptions by customer.
+		 *
+		 * @param string $query The query to fetch the subscriptions by customer.
+		 * @return string The filtered query.
+		 *
+		 * @since 2.1.0
+		 */
+		$query = apply_filters( 'wcs_reports_current_customer_query', $query );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
+		return $wpdb->get_results( $query );
+	}
+
+	/**
+	 * Fetch totals by customer for related renewal and switch orders.
+	 *
+	 * @param array $query_options The query options.
+	 * @return array The totals by customer for related renewal and switch orders.
+	 *
+	 * @since 2.1.0
+	 */
+	private static function fetch_subscriptions_related_orders_totals_by_customer( $query_options = array() ) {
+		global $wpdb;
+
+		$paid_statuses = $query_options['order_status'] ?? array();
+		$customer_ids  = $query_options['customer_ids'] ?? array();
+
+		$customer_placeholders = implode( ',', array_fill( 0, count( $customer_ids ), '%s' ) );
+		$status_placeholders   = implode( ',', array_fill( 0, count( $paid_statuses ), '%s' ) );
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Ignored for allowing interpolation in the IN statements.
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			$query = $wpdb->prepare(
+				"SELECT
+					renewal_orders.customer_id as customer_id,
+					COALESCE( SUM(renewal_orders.total_amount), 0) as renewal_switch_total,
+					COUNT(DISTINCT renewal_orders.ID) as renewal_switch_count
+				FROM {$wpdb->prefix}wc_orders_meta renewal_order_ids
+				INNER JOIN {$wpdb->prefix}wc_orders subscriptions
+					ON renewal_order_ids.meta_value = subscriptions.ID
+					AND subscriptions.type = 'shop_subscription'
+					AND subscriptions.status NOT IN ('wc-pending', 'auto-draft', 'wc-checkout-draft', 'trash')
+				INNER JOIN {$wpdb->prefix}wc_orders renewal_orders
+					ON renewal_order_ids.order_id = renewal_orders.ID
+					AND renewal_orders.status IN ( {$status_placeholders} )
+					AND renewal_orders.customer_id IN ( {$customer_placeholders} )
+				WHERE renewal_order_ids.meta_key = '_subscription_renewal'
+					OR renewal_order_ids.meta_key = '_subscription_switch'
+				GROUP BY renewal_orders.customer_id
+				ORDER BY renewal_orders.customer_id
+				",
+				array_merge( $paid_statuses, $customer_ids )
+			);
+		} else {
+			$query = $wpdb->prepare(
+				"SELECT
+					customer_ids.meta_value as customer_id,
+					COALESCE( SUM(renewal_switch_totals.meta_value), 0) as renewal_switch_total,
+					COUNT(DISTINCT renewal_order_posts.ID) as renewal_switch_count
+				FROM {$wpdb->postmeta} renewal_order_ids
+				INNER JOIN {$wpdb->posts} subscription_posts
+					ON renewal_order_ids.meta_value = subscription_posts.ID
+					AND subscription_posts.post_type = 'shop_subscription'
+					AND subscription_posts.post_status NOT IN ('wc-pending', 'auto-draft', 'wc-checkout-draft', 'trash')
+				INNER JOIN {$wpdb->postmeta} customer_ids
+					ON renewal_order_ids.meta_value = customer_ids.post_id
+					AND customer_ids.meta_key = '_customer_user'
+					AND customer_ids.meta_value IN ( {$customer_placeholders} )
+				INNER JOIN {$wpdb->posts} renewal_order_posts
+					ON renewal_order_ids.post_id = renewal_order_posts.ID
+					AND renewal_order_posts.post_status IN ( {$status_placeholders} )
+				LEFT JOIN {$wpdb->postmeta} renewal_switch_totals
+					ON renewal_switch_totals.post_id = renewal_order_ids.post_id
+					AND renewal_switch_totals.meta_key = '_order_total'
+				WHERE renewal_order_ids.meta_key = '_subscription_renewal'
+					OR renewal_order_ids.meta_key = '_subscription_switch'
+				GROUP BY customer_id
+				ORDER BY customer_id
+				",
+				array_merge( $customer_ids, $paid_statuses )
+			);
+		}
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare.
+
+		/**
+		 * Filter the query used to fetch the totals by customer for related renewal and switch orders.
+		 *
+		 * @param string $query The query to fetch the totals by customer for related renewal and switch orders.
+		 * @return string The filtered query.
+		 *
+		 * @since 2.1.0
+		 */
+		$query = apply_filters( 'wcs_reports_current_customer_renewal_switch_total_query', $query );
+
+		return $wpdb->get_results( $query, OBJECT_K ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This query is prepared above.
+	}
+
+	/**
+	 * Initialize cache for report results.
+	 */
+	private static function init_cache() {
+		self::$cached_report_results = get_transient( strtolower( __CLASS__ ) );
+
+		// Set a default value for cached results for PHP 8.2+ compatibility.
+		if ( empty( self::$cached_report_results ) ) {
+			self::$cached_report_results = array();
+		}
+	}
+
+	/**
+	 * Cache report results.
+	 *
+	 * @param string $query_hash The query hash.
+	 * @param array $report_data The report data.
+	 */
+	private static function cache_report_results( $query_hash, $report_data ) {
+		self::$cached_report_results[ $query_hash ] = $report_data;
+		set_transient( strtolower( __CLASS__ ), self::$cached_report_results, WEEK_IN_SECONDS );
 	}
 }

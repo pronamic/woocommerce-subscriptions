@@ -23,10 +23,13 @@ class WCS_Admin_Reports {
 	 * Constructor
 	 */
 	public function __construct() {
-		// The subscription reports are incompatible with stores running HPOS with sycning disabled.
-		if ( wcs_is_custom_order_tables_usage_enabled() && ! wcs_is_custom_order_tables_data_sync_enabled() ) {
-			add_action( 'admin_notices', [ __CLASS__, 'display_hpos_incompatibility_notice' ] );
-			return;
+		// The subscription reports are compatible with HPOS since 7.8.0.
+		// We can inform users running data sync mode, that it's no longer needed.
+		if (
+			wcs_is_custom_order_tables_usage_enabled() &&
+			wcs_is_custom_order_tables_data_sync_enabled()
+		) {
+			add_action( 'admin_notices', [ __CLASS__, 'display_hpos_compatibility_notice' ] );
 		}
 
 		// Add the reports layout to the WooCommerce -> Reports admin section
@@ -37,12 +40,18 @@ class WCS_Admin_Reports {
 
 		// Add any actions we need based on the screen
 		add_action( 'current_screen', __CLASS__ . '::conditional_reporting_includes' );
+
+		// Starting from WooCommerce 10.0 the dashboard widget is loaded asynchronously.
+		// We also need to hook into AJAX request before WooCommerce so we can attach our hook to widget rendering flow.
+		add_action( 'wp_ajax_woocommerce_load_status_widget', __CLASS__ . '::init_dashboard_report', 9 );
 	}
 
 	/**
-	 * Displays an admin notice indicating subscription reports are disabled on HPOS environments with no syncing.
+	 * Displays an admin notice indicating subscription reports are compatible with HPOS.
+	 *
+	 * @since 7.8.0
 	 */
-	public static function display_hpos_incompatibility_notice() {
+	public static function display_hpos_compatibility_notice() {
 		$screen = get_current_screen();
 
 		// Only display the admin notice on report admin screens.
@@ -50,21 +59,34 @@ class WCS_Admin_Reports {
 			return;
 		}
 
-		$admin_notice = new WCS_Admin_Notice( 'error' );
+		$nonce_name  = 'wcs_reports_hpos_compatibility_notice';
+		$option_name = 'woocommerce_subscriptions_reports_hpos_compatibility_notice_dismissed';
 
-		$admin_notice->set_html_content(
-			sprintf(
-				'<p><strong>%s</strong></p><p>%s</p>',
-				_x( 'WooCommerce Subscriptions - Reports Not Available', 'heading used in an admin notice', 'woocommerce-subscriptions' ),
-				sprintf(
-					// translators: placeholders $1 and $2 are opening <a> tags linking to the WooCommerce documentation on HPOS, and to the Advanced Feature settings screen. Placeholder $3 is a closing link (<a>) tag.
-					__( 'Subscription reports are incompatible with the %1$sWooCommerce data storage features%3$s enabled on your store. Please %2$senable compatibility mode%3$s if you wish to use subscription reports.', 'woocommerce-subscriptions' ),
-					'<a href="https://woocommerce.com/document/high-performance-order-storage/">',
-					'<a href="' . esc_url( get_admin_url( null, 'admin.php?page=wc-settings&tab=advanced&section=features' ) ) . '">',
-					'</a>'
-				)
-			)
+		$is_dismissed = get_option( $option_name );
+
+		if ( 'yes' === $is_dismissed ) {
+			return;
+		}
+
+		if ( isset( $_GET['_wcsnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wcsnonce'] ) ), $nonce_name ) && ! empty( $_GET[ $nonce_name ] ) ) {
+			update_option( $option_name, 'yes' );
+			return;
+		}
+
+		$dismiss_url = wp_nonce_url( add_query_arg( $nonce_name, '1' ), $nonce_name, '_wcsnonce' );
+
+		$admin_notice = new WCS_Admin_Notice( 'notice notice-info is-dismissible', array(), $dismiss_url );
+
+		$content = sprintf(
+			// translators: placeholders $1 and $2 are opening <a> tags linking to the WooCommerce documentation on HPOS, and to the Advanced Features settings screen. Placeholder $3 is a closing link (</a>) tag.
+			__( 'WooCommerce Subscriptions now supports %1$sHigh-Performance Order Storage (HPOS)%3$s - compatibility mode is no longer required to view subscriptions reports. You can disable compatibility mode in your %2$sstore settings%3$s.', 'woocommerce-subscriptions' ),
+			'<a href="https://woocommerce.com/document/high-performance-order-storage/">',
+			'<a href="' . esc_url( get_admin_url( null, 'admin.php?page=wc-settings&tab=advanced&section=features' ) ) . '">',
+			'</a>'
 		);
+
+		$admin_notice->set_html_content( "<p>{$content}</p>" );
+
 		$admin_notice->display();
 	}
 
@@ -169,12 +191,19 @@ class WCS_Admin_Reports {
 
 		$screen = get_current_screen();
 
-		switch ( $screen->id ) {
-			case 'dashboard':
-				new WCS_Report_Dashboard();
-				break;
+		// Before WooCommerce 10.0 the dashboard widget was loaded synchronously on the dashboard screen. Keep this for backward compatibility.
+		if ( isset( $screen->id ) && 'dashboard' === $screen->id ) {
+			self::init_dashboard_report();
 		}
+	}
 
+	/**
+	 * Initialize the dashboard report.
+	 *
+	 * Used for loading the dashboard widget sync and async.
+	 */
+	public static function init_dashboard_report() {
+		new WCS_Report_Dashboard();
 	}
 
 	/**
