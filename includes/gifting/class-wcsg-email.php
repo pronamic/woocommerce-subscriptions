@@ -167,6 +167,10 @@ class WCSG_Email {
 	 */
 	public static function maybe_remove_wc_new_customer_email( $customer_id, $new_customer_data ) {
 
+		if ( ! WC()->cart || ! WC()->cart->cart_contents ) {
+			return;
+		}
+
 		foreach ( WC()->cart->cart_contents as $key => $item ) {
 			if ( ! empty( $item['wcsg_gift_recipients_email'] ) ) {
 				if ( $item['wcsg_gift_recipients_email'] == $new_customer_data['user_email'] ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
@@ -184,6 +188,10 @@ class WCSG_Email {
 	 * @param array $new_customer_data Array of data associated to the new customer.
 	 */
 	public static function maybe_reattach_wc_new_customer_email( $customer_id, $new_customer_data ) {
+
+		if ( ! WC()->cart || ! WC()->cart->cart_contents ) {
+			return;
+		}
 
 		foreach ( WC()->cart->cart_contents as $key => $item ) {
 			if ( ! empty( $item['wcsg_gift_recipients_email'] ) ) {
@@ -222,6 +230,10 @@ class WCSG_Email {
 	 * @param bool  $password_generated Whether the password has been generated for the customer.
 	 */
 	public static function send_new_recipient_user_email( $customer_id, $new_customer_data, $password_generated ) {
+		if ( ! WC()->cart || ! WC()->cart->cart_contents ) {
+			return;
+		}
+
 		foreach ( WC()->cart->cart_contents as $key => $item ) {
 			if ( isset( $item['wcsg_gift_recipients_email'] ) ) {
 				if ( $item['wcsg_gift_recipients_email'] === $new_customer_data['user_email'] ) {

@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'woocommerce/woocommerce-subscriptions',
-        'pretty_version' => 'dev-release/7.8.0',
-        'version' => 'dev-release/7.8.0',
-        'reference' => '4a23cafa810efb0cd9cf4f9210285810e98a7525',
+        'pretty_version' => 'dev-release/7.8.1',
+        'version' => 'dev-release/7.8.1',
+        'reference' => '27f35a5449bcd854523318e5a189af6c53876f14',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -29,9 +29,9 @@
             'dev_requirement' => false,
         ),
         'woocommerce/woocommerce-subscriptions' => array(
-            'pretty_version' => 'dev-release/7.8.0',
-            'version' => 'dev-release/7.8.0',
-            'reference' => '4a23cafa810efb0cd9cf4f9210285810e98a7525',
+            'pretty_version' => 'dev-release/7.8.1',
+            'version' => 'dev-release/7.8.1',
+            'reference' => '27f35a5449bcd854523318e5a189af6c53876f14',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

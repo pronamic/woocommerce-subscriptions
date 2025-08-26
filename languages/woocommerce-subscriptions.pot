@@ -2,14 +2,14 @@
 # This file is distributed under the GNU General Public License v3.0.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 7.8.0\n"
+"Project-Id-Version: WooCommerce Subscriptions 7.8.1\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-08-19T23:58:38+00:00\n"
+"POT-Creation-Date: 2025-08-25T23:35:15+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: woocommerce-subscriptions\n"
@@ -1109,14 +1109,11 @@ msgid "Add to Cart Button Text"
 msgstr ""
 
 #: includes/class-wcs-call-to-action-button-text-manager.php:40
-msgid "A product displays a button with the text \"Add to cart\". By default, a subscription changes this to \"Sign up now\". You can customise the button text for subscriptions here."
+msgid "A product displays a button with the text \"Add to cart\". You can customise the button text for subscriptions here."
 msgstr ""
 
 #: includes/class-wcs-call-to-action-button-text-manager.php:44
 #: includes/class-wcs-call-to-action-button-text-manager.php:47
-#: includes/class-wcs-call-to-action-button-text-manager.php:55
-#: includes/class-wcs-call-to-action-button-text-manager.php:58
-#: includes/core/class-wc-subscriptions-checkout.php:665
 #: includes/core/class-wc-subscriptions-product.php:1246
 #: includes/core/class-wc-subscriptions-product.php:1278
 msgid "Add to cart"
@@ -1127,7 +1124,13 @@ msgid "Place Order Button Text"
 msgstr ""
 
 #: includes/class-wcs-call-to-action-button-text-manager.php:51
-msgid "Use this field to customise the text displayed on the checkout button when an order contains a subscription. Normally the checkout submission button displays \"Place order\". When the cart contains a subscription, this is changed to \"Sign up now\"."
+msgid "Use this field to customise the text displayed on the checkout button when an order contains a subscription."
+msgstr ""
+
+#: includes/class-wcs-call-to-action-button-text-manager.php:55
+#: includes/class-wcs-call-to-action-button-text-manager.php:58
+#: includes/core/class-wc-subscriptions-checkout.php:665
+msgid "Place order"
 msgstr ""
 
 #: includes/class-wcs-customer-suspension-manager.php:32
@@ -6348,13 +6351,13 @@ msgid "File %d"
 msgstr ""
 
 #. Translators: placeholder is a subscription ID.
-#: includes/gifting/class-wcsg-email.php:390
+#: includes/gifting/class-wcsg-email.php:402
 msgctxt "Used in email heading before line items table, placeholder is subscription ID"
 msgid "Subscription #%s"
 msgstr ""
 
 #. Translators: placeholder is an order ID.
-#: includes/gifting/class-wcsg-email.php:393
+#: includes/gifting/class-wcsg-email.php:405
 msgctxt "Used in email heading before line items table, placeholder is order ID"
 msgid "Order #%s"
 msgstr ""

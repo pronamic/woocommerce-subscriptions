@@ -479,91 +479,91 @@ return array(
 		'path'    => $vendorDir . '/automattic/jetpack-autoloader/src/class-version-selector.php'
 	),
 	'WCSG_Admin' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-admin.php'
 	),
 	'WCSG_Admin_System_Status' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-admin-system-status.php'
 	),
 	'WCSG_Admin_Welcome_Announcement' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-admin-welcome-announcement.php'
 	),
 	'WCSG_Cart' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-cart.php'
 	),
 	'WCSG_Checkout' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-checkout.php'
 	),
 	'WCSG_Download_Handler' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-download-handler.php'
 	),
 	'WCSG_Email' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-email.php'
 	),
 	'WCSG_Email_Completed_Renewal_Order' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/emails/class-wcsg-email-completed-renewal-order.php'
 	),
 	'WCSG_Email_Customer_New_Account' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/emails/class-wcsg-email-customer-new-account.php'
 	),
 	'WCSG_Email_Processing_Renewal_Order' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/emails/class-wcsg-email-processing-renewal-order.php'
 	),
 	'WCSG_Email_Recipient_New_Initial_Order' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/emails/class-wcsg-email-recipient-new-initial-order.php'
 	),
 	'WCSG_Memberships_Integration' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-memberships-integration.php'
 	),
 	'WCSG_Privacy' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/privacy/class-wcsg-privacy.php'
 	),
 	'WCSG_Privacy_Erasers' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/privacy/class-wcsg-privacy-erasers.php'
 	),
 	'WCSG_Privacy_Exporters' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/privacy/class-wcsg-privacy-exporters.php'
 	),
 	'WCSG_Product' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-product.php'
 	),
 	'WCSG_Query' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-query.php'
 	),
 	'WCSG_Recipient_Addresses' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-recipient-addresses.php'
 	),
 	'WCSG_Recipient_Details' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-recipient-details.php'
 	),
 	'WCSG_Recipient_Management' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-recipient-management.php'
 	),
 	'WCSG_Template_Loader' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcsg-template-loader.php'
 	),
 	'WCS_Gifting' => array(
-		'version' => 'dev-release/7.8.0',
+		'version' => 'dev-release/7.8.1',
 		'path'    => $baseDir . '/includes/gifting/class-wcs-gifting.php'
 	),
 );

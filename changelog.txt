@@ -1,5 +1,9 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-08-25 - version 7.8.1
+* Fix: Fix checkout button default label.
+* Fix: Fix error when WP CLI is enabled in some environments.
+
 2025-08-19 - version 7.8.0
 * Add: Native support for subscriptions gifting. Gifting for WooCommerce Subscriptions extension is no longer required.
 * Add: Enable subscriptions gifting storewide and per product.

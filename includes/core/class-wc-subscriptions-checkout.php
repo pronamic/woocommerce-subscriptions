@@ -656,13 +656,13 @@ class WC_Subscriptions_Checkout {
 		}
 
 		/**
-		 * Filter the "Add to cart" button text for subscription carts.
+		 * Filter the "Place order" button text for subscription carts.
 		 *
 		 * @since 7.8.0
-		 * @param string $button_text The "Add to cart" button text.
-		 * @return string The "Add to cart" button text.
+		 * @param string $button_text The "Place order" button text.
+		 * @return string The "Place order" button text.
 		 */
-		return apply_filters( 'wcs_place_subscription_order_text', __( 'Add to cart', 'woocommerce-subscriptions' ) );
+		return apply_filters( 'wcs_place_subscription_order_text', __( 'Place order', 'woocommerce-subscriptions' ) );
 	}
 
 	/**

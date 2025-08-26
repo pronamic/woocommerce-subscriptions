@@ -318,10 +318,14 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 			// Note that flags such as `--no-color` are filtered out of this array.
 			$args = WP_CLI::get_runner()->arguments;
 
+			if ( ! is_countable( $args ) ) {
+				return false;
+			}
+
 			if (
-				count( $args ) < 3
-				|| $args[0] !== 'plugin'
-				|| $args[1] !== 'activate'
+				( count( $args ) < 3
+				|| 'plugin' !== $args[0]
+				|| 'activate' !== $args[1] )
 			) {
 				return false;
 			}

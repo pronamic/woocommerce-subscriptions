@@ -67,9 +67,11 @@ class WCSG_Admin_Welcome_Announcement {
 	 */
 	public static function output_tour() {
 		$screen = get_current_screen();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$dashboard_path = isset( $_GET['path'] ) ? wc_clean( wp_unslash( $_GET['path'] ) ) : '';
 
 		// Only load on WooCommerce admin pages
-		if ( ! $screen || 'woocommerce_page_wc-admin' !== $screen->id ) {
+		if ( ! $screen || 'woocommerce_page_wc-admin' !== $screen->id || '/setup-wizard' === $dashboard_path ) {
 			return;
 		}
 
