@@ -83,8 +83,8 @@ class WC_Subscriptions_Coupon {
 		// Add our recurring product coupon types to the list of coupon types that apply to individual products
 		add_filter( 'woocommerce_product_coupon_types', __CLASS__ . '::filter_product_coupon_types', 10, 1 );
 
-		if ( ! is_admin() ) {
-			// WC 3.0 only sets a coupon type if it is a pre-defined supported type, so we need to temporarily add our pseudo types. We don't want to add these on admin pages.
+		// Adds pseudo coupons on every page so orders can be created and renewed with them but prevent showing them on the coupon edit page.
+		if ( ! self::is_coupon_edit_page() ) {
 			add_filter( 'woocommerce_coupon_discount_types', __CLASS__ . '::add_pseudo_coupon_types' );
 		}
 
@@ -746,6 +746,18 @@ class WC_Subscriptions_Coupon {
 	 */
 	public static function is_recurring_coupon( $coupon_type ) {
 		return isset( self::$recurring_coupons[ $coupon_type ] );
+	}
+
+	/**
+	 * Check if the current page is the coupon edit page.
+	 *
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v4.0.0
+	 *
+	 * @return bool Whether the current page is the coupon edit page.
+	 */
+	public static function is_coupon_edit_page() {
+		$current_post_type = $_GET['post_type'] ?? ''; // phpcs:ignore
+		return 'shop_coupon' === $current_post_type;
 	}
 
 	/* Deprecated */

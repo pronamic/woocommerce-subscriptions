@@ -112,7 +112,7 @@ class WCSG_Checkout {
 	 */
 	public static function maybe_ship_to_recipient( $ship_to_different_address ) {
 
-		if ( ! $ship_to_different_address && ( WCSG_Cart::contains_gifted_renewal() || WCSG_Cart::contains_gift_recipient_email() ) ) {
+		if ( WCSG_Admin::is_gifting_enabled() && ! $ship_to_different_address && ( WCSG_Cart::contains_gifted_renewal() || WCSG_Cart::contains_gift_recipient_email() ) ) {
 			$ship_to_different_address = true;
 		}
 		return $ship_to_different_address;
@@ -165,6 +165,10 @@ class WCSG_Checkout {
 	 * @since 7.8.0 - Originally implemented in WooCommerce Subscriptions Gifting 1.0.
 	 */
 	public static function maybe_display_recipient_shipping_notice() {
+		if ( ! WCSG_Admin::is_gifting_enabled() || ! WCSG_Cart::contains_gift_recipient_email() ) {
+			return;
+		}
+
 		wc_print_notice( esc_html__( 'Please enter the gift recipient’s shipping address here, or we’ll collect it directly from them when they log in.', 'woocommerce-subscriptions' ), 'notice' );
 	}
 

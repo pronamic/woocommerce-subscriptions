@@ -53,6 +53,8 @@ class WCS_Gifting {
 
 		// Handle "_is_gifted_subscription" argument in wc_get_orders().
 		add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'handle_is_gifted_subscription_query_var' ), 10, 2 );
+
+		add_action( 'woocommerce_blocks_loaded', __CLASS__ . '::setup_blocks_integration' );
 	}
 
 	/**
@@ -164,7 +166,7 @@ class WCS_Gifting {
 	 * @param array  $new_recipient_data The new recipient information for the item.
 	 */
 	public static function update_cart_item_recipient( $item, $key, $new_recipient_data ) {
-		if ( empty( $item['wcsg_gift_recipients_email'] ) || $item['wcsg_gift_recipients_email'] != $new_recipient_data ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+		if ( empty( $item['wcsg_gift_recipients_email'] ) || $item['wcsg_gift_recipients_email'] !== $new_recipient_data ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			WC()->cart->cart_contents[ $key ]['wcsg_gift_recipients_email'] = $new_recipient_data;
 		}
 	}
@@ -339,7 +341,7 @@ class WCS_Gifting {
 	 * @since 7.8.0 - Originally implemented in WooCommerce Subscriptions Gifting 2.0.0.
 	 */
 	public static function add_billing_period_table_row( $subscription ) {
-		if ( ! wcsg_is_wc_subscriptions_pre( '2.2.19' ) && self::is_gifted_subscription( $subscription ) && get_current_user_id() == self::get_recipient_user( $subscription ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+		if ( ! wcsg_is_wc_subscriptions_pre( '2.2.19' ) && self::is_gifted_subscription( $subscription ) && get_current_user_id() === self::get_recipient_user( $subscription ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			$subscription_details  = array(
 				'recurring_amount'      => '',
 				'subscription_period'   => $subscription->get_billing_period(),
@@ -367,7 +369,7 @@ class WCS_Gifting {
 	public static function get_formatted_recipient_total( $formatted_order_total, $subscription ) {
 		global $wp;
 
-		if ( ! wcsg_is_wc_subscriptions_pre( '2.2.19' ) && is_account_page() && isset( $wp->query_vars['subscriptions'] ) && self::is_gifted_subscription( $subscription ) && get_current_user_id() == self::get_recipient_user( $subscription ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+		if ( ! wcsg_is_wc_subscriptions_pre( '2.2.19' ) && is_account_page() && isset( $wp->query_vars['subscriptions'] ) && self::is_gifted_subscription( $subscription ) && get_current_user_id() === self::get_recipient_user( $subscription ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			$formatted_order_total = '-';
 		}
 		return $formatted_order_total;
@@ -860,5 +862,28 @@ class WCS_Gifting {
 		_deprecated_function( __METHOD__, '2.1', 'WCS_Gifting::get_add_recipient_template_args()' );
 		$args = self::get_add_recipient_template_args( $email );
 		return $args['checkbox_field_args'];
+	}
+
+	public static function setup_blocks_integration() {
+		if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Package' ) || ! version_compare( \Automattic\WooCommerce\Blocks\Package::get_version(), '4.4.0', '>' ) ) {
+			return;
+		}
+		/**
+		 * Filter the compatible blocks for WooCommerce Subscriptions.
+		 * @since 7.8.2
+		 */
+		$compatible_blocks = apply_filters(
+			'wcsg_compatible_blocks',
+			[ 'cart', 'checkout', 'mini-cart' ]
+		);
+
+		foreach ( $compatible_blocks as $block_name ) {
+			add_action(
+				"woocommerce_blocks_{$block_name}_block_registration",
+				function ( $integration_registry ) {
+					$integration_registry->register( new WCSG_Blocks_Integration() );
+				}
+			);
+		}
 	}
 }

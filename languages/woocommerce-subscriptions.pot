@@ -2,14 +2,14 @@
 # This file is distributed under the GNU General Public License v3.0.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 7.8.1\n"
+"Project-Id-Version: WooCommerce Subscriptions 7.8.2\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-08-25T23:35:15+00:00\n"
+"POT-Creation-Date: 2025-09-02T01:34:48+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: woocommerce-subscriptions\n"
@@ -1197,7 +1197,7 @@ msgid "Active for unlimited payments"
 msgstr ""
 
 #: includes/class-wcs-limited-recurring-coupon-manager.php:388
-#: includes/core/class-wc-subscriptions-coupon.php:1153
+#: includes/core/class-wc-subscriptions-coupon.php:1165
 msgid "Sorry, it seems there are no available payment methods which support the recurring coupon you are using. Please contact us if you require assistance or wish to make alternate arrangements."
 msgstr ""
 
@@ -2342,8 +2342,8 @@ msgstr ""
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:159
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:257
 #: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:53
-#: build/index.js:18
-#: client/gifting/line-item-gift-recipient/index.js:199
+#: build/gifting-blocks-checkout.js:1
+#: client/gifting/components/line-item-gift-recipient/index.js:194
 msgid "Edit"
 msgstr ""
 
@@ -3762,15 +3762,6 @@ msgstr ""
 #. translators: placeholder is a date
 #: includes/core/class-wc-subscriptions-synchroniser.php:860
 msgid "First payment: %s"
-msgstr ""
-
-#: includes/core/class-wcs-blocks-integration.php:86
-#: includes/gifting/class-wcsg-admin.php:209
-#: templates/gifting/html-add-recipient.php:17
-#: build/index.js:18
-#: client/gifting/line-item-gift-recipient/index.js:172
-#: client/gifting/line-item-gift-recipient/index.js:177
-msgid "This is a gift"
 msgstr ""
 
 #: includes/core/class-wcs-cached-data-manager.php:75
@@ -6168,40 +6159,40 @@ msgstr ""
 msgid "Find new gateways that %1$ssupport automatic subscription payments%2$s in the official %3$sWooCommerce Marketplace%4$s."
 msgstr ""
 
-#: includes/gifting/class-wcs-gifting.php:147
+#: includes/gifting/class-wcs-gifting.php:149
 msgid "Please enter someone else's email address."
 msgstr ""
 
-#: includes/gifting/class-wcs-gifting.php:151
+#: includes/gifting/class-wcs-gifting.php:153
 msgid " Invalid email address."
 msgstr ""
 
-#: includes/gifting/class-wcs-gifting.php:302
+#: includes/gifting/class-wcs-gifting.php:304
 msgid "Recipient's Email Address"
 msgstr ""
 
-#: includes/gifting/class-wcs-gifting.php:353
+#: includes/gifting/class-wcs-gifting.php:355
 msgctxt "table heading"
 msgid "Renewing"
 msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$ plugin name, 4$ required plugin version, 5$-6$: opening and closing link tags, leads to plugins.php in admin, 7$: line break, 8$-9$ Opening and closing small tags.
-#: includes/gifting/class-wcs-gifting.php:447
+#: includes/gifting/class-wcs-gifting.php:449
 msgid "%1$sWooCommerce Subscriptions Gifting Membership integration is inactive.%2$s In order to integrate with WooCommerce Memberships, WooCommerce Subscriptions Gifting requires %3$s %4$s or newer. %5$sPlease update &raquo;%6$s %7$s%8$sNote: All other WooCommerce Subscriptions Gifting features will remain available, however purchasing membership plans for recipients will fail to grant the membership to the gift recipient.%9$s"
 msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$ plugin name, 4$ required plugin version, 5$-6$: opening and closing link tags, leads to plugins.php in admin.
-#: includes/gifting/class-wcs-gifting.php:450
+#: includes/gifting/class-wcs-gifting.php:452
 msgid "%1$sWooCommerce Subscriptions Gifting is inactive.%2$s This version of WooCommerce Subscriptions Gifting requires %3$s %4$s or newer. %5$sPlease update &raquo;%6$s"
 msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$:opening link tag, leads to WooCommerce Payments plugin product page, 4$:opening link tag, leads to WooCommerce Subscriptions plugin product page, 5$-6$: opening and closing link tags, leads to plugins.php in admin.
-#: includes/gifting/class-wcs-gifting.php:464
+#: includes/gifting/class-wcs-gifting.php:466
 msgid "%1$sWooCommerce Subscriptions Gifting is inactive.%2$s WooCommerce Subscriptions Gifting requires either the %3$sWooCommerce Payments%6$s or %4$sWooCommerce Subscriptions%6$s plugin to be active to work correctly. Please %5$sinstall & activate either one &raquo;%6$s"
 msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$ plugin name, 4$:opening link tag, leads to plugin product page, 5$-6$: opening and closing link tags, leads to plugins.php in admin.
-#: includes/gifting/class-wcs-gifting.php:469
+#: includes/gifting/class-wcs-gifting.php:471
 msgid "%1$sWooCommerce Subscriptions Gifting is inactive.%2$s WooCommerce Subscriptions Gifting requires the %4$s%3$s%6$s plugin to be active to work correctly. Please %5$sinstall & activate %3$s &raquo;%6$s"
 msgstr ""
 
@@ -6267,46 +6258,55 @@ msgstr ""
 msgid "This is what shoppers will see in the product page and cart."
 msgstr ""
 
-#: includes/gifting/class-wcsg-admin.php:274
+#: includes/gifting/class-wcsg-admin.php:209
+#: includes/gifting/class-wcsg-blocks-integration.php:84
+#: templates/gifting/html-add-recipient.php:17
+#: build/gifting-blocks-checkout.js:1
+#: client/gifting/components/line-item-gift-recipient/index.js:167
+#: client/gifting/components/line-item-gift-recipient/index.js:172
+msgid "This is a gift"
+msgstr ""
+
+#: includes/gifting/class-wcsg-admin.php:275
 #: includes/gifting/class-wcsg-recipient-management.php:480
 msgid "Recipient:"
 msgstr ""
 
-#: includes/gifting/class-wcsg-admin.php:290
-#: includes/gifting/class-wcsg-admin.php:298
+#: includes/gifting/class-wcsg-admin.php:291
+#: includes/gifting/class-wcsg-admin.php:299
 msgid "Search for a recipient&hellip;"
 msgstr ""
 
-#: includes/gifting/class-wcsg-admin.php:328
+#: includes/gifting/class-wcsg-admin.php:329
 msgid "Error saving subscription recipient: customer and recipient cannot be the same. The recipient user has been removed."
 msgstr ""
 
-#: includes/gifting/class-wcsg-admin.php:398
+#: includes/gifting/class-wcsg-admin.php:399
 msgid "All Subscriptions"
 msgstr ""
 
-#: includes/gifting/class-wcsg-admin.php:399
+#: includes/gifting/class-wcsg-admin.php:400
 msgid "Gifted Subscriptions"
 msgstr ""
 
-#: includes/gifting/class-wcsg-admin.php:400
+#: includes/gifting/class-wcsg-admin.php:401
 msgid "Non-gifted subscriptions"
 msgstr ""
 
-#: includes/gifting/class-wcsg-admin.php:489
+#: includes/gifting/class-wcsg-admin.php:490
 msgid "Resend \"new recipient account\" email"
 msgstr ""
 
-#: includes/gifting/class-wcsg-admin.php:537
+#: includes/gifting/class-wcsg-admin.php:538
 msgid "Follow global setting (enabled)"
 msgstr ""
 
-#: includes/gifting/class-wcsg-admin.php:538
+#: includes/gifting/class-wcsg-admin.php:539
 msgid "Follow global setting (disabled)"
 msgstr ""
 
 #. translators: %1$s opening anchor tag with url, %2$s closing anchor tag
-#: includes/gifting/class-wcsg-admin.php:550
+#: includes/gifting/class-wcsg-admin.php:551
 msgid "Overriding your %1$sstore's settings%2$s"
 msgstr ""
 
@@ -6314,13 +6314,13 @@ msgstr ""
 msgid "You cannot add additional products to the cart. Please pay for the subscription renewal first."
 msgstr ""
 
-#: includes/gifting/class-wcsg-checkout.php:168
+#: includes/gifting/class-wcsg-checkout.php:172
 msgid "Please enter the gift recipient’s shipping address here, or we’ll collect it directly from them when they log in."
 msgstr ""
 
-#: includes/gifting/class-wcsg-checkout.php:192
-#: build/index.js:18
-#: client/gifting/line-item-gift-recipient/index.js:187
+#: includes/gifting/class-wcsg-checkout.php:196
+#: build/gifting-blocks-checkout.js:1
+#: client/gifting/components/line-item-gift-recipient/index.js:182
 msgid "Gifting to"
 msgstr ""
 
@@ -6332,21 +6332,21 @@ msgstr ""
 msgid "Allow both purchaser and recipient to download subscription products."
 msgstr ""
 
-#: includes/gifting/class-wcsg-download-handler.php:147
+#: includes/gifting/class-wcsg-download-handler.php:148
 msgid "If you want both the recipient and purchaser of a subscription to have access to downloadable products."
 msgstr ""
 
-#: includes/gifting/class-wcsg-download-handler.php:197
+#: includes/gifting/class-wcsg-download-handler.php:198
 #: includes/gifting/class-wcsg-recipient-management.php:404
 msgid "Recipient"
 msgstr ""
 
-#: includes/gifting/class-wcsg-download-handler.php:197
+#: includes/gifting/class-wcsg-download-handler.php:198
 msgid "Purchaser"
 msgstr ""
 
 #. Translators: placeholder is the number of files.
-#: includes/gifting/class-wcsg-download-handler.php:355
+#: includes/gifting/class-wcsg-download-handler.php:356
 msgid "File %d"
 msgstr ""
 
@@ -7830,15 +7830,15 @@ msgid "You may access your account area to view your new %1$s here: %2$sMy Accou
 msgstr ""
 
 #: templates/gifting/html-add-recipient.php:23
-#: build/index.js:18
-#: client/gifting/line-item-gift-recipient/index.js:223
+#: build/gifting-blocks-checkout.js:1
+#: client/gifting/components/line-item-gift-recipient/index.js:218
 msgid "Gifting recipient"
 msgstr ""
 
 #: templates/gifting/html-add-recipient.php:44
-#: build/index.js:18
-#: client/gifting/line-item-gift-recipient/index.js:109
-#: client/gifting/line-item-gift-recipient/index.js:140
+#: build/gifting-blocks-checkout.js:1
+#: client/gifting/components/line-item-gift-recipient/index.js:104
+#: client/gifting/components/line-item-gift-recipient/index.js:135
 msgid "Please enter a valid email address"
 msgstr ""
 
@@ -8076,24 +8076,46 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
+#: build/gifting-blocks-checkout.js:1
+#: client/gifting/components/line-item-gift-recipient/index.js:187
+msgid "Gifting to:"
+msgstr ""
+
+#: build/gifting-blocks-checkout.js:1
+#: client/gifting/components/line-item-gift-recipient/index.js:198
+msgid "Remove gift recipient"
+msgstr ""
+
+#: build/gifting-blocks-checkout.js:1
+#: client/gifting/components/line-item-gift-recipient/index.js:204
+msgid "Remove"
+msgstr ""
+
+#: build/gifting-blocks-checkout.js:1
+#: client/gifting/components/line-item-gift-recipient/index.js:229
+msgid "Update"
+msgstr ""
+
 #: build/gifting-welcome-announcement.js:1
-#: client/components/announcement/index.js:62
-#: client/components/announcement/index.js:113
-#: client/components/announcement/__tests__/index.test.js:117
-#: client/components/announcement/__tests__/index.test.js:126
+#: client/components/announcement/index.js:112
+#: client/components/announcement/index.js:163
+#: client/components/announcement/__tests__/index.test.js:118
+#: client/components/announcement/__tests__/index.test.js:127
 msgid "Close"
 msgstr ""
 
 #: build/gifting-welcome-announcement.js:1
-#: client/components/announcement/index.js:81
-#: client/components/announcement/__tests__/index.test.js:69
-#: client/components/announcement/__tests__/index.test.js:94
+#: client/components/announcement/index.js:131
+#: client/components/announcement/__tests__/index.test.js:70
+#: client/components/announcement/__tests__/index.test.js:95
+#: client/components/announcement/__tests__/index.test.js:263
+#: client/components/announcement/__tests__/index.test.js:297
 msgid "Step image"
 msgstr ""
 
 #: build/gifting-welcome-announcement.js:1
-#: client/components/announcement/index.js:125
-#: client/components/announcement/__tests__/index.test.js:114
+#: client/components/announcement/index.js:175
+#: client/components/announcement/__tests__/index.test.js:115
 msgid "Done"
 msgstr ""
 
@@ -8239,26 +8261,6 @@ msgstr ""
 #: build/index.js:18
 #: client/core/recurring-totals/index.js:271
 msgid "Details"
-msgstr ""
-
-#: build/index.js:18
-#: client/gifting/line-item-gift-recipient/index.js:192
-msgid "Gifting to:"
-msgstr ""
-
-#: build/index.js:18
-#: client/gifting/line-item-gift-recipient/index.js:203
-msgid "Remove gift recipient"
-msgstr ""
-
-#: build/index.js:18
-#: client/gifting/line-item-gift-recipient/index.js:209
-msgid "Remove"
-msgstr ""
-
-#: build/index.js:18
-#: client/gifting/line-item-gift-recipient/index.js:234
-msgid "Update"
 msgstr ""
 
 #: build/index.js:18

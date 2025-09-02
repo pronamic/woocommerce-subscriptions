@@ -38,7 +38,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 		}
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'maybe_show_welcome_message' ) );
-		add_action( 'plugins_loaded', array( $this, 'init_gifting' ), 20 );
+		add_action( 'plugins_loaded', array( $this, 'init_gifting' ) );
 	}
 
 	/**
@@ -258,6 +258,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 
 		require_once $gifting_includes . 'wcsg-compatibility-functions.php';
 
+		WCSG_Admin_Order::init();
 		WCSG_Product::init();
 		WCSG_Cart::init();
 		WCSG_Checkout::init();

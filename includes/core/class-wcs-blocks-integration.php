@@ -83,7 +83,6 @@ class WCS_Blocks_Integration implements IntegrationInterface {
 		return array(
 			'woocommerce-subscriptions-blocks' => 'active',
 			'place_order_override'             => $this->get_place_order_button_text_override(),
-			'gifting_checkbox_text'            => apply_filters( 'wcsg_enable_gifting_checkbox_label', get_option( WCSG_Admin::$option_prefix . '_gifting_checkbox_text', __( 'This is a gift', 'woocommerce-subscriptions' ) ) ),
 		);
 	}
 

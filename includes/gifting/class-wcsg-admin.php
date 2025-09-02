@@ -203,11 +203,12 @@ class WCSG_Admin {
 					),
 				),
 				array(
-					'name'    => __( 'Gifting Checkbox Text', 'woocommerce-subscriptions' ),
-					'desc'    => __( 'This is what shoppers will see in the product page and cart.', 'woocommerce-subscriptions' ),
-					'id'      => self::$option_prefix . '_gifting_checkbox_text',
-					'default' => __( 'This is a gift', 'woocommerce-subscriptions' ),
-					'type'    => 'text',
+					'name'      => __( 'Gifting Checkbox Text', 'woocommerce-subscriptions' ),
+					'desc'      => __( 'This is what shoppers will see in the product page and cart.', 'woocommerce-subscriptions' ),
+					'id'        => self::$option_prefix . '_gifting_checkbox_text',
+					'default'   => __( 'This is a gift', 'woocommerce-subscriptions' ),
+					'type'      => 'text',
+					'row_class' => 'gifting-checkbox-text',
 				),
 				array(
 					'type' => 'sectionend',

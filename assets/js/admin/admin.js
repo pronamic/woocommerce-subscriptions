@@ -1061,30 +1061,38 @@ jQuery( function ( $ ) {
 	}
 
 	var $giftingEnableCheckbox = $(
-		document.getElementById( 'woocommerce_subscriptions_gifting_enable_gifting' )
-	),
-	$giftingRadios = $(
-		'.wc-settings-row-gifting-radios'
-	);
+			document.getElementById(
+				'woocommerce_subscriptions_gifting_enable_gifting'
+			)
+		),
+		$giftingRadios = $( '.wc-settings-row-gifting-radios' ),
+		$giftingCheckboxText = $( '.wc-settings-row-gifting-checkbox-text' ),
+		$giftingDownloadableProducts = $(
+			'.wc-settings-row-gifting-downloadable-products'
+		);
 
 	if ( $giftingEnableCheckbox.length > 0 ) {
 		function toggleGiftingCheckbox( checked ) {
 			if ( checked ) {
 				$giftingRadios.show();
+				$giftingCheckboxText.show();
+				$giftingDownloadableProducts.show();
 				$giftingEnableCheckbox.closest( 'tr' ).addClass( 'checked' );
 
 				return;
 			}
 
 			$giftingRadios.hide();
+			$giftingCheckboxText.hide();
+			$giftingDownloadableProducts.hide();
 			$giftingEnableCheckbox.closest( 'tr' ).removeClass( 'checked' );
 		}
 
-		$giftingEnableCheckbox.on( 'change', function() {
+		$giftingEnableCheckbox.on( 'change', function () {
 			toggleGiftingCheckbox( this.checked );
 		} );
 
-		toggleGiftingCheckbox( $giftingEnableCheckbox.is(':checked') );
+		toggleGiftingCheckbox( $giftingEnableCheckbox.is( ':checked' ) );
 	}
 
 	// Don't display the variation notice for variable subscription products

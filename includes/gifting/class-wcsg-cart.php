@@ -333,7 +333,7 @@ class WCSG_Cart {
 
 		if ( ! empty( WC()->cart->cart_contents ) ) {
 			foreach ( WC()->cart->cart_contents as $cart_item ) {
-				if ( isset( $cart_item['wcsg_gift_recipients_email'] ) ) {
+				if ( ! empty( $cart_item['wcsg_gift_recipients_email'] ) ) {
 					$has_recipient_email = true;
 					break;
 				}

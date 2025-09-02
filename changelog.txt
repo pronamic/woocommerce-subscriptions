@@ -1,5 +1,9 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-09-02 - version 7.8.2
+* Fix: Error when updating/renewing subscriptions containing a pseudo coupon.
+* Fix: Fix gifting recipient notice being shown for non gifting orders.
+
 2025-08-25 - version 7.8.1
 * Fix: Fix checkout button default label.
 * Fix: Fix error when WP CLI is enabled in some environments.

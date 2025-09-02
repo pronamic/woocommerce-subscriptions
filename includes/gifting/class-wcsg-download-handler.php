@@ -139,12 +139,13 @@ class WCSG_Download_Handler {
 			0,
 			array(
 				array(
-					'name'     => __( 'Downloadable Products', 'woocommerce-subscriptions' ),
-					'desc'     => __( 'Allow both purchaser and recipient to download subscription products.', 'woocommerce-subscriptions' ),
-					'id'       => WCSG_Admin::$option_prefix . '_downloadable_products',
-					'default'  => 'no',
-					'type'     => 'checkbox',
-					'desc_tip' => __( 'If you want both the recipient and purchaser of a subscription to have access to downloadable products.', 'woocommerce-subscriptions' ),
+					'name'      => __( 'Downloadable Products', 'woocommerce-subscriptions' ),
+					'desc'      => __( 'Allow both purchaser and recipient to download subscription products.', 'woocommerce-subscriptions' ),
+					'id'        => WCSG_Admin::$option_prefix . '_downloadable_products',
+					'default'   => 'no',
+					'type'      => 'checkbox',
+					'row_class' => 'gifting-downloadable-products',
+					'desc_tip'  => __( 'If you want both the recipient and purchaser of a subscription to have access to downloadable products.', 'woocommerce-subscriptions' ),
 				),
 			)
 		);
@@ -346,7 +347,7 @@ class WCSG_Download_Handler {
 				if ( $files ) {
 					foreach ( $files as $download_id => $file ) {
 
-						$file_counter ++;
+						++$file_counter;
 
 						if ( isset( $file['name'] ) ) {
 							$file_names[ $download_id ] = $file['name'];
@@ -366,7 +367,7 @@ class WCSG_Download_Handler {
 
 				foreach ( $new_download_permissions as $new_download_permission_index ) {
 
-					$loop ++;
+					++$loop;
 
 					$download   = $updated_download_permissions[ $new_download_permission_index ];
 					$file_count = $file_names[ $download->download_id ];
@@ -452,7 +453,7 @@ class WCSG_Download_Handler {
 			)
 		);
 
-		$files   = array();
+		$files = array();
 		/** @var WC_Product $product */
 		$product = wc_get_product( $product_id );
 
@@ -464,7 +465,7 @@ class WCSG_Download_Handler {
 				} else {
 					$customer_download = new WC_Customer_Download( $download );
 					/** @var WC_Product_Download $file */
-					$file              = $product->get_file( $download->download_id );
+					$file = $product->get_file( $download->download_id );
 
 					$files[ $download->download_id ]                        = $file->get_data();
 					$files[ $download->download_id ]['downloads_remaining'] = $customer_download->get_downloads_remaining();
@@ -551,7 +552,6 @@ class WCSG_Download_Handler {
 				'return'   => 'ids',
 			)
 		);
-
 	}
 
 	/**
@@ -619,5 +619,4 @@ class WCSG_Download_Handler {
 
 		self::restore_recipient_permissions( $subscription );
 	}
-
 }
