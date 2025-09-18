@@ -98,8 +98,13 @@ class WCS_Gifting {
 	 * Register/queue frontend scripts.
 	 */
 	public static function gifting_scripts() {
-		wp_register_script( 'woocommerce_subscriptions_gifting', plugins_url( '/assets/js/gifting/wcs-gifting.js', WC_Subscriptions::$plugin_file ), array( 'jquery' ), WC_Subscriptions::$version, true );
-		wp_enqueue_script( 'woocommerce_subscriptions_gifting' );
+		global $post;
+
+		if ( ! WCSG_Admin::is_gifting_enabled() ) {
+			return;
+		}
+
+		// We load this on all pages because of the mini-cart related styles.
 		wp_enqueue_style(
 			'woocommerce_subscriptions_gifting',
 			plugins_url( '/assets/css/gifting/shortcode-checkout.css', WC_Subscriptions::$plugin_file ),
@@ -107,6 +112,23 @@ class WCS_Gifting {
 			WC_VERSION,
 			'all'
 		);
+
+		if ( ! is_cart() && ! is_checkout() && ! is_product() ) {
+			return;
+		}
+
+		// We don't need to load the scripts on blocks pages.
+		if ( WC_Blocks_Utils::has_block_in_page( $post->ID, 'woocommerce/cart' ) || WC_Blocks_Utils::has_block_in_page( $post->ID, 'woocommerce/checkout' ) ) {
+			return;
+		}
+
+		// We don't need to load the script on product pages that are not subscriptions or not giftable subscriptions.
+		if ( is_product() && ( ! WC_Subscriptions_Product::is_subscription( $post->ID ) || ! WCSG_Product::is_giftable( $post->ID ) ) ) {
+			return;
+		}
+
+		wp_register_script( 'woocommerce_subscriptions_gifting', plugins_url( '/assets/js/gifting/wcs-gifting.js', WC_Subscriptions::$plugin_file ), array( 'jquery' ), WC_Subscriptions::$version, true );
+		wp_enqueue_script( 'woocommerce_subscriptions_gifting' );
 	}
 
 	/**
@@ -324,8 +346,8 @@ class WCS_Gifting {
 		$args = array(
 			'email'                      => $email,
 			'id'                         => $id,
-			'container_style_attributes' => apply_filters( 'wcsg_recipient_fields_style_attributes', empty( $email ) ? array( 'display: none;' ) : array(), $email ),
-			'container_css_class'        => apply_filters( 'wcsg_recipient_fields_css_class', array(), $email ),
+			'container_style_attributes' => apply_filters( 'wcsg_recipient_fields_style_attributes', array(), $email ),
+			'container_css_class'        => apply_filters( 'wcsg_recipient_fields_css_class', empty( $email ) ? array( 'hidden' ) : array(), $email ),
 			'email_field_args'           => apply_filters( 'wcsg_recipient_email_field_args', $email_field_args, $email ),
 			'checkbox_field_args'        => apply_filters( 'wcsg_recipient_checkbox_field_args', $checkbox_field_args, $email ),
 			'nonce_field'                => $nonce_field,
@@ -497,6 +519,10 @@ class WCS_Gifting {
 
 		if ( ! $subscription instanceof WC_Subscription ) {
 			$subscription = wcs_get_subscription( $subscription );
+		}
+
+		if ( ! $subscription ) {
+			return false;
 		}
 
 		if ( wcs_is_subscription( $subscription ) ) {
@@ -868,6 +894,11 @@ class WCS_Gifting {
 		if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Package' ) || ! version_compare( \Automattic\WooCommerce\Blocks\Package::get_version(), '4.4.0', '>' ) ) {
 			return;
 		}
+
+		if ( ! WCSG_Admin::is_gifting_enabled() ) {
+			return;
+		}
+
 		/**
 		 * Filter the compatible blocks for WooCommerce Subscriptions.
 		 * @since 7.8.2

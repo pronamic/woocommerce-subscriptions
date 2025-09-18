@@ -438,11 +438,13 @@ class WC_Subscriptions_Manager {
 	/**
 	 * Called when a sign up fails during the payment processing step.
 	 *
+	 * This method only performs actions when a parent order changed to failed status.
+	 * Overlaps with WC_Subscriptions_Order::maybe_record_subscription_payment.
+	 *
 	 * @param WC_Order|int $order The order or ID of the order for which subscriptions should be marked as failed.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function failed_subscription_sign_ups_for_order( $order ) {
-
 		$subscriptions = wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'parent' ) );
 
 		if ( empty( $subscriptions ) ) {
@@ -461,9 +463,23 @@ class WC_Subscriptions_Manager {
 		foreach ( $subscriptions as $subscription ) {
 
 			try {
-				$new_status = $subscription->has_status( 'pending' ) && $subscription->get_parent_id() === $order->get_id() ? 'pending' : 'on-hold';
-				$subscription->payment_failed( $new_status );
+				/**
+				 * Parent status failure should not change the subscription status in most cases.
+				 * We only change the status when the parent order is the last order and subscription is active.
+				 * In that case, we need to put the subscription on hold as we do when the latest renewal order fails.
+				 * Examples:
+				 * - if subscription is pending and initial payment fails, we keep subscription as pending to activate it on successful payment.
+				 * - if subscription has successful renewals and somehow the parent order fails after that, we still keep subscription as active.
+				 * - if subscription is active after successful initial payment, but later the parent order fails, we move subscription to on-hold.
+				 */
+				$new_status = $subscription->get_status();
 
+				if ( 'active' === $new_status && $subscription->get_parent_id() === $order->get_id() ) {
+					$last_order = $subscription->get_last_order( 'ids', 'any' );
+					$new_status = $last_order === $order->get_id() ? 'on-hold' : 'active';
+				}
+
+				$subscription->payment_failed_for_related_order( $new_status, $order );
 			} catch ( Exception $e ) {
 				// translators: $1: order number, $2: error message
 				$subscription->add_order_note( sprintf( __( 'Failed to process failed payment on subscription for order #%1$s: %2$s', 'woocommerce-subscriptions' ), is_object( $order ) ? $order->get_order_number() : $order, $e->getMessage() ) );
@@ -1019,6 +1035,24 @@ class WC_Subscriptions_Manager {
 
 			foreach ( $subscriptions as $subscription ) {
 				$subscription_number = $subscription->get_order_number();
+
+				if ( WCS_Gifting::is_gifted_subscription( $subscription ) ) {
+					// translators: %s is the email address of the recipient.
+					$message = sprintf( __( 'The gifted subscription moved to the purchaser after the recipient user with email address %s was deleted.', 'woocommerce-subscriptions' ), $subscription->get_meta( '_recipient_user_email_address' ) );
+
+					$subscription->delete_meta_data( '_recipient_user' );
+					$subscription->delete_meta_data( '_recipient_user_email_address' );
+					$subscription->save();
+
+					$subscription->add_order_note( $message, $subscription_number );
+
+					// Check needed for tests.
+					if ( $subscription->get_parent() ) {
+						$subscription->get_parent()->add_order_note( $message, $subscription_number );
+					}
+
+					continue;
+				}
 
 				// Before deleting the subscription, add an order note to the related orders.
 				foreach ( $subscription->get_related_orders( 'all', array( 'parent', 'renewal', 'switch' ) ) as $order ) {

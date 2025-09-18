@@ -97,7 +97,7 @@ class WCSG_Download_Handler {
 
 		$subscription = wcs_get_subscription( $data['order_id'] );
 
-		if ( WCS_Gifting::is_gifted_subscription( $subscription ) ) {
+		if ( $subscription && WCS_Gifting::is_gifted_subscription( $subscription ) ) {
 
 			$can_purchaser_download = ( 'yes' === get_option( WCSG_Admin::$option_prefix . '_downloadable_products', 'no' ) ) ? true : false;
 

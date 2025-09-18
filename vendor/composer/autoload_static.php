@@ -13,6 +13,7 @@ class ComposerStaticInit32625eaf0064549a4f20b6231a37a93c
         ),
         'A' => 
         array (
+            'Automattic\\WooCommerce_Subscriptions\\' => 37,
             'Automattic\\Jetpack\\Autoloader\\' => 30,
         ),
     );
@@ -21,6 +22,10 @@ class ComposerStaticInit32625eaf0064549a4f20b6231a37a93c
         'Composer\\Installers\\' => 
         array (
             0 => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers',
+        ),
+        'Automattic\\WooCommerce_Subscriptions\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/src',
         ),
         'Automattic\\Jetpack\\Autoloader\\' => 
         array (

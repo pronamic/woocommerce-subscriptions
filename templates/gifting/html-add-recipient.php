@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<label for="gifting_<?php echo esc_attr( $id ); ?>_option">
 		<?php echo esc_html( apply_filters( 'wcsg_enable_gifting_checkbox_label', get_option( WCSG_Admin::$option_prefix . '_gifting_checkbox_text', __( 'This is a gift', 'woocommerce-subscriptions' ) ) ) ); ?>
 	</label>
-	<div class="wcsg_add_recipient_fields <?php echo esc_attr( implode( ' ', $container_css_class ) ); ?>" style="<?php echo esc_attr( implode( ' ', $container_style_attributes ) ); ?>">
+	<div class="wcsg_add_recipient_fields <?php echo esc_attr( implode( ' ', $container_css_class ) ); ?>">
 		<?php echo $nonce_field; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		<p class="form-row form-row <?php echo esc_attr( implode( ' ', $email_field_args['class'] ) ); ?>" style="<?php echo esc_attr( implode( '; ', $email_field_args['style_attributes'] ) ); ?>">
 			<input 

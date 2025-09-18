@@ -8,6 +8,8 @@
  * @since    2.0
  */
 
+use Automattic\Jetpack\Constants;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -153,7 +155,7 @@ class WCS_API {
 	 * @return boolean
 	 */
 	protected static function is_orders_api_request() {
-		if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST || empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+		if ( ! Constants::is_true( 'REST_REQUEST' ) || empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
 			return false;
 		}
 

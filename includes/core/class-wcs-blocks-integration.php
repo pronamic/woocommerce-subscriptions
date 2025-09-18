@@ -22,17 +22,15 @@ class WCS_Blocks_Integration implements IntegrationInterface {
 	 */
 	public function initialize() {
 		$script_path = 'build/index.js';
-		$style_path  = 'build/index.css';
 
 		$script_url = \WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( $script_path );
-		$style_url  = \WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( $style_path );
 
 		$script_asset_path = \WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'build/index.asset.php' );
 		$script_asset      = file_exists( $script_asset_path )
 			? require $script_asset_path
 			: array(
 				'dependencies' => array(),
-				'version'      => $this->get_file_version( $script_asset_path ),
+				'version'      => self::get_file_version( $script_asset_path ),
 			);
 
 		wp_register_script(
@@ -46,13 +44,6 @@ class WCS_Blocks_Integration implements IntegrationInterface {
 			'wc-blocks-integration',
 			'woocommerce-subscriptions',
 			\WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'languages' )
-		);
-		wp_enqueue_style(
-			'wc-blocks-integration',
-			$style_url,
-			'',
-			$this->get_file_version( \WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'build/index.css' ) ),
-			'all'
 		);
 	}
 
@@ -92,7 +83,7 @@ class WCS_Blocks_Integration implements IntegrationInterface {
 	 * @param string $file Local path to the file.
 	 * @return string The cache buster value to use for the given file.
 	 */
-	protected function get_file_version( $file ) {
+	public static function get_file_version( $file ) {
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG && file_exists( $file ) ) {
 			return filemtime( $file );
 		}

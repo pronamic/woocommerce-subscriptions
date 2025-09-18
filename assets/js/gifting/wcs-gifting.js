@@ -156,8 +156,8 @@ jQuery( document ).ready( function ( $ ) {
 			'.woocommerce-cart-form :input[type="submit"][name="update_cart"]'
 		);
 
-		if ( $updateCartButton.length ) {
-			$updateCartButton.prop( 'disabled', ! allValid );
+		if ( $updateCartButton.length && ! allValid ) {
+			$updateCartButton.prop( 'disabled', true );
 		}
 
 		return allValid;

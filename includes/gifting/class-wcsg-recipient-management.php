@@ -489,15 +489,9 @@ class WCSG_Recipient_Management {
 	 */
 	public static function maybe_remove_recipient( $user_id ) {
 
-		$gifted_subscriptions = self::get_recipient_subscriptions( $user_id );
-		$gifted_items         = WCS_Gifting::get_recipient_order_items( $user_id );
+		$gifted_items = WCS_Gifting::get_recipient_order_items( $user_id );
 
-		if ( ! empty( $gifted_subscriptions ) ) {
-			foreach ( $gifted_subscriptions as $subscription_id ) {
-				WCS_Gifting::set_recipient_user( $subscription, 'deleted_recipient' );
-			}
-
-			$recipient      = get_user_by( 'id', $user_id );
+		if ( ! empty( $gifted_items ) ) {
 			$recipient_data = wp_json_encode(
 				array_merge(
 					array( 'display_name' => addslashes( WCS_Gifting::get_user_display_name( $user_id ) ) ),

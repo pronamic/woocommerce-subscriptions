@@ -81,10 +81,12 @@ class WC_Subscriptions_Renewal_Order {
 	 * subscriptions are updated even if payment is processed by a manual payment gateways (which would never trigger the
 	 * 'woocommerce_payment_complete' hook) or by some other means that circumvents that hook.
 	 *
+	 * This hook will be skipped for early renewal orders transitioning to statuses other than cancelled or refunded.
+	 * @see WCS_Cart_Early_Renewal::maybe_record_subscription_payment().
+	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_record_subscription_payment( $order_id, $orders_old_status, $orders_new_status ) {
-
 		if ( ! wcs_order_contains_renewal( $order_id ) ) {
 			return;
 		}

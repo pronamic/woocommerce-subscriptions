@@ -1,5 +1,17 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-09-16 - version 7.9.0
+
+* Add: REST API endpoint to retrieve subscriptions associated with a specific order ID.
+* Fix: Keep subscription with successful renewals active when parent order fails.
+* Fix: Error when renewing subscriptions with downloadable gifts.
+* Fix: Improve performance by loading assets only when necessary.
+* Fix: "Update cart" button being always enabled.
+* Fix: Gifting recipient email layout issues when using a long e-mail address.
+* Fix: Gifting checkbox not showing up on blocks cart when using WooCommerce 10.2+.
+* Fix: Deleting a gifted subscription recipient will not delete their subscriptions, they will be moved to the subscription purchaser instead.
+* Dev: The `wcs_get_subscriptions()` and `wcs_get_subscriptions_for_order()` functions are now stricter, and only return instances of `WC_Subscription`.
+
 2025-09-02 - version 7.8.2
 * Fix: Error when updating/renewing subscriptions containing a pseudo coupon.
 * Fix: Fix gifting recipient notice being shown for non gifting orders.
@@ -22,7 +34,7 @@
 2025-07-09 - version 7.7.0
 * Fix: Restores normal behavior for the report caching updates scheduled action, which was failing due to a bad filepath.
 * Fix: Fix error when placing an order with a valid card after using a declined one.
-* Fix: Fix order renewal errors when using some plugins. 
+* Fix: Fix order renewal errors when using some plugins.
 * Fix: Prevent fatal errors when loading or deleting subscriptions with corrupted date values stored in a database.
 * Fix: Prevent fatal errors when trying to save invalid date values and display better error messages instead.
 * Fix: Fix broken blocks and javascript translations.

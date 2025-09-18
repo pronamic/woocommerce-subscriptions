@@ -28,3 +28,36 @@
     border-color: var(--wc-red, #cc1818);
     color: var(--wc-red, #cc1818);
 }
+
+.wcsg_add_recipient_fields_container label {
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.wcsg_add_recipient_fields_container .wcsg_add_recipient_fields .woocommerce_subscriptions_gifting_recipient_email {
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.wcsg_add_recipient_fields_container .wcsg_add_recipient_fields.hidden {
+    display: none;
+}
+
+.wcsg_add_recipient_fields_container .recipient_email:focus {
+    outline-offset: -2px;
+}
+
+#woocommerce_subscriptions_gifting_field {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	max-width: 100%;
+}
+
+#woocommerce_subscriptions_gifting_field div {
+	display: inline-flex;
+	align-items: center;
+	max-width: 100%;
+	word-break: break-all;
+	word-wrap: break-word;
+}

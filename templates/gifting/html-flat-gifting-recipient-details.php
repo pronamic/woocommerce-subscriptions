@@ -14,5 +14,5 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<label class="woocommerce_subscriptions_gifting_recipient_email">
 		<?php esc_html_e( 'Recipient: ', 'woocommerce-subscriptions' ); ?>
 	</label>
-	<?php echo esc_html( $email ); ?>
+	<div><?php echo esc_html( $email ); ?></div>
 </fieldset>

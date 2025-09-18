@@ -79,6 +79,10 @@ function wcs_do_subscriptions_exist() {
  */
 function wcs_get_subscription( $the_subscription ) {
 
+	if ( empty( $the_subscription ) ) {
+		return false;
+	}
+
 	if ( is_object( $the_subscription ) && wcs_is_subscription( $the_subscription ) ) {
 		$the_subscription = $the_subscription->get_id();
 	}
@@ -395,6 +399,7 @@ function wcs_sanitize_subscription_status_key( $status_key ) {
  *
  * @since 1.0.0 Migrated from WooCommerce Subscriptions v2.0.
  * @since 7.3.0 Any additional arguments are passed across to WooCommerce for use in the final query.
+ * @since 7.9.0 Only instances of WC_Subscriptions will be returned by this function (prior to this, other values including false were occassionally part of the result).
  *
  * @param array $args {
  *     A set of name value pairs to query for subscriptions - similar to args supported by wc_get_orders().
@@ -563,7 +568,27 @@ function wcs_get_subscriptions( $args ) {
 		$subscriptions = $query_controller->paginate_results( $subscriptions );
 	}
 
-	return apply_filters( 'woocommerce_got_subscriptions', $subscriptions, $working_args );
+	/**
+	 * Provides an opportunity to filter the subscriptions returned by wcs_get_subscriptions().
+	 *
+	 * Note that the function guarantees it will return an array of WC_Subscription objects, keyed by subscription ID.
+	 * For that reason, any non-WC_Subscription objects that are inserted via this hook will be removed.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @param WC_Subscriptions[] $subscriptions The subscriptions to be returned by wcs_get_subscriptions().
+	 * @param array              $working_args  The original wcs_get_subscription() $args parameter.
+	 */
+	$filtered_subscriptions = apply_filters( 'woocommerce_got_subscriptions', $subscriptions, $working_args );
+	$subscriptions          = array();
+
+	foreach ( $filtered_subscriptions as $subscription ) {
+		if ( is_a( $subscription, WC_Subscription::class ) ) {
+			$subscriptions[ $subscription->get_id() ] = $subscription;
+		}
+	}
+
+	return $subscriptions;
 }
 
 /**

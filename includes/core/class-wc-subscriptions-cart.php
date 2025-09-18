@@ -1159,19 +1159,20 @@ class WC_Subscriptions_Cart {
 	 */
 	public static function cart_contains_other_subscription_products( $product_id ) {
 
-		$cart_contains_other_subscription_products = false;
+		if ( empty( WC()->cart->cart_contents ) || ! WC_Subscriptions_Product::is_subscription( $product_id ) ) {
+			return false;
+		}
 
-		if ( ! empty( WC()->cart->cart_contents ) && WC_Subscriptions_Product::is_subscription( $product_id ) ) {
-			$is_subscription = WC_Subscriptions_Product::is_subscription( $product_id );
-			foreach ( WC()->cart->cart_contents as $cart_item ) {
-				if ( wcs_get_canonical_product_id( $cart_item ) !== $product_id ) {
-					$cart_contains_other_subscription_products = true;
-					break;
-				}
+		foreach ( WC()->cart->cart_contents as $cart_item ) {
+			$item_product_id = wcs_get_canonical_product_id( $cart_item );
+			$is_subscription = isset( $item_product_id ) ? WC_Subscriptions_Product::is_subscription( $item_product_id ) : false;
+			if ( $item_product_id !== $product_id && $is_subscription ) {
+				return true;
 			}
 		}
 
-		return $cart_contains_other_subscription_products;
+		// Return false because no other subscription product was found in the cart.
+		return false;
 	}
 
 	/**

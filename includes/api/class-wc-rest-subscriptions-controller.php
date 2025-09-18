@@ -36,6 +36,8 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 	 * -- Subscription specific --
 	 * GET /subscriptions/status
 	 * GET /subscriptions/<subscription_id>/orders
+	 * GET /orders/<order_id>/subscriptions
+	 * POST /orders/<order_id>/subscriptions
 	 *
 	 * @since 3.1.0
 	 */
@@ -61,15 +63,25 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
-		register_rest_route( $this->namespace, "/orders/(?P<id>[\d]+)/{$this->rest_base}", array(
+		register_rest_route(
+			$this->namespace,
+			"/orders/(?P<id>[\d]+)/{$this->rest_base}",
 			array(
-				'methods'             => WP_REST_Server::CREATABLE,
-				'callback'            => array( $this, 'create_subscriptions_from_order' ),
-				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'                => $this->get_collection_params(),
-			),
-			'schema' => array( $this, 'get_public_item_schema' ),
-		) );
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_order_subscriptions' ),
+					'permission_callback' => array( $this, 'get_items_permissions_check' ),
+					'args'                => $this->get_collection_params(),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'create_subscriptions_from_order' ),
+					'permission_callback' => array( $this, 'create_item_permissions_check' ),
+					'args'                => $this->get_collection_params(),
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
+			)
+		);
 	}
 
 	/**
@@ -204,6 +216,76 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 		$response->header( 'X-WP-TotalPages', 1 );
 
 		return apply_filters( 'wcs_rest_subscription_orders_response', $response, $request );
+	}
+
+	/**
+	 * Gets the /orders/[id]/subscriptions response.
+	 *
+	 * @since 7.9.0
+	 *
+	 * @param WP_REST_Request            $request  The request object.
+	 * @return WP_Error|WP_REST_Response $response The response or an error if one occurs.
+	 */
+	public function get_order_subscriptions( $request ) {
+		$order_id = absint( $request['id'] );
+
+		if ( empty( $order_id ) ) {
+			return new WP_Error( 'woocommerce_rest_invalid_order_id', __( 'Invalid order ID.', 'woocommerce-subscriptions' ), array( 'status' => 404 ) );
+		}
+
+		$order = wc_get_order( $order_id );
+
+		if ( ! $order ) {
+			return new WP_Error(
+				'woocommerce_rest_invalid_order_id',
+				// translators: %d is the order ID.
+				sprintf( __( 'Failed to load order object with the ID %d.', 'woocommerce-subscriptions' ), $order_id ),
+				array( 'status' => 404 )
+			);
+		}
+
+		// Build arguments for wcs_get_subscriptions_for_order()x
+		$args = array(
+			'order_type' => 'any', // Return all subscriptions for the order.
+		);
+
+		// Set arguments from request.
+		if ( ! empty( $request['orderby'] ) ) {
+			$args['orderby'] = $request['orderby'];
+		}
+
+		if ( ! empty( $request['order'] ) ) {
+			$args['order'] = $request['order'];
+		}
+
+		// Map standard request parameters to wcs_get_subscriptions_for_order() arguments.
+		if ( ! empty( $request['customer'] ) ) {
+			$args['customer_id'] = $request['customer'];
+		}
+
+		if ( ! empty( $request['status'] ) ) {
+			$args['subscription_status'] = $request['status'];
+		}
+
+		$subscriptions = wcs_get_subscriptions_for_order( $order, $args );
+
+		$response_data = array();
+
+		foreach ( $subscriptions as $subscription ) {
+			if ( is_a( $subscription, 'WC_Subscription' ) && ! wc_rest_check_post_permissions( 'shop_subscription', 'read', $subscription->get_id() ) ) {
+				continue;
+			}
+
+			$response        = $this->prepare_object_for_response( $subscription, $request );
+			$response_data[] = $this->prepare_response_for_collection( $response );
+		}
+
+		$response = rest_ensure_response( $response_data );
+		// Pagination is not fully supported, so we manually set the total.
+		$response->header( 'X-WP-Total', count( $response_data ) );
+		$response->header( 'X-WP-TotalPages', 1 );
+
+		return $response;
 	}
 
 	/**

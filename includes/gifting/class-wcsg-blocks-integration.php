@@ -20,18 +20,16 @@ class WCSG_Blocks_Integration implements IntegrationInterface {
 	}
 
 	public function initialize() {
-		$script_path = 'build/gifting-blocks-checkout.js';
-		$style_path  = 'build/gifting-blocks-checkout.css';
+		$script_path = 'build/wcsg-blocks-integration.js';
 
 		$script_url = \WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( $script_path );
-		$style_url  = \WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( $style_path );
 
-		$script_asset_path = \WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'build/gifting-blocks-checkout.asset.php' );
+		$script_asset_path = \WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'build/wcsg-blocks-integration.asset.php' );
 		$script_asset      = file_exists( $script_asset_path )
 			? require $script_asset_path
 			: array(
 				'dependencies' => array(),
-				'version'      => $this->get_file_version( $script_asset_path ),
+				'version'      => WCS_Blocks_Integration::get_file_version( $script_asset_path ),
 			);
 
 		wp_register_script(
@@ -41,16 +39,6 @@ class WCSG_Blocks_Integration implements IntegrationInterface {
 			$script_asset['version'],
 			true
 		);
-
-		wp_register_style(
-			'wcsg-blocks-integration',
-			$style_url,
-			array(),
-			$this->get_file_version( $style_path )
-		);
-
-		wp_enqueue_script( 'wcsg-blocks-integration' );
-		wp_enqueue_style( 'wcsg-blocks-integration' );
 	}
 
 	/**
@@ -91,18 +79,5 @@ class WCSG_Blocks_Integration implements IntegrationInterface {
 		return array(
 			'gifting_checkbox_text' => $gifting_checkbox_text,
 		);
-	}
-
-	/**
-	 * Get the file modified time as a cache buster if we're in dev mode.
-	 *
-	 * @param string $file Local path to the file.
-	 * @return string The cache buster value to use for the given file.
-	 */
-	protected function get_file_version( $file ) {
-		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG && file_exists( $file ) ) {
-			return filemtime( $file );
-		}
-		return \WC_Subscriptions_Core_Plugin::instance()->get_library_version();
 	}
 }

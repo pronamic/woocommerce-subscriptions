@@ -485,7 +485,7 @@ class WC_Subscriptions_Order {
 	 * @param string       $new_order_status The new order status.
 	 */
 	public static function maybe_record_subscription_payment( $order_id, $old_order_status, $new_order_status ) {
-
+		// ! This hook will only perform actions on parent order status changes.
 		if ( ! wcs_order_contains_subscription( $order_id, 'parent' ) ) {
 			return;
 		}
@@ -578,10 +578,6 @@ class WC_Subscriptions_Order {
 				$subscription->payment_complete_for_order( $order );
 				$was_activated = true;
 
-			} elseif ( 'failed' === $new_order_status ) {
-				// When parent order fails, we want to keep the subscription status as pending unless it had another status before.
-				$new_status = $subscription->has_status( 'pending' ) && $subscription->get_parent_id() === $order->get_id() ? 'pending' : 'on-hold';
-				$subscription->payment_failed( $new_status );
 			}
 		}
 

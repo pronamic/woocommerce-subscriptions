@@ -34,11 +34,13 @@ class WC_Subscriptions_Frontend_Scripts {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.3
 	 */
 	public static function enqueue_scripts() {
+		global $post;
+
 		$dependencies = array( 'jquery' );
 
 		if ( is_cart() || is_checkout() ) {
 			wp_enqueue_script( 'wcs-cart', self::get_file_url( 'assets/js/frontend/wcs-cart.js' ), $dependencies, WC_Subscriptions_Core_Plugin::instance()->get_library_version(), true );
-		} elseif ( is_product() ) {
+		} elseif ( is_product() && WC_Subscriptions_Product::is_subscription( $post->ID ) ) {
 			wp_enqueue_script( 'wcs-single-product', self::get_file_url( 'assets/js/frontend/single-product.js' ), $dependencies, WC_Subscriptions_Core_Plugin::instance()->get_library_version(), true );
 		} elseif ( wcs_is_view_subscription_page() ) {
 			$subscription = wcs_get_subscription( absint( get_query_var( 'view-subscription' ) ) );
@@ -66,6 +68,7 @@ class WC_Subscriptions_Frontend_Scripts {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.3
 	 */
 	public static function enqueue_styles( $styles ) {
+		global $post;
 
 		if ( is_checkout() || is_cart() ) {
 			$styles['wcs-checkout'] = array(
@@ -82,6 +85,35 @@ class WC_Subscriptions_Frontend_Scripts {
 				'media'   => 'all',
 			);
 		}
+
+		if (
+			wp_is_block_theme() ||
+			(
+				! empty( $post ) &&
+				(
+					WC_Blocks_Utils::has_block_in_page( $post->ID, 'woocommerce/cart' ) ||
+					WC_Blocks_Utils::has_block_in_page( $post->ID, 'woocommerce/mini-cart' ) ||
+					WC_Blocks_Utils::has_block_in_page( $post->ID, 'woocommerce/checkout' )
+				)
+			)
+		) {
+			$styles['wcs-blocks-integration'] = array(
+				'src'     => \WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'build/index.css' ),
+				'deps'    => 'wc-checkout',
+				'version' => WCS_Blocks_Integration::get_file_version( \WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'build/index.css' ) ),
+				'media'   => 'all',
+			);
+
+			if ( WCSG_Admin::is_gifting_enabled() ) {
+				$styles['wcsg-blocks-integration'] = array(
+					'src'     => \WC_Subscriptions_Core_Plugin::instance()->get_subscriptions_core_directory_url( 'build/wcsg-blocks-integration.css' ),
+					'deps'    => 'wc-checkout',
+					'version' => WCS_Blocks_Integration::get_file_version( \WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'build/wcsg-blocks-integration.css' ) ),
+					'media'   => 'all',
+				);
+			}
+		}
+
 		return $styles;
 	}
 }
