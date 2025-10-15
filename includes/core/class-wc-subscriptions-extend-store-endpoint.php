@@ -60,6 +60,8 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 		// @phpstan-ignore class.notFound
 		self::$currency_formatter = function_exists( 'woocommerce_store_api_get_formatter' ) ? woocommerce_store_api_get_formatter( 'currency' ) : Package::container()->get( ExtendRestApi::class )->get_formatter( 'currency' );
 		self::extend_store();
+
+		add_action( 'woocommerce_store_api_cart_select_shipping_rate', [ __CLASS__, 'initial_shipment_select_shipping_rate' ], 10, 2 );
 	}
 
 	/**
@@ -331,6 +333,7 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 		}
 
 		$future_subscriptions = array();
+		$standard_packages    = WC()->shipping->get_packages();
 
 		if ( ! empty( wc()->cart->recurring_carts ) ) {
 			foreach ( wc()->cart->recurring_carts as $cart_key => $cart ) {
@@ -359,12 +362,59 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 							'tax_lines'          => self::get_tax_lines( $cart ),
 						)
 					),
-					'shipping_rates'      => array_values( array_map( array( self::$schema->get( 'cart-shipping-rate' ), 'get_item_response' ), $shipping_packages ) ),
+					'shipping_rates'      => array_values(
+						array_map(
+							function ( $package ) use ( $cart, $cart_key, $standard_packages ) {
+								$shipping_package = self::$schema->get( 'cart-shipping-rate' )->get_item_response( $package );
+								$shipping_package['match_initial_rates'] = WC_Subscriptions_Cart::package_rates_match_initial_rates( $standard_packages, $package, $cart_key, $cart );
+								$shipping_package['needs_shipping'] = WC_Subscriptions_Cart::cart_contains_subscriptions_needing_shipping( $cart );
+
+								return $shipping_package;
+							},
+							$shipping_packages
+						)
+					),
 				);
 			}
 		}
 
 		return $future_subscriptions;
+	}
+
+	/**
+	 * Select the initial shipment shipping rate.
+	 *
+	 * @param string $package_id Package ID.
+	 * @param string $rate_id Rate ID.
+	 */
+	public static function initial_shipment_select_shipping_rate( $package_id, $rate_id ) {
+		WC()->cart->calculate_totals();
+
+		$standard_packages = WC()->shipping->get_packages();
+
+		if ( ! is_numeric( $package_id ) || key( $standard_packages ) !== (int) $package_id ) {
+			return;
+		}
+
+		foreach ( WC()->cart->recurring_carts as $recurring_cart_key => $recurring_cart ) {
+			if ( false === $recurring_cart->needs_shipping() || 0 === $recurring_cart->next_payment_date ) {
+				continue;
+			}
+
+			WC_Subscriptions_Cart::set_calculation_type( 'recurring_total' );
+			WC_Subscriptions_Cart::set_recurring_cart_key( $recurring_cart_key );
+			WC_Subscriptions_Cart::set_cached_recurring_cart( $recurring_cart );
+
+			foreach ( $recurring_cart->get_shipping_packages() as $recurring_cart_package_key => $recurring_cart_package ) {
+				if ( WC_Subscriptions_Cart::package_rates_match_initial_rates( $standard_packages, $recurring_cart_package, $recurring_cart_key, $recurring_cart ) ) {
+					$session_data = wc()->session->get( 'chosen_shipping_methods' ) ? wc()->session->get( 'chosen_shipping_methods' ) : [];
+
+					$session_data[ $recurring_cart_package_key ] = $rate_id;
+
+					wc()->session->set( 'chosen_shipping_methods', $session_data );
+				}
+			}
+		}
 	}
 
 	/**

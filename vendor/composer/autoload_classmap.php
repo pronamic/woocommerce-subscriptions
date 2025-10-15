@@ -6,11 +6,13 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Automattic\\Jetpack\\Autoloader\\AutoloadFileWriter' => $vendorDir . '/automattic/jetpack-autoloader/src/AutoloadFileWriter.php',
-    'Automattic\\Jetpack\\Autoloader\\AutoloadGenerator' => $vendorDir . '/automattic/jetpack-autoloader/src/AutoloadGenerator.php',
-    'Automattic\\Jetpack\\Autoloader\\AutoloadProcessor' => $vendorDir . '/automattic/jetpack-autoloader/src/AutoloadProcessor.php',
-    'Automattic\\Jetpack\\Autoloader\\CustomAutoloaderPlugin' => $vendorDir . '/automattic/jetpack-autoloader/src/CustomAutoloaderPlugin.php',
-    'Automattic\\Jetpack\\Autoloader\\ManifestGenerator' => $vendorDir . '/automattic/jetpack-autoloader/src/ManifestGenerator.php',
+    'Automattic\\Jetpack\\Constants' => $vendorDir . '/automattic/jetpack-constants/src/class-constants.php',
+    'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Collector' => $baseDir . '/src/Internal/Telemetry/Collector.php',
+    'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Events' => $baseDir . '/src/Internal/Telemetry/Events.php',
+    'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Orders' => $baseDir . '/src/Internal/Telemetry/Orders.php',
+    'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Products' => $baseDir . '/src/Internal/Telemetry/Products.php',
+    'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Subscriptions' => $baseDir . '/src/Internal/Telemetry/Subscriptions.php',
+    'Automattic\\WooCommerce_Subscriptions\\Internal\\Utilities\\Scheduled_Actions' => $baseDir . '/src/Internal/Utilities/Scheduled_Actions.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'Composer\\Installers\\AglInstaller' => $vendorDir . '/composer/installers/src/Composer/Installers/AglInstaller.php',
     'Composer\\Installers\\AkauntingInstaller' => $vendorDir . '/composer/installers/src/Composer/Installers/AkauntingInstaller.php',

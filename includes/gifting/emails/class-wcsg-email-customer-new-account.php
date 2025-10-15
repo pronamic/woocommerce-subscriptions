@@ -100,6 +100,11 @@ class WCSG_Email_Customer_New_Account extends WC_Email {
 	 * Returns content for the HTML version of the e-mail.
 	 */
 	public function get_content_html() {
+		// Handle the email preview.
+		if ( empty( $this->subscription_owner ) ) {
+			$this->set_preview_data();
+		}
+
 		ob_start();
 		wc_get_template(
 			$this->template_html,
@@ -125,6 +130,11 @@ class WCSG_Email_Customer_New_Account extends WC_Email {
 	 * Returns content for the plain text version of the e-mail.
 	 */
 	public function get_content_plain() {
+		// Handle the email preview.
+		if ( empty( $this->subscription_owner ) ) {
+			$this->set_preview_data();
+		}
+
 		ob_start();
 		wc_get_template(
 			$this->template_plain,
@@ -144,5 +154,12 @@ class WCSG_Email_Customer_New_Account extends WC_Email {
 			$this->template_base
 		);
 		return ob_get_clean();
+	}
+
+	/**
+	 * Set WooCommerce email preview data.
+	 */
+	public function set_preview_data() {
+		$this->subscription_owner = $this->object->get_billing_first_name() . ' ' . $this->object->get_billing_last_name();
 	}
 }

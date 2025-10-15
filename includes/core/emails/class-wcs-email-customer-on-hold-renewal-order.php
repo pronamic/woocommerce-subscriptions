@@ -10,7 +10,6 @@ defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
  * @version 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.0
  * @package WooCommerce_Subscriptions/Includes/Emails
  * @author  WooCommerce.
- * @extends WC_Email_Customer_On_Hold_Order
  */
 class WCS_Email_Customer_On_Hold_Renewal_Order extends WC_Email_Customer_On_Hold_Order {
 

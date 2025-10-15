@@ -1,7 +1,26 @@
 *** WooCommerce Subscriptions Changelog ***
 
-2025-09-16 - version 7.9.0
+2025-10-15 - version 8.0.0
+* Add: Blocks Checkout now displays a single shipping method selection for both initial and recurring carts, similar to Classic Checkout. This can be disabled using the `wcs_cart_totals_shipping_html_price_only` filter.
+* Update: Exclude orders with a "processing" status from the "subscription_orders" telemetry data.
+* Fix: Reactivating limited subscriptions from product page is now supported.
+* Fix: Gifting email previews.
+* Fix: Shipping label on blocks checkout no more shows up as "Free" when there's no shipping method available.
+* Dev: Opt-in tracking data. Data sent to WooCommerce:
+    * WooCommerce Subscriptions setting values
+    * Order totals of subscription-related orders by order type and payment gateway, aggregated by month
+    * Number of subscription-related orders by order type and payment gateway, aggregated by month
+    * Number of products in parent subscription orders, aggregated by month
+    * Number of non-zero value parent subscription orders, aggregated by month
+    * Number of subscription products by billing interval
+    * Number of giftable subscription products
+    * Number of subscriptions by payment method, billing period, and renewal type
+    * Number of gifted subscriptions
+    * Number of subscribers
+    * Purchase event for subscription products
+    * To disable this tracking, opt-out of WooCommerce tracking, see https://woocommerce.com/usage-tracking/
 
+2025-09-16 - version 7.9.0
 * Add: REST API endpoint to retrieve subscriptions associated with a specific order ID.
 * Fix: Keep subscription with successful renewals active when parent order fails.
 * Fix: Error when renewing subscriptions with downloadable gifts.

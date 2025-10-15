@@ -121,7 +121,6 @@ class WCS_Failed_Scheduled_Action_Manager {
 		// Log any exceptions caught by the exception listener in action logs.
 		if ( ! empty( $context['exceptions'] ) ) {
 			foreach ( $context['exceptions'] as $exception_message ) {
-				// @phpstan-ignore-next-line
 				ActionScheduler_Logger::instance()->log( $action_id, $exception_message );
 			}
 		}

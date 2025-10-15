@@ -500,3 +500,32 @@ function wcs_get_subscription_grouping_key( $product, $renewal_time = 0 ) {
 
 	return apply_filters( 'wcs_subscription_product_grouping_key', $key, $product, $renewal_time );
 }
+
+/**
+ * Get the reactivate link for a subscription product if the user already has a
+ * pending cancellation subscription.
+ *
+ * @param int $user_id The user ID
+ * @param WC_Product $product The product
+ * @return string The reactivate link
+ */
+function wcs_get_user_reactivate_link_for_product( int $user_id, WC_Product $product ): string {
+	$reactivate_link = '';
+
+	$user_subscriptions = wcs_get_subscriptions(
+		[
+			'customer_id' => $user_id,
+			'product_id'  => $product->get_id(),
+			'status'      => 'pending-cancel',
+		]
+	);
+
+	foreach ( $user_subscriptions as $subscription ) {
+		if ( $subscription->can_be_updated_to( 'active' ) && ! $subscription->needs_payment() ) {
+			$reactivate_link = wcs_get_users_change_status_link( $subscription->get_id(), 'active', $subscription->get_status() );
+			break;
+		}
+	}
+
+	return $reactivate_link;
+}

@@ -336,7 +336,6 @@ function wcs_estimate_periods_between( $start_timestamp, $end_timestamp, $unit_o
 				break;
 		}
 
-		// @phpstan-ignore-next-line
 		$periods_until = ( 'ceil' == $rounding_method ) ? ceil( $seconds_until_timestamp / $denominator ) : floor( $seconds_until_timestamp / $denominator );
 	}
 

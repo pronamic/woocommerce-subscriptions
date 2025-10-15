@@ -36,6 +36,13 @@ class WCSG_Email_Recipient_New_Initial_Order extends WC_Email {
 	public $wcsg_sending_recipient_email;
 
 	/**
+	 * Recipient user.
+	 *
+	 * @var WP_User
+	 */
+	public $recipient_user;
+
+	/**
 	 * Create an instance of the class.
 	 */
 	public function __construct() {
@@ -65,8 +72,8 @@ class WCSG_Email_Recipient_New_Initial_Order extends WC_Email {
 	public function trigger( $recipient_user, $recipient_subscriptions ) {
 
 		if ( $recipient_user ) {
-			$this->object             = get_user_by( 'id', $recipient_user );
-			$this->recipient          = stripslashes( $this->object->user_email );
+			$this->recipient_user     = get_user_by( 'id', $recipient_user );
+			$this->recipient          = stripslashes( $this->recipient_user->user_email );
 			$subscription             = wcs_get_subscription( $recipient_subscriptions[0] );
 			$this->subscription_owner = WCS_Gifting::get_user_display_name( $subscription->get_user_id() );
 			$this->subscriptions      = $recipient_subscriptions;
@@ -86,13 +93,18 @@ class WCSG_Email_Recipient_New_Initial_Order extends WC_Email {
 	 * Returns the content for the HTML version of the e-mail.
 	 */
 	public function get_content_html() {
+		// Handle the email preview.
+		if ( empty( $this->subscription_owner ) ) {
+			$this->set_preview_data();
+		}
+
 		ob_start();
 		wc_get_template(
 			$this->template_html,
 			array(
 				'email_heading'          => $this->get_heading(),
 				'blogname'               => $this->get_blogname(),
-				'recipient_user'         => $this->object,
+				'recipient_user'         => $this->recipient_user,
 				'subscription_purchaser' => $this->subscription_owner,
 				'subscriptions'          => $this->subscriptions,
 				'sent_to_admin'          => false,
@@ -110,6 +122,11 @@ class WCSG_Email_Recipient_New_Initial_Order extends WC_Email {
 	 * Returns the content for the plain text version of the e-mail.
 	 */
 	public function get_content_plain() {
+		// Handle the email preview.
+		if ( empty( $this->subscription_owner ) ) {
+			$this->set_preview_data();
+		}
+
 		ob_start();
 		wc_get_template(
 			$this->template_plain,
@@ -127,7 +144,14 @@ class WCSG_Email_Recipient_New_Initial_Order extends WC_Email {
 			'',
 			$this->template_base
 		);
-		return ob_get_clean();
 
+		return ob_get_clean();
+	}
+
+	/**
+	 * Set WooCommerce email preview data.
+	 */
+	public function set_preview_data() {
+		$this->subscription_owner = WCS_Gifting::get_user_display_name( $this->subscriptions[0]->get_user_id() );
 	}
 }

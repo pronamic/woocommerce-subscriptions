@@ -54,6 +54,7 @@ class WCSG_Email {
 	 */
 	public static function init() {
 		add_filter( 'woocommerce_email_classes', __CLASS__ . '::add_new_recipient_customer_email', 11, 1 );
+		add_filter( 'wcs_email_classes', __CLASS__ . '::add_new_recipient_customer_email', 11, 1 );
 		add_action( 'woocommerce_init', __CLASS__ . '::hook_email' );
 		add_action( 'wcs_gifting_email_order_details', array( __CLASS__, 'order_details' ), 10, 4 );
 		add_action( 'woocommerce_subscriptions_gifting_recipient_email_details', array( __CLASS__, 'get_related_subscriptions_table' ), 10, 3 );
@@ -66,12 +67,6 @@ class WCSG_Email {
 	 * @param WC_Email[] $email_classes E-mail classes.
 	 */
 	public static function add_new_recipient_customer_email( $email_classes ) {
-
-		require_once 'emails/class-wcsg-email-customer-new-account.php';
-		require_once 'emails/class-wcsg-email-completed-renewal-order.php';
-		require_once 'emails/class-wcsg-email-processing-renewal-order.php';
-		require_once 'emails/class-wcsg-email-recipient-new-initial-order.php';
-
 		$email_classes['WCSG_Email_Customer_New_Account']        = new WCSG_Email_Customer_New_Account();
 		$email_classes['WCSG_Email_Completed_Renewal_Order']     = new WCSG_Email_Completed_Renewal_Order();
 		$email_classes['WCSG_Email_Processing_Renewal_Order']    = new WCSG_Email_Processing_Renewal_Order();

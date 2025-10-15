@@ -1088,21 +1088,11 @@ class WC_Subscriptions_Cart {
 			self::set_cached_recurring_cart( $recurring_cart );
 
 			foreach ( $recurring_cart->get_shipping_packages() as $recurring_cart_package_key => $recurring_cart_package ) {
-				$package_index = isset( $recurring_cart_package['package_index'] ) ? $recurring_cart_package['package_index'] : 0;
-				$package       = WC()->shipping->calculate_shipping_for_package( $recurring_cart_package );
-
-				$package_rates_match = false;
-				if ( isset( $standard_packages[ $package_index ] ) ) {
-					// phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
-					$package_rates_match = apply_filters( 'wcs_recurring_shipping_package_rates_match_standard_rates', $package['rates'] == $standard_packages[ $package_index ]['rates'], $package['rates'], $standard_packages[ $package_index ]['rates'], $recurring_cart_key );
+				if ( self::package_rates_match_initial_rates( $standard_packages, $recurring_cart_package, $recurring_cart_key, $recurring_cart ) ) {
+					continue;
 				}
 
-				if ( $package_rates_match ) {
-					// The recurring package rates match the initial package rates, there won't be a selected shipping method for this recurring cart package move on to the next package.
-					if ( apply_filters( 'wcs_cart_totals_shipping_html_price_only', true, $package, $recurring_cart ) ) {
-						continue;
-					}
-				}
+				$package = WC()->shipping->calculate_shipping_for_package( $recurring_cart_package );
 
 				// If the chosen shipping method is not available for this recurring cart package, display an error and unset the selected method.
 				if ( ! isset( $package['rates'][ $shipping_methods[ $recurring_cart_package_key ] ] ) ) {
@@ -1125,6 +1115,47 @@ class WC_Subscriptions_Cart {
 		self::set_calculation_type( $calculation_type );
 		self::set_recurring_cart_key( $recurring_cart_key_flag );
 		self::set_cached_recurring_cart( $cached_recurring_cart );
+	}
+
+	/**
+	 * Checks if the recurring package rates match the initial package rates.
+	 *
+	 * @param array $standard_packages The standard packages.
+	 * @param array $recurring_cart_package The recurring cart package.
+	 * @param string $recurring_cart_key The recurring cart key.
+	 * @param object $recurring_cart The recurring cart.
+	 * @return bool Whether the recurring package rates match the initial package rates.
+	 */
+	public static function package_rates_match_initial_rates( $standard_packages, $recurring_cart_package, $recurring_cart_key, $recurring_cart ) {
+		$package_index = isset( $recurring_cart_package['package_index'] ) ? $recurring_cart_package['package_index'] : 0;
+		$package       = WC()->shipping->calculate_shipping_for_package( $recurring_cart_package );
+
+		$package_rates_match = false;
+		if ( isset( $standard_packages[ $package_index ] ) ) {
+			// Ignore item names during the comparison.
+			$package_rates = array_map(
+				[ __CLASS__, 'remove_item_names_from_rate' ],
+				$package['rates']
+			);
+			$initial_rates = array_map(
+				[ __CLASS__, 'remove_item_names_from_rate' ],
+				$standard_packages[ $package_index ]['rates']
+			);
+
+			// phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- Order of array values is not important.
+			$package_rates_match = apply_filters( 'wcs_recurring_shipping_package_rates_match_standard_rates', $package_rates == $initial_rates, $package['rates'], $standard_packages[ $package_index ]['rates'], $recurring_cart_key );
+		}
+
+		if ( $package_rates_match ) {
+			/**
+			 * The recurring package rates match the initial package rates, there won't be a selected shipping method for this recurring cart package move on to the next package.
+			 *
+			 * phpcs:disable WooCommerce.Commenting.CommentHooks.MissingSinceComment
+			 */
+			return apply_filters( 'wcs_cart_totals_shipping_html_price_only', true, $package, $recurring_cart );
+		}
+
+		return false;
 	}
 
 	/**
@@ -2538,5 +2569,18 @@ class WC_Subscriptions_Cart {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Remove the item names from the shipping rate
+	 * to check if the rates match.
+	 *
+	 * @param WC_Shipping_Rate $rate The rate.
+	 * @return WC_Shipping_Rate The rate.
+	 */
+	private static function remove_item_names_from_rate( $rate ) {
+		$rate->add_meta_data( 'Items', null );
+
+		return $rate;
 	}
 }

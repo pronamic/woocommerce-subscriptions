@@ -15,7 +15,7 @@ foreach ( $recurring_carts as $recurring_cart_key => $recurring_cart ) {
 	 * Allow third-parties to filter the tax displayed.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.1.0
-	 * @param string The recurring cart's total tax price string.
+	 * @param string  $tax_amount     The recurring cart's total tax price string.
 	 * @param WC_Cart $recurring_cart The recurring cart.
 	 */
 	$tax_amount = wp_kses_post( apply_filters( 'wcs_recurring_cart_tax_totals_html', wcs_cart_price_string( $recurring_cart->get_taxes_total(), $recurring_cart ), $recurring_cart ) );

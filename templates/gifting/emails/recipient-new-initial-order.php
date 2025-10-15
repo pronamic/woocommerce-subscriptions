@@ -25,7 +25,8 @@ printf( esc_html__( ' Details of the %s are shown below.', 'woocommerce-subscrip
 </p>
 <?php
 
-$new_recipient = get_user_meta( $recipient_user->ID, 'wcsg_update_account', true );
+// Handle the email preview.
+$new_recipient = empty( $recipient_user ) ? 'true' : get_user_meta( $recipient_user->ID, 'wcsg_update_account', true );
 
 if ( 'true' == $new_recipient ) : // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 	?>
@@ -49,8 +50,10 @@ if ( 'true' == $new_recipient ) : // phpcs:ignore WordPress.PHP.StrictComparison
 	<?php
 	endif;
 
-foreach ( $subscriptions as $subscription_id ) {
-	$subscription = wcs_get_subscription( $subscription_id );
+foreach ( $subscriptions as $subscription ) {
+	if ( ! is_object( $subscription ) ) {
+		$subscription = wcs_get_subscription( $subscription );
+	}
 
 	do_action( 'wcs_gifting_email_order_details', $subscription, $sent_to_admin, $plain_text, $email );
 

@@ -11,7 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.0
  * @package WooCommerce/Classes/Emails
  * @author Prospress
- * @extends WC_Email
  */
 class WCS_Email_Processing_Renewal_Order extends WC_Email_Customer_Processing_Order {
 

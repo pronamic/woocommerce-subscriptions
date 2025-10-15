@@ -1868,7 +1868,6 @@ class WCS_Admin_Post_Types {
 	 * @return string[] $pieces Updated associative array of clauses for the query.
 	 */
 	private function orders_table_clauses_low_performance( $pieces ) {
-		// @phpstan-ignore-next-line
 		$order_datastore = wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableDataStore::class );
 		$order_table     = $order_datastore::get_orders_table_name();
 		$meta_table      = $order_datastore::get_meta_table_name();
@@ -1899,7 +1898,6 @@ class WCS_Admin_Post_Types {
 	private function orders_table_clauses_high_performance( $pieces ) {
 		global $wpdb;
 
-		// @phpstan-ignore-next-line
 		$order_datastore = wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableDataStore::class );
 		$order_table     = $order_datastore::get_orders_table_name();
 		$meta_table      = $order_datastore::get_meta_table_name();

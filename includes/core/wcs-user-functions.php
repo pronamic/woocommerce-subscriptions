@@ -359,7 +359,7 @@ function wcs_user_has_capability( $allcaps, $caps, $args ) {
 				$user_id  = $args[1];
 				$subscription = wcs_get_subscription( $args[2] );
 
-				if ( $user_id === $subscription->get_user_id() ) {
+				if ( $subscription && $user_id === $subscription->get_user_id() ) {
 					$allcaps['edit_shop_subscription_status'] = true;
 				}
 			break;
@@ -367,7 +367,7 @@ function wcs_user_has_capability( $allcaps, $caps, $args ) {
 				$user_id  = $args[1];
 				$subscription = wcs_get_subscription( $args[2] );
 
-				if ( $user_id === $subscription->get_user_id() ) {
+				if ( $subscription && $user_id === $subscription->get_user_id() ) {
 					$allcaps['edit_shop_subscription_line_items'] = true;
 				}
 			break;
@@ -375,7 +375,7 @@ function wcs_user_has_capability( $allcaps, $caps, $args ) {
 				$user_id  = $args[1];
 				$subscription = wcs_get_subscription( $args[2] );
 
-				if ( $user_id === $subscription->get_user_id() ) {
+				if ( $subscription && $user_id === $subscription->get_user_id() ) {
 					$allcaps['switch_shop_subscription'] = true;
 				}
 			break;
@@ -383,7 +383,7 @@ function wcs_user_has_capability( $allcaps, $caps, $args ) {
 				$user_id  = $args[1];
 				$subscription = wcs_get_subscription( $args[2] );
 
-				if ( $user_id === $subscription->get_user_id() ) {
+				if ( $subscription && $user_id === $subscription->get_user_id() ) {
 					$allcaps['subscribe_again'] = true;
 				}
 			break;

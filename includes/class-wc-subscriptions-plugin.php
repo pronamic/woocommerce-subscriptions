@@ -8,6 +8,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Automattic\WooCommerce_Subscriptions\Internal\Telemetry\Events as WC_Tracks_Events;
+
 /**
  * @method static WC_Subscriptions_Plugin instance()
  */
@@ -32,6 +34,9 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 		WCS_Call_To_Action_Button_Text_Manager::init();
 		WCS_Subscriber_Role_Manager::init();
 		WCS_Upgrade_Notice_Manager::init();
+
+		$tracks_events = new WC_Tracks_Events();
+		$tracks_events->setup();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			new WC_Subscriptions_CLI();

@@ -11,7 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @version 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
  * @package WooCommerce_Subscriptions/Includes/Emails
  * @author Prospress
- * @extends WC_Email_Customer_Invoice
  */
 class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 

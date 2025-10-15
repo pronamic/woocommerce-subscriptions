@@ -138,9 +138,7 @@ class WCS_Webhooks {
 						throw new \Exception( 'The Legacy REST API plugin is not installed on this site. More information: https://developer.woocommerce.com/2023/10/03/the-legacy-rest-api-will-move-to-a-dedicated-extension-in-woocommerce-9-0/ ' );
 					}
 
-					// @phpstan-ignore-next-line
 					WC()->api->WC_API_Subscriptions->register_routes( array() );
-					// @phpstan-ignore-next-line
 					$payload = WC()->api->WC_API_Subscriptions->get_subscription( $resource_id );
 					break;
 				case 'wp_api_v1':

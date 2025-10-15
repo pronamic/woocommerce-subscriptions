@@ -11,7 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @class WCS_Email_Customer_Notification_Manual_Renewal
  * @version 1.0.0
  * @package WooCommerce_Subscriptions/Classes/Emails
- * @extends WC_Email
  */
 class WCS_Email_Customer_Notification_Manual_Renewal extends WCS_Email_Customer_Notification {
 

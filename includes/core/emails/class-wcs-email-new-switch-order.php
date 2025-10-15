@@ -9,7 +9,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @class WCS_Email_New_Switch_Order
  * @version 1.0.0 - Migrated from WooCommerce Subscriptions v1.5
- * @extends WC_Email_New_Order
  */
 class WCS_Email_New_Switch_Order extends WC_Email_New_Order {
 

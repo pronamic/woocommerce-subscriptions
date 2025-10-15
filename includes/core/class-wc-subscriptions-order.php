@@ -2478,7 +2478,6 @@ f	 *
 
 		if ( isset( $order->$meta_key ) ) { // WC 2.1+ magic __isset() & __get() methods
 			$meta_value = $order->$meta_key;
-			// @phpstan-ignore-next-line
 		} elseif ( is_array( $order->order_custom_fields ) && isset( $order->order_custom_fields[ '_' . $meta_key ][0] ) && $order->order_custom_fields[ '_' . $meta_key ][0] ) {  // < WC 2.1+
 			$meta_value = maybe_unserialize( $order->order_custom_fields[ '_' . $meta_key ][0] );
 		} else {

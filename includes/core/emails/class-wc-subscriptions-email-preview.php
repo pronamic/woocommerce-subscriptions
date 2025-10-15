@@ -49,6 +49,10 @@ class WC_Subscriptions_Email_Preview {
 			case 'WCS_Email_Customer_Notification_Auto_Renewal':
 				$email->set_object( $this->get_dummy_subscription() );
 				break;
+			case 'WCSG_Email_Recipient_New_Initial_Order':
+				$email->set_object( $this->get_dummy_subscription() );
+				$email->subscriptions = [ $this->get_dummy_subscription() ];
+				break;
 			case 'WCS_Email_Customer_Payment_Retry':
 			case 'WCS_Email_Payment_Retry':
 				$email->retry = $this->get_dummy_retry( $email->object );
@@ -191,8 +195,7 @@ class WC_Subscriptions_Email_Preview {
 	 * @return bool Whether the email being previewed is a subscription email.
 	 */
 	private function is_subscription_email() {
-		return isset( WC_Subscriptions_Email::$email_classes[ $this->email_type ] )
-			|| isset( WC_Subscriptions_Email_Notifications::$email_classes[ $this->email_type ] )
+		return isset( apply_filters( 'wcs_email_classes', array_merge( WC_Subscriptions_Email::$email_classes, WC_Subscriptions_Email_Notifications::$email_classes ) )[ $this->email_type ] )
 			|| in_array( $this->email_type, [ 'WCS_Email_Customer_Payment_Retry', 'WCS_Email_Payment_Retry' ], true );
 	}
 

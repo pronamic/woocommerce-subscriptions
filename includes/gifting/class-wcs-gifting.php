@@ -803,31 +803,12 @@ class WCS_Gifting {
 	 * @since 7.8.0 - Originally implemented in WooCommerce Subscriptions Gifting 2.1.0.
 	 */
 	public static function get_gifted_subscriptions_count() {
-		global $wpdb;
-
-		if ( function_exists( 'wcs_is_custom_order_tables_usage_enabled' ) && wcs_is_custom_order_tables_usage_enabled() ) {
-			$count = $wpdb->get_var(
-				"
-				SELECT COUNT(DISTINCT o.id) FROM {$wpdb->prefix}wc_orders o
-				INNER JOIN {$wpdb->prefix}wc_orders_meta om ON (o.id = om.order_id)
-				WHERE o.type = 'shop_subscription'
-				AND o.status NOT IN ( 'auto-draft', 'trash' )
-				AND om.meta_key = '_recipient_user'
-				"
-			);
-		} else {
-			$count = $wpdb->get_var(
-				"
-				SELECT COUNT(DISTINCT p.ID) FROM {$wpdb->posts} p
-				INNER JOIN {$wpdb->postmeta} pm ON (p.ID = pm.post_id)
-				WHERE p.post_type = 'shop_subscription'
-				AND p.post_status NOT IN ( 'auto-draft', 'trash' )
-				AND pm.meta_key = '_recipient_user'
-				"
-			);
+		if ( ! class_exists( \Automattic\WooCommerce_Subscriptions\Internal\Telemetry\Subscriptions::class ) ) {
+			return 0;
 		}
 
-		return absint( $count );
+		$telemetry = new \Automattic\WooCommerce_Subscriptions\Internal\Telemetry\Subscriptions();
+		return $telemetry->get_gifted_subscriptions_count();
 	}
 
 	/**

@@ -11,7 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
  * @package WooCommerce_Subscriptions/Classes/Emails
  * @author Prospress
- * @extends WC_Email
  */
 class WCS_Email_On_Hold_Subscription extends WC_Email {
 

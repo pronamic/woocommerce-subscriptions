@@ -11,7 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @class WCS_Email_Customer_Notification_Free_Trial_Expiry
  * @version 1.0.0
  * @package WooCommerce_Subscriptions/Classes/Emails
- * @extends WC_Email
  */
 class WCS_Email_Customer_Notification_Auto_Trial_Expiration extends WCS_Email_Customer_Notification {
 

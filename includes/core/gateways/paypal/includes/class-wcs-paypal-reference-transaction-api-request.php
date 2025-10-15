@@ -590,7 +590,7 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 		 * Use this to modify the PayPal request parameters prior to validation
 		 *
 		 * @param array                          $parameters
-		 * @param \WC_PayPal_Express_API_Request $this instance
+		 * @param \WC_PayPal_Reference_Transaction_API_Request $instance instance
 		 */
 		$this->parameters = apply_filters( 'wcs_paypal_request_params', $this->parameters, $this );
 

@@ -1,57 +1,4292 @@
 parameters:
-    excludePaths:
-        analyse:
-            - includes/api/legacy/*
-            - includes/core/legacy/*
-            - templates/*
-            - includes/core/upgrades/*
-            - includes/core/emails/*
-            - includes/core/gateways/paypal/*
-            - includes/core/data-stores/*
-            - includes/core/class-wcs-template-loader.php
-    ignoreErrors:
-        - '#Access to an undefined property WooCommerce::\$#'
-        - '#Access to an undefined property WC_Cart::\$#'
-        - '#Access to an undefined property WP_User::\$#'
-        - '#Access to an undefined property WC_Checkout::\$#'
-        - '#Access to an undefined property WC_Shipping_Rate::\$#'
-        - '#Access to an undefined property WC_Subscription_Legacy::\$#'
-        - '#Access to an undefined property WC_Product_Variable_Subscription_Legacy::\$#'
-        - '#Access to an undefined property WC_Product_Subscription_Variation_Legacy::\$#'
-        - '#Access to an undefined property WC_Product_Subscription_Legacy::\$#'
-        - '#Access to an undefined property WCS_PayPal_Reference_Transaction_API::\$#'
-        - '#Access to an undefined property WC_Email::\$#'
-        - '#Access to an undefined property WC_Subscriptions_Deprecation_Handler::\$#'
-        - '#Access to an undefined property WC_Session::\$#'
-        - '#Access to an undefined static property WC_Subscriptions_Deprecation_Handler::\$#'
-        - '#Access to an undefined property WooCommerce::\$payment_gateways#'
-        - '#Call to an undefined method WC_Order_Item::get_product#'
-        - '#Call to an undefined method WC_Order_Item::get_variation_id#'
-        - '#Call to an undefined method WCS_Retry_Store::#'
-        - '#Call to an undefined method WC_Data_Store::#'
-        - '#Call to an undefined method WC_Session::#'
-        - '#Call to an undefined method WC_Order_Data_Store_CPT::delete_all_metadata_by_key#'
-        - '#Call to an undefined method object::get_coupons#'
-        - '#Call to an undefined method object::get_changes#'
-        - '#Call to method .* on an unknown class WC_PayPal_Express_API#'
-        - '#Call to method .* on an unknown class OrdersTableQuery#'
-        - '#Call to method .* on an unknown class ActionScheduler_Action#'
-        - '#Call to static method .* on an unknown class ActionScheduler_.*#'
-        - '#Access to property .* on an unknown class WC_Gateway#'
-        - '#Access to an undefined property object::\$discount_cart#'
-        - '#Access to an undefined property object::\$value#'
-        - '#Variable \$this might not be defined#'
-        - '#Function as_.*_action not found#'
-        - '#Function as_.*_actions not found#'
-        - '#Parameter .* has invalid type WC_Gateway#'
-        - '#Parameter .* has invalid type ActionScheduler_.*#'
-        - '#Class WC_Payments_Subscription_Service not found#'
-        - '#Class .*OrdersTableDataStore not found#'
-        - '#Parameter .* has invalid type OrdersTableQuery.#'
-        - '#Constant WC_VERSION not found#'
-        - '#Method .* has invalid return type ActionScheduler_.*#'
-        - '#Function wc_memberships.* not found#'
-        - '#Parameter .* of method .* has invalid type WC_Memberships_Membership_Plan#'
-        - '#Access to an undefined property WCSG_Email_Completed_Renewal_Order::\$#'
-        - '#Access to an undefined property WC_Subscription::\$recipient_user#'
-        - '#Cannot access property \$order_date on bool.*#'
+	excludePaths:
+		analyse:
+			- includes/api/legacy/*
+			- includes/core/legacy/*
+			- includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+	ignoreErrors:
+		- '#Constant WC_VERSION not found#'
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 2
+			path: includes/admin/reports/class-wcs-report-cache-manager.php
+
+		-
+			message: "#^Function as_schedule_single_action not found\\.$#"
+			count: 2
+			path: includes/admin/reports/class-wcs-report-cache-manager.php
+
+		-
+			message: "#^Function as_unschedule_action not found\\.$#"
+			count: 1
+			path: includes/admin/reports/class-wcs-report-cache-manager.php
+
+		-
+			message: "#^Access to an undefined property WP_User\\:\\:\\$active_subscriptions\\.$#"
+			count: 1
+			path: includes/admin/reports/class-wcs-report-subscription-by-customer.php
+
+		-
+			message: "#^Access to an undefined property WP_User\\:\\:\\$customer_id\\.$#"
+			count: 4
+			path: includes/admin/reports/class-wcs-report-subscription-by-customer.php
+
+		-
+			message: "#^Access to an undefined property WP_User\\:\\:\\$initial_order_count\\.$#"
+			count: 1
+			path: includes/admin/reports/class-wcs-report-subscription-by-customer.php
+
+		-
+			message: "#^Access to an undefined property WP_User\\:\\:\\$initial_order_total\\.$#"
+			count: 1
+			path: includes/admin/reports/class-wcs-report-subscription-by-customer.php
+
+		-
+			message: "#^Access to an undefined property WP_User\\:\\:\\$renewal_switch_count\\.$#"
+			count: 1
+			path: includes/admin/reports/class-wcs-report-subscription-by-customer.php
+
+		-
+			message: "#^Access to an undefined property WP_User\\:\\:\\$renewal_switch_total\\.$#"
+			count: 1
+			path: includes/admin/reports/class-wcs-report-subscription-by-customer.php
+
+		-
+			message: "#^Access to an undefined property WP_User\\:\\:\\$total_subscriptions\\.$#"
+			count: 1
+			path: includes/admin/reports/class-wcs-report-subscription-by-customer.php
+
+		-
+			message: "#^Variable \\$this might not be defined\\.$#"
+			count: 1
+			path: includes/admin/views/html-report-by-period.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 3
+			path: includes/api/class-wc-rest-subscriptions-controller.php
+
+		-
+			message: "#^Access to an undefined property WC_API_Subscriptions_Customers\\:\\:\\$base\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Access to an undefined property WC_API_Subscriptions_Customers\\:\\:\\$server\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Access to constant READABLE on an unknown class WC_API_SERVER\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Access to private property WooCommerce\\:\\:\\$api\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Access to property \\$WC_API_Subscriptions on an unknown class WC_API\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions_Customers\\:\\:validate_request\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Parameter \\$server of method WC_API_Subscriptions_Customers\\:\\:__construct\\(\\) has invalid type WC_API_Server\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^WC_API_Subscriptions_Customers\\:\\:__construct\\(\\) calls parent\\:\\:__construct\\(\\) but WC_API_Subscriptions_Customers does not extend any class\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Access to an undefined property WC_API_Subscriptions\\:\\:\\$post_type\\.$#"
+			count: 7
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to an undefined property WC_API_Subscriptions\\:\\:\\$server\\.$#"
+			count: 5
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant ACCEPT_DATA on an unknown class WC_API_Server\\.$#"
+			count: 4
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant CREATABLE on an unknown class WC_API_Server\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant DELETABLE on an unknown class WC_API_SERVER\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant DELETABLE on an unknown class WC_API_Server\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant EDITABLE on an unknown class WC_API_SERVER\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant EDITABLE on an unknown class WC_API_Server\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant READABLE on an unknown class WC_API_Server\\.$#"
+			count: 7
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to private property WooCommerce\\:\\:\\$api\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to property \\$WC_API_Customers on an unknown class WC_API\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:create_order\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:create_order_note\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:delete\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:delete_order_note\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:edit_order\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:edit_order_note\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:get_order\\(\\)\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:get_order_note\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:get_order_notes\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:get_orders_count\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:is_readable\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:merge_query_args\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:validate_request\\(\\)\\.$#"
+			count: 4
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to method getCode\\(\\) on an unknown class WC_API_Exception\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to method getErrorCode\\(\\) on an unknown class WC_API_Exception\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to method getMessage\\(\\) on an unknown class WC_API_Exception\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Caught class WC_API_Exception not found\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Default value of the parameter \\#4 \\$page \\(int\\) of method WC_API_Subscriptions\\:\\:get_subscriptions\\(\\) is incompatible with type null\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Instantiated class WC_API_Exception not found\\.$#"
+			count: 6
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^PHPDoc tag @param has invalid value \\(array data raw order data\\)\\: Unexpected token \"data\", expected variable at offset 67$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$fields$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$id$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^is_wp_error\\(WC_Subscription\\) will always evaluate to false\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-rest-subscriptions-controller.php
+
+		-
+			message: "#^Call to an undefined static method WC_REST_Orders_Controller\\:\\:create_order\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-rest-subscriptions-controller.php
+
+		-
+			message: "#^Call to an undefined static method WC_REST_Orders_Controller\\:\\:update_order\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-rest-subscriptions-controller.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product_id\\(\\)\\.$#"
+			count: 1
+			path: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_variation_id\\(\\)\\.$#"
+			count: 1
+			path: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 3
+			path: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php
+
+		-
+			message: "#^Call to static method is_true\\(\\) on an unknown class Automattic\\\\Jetpack\\\\Constants\\.$#"
+			count: 1
+			path: includes/class-wcs-api.php
+
+		-
+			message: "#^Access to private property WooCommerce\\:\\:\\$api\\.$#"
+			count: 2
+			path: includes/class-wcs-webhooks.php
+
+		-
+			message: "#^Access to property \\$WC_API_Subscriptions on an unknown class WC_API\\.$#"
+			count: 2
+			path: includes/class-wcs-webhooks.php
+
+		-
+			message: "#^Function as_schedule_single_action not found\\.$#"
+			count: 1
+			path: includes/core/abstracts/abstract-wcs-background-repairer.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 1
+			path: includes/core/abstracts/abstract-wcs-background-updater.php
+
+		-
+			message: "#^Function as_schedule_single_action not found\\.$#"
+			count: 1
+			path: includes/core/abstracts/abstract-wcs-background-updater.php
+
+		-
+			message: "#^Function as_unschedule_action not found\\.$#"
+			count: 1
+			path: includes/core/abstracts/abstract-wcs-background-updater.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
+			count: 1
+			path: includes/core/admin/class-wcs-admin-post-types.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_subscriptions_count_by_status\\(\\)\\.$#"
+			count: 1
+			path: includes/core/admin/class-wcs-admin-post-types.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:untrash_order\\(\\)\\.$#"
+			count: 1
+			path: includes/core/admin/class-wcs-admin-post-types.php
+
+		-
+			message: "#^Class Automattic\\\\WooCommerce\\\\Internal\\\\DataStores\\\\Orders\\\\OrdersTableDataStore not found\\.$#"
+			count: 2
+			path: includes/core/admin/class-wcs-admin-post-types.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 2
+			path: includes/core/admin/class-wcs-admin-system-status.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_subscriptions_count_by_status\\(\\)\\.$#"
+			count: 1
+			path: includes/core/admin/class-wcs-admin-system-status.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$cart_contents_total\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$coupon_discount_amounts\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$dp\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$end_date\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$fee_total\\.$#"
+			count: 3
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$fees\\.$#"
+			count: 2
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$next_payment_date\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_cart_key\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_carts\\.$#"
+			count: 17
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$shipping_tax_total\\.$#"
+			count: 3
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$shipping_taxes\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$shipping_total\\.$#"
+			count: 3
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$start_date\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$tax_display_cart\\.$#"
+			count: 2
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$tax_total\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$total\\.$#"
+			count: 2
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$trial_end_date\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WC_Checkout\\:\\:\\$shipping_methods\\.$#"
+			count: 2
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$shipping\\.$#"
+			count: 9
+			path: includes/core/class-wc-subscriptions-cart.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 2
+			path: includes/core/class-wc-subscriptions-change-payment-gateway.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$end_date\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$next_payment_date\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_cart_key\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_carts\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$shipping_tax_total\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$shipping_taxes\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$shipping_total\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$start_date\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$tax_total\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$taxes\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$total\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$trial_end_date\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$checkout\\.$#"
+			count: 2
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$shipping\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-checkout.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$coupon_discount_amounts\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-coupon.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$dp\\.$#"
+			count: 2
+			path: includes/core/class-wc-subscriptions-coupon.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$subtotal\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-coupon.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$discount_cart\\.$#"
+			count: 6
+			path: includes/core/class-wc-subscriptions-coupon.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-coupon.php
+
+		-
+			message: "#^Function as_unschedule_all_actions not found\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-email-notifications.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_carts\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-extend-store-endpoint.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$shipping\\.$#"
+			count: 2
+			path: includes/core/class-wc-subscriptions-extend-store-endpoint.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
+			count: 5
+			path: includes/core/class-wc-subscriptions-manager.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:untrash_order\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-manager.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 2
+			path: includes/core/class-wc-subscriptions-order.php
+
+		-
+			message: "#^Call to method get\\(\\) on an unknown class OrdersTableQuery\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-order.php
+
+		-
+			message: "#^Call to method get_table_name\\(\\) on an unknown class OrdersTableQuery\\.$#"
+			count: 4
+			path: includes/core/class-wc-subscriptions-order.php
+
+		-
+			message: "#^Cannot access property \\$order_custom_fields on bool\\|WC_Order\\|WC_Order_Refund\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-order.php
+
+		-
+			message: "#^Parameter \\$order_query of method WC_Subscriptions_Order\\:\\:filter_orders_query_by_parent_orders\\(\\) has invalid type OrdersTableQuery\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-order.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-synchroniser.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_subscriptions_count_by_status\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wc-subscriptions-tracker.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 2
+			path: includes/core/class-wcs-action-scheduler-customer-notifications.php
+
+		-
+			message: "#^Function as_schedule_single_action not found\\.$#"
+			count: 1
+			path: includes/core/class-wcs-action-scheduler-customer-notifications.php
+
+		-
+			message: "#^Function as_unschedule_all_actions not found\\.$#"
+			count: 1
+			path: includes/core/class-wcs-action-scheduler-customer-notifications.php
+
+		-
+			message: "#^Call to static method instance\\(\\) on an unknown class ActionScheduler_Versions\\.$#"
+			count: 1
+			path: includes/core/class-wcs-action-scheduler.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 3
+			path: includes/core/class-wcs-action-scheduler.php
+
+		-
+			message: "#^Function as_schedule_single_action not found\\.$#"
+			count: 2
+			path: includes/core/class-wcs-action-scheduler.php
+
+		-
+			message: "#^Function as_unschedule_all_actions not found\\.$#"
+			count: 1
+			path: includes/core/class-wcs-action-scheduler.php
+
+		-
+			message: "#^Function as_has_scheduled_action not found\\.$#"
+			count: 2
+			path: includes/core/class-wcs-batch-processing-controller.php
+
+		-
+			message: "#^Function as_schedule_single_action not found\\.$#"
+			count: 2
+			path: includes/core/class-wcs-batch-processing-controller.php
+
+		-
+			message: "#^Function as_unschedule_all_actions not found\\.$#"
+			count: 3
+			path: includes/core/class-wcs-batch-processing-controller.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
+			count: 3
+			path: includes/core/class-wcs-cached-data-manager.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$cart_contents_count\\.$#"
+			count: 1
+			path: includes/core/class-wcs-cart-renewal.php
+
+		-
+			message: "#^Access to an undefined property WC_Session\\:\\:\\$cart\\.$#"
+			count: 1
+			path: includes/core/class-wcs-cart-renewal.php
+
+		-
+			message: "#^Access to an undefined property WC_Session\\:\\:\\$order_awaiting_payment\\.$#"
+			count: 1
+			path: includes/core/class-wcs-cart-renewal.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-cart-renewal.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product_id\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-cart-renewal.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_variation_id\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-cart-renewal.php
+
+		-
+			message: "#^Call to an undefined method WC_Session\\:\\:destroy_session\\(\\)\\.$#"
+			count: 3
+			path: includes/core/class-wcs-cart-renewal.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 2
+			path: includes/core/class-wcs-change-payment-method-admin.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
+			count: 2
+			path: includes/core/class-wcs-download-handler.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-download-handler.php
+
+		-
+			message: "#^Call to method get_args\\(\\) on an unknown class ActionScheduler_Action\\.$#"
+			count: 2
+			path: includes/core/class-wcs-failed-scheduled-action-manager.php
+
+		-
+			message: "#^Call to method get_hook\\(\\) on an unknown class ActionScheduler_Action\\.$#"
+			count: 3
+			path: includes/core/class-wcs-failed-scheduled-action-manager.php
+
+		-
+			message: "#^Call to static method instance\\(\\) on an unknown class ActionScheduler_Logger\\.$#"
+			count: 1
+			path: includes/core/class-wcs-failed-scheduled-action-manager.php
+
+		-
+			message: "#^Call to static method instance\\(\\) on an unknown class ActionScheduler_Store\\.$#"
+			count: 1
+			path: includes/core/class-wcs-failed-scheduled-action-manager.php
+
+		-
+			message: "#^Method WCS_Failed_Scheduled_Action_Manager\\:\\:get_action\\(\\) has invalid return type ActionScheduler_Action\\.$#"
+			count: 1
+			path: includes/core/class-wcs-failed-scheduled-action-manager.php
+
+		-
+			message: "#^Parameter \\$action of method WCS_Failed_Scheduled_Action_Manager\\:\\:get_context_from_action_error\\(\\) has invalid type ActionScheduler_Action\\.$#"
+			count: 1
+			path: includes/core/class-wcs-failed-scheduled-action-manager.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-limiter.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$value\\.$#"
+			count: 2
+			path: includes/core/class-wcs-object-data-cache-manager.php
+
+		-
+			message: "#^Call to an undefined method object\\:\\:get_changes\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-object-data-cache-manager.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-remove-item.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-renewal-cart-stock-manager.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$tax_display_cart\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Access to static property \\$template_path on an unknown class PP_One_Page_Checkout\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'admin\\-new\\-renewal\\-order\\.php' \\('admin\\-new\\-renewal\\-order\\.php', 'admin\\-new\\-renewal\\-order\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'admin\\-new\\-switch\\-order\\.php' \\('admin\\-new\\-switch\\-order\\.php', 'admin\\-new\\-switch\\-order\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'admin\\-payment\\-retry\\.php' \\('admin\\-payment\\-retry\\.php', 'admin\\-payment\\-retry\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'cancelled\\-subscription\\.php' \\('cancelled\\-subscription\\.php', 'cancelled\\-subscription\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'customer\\-completed\\-renewal\\-order\\.php' \\('customer\\-completed\\-renewal\\-order\\.php', 'customer\\-completed\\-renewal\\-order\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'customer\\-completed\\-switch\\-order\\.php' \\('customer\\-completed\\-switch\\-order\\.php', 'customer\\-completed\\-switch\\-order\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'customer\\-on\\-hold\\-renewal\\-order\\.php' \\('customer\\-on\\-hold\\-renewal\\-order\\.php', 'customer\\-on\\-hold\\-renewal\\-order\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'customer\\-payment\\-retry\\.php' \\('customer\\-payment\\-retry\\.php', 'customer\\-payment\\-retry\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'customer\\-processing\\-renewal\\-order\\.php' \\('customer\\-processing\\-renewal\\-order\\.php', 'customer\\-processing\\-renewal\\-order\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'customer\\-renewal\\-invoice\\.php' \\('customer\\-renewal\\-invoice\\.php', 'customer\\-renewal\\-invoice\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'email\\-order\\-details\\.php' \\('email\\-order\\-details\\.php', 'email\\-order\\-details\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'expired\\-subscription\\.php' \\('expired\\-subscription\\.php', 'expired\\-subscription\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'on\\-hold\\-subscription\\.php' \\('on\\-hold\\-subscription\\.php', 'on\\-hold\\-subscription\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'subscription\\-info\\.php' \\('subscription\\-info\\.php', 'subscription\\-info\\.php'\\)\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Binary operation \"\\.\" between non\\-falsy\\-string and array results in an error\\.$#"
+			count: 1
+			path: includes/core/class-wcs-template-loader.php
+
+		-
+			message: "#^Call to an undefined method WCS_Orders_Table_Subscription_Data_Store\\:\\:init\\(\\)\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-data-store-controller.php
+
+		-
+			message: "#^Class Automattic\\\\WooCommerce\\\\Internal\\\\DataStores\\\\Orders\\\\OrdersTableDataStoreMeta not found\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-data-store-controller.php
+
+		-
+			message: "#^Class Automattic\\\\WooCommerce\\\\Internal\\\\Utilities\\\\DatabaseUtil not found\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-data-store-controller.php
+
+		-
+			message: "#^Access to an undefined property WCS_Orders_Table_Subscription_Data_Store\\:\\:\\$data_store_meta\\.$#"
+			count: 6
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Access to an undefined property WCS_Orders_Table_Subscription_Data_Store\\:\\:\\$internal_meta_keys\\.$#"
+			count: 3
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Call to an undefined method WCS_Orders_Table_Subscription_Data_Store\\:\\:clear_caches\\(\\)\\.$#"
+			count: 2
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Call to an undefined method WCS_Orders_Table_Subscription_Data_Store\\:\\:delete_order_data_from_custom_order_tables\\(\\)\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Call to an undefined method WCS_Orders_Table_Subscription_Data_Store\\:\\:get_cpt_data_store_instance\\(\\)\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Call to an undefined method WCS_Orders_Table_Subscription_Data_Store\\:\\:get_props_to_update\\(\\)\\.$#"
+			count: 2
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Call to an undefined method WCS_Orders_Table_Subscription_Data_Store\\:\\:persist_updates\\(\\)\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Call to an undefined method WCS_Orders_Table_Subscription_Data_Store\\:\\:trash_order\\(\\)\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:update_user_by_order_id\\(\\)\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Call to an undefined static method WCS_Orders_Table_Subscription_Data_Store\\:\\:get_meta_table_name\\(\\)\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Call to an undefined static method WCS_Orders_Table_Subscription_Data_Store\\:\\:get_orders_table_name\\(\\)\\.$#"
+			count: 4
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Call to static method get_constant\\(\\) on an unknown class Automattic\\\\Jetpack\\\\Constants\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Class Automattic\\\\WooCommerce\\\\Internal\\\\DataStores\\\\Orders\\\\DataSynchronizer not found\\.$#"
+			count: 2
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^WCS_Orders_Table_Subscription_Data_Store\\:\\:create\\(\\) calls parent\\:\\:create\\(\\) but WCS_Orders_Table_Subscription_Data_Store does not extend any class\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^WCS_Orders_Table_Subscription_Data_Store\\:\\:get_total_refunded\\(\\) calls parent\\:\\:get_total_refunded\\(\\) but WCS_Orders_Table_Subscription_Data_Store does not extend any class\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^WCS_Orders_Table_Subscription_Data_Store\\:\\:get_total_shipping_refunded\\(\\) calls parent\\:\\:get_total_shipping_refunded\\(\\) but WCS_Orders_Table_Subscription_Data_Store does not extend any class\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^WCS_Orders_Table_Subscription_Data_Store\\:\\:get_total_tax_refunded\\(\\) calls parent\\:\\:get_total_tax_refunded\\(\\) but WCS_Orders_Table_Subscription_Data_Store does not extend any class\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^WCS_Orders_Table_Subscription_Data_Store\\:\\:init_order_record\\(\\) calls parent\\:\\:init_order_record\\(\\) but WCS_Orders_Table_Subscription_Data_Store does not extend any class\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^WCS_Orders_Table_Subscription_Data_Store\\:\\:persist_order_to_db\\(\\) calls parent\\:\\:persist_order_to_db\\(\\) but WCS_Orders_Table_Subscription_Data_Store does not extend any class\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:delete_all_metadata_by_key\\(\\)\\.$#"
+			count: 1
+			path: includes/core/data-stores/class-wcs-related-order-store-cached-cpt.php
+
+		-
+			message: "#^Access to an undefined static property WC_Subscriptions_Deprecation_Handler\\:\\:\\$version\\.$#"
+			count: 2
+			path: includes/core/deprecated/deprecation-handlers/class-wc-subscriptions-deprecation-handler.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_subscriptions_count_by_status\\(\\)\\.$#"
+			count: 1
+			path: includes/core/deprecated/deprecation-handlers/class-wc-subscriptions-deprecation-handler.php
+
+		-
+			message: "#^Access to an undefined property WC_Email\\:\\:\\$retry\\.$#"
+			count: 2
+			path: includes/core/emails/class-wc-subscriptions-email-preview.php
+
+		-
+			message: "#^Access to an undefined property WC_Email\\:\\:\\$subscriptions\\.$#"
+			count: 2
+			path: includes/core/emails/class-wc-subscriptions-email-preview.php
+
+		-
+			message: "#^Call to an undefined method WC_Email\\:\\:get_time_until_date\\(\\)\\.$#"
+			count: 1
+			path: includes/core/emails/class-wc-subscriptions-email-preview.php
+
+		-
+			message: "#^Call to an undefined method WCS_Email_Customer_Notification\\:\\:get_relevant_date_type\\(\\)\\.$#"
+			count: 4
+			path: includes/core/emails/class-wcs-email-customer-notification.php
+
+		-
+			message: "#^Cannot call method get_customer_id\\(\\) on bool\\|object\\.$#"
+			count: 2
+			path: includes/core/emails/class-wcs-email-customer-notification.php
+
+		-
+			message: "#^Cannot call method get_parent\\(\\) on bool\\|object\\.$#"
+			count: 2
+			path: includes/core/emails/class-wcs-email-customer-notification.php
+
+		-
+			message: "#^Cannot call method get_view_order_url\\(\\) on bool\\|object\\.$#"
+			count: 2
+			path: includes/core/emails/class-wcs-email-customer-notification.php
+
+		-
+			message: "#^Cannot call method payment_method_supports\\(\\) on bool\\|object\\.$#"
+			count: 2
+			path: includes/core/emails/class-wcs-email-customer-notification.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_carts\\.$#"
+			count: 1
+			path: includes/core/gateways/class-wc-subscriptions-core-payment-gateways.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 2
+			path: includes/core/gateways/class-wc-subscriptions-core-payment-gateways.php
+
+		-
+			message: "#^Access to property \\$id on an unknown class WC_Gateway\\.$#"
+			count: 2
+			path: includes/core/gateways/class-wc-subscriptions-core-payment-gateways.php
+
+		-
+			message: "#^Class WC_Payments_Subscription_Service not found\\.$#"
+			count: 1
+			path: includes/core/gateways/class-wc-subscriptions-core-payment-gateways.php
+
+		-
+			message: "#^Parameter \\$gateway of method WC_Subscriptions_Core_Payment_Gateways\\:\\:gateway_supports_subscriptions\\(\\) has invalid type WC_Gateway\\.$#"
+			count: 1
+			path: includes/core/gateways/class-wc-subscriptions-core-payment-gateways.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 2
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Call to method are_reference_transactions_enabled\\(\\) on an unknown class WCS_PayPal_Express_API\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Call to method create_billing_agreement\\(\\) on an unknown class WCS_PayPal_Express_API\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Call to method do_express_checkout\\(\\) on an unknown class WCS_PayPal_Express_API\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Call to method do_reference_transaction\\(\\) on an unknown class WCS_PayPal_Express_API\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Call to method get_express_checkout_details\\(\\) on an unknown class WCS_PayPal_Express_API\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Call to method get_paypal_args\\(\\) on an unknown class WCS_PayPal_Express_API\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Call to method get_transaction_types\\(\\) on an unknown class WC_PayPal_Express_API\\.$#"
+			count: 4
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Call to method valid_response\\(\\) on an unknown class WC_PayPal_Express_API\\.$#"
+			count: 2
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Class WCS_PayPal_Reference_Transaction_IPN_Handler referenced with incorrect case\\: WCS_Paypal_Reference_Transaction_IPN_Handler\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Class WCS_PayPal_Standard_IPN_Handler referenced with incorrect case\\: WCS_Paypal_Standard_IPN_Handler\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Method WCS_PayPal\\:\\:get_api\\(\\) has invalid return type WCS_PayPal_Express_API\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Method WCS_PayPal\\:\\:get_ipn_handler\\(\\) has invalid return type WC_PayPal_Express_API\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Property WCS_PayPal\\:\\:\\$api has unknown class WCS_PayPal_Express_API as its type\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/class-wcs-paypal.php
+
+		-
+			message: "#^Call to method get_id\\(\\) on an unknown class SV_WC_Plugin\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/abstracts/abstract-wcs-sv-api-base.php
+
+		-
+			message: "#^Call to method get_plugin_name\\(\\) on an unknown class SV_WC_Plugin\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/abstracts/abstract-wcs-sv-api-base.php
+
+		-
+			message: "#^Call to method get_version\\(\\) on an unknown class SV_WC_Plugin\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/abstracts/abstract-wcs-sv-api-base.php
+
+		-
+			message: "#^Method WCS_SV_API_Base\\:\\:get_new_request\\(\\) has invalid return type SV_WC_API_Request\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/abstracts/abstract-wcs-sv-api-base.php
+
+		-
+			message: "#^Method WCS_SV_API_Base\\:\\:get_plugin\\(\\) has invalid return type SV_WC_Plugin\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/abstracts/abstract-wcs-sv-api-base.php
+
+		-
+			message: "#^Method WCS_SV_API_Base\\:\\:set_request_header\\(\\) should return string but return statement is missing\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/abstracts/abstract-wcs-sv-api-base.php
+
+		-
+			message: "#^Method WCS_SV_API_Base\\:\\:set_response_handler\\(\\) should return array but return statement is missing\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/abstracts/abstract-wcs-sv-api-base.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 4
+			path: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php
+
+		-
+			message: "#^Action callback returns array but should not return anything\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php
+
+		-
+			message: "#^Method WCS_PayPal_Change_Payment_Method_Admin\\:\\:validate_payment_meta\\(\\) should return array but return statement is missing\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-change-payment-method-admin.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$payment_method_id$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-change-payment-method-admin.php
+
+		-
+			message: "#^@param WC_PayPal_Reference_Transaction_API_Request \\$instance does not accept actual type of parameter\\: \\$this\\(WCS_PayPal_Reference_Transaction_API_Request\\)\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-request.php
+
+		-
+			message: "#^Binary operation \"\\+\" between float and string results in an error\\.$#"
+			count: 3
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-request.php
+
+		-
+			message: "#^Method WCS_PayPal_Reference_Transaction_API_Request\\:\\:get_method\\(\\) should return null but return statement is missing\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-request.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$type$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-request.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$response$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api-response.php
+
+		-
+			message: "#^Access to an undefined property WCS_PayPal_Reference_Transaction_API\\:\\:\\$order\\.$#"
+			count: 3
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^Call to method create_billing_agreement\\(\\) on an unknown class WC_PayPal_Reference_Transaction_API_Request\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^Call to method do_express_checkout\\(\\) on an unknown class WC_PayPal_Reference_Transaction_API_Request\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^Call to method do_reference_transaction\\(\\) on an unknown class WC_PayPal_Reference_Transaction_API_Request\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^Call to method get_express_checkout_details\\(\\) on an unknown class WC_PayPal_Reference_Transaction_API_Request\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^Call to method manage_recurring_payments_profile_status\\(\\) on an unknown class WC_PayPal_Reference_Transaction_API_Request\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^Call to method set_express_checkout\\(\\) on an unknown class WC_PayPal_Reference_Transaction_API_Request\\.$#"
+			count: 2
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^Method WCS_PayPal_Reference_Transaction_API\\:\\:do_reference_transaction\\(\\) has invalid return type SV_WC_Payment_Gateway_API_Response\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^Method WCS_PayPal_Reference_Transaction_API\\:\\:get_express_checkout_details\\(\\) has invalid return type WC_PayPal_Reference_Transaction_API_Checkout_Response\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^Method WCS_PayPal_Reference_Transaction_API\\:\\:get_new_request\\(\\) has invalid return type WC_PayPal_Reference_Transaction_API_Request\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^Method WCS_PayPal_Reference_Transaction_API\\:\\:manage_recurring_payments_profile_status\\(\\) has invalid return type SV_WC_Payment_Gateway_API_Response\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^PHPDoc tag @throws with type SV_WC_Payment_Gateway_Exception is not subtype of Throwable$#"
+			count: 2
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-api.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$posted$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-reference-transaction-ipn-handler.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$item_name$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-change-payment-method.php
+
+		-
+			message: "#^Default value of the parameter \\#2 \\$error \\(string\\) of method WCS_PayPal_Standard_IPN_Failure_Handler\\:\\:log_ipn_errors\\(\\) is incompatible with type array\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-failure-handler.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 2
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-handler.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$subscription_key\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-handler.php
+
+		-
+			message: "#^Binary operation \"\\-\" between string and 1 results in an error\\.$#"
+			count: 2
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-handler.php
+
+		-
+			message: "#^Undefined variable\\: \\$ipn_id$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-handler.php
+
+		-
+			message: "#^Variable \\$ipn_id in empty\\(\\) is never defined\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-handler.php
+
+		-
+			message: "#^Variable \\$ipn_id in isset\\(\\) is never defined\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-handler.php
+
+		-
+			message: "#^Variable \\$ipn_transaction_id might not be defined\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-handler.php
+
+		-
+			message: "#^Variable \\$transaction_order might not be defined\\.$#"
+			count: 4
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-ipn-handler.php
+
+		-
+			message: "#^Variable \\$item_names might not be defined\\.$#"
+			count: 2
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-request.php
+
+		-
+			message: "#^Variable \\$next_payment_timestamp in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-request.php
+
+		-
+			message: "#^Variable \\$second_trial_period might not be defined\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-request.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$total\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-switcher.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-standard-switcher.php
+
+		-
+			message: "#^Call to method manage_recurring_payments_profile_status\\(\\) on an unknown class WCS_PayPal_Express_API\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/class-wcs-paypal-status-manager.php
+
+		-
+			message: "#^Binary operation \"\\.\\=\" between array and ' AND `meta_key` NOT…' results in an error\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/deprecated/class-wc-paypal-standard-subscriptions.php
+
+		-
+			message: "#^Call to an undefined static method WCS_PayPal_Supports\\:\\:add_feature_support\\(\\)\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/deprecated/class-wc-paypal-standard-subscriptions.php
+
+		-
+			message: "#^Call to method manage_recurring_payments_profile_status\\(\\) on an unknown class WCS_PayPal_Express_API\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/deprecated/class-wc-paypal-standard-subscriptions.php
+
+		-
+			message: "#^Class WCS_PayPal_Standard_IPN_Handler referenced with incorrect case\\: WCS_Paypal_Standard_IPN_Handler\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/deprecated/class-wc-paypal-standard-subscriptions.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$item_name$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/deprecated/class-wc-paypal-standard-subscriptions.php
+
+		-
+			message: "#^Variable \\$notices might not be defined\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/templates/admin-notices.php
+
+		-
+			message: "#^Variable \\$failed_ipn_log_handle might not be defined\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/templates/html-ipn-failure-notice.php
+
+		-
+			message: "#^Variable \\$log_file_url might not be defined\\.$#"
+			count: 1
+			path: includes/core/gateways/paypal/includes/templates/html-ipn-failure-notice.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Subscription_Legacy\\:\\:\\$product_custom_fields\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Subscription_Legacy\\:\\:\\$product_type\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Subscription_Legacy\\:\\:\\$subscription_limit\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Subscription_Legacy\\:\\:\\$subscription_one_time_shipping\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Subscription_Legacy\\:\\:\\$subscription_payment_sync_date\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Subscription_Variation_Legacy\\:\\:\\$parent_product_type\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-subscription-variation-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Subscription_Variation_Legacy\\:\\:\\$product_type\\.$#"
+			count: 2
+			path: includes/core/legacy/class-wc-product-subscription-variation-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Subscription_Variation_Legacy\\:\\:\\$variation_id\\.$#"
+			count: 2
+			path: includes/core/legacy/class-wc-product-subscription-variation-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Subscription_Variation_Legacy\\:\\:\\$variation_inherited_meta_data\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-subscription-variation-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Subscription_Variation_Legacy\\:\\:\\$variation_level_meta_data\\.$#"
+			count: 3
+			path: includes/core/legacy/class-wc-product-subscription-variation-legacy.php
+
+		-
+			message: "#^Method WC_Product_Subscription_Variation\\:\\:__construct\\(\\) invoked with 2 parameters, 0\\-1 required\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-subscription-variation-legacy.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$key$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-subscription-variation-legacy.php
+
+		-
+			message: "#^Access to an undefined property \\$this\\(WC_Product_Variable_Subscription_Legacy\\)\\:\\:\\$max_variation_price\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property \\$this\\(WC_Product_Variable_Subscription_Legacy\\)\\:\\:\\$min_variation_regular_price\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property \\$this\\(WC_Product_Variable_Subscription_Legacy\\)\\:\\:\\$subscription_length\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property \\$this\\(WC_Product_Variable_Subscription_Legacy\\)\\:\\:\\$subscription_sign_up_fee\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property \\$this\\(WC_Product_Variable_Subscription_Legacy\\)\\:\\:\\$subscription_trial_length\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property \\$this\\(WC_Product_Variable_Subscription_Legacy\\)\\:\\:\\$subscription_trial_period\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$max_variation_price\\.$#"
+			count: 2
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$min_variation_price\\.$#"
+			count: 2
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$min_variation_regular_price\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$parent_product_type\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$product_custom_fields\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$subscription_length\\.$#"
+			count: 2
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$subscription_limit\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$subscription_one_time_shipping\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$subscription_payment_sync_date\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$subscription_sign_up_fee\\.$#"
+			count: 2
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$subscription_trial_length\\.$#"
+			count: 2
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Product_Variable_Subscription_Legacy\\:\\:\\$subscription_trial_period\\.$#"
+			count: 2
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Call to an undefined method WooCommerce\\:\\:clear_product_transients\\(\\)\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Method WC_Product_Variable_Subscription_Legacy\\:\\:get_price_hash\\(\\) invoked with 2 parameters, 0\\-1 required\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^PHPDoc tag @param has invalid value \\(WC_Product\\)\\: Unexpected token \"\\\\n\\\\t \\* \", expected variable at offset 318$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$include_taxes$#"
+			count: 1
+			path: includes/core/legacy/class-wc-product-variable-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$billing_address_1\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$billing_address_2\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$billing_city\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$billing_company\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$billing_country\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$billing_email\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$billing_first_name\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$billing_last_name\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$billing_phone\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$billing_postcode\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$billing_state\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$customer_note\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$order_key\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$payment_method\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$payment_method_title\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$post\\.$#"
+			count: 13
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$post_status\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$prices_include_tax\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$shipping_address_1\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$shipping_address_2\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$shipping_city\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$shipping_company\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$shipping_country\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$shipping_first_name\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$shipping_last_name\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$shipping_postcode\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription_Legacy\\:\\:\\$shipping_state\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Default value of the parameter \\#3 \\$meta_id \\(string\\) of method WC_Subscription_Legacy\\:\\:update_meta_data\\(\\) is incompatible with type int\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^Method WC_Subscription_Legacy\\:\\:set_last_order_date\\(\\) should return WC_DateTime\\|null but return statement is missing\\.$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^PHPDoc tag @param has invalid value \\(array\\|int Either an order item \\(in the array format returned by self\\:\\:get_items\\(\\)\\) or the ID of an order item\\.\\)\\: Unexpected token \"Either\", expected variable at offset 399$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^PHPDoc tag @param has invalid value \\(int\\)\\: Unexpected token \"\\\\n\\\\t \", expected variable at offset 61$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^PHPDoc tag @param has invalid value \\(string\\)\\: Unexpected token \"\\\\n\\\\t \\* \", expected variable at offset 555$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^PHPDoc tag @param has invalid value \\(string\\)\\: Unexpected token \"\\\\n\\\\t \\* \", expected variable at offset 573$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^PHPDoc tag @param has invalid value \\(string\\|integer\\|object\\)\\: Unexpected token \"\\\\n\\\\t \\* \", expected variable at offset 203$#"
+			count: 1
+			path: includes/core/legacy/class-wc-subscription-legacy.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$product$#"
+			count: 1
+			path: includes/core/legacy/class-wcs-array-property-post-meta-black-magic.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 3
+			path: includes/core/privacy/class-wcs-privacy-background-updater.php
+
+		-
+			message: "#^Function as_schedule_single_action not found\\.$#"
+			count: 3
+			path: includes/core/privacy/class-wcs-privacy-background-updater.php
+
+		-
+			message: "#^Function as_unschedule_action not found\\.$#"
+			count: 2
+			path: includes/core/privacy/class-wcs-privacy-background-updater.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_orders\\(\\)\\.$#"
+			count: 1
+			path: includes/core/privacy/class-wcs-privacy-erasers.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_orders\\(\\)\\.$#"
+			count: 1
+			path: includes/core/privacy/class-wcs-privacy-exporters.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_subscription_customer_ids\\(\\)\\.$#"
+			count: 1
+			path: includes/core/privacy/class-wcs-privacy.php
+
+		-
+			message: "#^Binary operation \"\\+\" between string and 120 results in an error\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wc-subscriptions-upgrader.php
+
+		-
+			message: "#^Class WC_Logger referenced with incorrect case\\: WC_logger\\.$#"
+			count: 2
+			path: includes/core/upgrades/class-wc-subscriptions-upgrader.php
+
+		-
+			message: "#^Constant WP_MAX_MEMORY_LIMIT not found\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wc-subscriptions-upgrader.php
+
+		-
+			message: "#^Function remove_action invoked with 4 parameters, 2\\-3 required\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wc-subscriptions-upgrader.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$limit$#"
+			count: 1
+			path: includes/core/upgrades/class-wc-subscriptions-upgrader.php
+
+		-
+			message: "#^Variable \\$results might not be defined\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wc-subscriptions-upgrader.php
+
+		-
+			message: "#^Variable \\$upgraded_versions might not be defined\\.$#"
+			count: 3
+			path: includes/core/upgrades/class-wc-subscriptions-upgrader.php
+
+		-
+			message: "#^Access to constant POST_TYPE on an unknown class ActionScheduler_wpPostStore\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-repair-2-0-2.php
+
+		-
+			message: "#^Variable \\$matching_line_item_id might not be defined\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-repair-2-0-2.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-repair-2-0.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$subscription_key$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-repair-2-0.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_subtotal\\(\\)\\.$#"
+			count: 2
+			path: includes/core/upgrades/class-wcs-repair-subtracted-base-tax-line-item-meta.php
+
+		-
+			message: "#^Function wc_format_decimalw not found\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-1-2.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-1-5.php
+
+		-
+			message: "#^Function as_schedule_single_action not found\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-1-5.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$meta_key\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$meta_value\\.$#"
+			count: 2
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$order_id\\.$#"
+			count: 2
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$order_item_name\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Access to constant POST_TYPE on an unknown class ActionScheduler_wpPostStore\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 2
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Function as_schedule_single_action not found\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Method WCS_Upgrade_2_0\\:\\:migrate_order_items\\(\\) should return null but return statement is missing\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Method WCS_Upgrade_2_0\\:\\:migrate_order_notes\\(\\) should return null but return statement is missing\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Method WCS_Upgrade_2_0\\:\\:migrate_post_meta\\(\\) should return null but return statement is missing\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Method WCS_Upgrade_2_0\\:\\:migrate_renewal_orders\\(\\) should return null but return statement is missing\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Method WCS_Upgrade_2_0\\:\\:migrate_resubscribe_orders\\(\\) should return null but return statement is missing\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$order$#"
+			count: 3
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$original_order$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$subscription_id$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Variable \\$dates_to_update in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
+
+		-
+			message: "#^Binary operation \"\\+\" between string and 180 results in an error\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-2-7.php
+
+		-
+			message: "#^Callback expects 1 parameter, \\$accepted_args is set to 2\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-2-7.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-2-7.php
+
+		-
+			message: "#^Function as_schedule_single_action not found\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-2-7.php
+
+		-
+			message: "#^Binary operation \"\\+\" between string and 180 results in an error\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-2-2-9.php
+
+		-
+			message: "#^Call to an undefined method WC_Logger_Interface\\:\\:clear\\(\\)\\.$#"
+			count: 1
+			path: includes/core/upgrades/class-wcs-upgrade-logger.php
+
+		-
+			message: "#^Variable \\$features might not be defined\\.$#"
+			count: 1
+			path: includes/core/upgrades/templates/update-welcome-notice.php
+
+		-
+			message: "#^Variable \\$version might not be defined\\.$#"
+			count: 2
+			path: includes/core/upgrades/templates/update-welcome-notice.php
+
+		-
+			message: "#^Function esc_html invoked with 2 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/core/upgrades/templates/wcs-about-2-0.php
+
+		-
+			message: "#^Variable \\$active_version might not be defined\\.$#"
+			count: 1
+			path: includes/core/upgrades/templates/wcs-about-2-0.php
+
+		-
+			message: "#^Variable \\$active_version might not be defined\\.$#"
+			count: 1
+			path: includes/core/upgrades/templates/wcs-about.php
+
+		-
+			message: "#^Variable \\$settings_page might not be defined\\.$#"
+			count: 4
+			path: includes/core/upgrades/templates/wcs-about.php
+
+		-
+			message: "#^Variable \\$about_page_url might not be defined\\.$#"
+			count: 1
+			path: includes/core/upgrades/templates/wcs-upgrade.php
+
+		-
+			message: "#^Variable \\$estimated_duration might not be defined\\.$#"
+			count: 2
+			path: includes/core/upgrades/templates/wcs-upgrade.php
+
+		-
+			message: "#^Variable \\$script_data might not be defined\\.$#"
+			count: 1
+			path: includes/core/upgrades/templates/wcs-upgrade.php
+
+		-
+			message: "#^Variable \\$subscription_count might not be defined\\.$#"
+			count: 1
+			path: includes/core/upgrades/templates/wcs-upgrade.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$display_cart_ex_tax\\.$#"
+			count: 1
+			path: includes/core/wcs-cart-functions.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_carts\\.$#"
+			count: 2
+			path: includes/core/wcs-cart-functions.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$tax_display_cart\\.$#"
+			count: 2
+			path: includes/core/wcs-cart-functions.php
+
+		-
+			message: "#^Access to an undefined property WC_Shipping_Rate\\:\\:\\$cost\\.$#"
+			count: 1
+			path: includes/core/wcs-cart-functions.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$shipping\\.$#"
+			count: 2
+			path: includes/core/wcs-cart-functions.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
+			count: 2
+			path: includes/core/wcs-functions.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_subscriptions_count_by_status\\(\\)\\.$#"
+			count: 1
+			path: includes/core/wcs-functions.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:search_subscriptions\\(\\)\\.$#"
+			count: 1
+			path: includes/core/wcs-functions.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/core/wcs-functions.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product_id\\(\\)\\.$#"
+			count: 3
+			path: includes/core/wcs-functions.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_variation_id\\(\\)\\.$#"
+			count: 4
+			path: includes/core/wcs-functions.php
+
+		-
+			message: "#^Binary operation \"/\" between int and 0\\|86400\\|604800\\|31536000 results in an error\\.$#"
+			count: 2
+			path: includes/core/wcs-time-functions.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_carts\\.$#"
+			count: 1
+			path: includes/gateways/class-wc-subscriptions-payment-gateways.php
+
+		-
+			message: "#^Access to an undefined property WC_Subscription\\:\\:\\$recipient_user\\.$#"
+			count: 2
+			path: includes/gifting/class-wcs-gifting.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
+			count: 1
+			path: includes/gifting/class-wcsg-admin.php
+
+		-
+			message: "#^Constant WC_PLUGIN_FILE not found\\.$#"
+			count: 1
+			path: includes/gifting/class-wcsg-admin.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_downloads\\(\\)\\.$#"
+			count: 1
+			path: includes/gifting/class-wcsg-download-handler.php
+
+		-
+			message: "#^Constant WC_PLUGIN_FILE not found\\.$#"
+			count: 1
+			path: includes/gifting/class-wcsg-download-handler.php
+
+		-
+			message: "#^Function wc_memberships not found\\.$#"
+			count: 3
+			path: includes/gifting/class-wcsg-memberships-integration.php
+
+		-
+			message: "#^Function wc_memberships_get_membership_plans not found\\.$#"
+			count: 1
+			path: includes/gifting/class-wcsg-memberships-integration.php
+
+		-
+			message: "#^Parameter \\$membership_plan of method WCSG_Memberships_Integration\\:\\:update_subscription_id\\(\\) has invalid type WC_Memberships_Membership_Plan\\.$#"
+			count: 1
+			path: includes/gifting/class-wcsg-memberships-integration.php
+
+		-
+			message: "#^Parameter \\$plan of method WCSG_Memberships_Integration\\:\\:get_user_unique_membership_access_granting_product_ids\\(\\) has invalid type WC_Memberships_Membership_Plan\\.$#"
+			count: 1
+			path: includes/gifting/class-wcsg-memberships-integration.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
+			count: 1
+			path: includes/gifting/class-wcsg-recipient-management.php
+
+		-
+			message: "#^Cannot access property \\$order_date on bool\\|object\\.$#"
+			count: 1
+			path: includes/gifting/emails/class-wcsg-email-completed-renewal-order.php
+
+		-
+			message: "#^Cannot call method get_billing_first_name\\(\\) on bool\\|object\\.$#"
+			count: 1
+			path: includes/gifting/emails/class-wcsg-email-customer-new-account.php
+
+		-
+			message: "#^Cannot call method get_billing_last_name\\(\\) on bool\\|object\\.$#"
+			count: 1
+			path: includes/gifting/emails/class-wcsg-email-customer-new-account.php
+
+		-
+			message: "#^Cannot access property \\$order_date on bool\\|object\\.$#"
+			count: 1
+			path: includes/gifting/emails/class-wcsg-email-processing-renewal-order.php
+
+		-
+			message: "#^Call to an undefined method WP_Post\\:\\:get_user_id\\(\\)\\.$#"
+			count: 1
+			path: includes/gifting/emails/class-wcsg-email-recipient-new-initial-order.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
+			count: 1
+			path: includes/payment-retry/class-wcs-retry-manager.php
+
+		-
+			message: "#^Call to an undefined method WCS_Retry_Store\\:\\:get_full_table_name\\(\\)\\.$#"
+			count: 1
+			path: includes/payment-retry/class-wcs-retry-migrator.php
+
+		-
+			message: "#^Call to an undefined method WCS_Retry_Store\\:\\:get_table_name\\(\\)\\.$#"
+			count: 2
+			path: includes/payment-retry/class-wcs-retry-table-maker.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_carts\\.$#"
+			count: 4
+			path: includes/switching/class-wc-subscriptions-switcher.php
+
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_carts\\.$#"
+			count: 1
+			path: includes/switching/class-wcs-cart-switch.php
+
+		-
+			message: "#^Call to static method is_true\\(\\) on an unknown class Automattic\\\\Jetpack\\\\Constants\\.$#"
+			count: 1
+			path: src/Internal/Telemetry/Collector.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$count\\.$#"
+			count: 2
+			path: src/Internal/Telemetry/Products.php
+
+		-
+			message: "#^Function as_has_scheduled_action not found\\.$#"
+			count: 1
+			path: src/Internal/Utilities/Scheduled_Actions.php
+
+		-
+			message: "#^Function as_schedule_recurring_action not found\\.$#"
+			count: 1
+			path: src/Internal/Utilities/Scheduled_Actions.php
+
+		-
+			message: "#^Call to an undefined method WP_Post\\:\\:get_id\\(\\)\\.$#"
+			count: 1
+			path: templates/admin/deprecated/html-variation-price.php
+
+		-
+			message: "#^Call to an undefined method WP_Post\\:\\:get_meta\\(\\)\\.$#"
+			count: 5
+			path: templates/admin/deprecated/html-variation-price.php
+
+		-
+			message: "#^Calling self\\:\\:get_trial_period_validation_message\\(\\) outside of class scope\\.$#"
+			count: 1
+			path: templates/admin/deprecated/html-variation-price.php
+
+		-
+			message: "#^Class WP_Post referenced with incorrect case\\: WP_POST\\.$#"
+			count: 1
+			path: templates/admin/deprecated/html-variation-price.php
+
+		-
+			message: "#^Class WP_Post referenced with incorrect case\\: WP_POST\\.$#"
+			count: 1
+			path: templates/admin/deprecated/html-variation-synchronisation.php
+
+		-
+			message: "#^Variable \\$display_annual_select might not be defined\\.$#"
+			count: 1
+			path: templates/admin/deprecated/html-variation-synchronisation.php
+
+		-
+			message: "#^Variable \\$display_week_month_select might not be defined\\.$#"
+			count: 1
+			path: templates/admin/deprecated/html-variation-synchronisation.php
+
+		-
+			message: "#^Variable \\$payment_day might not be defined\\.$#"
+			count: 2
+			path: templates/admin/deprecated/html-variation-synchronisation.php
+
+		-
+			message: "#^Variable \\$payment_month might not be defined\\.$#"
+			count: 1
+			path: templates/admin/deprecated/html-variation-synchronisation.php
+
+		-
+			message: "#^Variable \\$chosen_method might not be defined\\.$#"
+			count: 4
+			path: templates/admin/deprecated/order-shipping-html.php
+
+		-
+			message: "#^Variable \\$item_id might not be defined\\.$#"
+			count: 2
+			path: templates/admin/deprecated/order-shipping-html.php
+
+		-
+			message: "#^Variable \\$shipping_cost might not be defined\\.$#"
+			count: 1
+			path: templates/admin/deprecated/order-shipping-html.php
+
+		-
+			message: "#^Variable \\$shipping_methods might not be defined\\.$#"
+			count: 1
+			path: templates/admin/deprecated/order-shipping-html.php
+
+		-
+			message: "#^Variable \\$shipping_title might not be defined\\.$#"
+			count: 1
+			path: templates/admin/deprecated/order-shipping-html.php
+
+		-
+			message: "#^Variable \\$item_id might not be defined\\.$#"
+			count: 6
+			path: templates/admin/deprecated/order-tax-html.php
+
+		-
+			message: "#^Variable \\$tax_codes might not be defined\\.$#"
+			count: 1
+			path: templates/admin/deprecated/order-tax-html.php
+
+		-
+			message: "#^Calling self\\:\\:get_trial_period_validation_message\\(\\) outside of class scope\\.$#"
+			count: 1
+			path: templates/admin/html-variation-price.php
+
+		-
+			message: "#^Class WP_Post referenced with incorrect case\\: WP_POST\\.$#"
+			count: 1
+			path: templates/admin/html-variation-price.php
+
+		-
+			message: "#^Class WP_Post referenced with incorrect case\\: WP_POST\\.$#"
+			count: 1
+			path: templates/admin/html-variation-synchronisation.php
+
+		-
+			message: "#^Variable \\$display_annual_select might not be defined\\.$#"
+			count: 1
+			path: templates/admin/html-variation-synchronisation.php
+
+		-
+			message: "#^Variable \\$display_week_month_select might not be defined\\.$#"
+			count: 1
+			path: templates/admin/html-variation-synchronisation.php
+
+		-
+			message: "#^Variable \\$payment_day might not be defined\\.$#"
+			count: 2
+			path: templates/admin/html-variation-synchronisation.php
+
+		-
+			message: "#^Variable \\$payment_month might not be defined\\.$#"
+			count: 2
+			path: templates/admin/html-variation-synchronisation.php
+
+		-
+			message: "#^Variable \\$section_title might not be defined\\.$#"
+			count: 2
+			path: templates/admin/status.php
+
+		-
+			message: "#^Variable \\$section_tooltip might not be defined\\.$#"
+			count: 1
+			path: templates/admin/status.php
+
+		-
+			message: "#^Variable \\$available_methods might not be defined\\.$#"
+			count: 2
+			path: templates/cart/cart-recurring-shipping.php
+
+		-
+			message: "#^Variable \\$chosen_method might not be defined\\.$#"
+			count: 1
+			path: templates/cart/cart-recurring-shipping.php
+
+		-
+			message: "#^Variable \\$index might not be defined\\.$#"
+			count: 3
+			path: templates/cart/cart-recurring-shipping.php
+
+		-
+			message: "#^Variable \\$package_details might not be defined\\.$#"
+			count: 1
+			path: templates/cart/cart-recurring-shipping.php
+
+		-
+			message: "#^Variable \\$package_name might not be defined\\.$#"
+			count: 2
+			path: templates/cart/cart-recurring-shipping.php
+
+		-
+			message: "#^Variable \\$recurring_cart might not be defined\\.$#"
+			count: 1
+			path: templates/cart/cart-recurring-shipping.php
+
+		-
+			message: "#^Variable \\$recurring_cart_key might not be defined\\.$#"
+			count: 2
+			path: templates/cart/cart-recurring-shipping.php
+
+		-
+			message: "#^Variable \\$show_package_details might not be defined\\.$#"
+			count: 1
+			path: templates/cart/cart-recurring-shipping.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 1
+			path: templates/checkout/form-change-payment-method.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 7
+			path: templates/checkout/form-change-payment-method.php
+
+		-
+			message: "#^Variable \\$recurring_carts might not be defined\\.$#"
+			count: 1
+			path: templates/checkout/recurring-coupon-totals.php
+
+		-
+			message: "#^Variable \\$recurring_carts might not be defined\\.$#"
+			count: 1
+			path: templates/checkout/recurring-fee-totals.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$formatted_amount\\.$#"
+			count: 1
+			path: templates/checkout/recurring-itemized-tax-totals.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$label\\.$#"
+			count: 2
+			path: templates/checkout/recurring-itemized-tax-totals.php
+
+		-
+			message: "#^Variable \\$recurring_carts might not be defined\\.$#"
+			count: 1
+			path: templates/checkout/recurring-itemized-tax-totals.php
+
+		-
+			message: "#^Variable \\$recurring_carts might not be defined\\.$#"
+			count: 1
+			path: templates/checkout/recurring-subscription-totals.php
+
+		-
+			message: "#^Variable \\$recurring_carts might not be defined\\.$#"
+			count: 1
+			path: templates/checkout/recurring-subtotals.php
+
+		-
+			message: "#^Variable \\$recurring_carts might not be defined\\.$#"
+			count: 1
+			path: templates/checkout/recurring-tax-totals.php
+
+		-
+			message: "#^Variable \\$recurring_carts might not be defined\\.$#"
+			count: 6
+			path: templates/checkout/recurring-totals.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 7
+			path: templates/checkout/subscription-receipt.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 5
+			path: templates/emails/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/emails/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 6
+			path: templates/emails/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 5
+			path: templates/emails/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 4
+			path: templates/emails/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 4
+			path: templates/emails/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$subscriptions might not be defined\\.$#"
+			count: 2
+			path: templates/emails/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 5
+			path: templates/emails/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 5
+			path: templates/emails/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$retry might not be defined\\.$#"
+			count: 1
+			path: templates/emails/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 4
+			path: templates/emails/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 11
+			path: templates/emails/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 5
+			path: templates/emails/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/emails/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 6
+			path: templates/emails/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/emails/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 4
+			path: templates/emails/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 4
+			path: templates/emails/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$subscriptions might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 4
+			path: templates/emails/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$subscription_event_date might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$subscription_time_til_event might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 4
+			path: templates/emails/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription_event_date might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription_time_til_event might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$subscription_event_date might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$subscription_time_til_event might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$can_renew_early might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$subscription_event_date might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$subscription_time_til_event might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$url_for_renewal might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription_event_date might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription_time_til_event might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 5
+			path: templates/emails/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/emails/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$retry might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 5
+			path: templates/emails/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 5
+			path: templates/emails/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 6
+			path: templates/emails/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 1
+			path: templates/emails/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/email-order-details.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 12
+			path: templates/emails/email-order-details.php
+
+		-
+			message: "#^Variable \\$order_items_table_args might not be defined\\.$#"
+			count: 1
+			path: templates/emails/email-order-details.php
+
+		-
+			message: "#^Variable \\$order_type might not be defined\\.$#"
+			count: 3
+			path: templates/emails/email-order-details.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/email-order-details.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/email-order-details.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/expired-subscription.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 4
+			path: templates/emails/expired-subscription.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/expired-subscription.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/expired-subscription.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/expired-subscription.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 8
+			path: templates/emails/expired-subscription.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 4
+			path: templates/emails/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 7
+			path: templates/emails/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/emails/plain/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/admin-new-renewal-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 4
+			path: templates/emails/plain/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/emails/plain/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 4
+			path: templates/emails/plain/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 4
+			path: templates/emails/plain/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$subscriptions might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/admin-new-switch-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 5
+			path: templates/emails/plain/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$retry might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/admin-payment-retry.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 7
+			path: templates/emails/plain/cancelled-subscription.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/emails/plain/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 4
+			path: templates/emails/plain/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 5
+			path: templates/emails/plain/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 4
+			path: templates/emails/plain/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 4
+			path: templates/emails/plain/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$subscriptions might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-completed-switch-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$subscription_event_date might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$subscription_time_til_event might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-renewal.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription_event_date might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription_time_til_event might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-auto-trial-ending.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$subscription_event_date might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$subscription_time_til_event might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-expiring-subscription.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$can_renew_early might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$subscription_event_date might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$subscription_time_til_event might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$url_for_renewal might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/customer-notification-manual-renewal.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription_event_date might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$subscription_time_til_event might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-notification-manual-trial-ending.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/emails/plain/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-on-hold-renewal-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$retry might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-payment-retry.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 5
+			path: templates/emails/plain/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/customer-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 6
+			path: templates/emails/plain/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/customer-renewal-invoice.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/email-order-details.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 7
+			path: templates/emails/plain/email-order-details.php
+
+		-
+			message: "#^Variable \\$order_items_table_args might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/email-order-details.php
+
+		-
+			message: "#^Variable \\$order_type might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/email-order-details.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/email-order-details.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/email-order-details.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/expired-subscription.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/expired-subscription.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/expired-subscription.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/expired-subscription.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/expired-subscription.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 7
+			path: templates/emails/plain/expired-subscription.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 3
+			path: templates/emails/plain/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 6
+			path: templates/emails/plain/on-hold-subscription.php
+
+		-
+			message: "#^Variable \\$is_admin_email might not be defined\\.$#"
+			count: 2
+			path: templates/emails/plain/subscription-info.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/subscription-info.php
+
+		-
+			message: "#^Variable \\$skip_my_account_link might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/subscription-info.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 1
+			path: templates/emails/plain/subscription-info.php
+
+		-
+			message: "#^Variable \\$is_admin_email might not be defined\\.$#"
+			count: 2
+			path: templates/emails/subscription-info.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/emails/subscription-info.php
+
+		-
+			message: "#^Variable \\$skip_my_account_link might not be defined\\.$#"
+			count: 1
+			path: templates/emails/subscription-info.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 1
+			path: templates/emails/subscription-info.php
+
+		-
+			message: "#^Variable \\$section_title might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/admin/status.php
+
+		-
+			message: "#^Variable \\$section_tooltip might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/admin/status.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$blogname might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$reset_key might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$subscription_purchaser might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$user_id might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$user_login might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$blogname might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$reset_key might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$subscription_purchaser might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$user_id might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$user_login might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/new-recipient-customer.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/plain/recipient-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/plain/recipient-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/plain/recipient-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/plain/recipient-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/plain/recipient-email-address-table.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-email-order-details.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-email-order-details.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/plain/recipient-email-order-details.php
+
+		-
+			message: "#^Variable \\$title might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-email-order-details.php
+
+		-
+			message: "#^Variable \\$items might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/plain/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/plain/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$show_purchase_note might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$show_sku might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$subscriptions might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-email-subscriptions-table.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$blogname might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/plain/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/plain/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$recipient_user might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/plain/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$subscription_purchaser might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$subscriptions might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/plain/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/plain/recipient-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/plain/recipient-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/plain/recipient-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/plain/recipient-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/plain/recipient-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 6
+			path: templates/gifting/emails/recipient-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/recipient-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/recipient-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/recipient-completed-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/recipient-email-address-table.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-email-order-details.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-email-order-details.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/recipient-email-order-details.php
+
+		-
+			message: "#^Variable \\$title might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-email-order-details.php
+
+		-
+			message: "#^Variable \\$image_size might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$items might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 3
+			path: templates/gifting/emails/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$show_image might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$show_purchase_note might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$show_sku might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-email-order-items.php
+
+		-
+			message: "#^Variable \\$subscriptions might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-email-subscriptions-table.php
+
+		-
+			message: "#^Variable \\$additional_content might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$blogname might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/emails/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$subscription_purchaser might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$subscriptions might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/recipient-new-initial-order.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 6
+			path: templates/gifting/emails/recipient-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$email_heading might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/emails/recipient-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/recipient-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$plain_text might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/recipient-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$sent_to_admin might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/emails/recipient-processing-renewal-order.php
+
+		-
+			message: "#^Variable \\$checkbox_field_args might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/html-add-recipient.php
+
+		-
+			message: "#^Variable \\$container_css_class might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/html-add-recipient.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/html-add-recipient.php
+
+		-
+			message: "#^Variable \\$email_field_args might not be defined\\.$#"
+			count: 3
+			path: templates/gifting/html-add-recipient.php
+
+		-
+			message: "#^Variable \\$id might not be defined\\.$#"
+			count: 4
+			path: templates/gifting/html-add-recipient.php
+
+		-
+			message: "#^Variable \\$nonce_field might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/html-add-recipient.php
+
+		-
+			message: "#^Variable \\$email might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/html-flat-gifting-recipient-details.php
+
+		-
+			message: "#^Variable \\$name might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/html-view-subscription-gifting-information.php
+
+		-
+			message: "#^Variable \\$user_title might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/html-view-subscription-gifting-information.php
+
+		-
+			message: "#^Variable \\$order might not be defined\\.$#"
+			count: 3
+			path: templates/gifting/order-details-customer.php
+
+		-
+			message: "#^Cannot access property \\$order_date on bool\\|WC_Order\\|WC_Order_Refund\\.$#"
+			count: 1
+			path: templates/gifting/related-orders.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 2
+			path: templates/gifting/related-orders.php
+
+		-
+			message: "#^Variable \\$subscription_orders might not be defined\\.$#"
+			count: 1
+			path: templates/gifting/related-orders.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 10
+			path: templates/gifting/subscription-totals.php
+
+		-
+			message: "#^Variable \\$current_page might not be defined\\.$#"
+			count: 2
+			path: templates/myaccount/my-subscriptions.php
+
+		-
+			message: "#^Variable \\$max_num_pages might not be defined\\.$#"
+			count: 1
+			path: templates/myaccount/my-subscriptions.php
+
+		-
+			message: "#^Variable \\$order_id might not be defined\\.$#"
+			count: 1
+			path: templates/myaccount/related-subscriptions.php
+
+		-
+			message: "#^Variable \\$subscriptions might not be defined\\.$#"
+			count: 1
+			path: templates/myaccount/related-subscriptions.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 16
+			path: templates/myaccount/subscription-details.php
+
+		-
+			message: "#^Variable \\$allow_item_removal might not be defined\\.$#"
+			count: 1
+			path: templates/myaccount/subscription-totals-table.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 10
+			path: templates/myaccount/subscription-totals-table.php
+
+		-
+			message: "#^Variable \\$totals might not be defined\\.$#"
+			count: 1
+			path: templates/myaccount/subscription-totals-table.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 3
+			path: templates/myaccount/subscription-totals.php
+
+		-
+			message: "#^Variable \\$current_page might not be defined\\.$#"
+			count: 1
+			path: templates/myaccount/subscriptions.php
+
+		-
+			message: "#^Variable \\$subscription might not be defined\\.$#"
+			count: 4
+			path: templates/myaccount/view-subscription.php
+
+		-
+			message: "#^Variable \\$attributes might not be defined\\.$#"
+			count: 2
+			path: templates/single-product/add-to-cart/variable-subscription.php
+
+		-
+			message: "#^Variable \\$available_variations might not be defined\\.$#"
+			count: 1
+			path: templates/single-product/add-to-cart/variable-subscription.php

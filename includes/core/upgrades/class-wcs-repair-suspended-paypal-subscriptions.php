@@ -43,6 +43,8 @@ class WCS_Repair_Suspended_PayPal_Subscriptions extends WCS_Background_Upgrader 
 	 * @param int $subscription_id The ID of a shop_subscription/WC_Subscription object.
 	 */
 	protected function update_item( $subscription_id ) {
+		$subscription = null;
+
 		try {
 			$subscription = wcs_get_subscription( $subscription_id );
 

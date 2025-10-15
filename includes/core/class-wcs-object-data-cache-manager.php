@@ -92,11 +92,9 @@ class WCS_Object_Data_Cache_Manager extends WCS_Post_Meta_Cache_Manager {
 		}
 
 		$force_all_fields = 'all_fields' === $generate_type;
-		// @phpstan-ignore-next-line
-		$changes   = $subscription->get_changes();
-		$base_data = $subscription->get_base_data();
-		// @phpstan-ignore-next-line
-		$meta_data = $subscription->get_meta_data();
+		$changes          = $subscription->get_changes();
+		$base_data        = $subscription->get_base_data();
+		$meta_data        = $subscription->get_meta_data();
 
 		// Deleted meta won't be included in the changes, so we need to fetch the previous value via the raw meta data.
 		$data_store       = $subscription->get_data_store();
@@ -144,7 +142,6 @@ class WCS_Object_Data_Cache_Manager extends WCS_Post_Meta_Cache_Manager {
 				} elseif ( $meta->get_changes() ) {
 					// If the value is being updated.
 					$this->object_changes[ $subscription->get_id() ][ $data_key ] = [
-						// @phpstan-ignore-next-line
 						'new'      => $meta->value,
 						'previous' => isset( $previous_meta['value'] ) ? $previous_meta['value'] : null,
 						'type'     => 'update',
@@ -152,7 +149,6 @@ class WCS_Object_Data_Cache_Manager extends WCS_Post_Meta_Cache_Manager {
 				} elseif ( $force_all_fields ) {
 					// If we're forcing all fields to be recorded.
 					$this->object_changes[ $subscription->get_id() ][ $data_key ] = [
-						// @phpstan-ignore-next-line
 						'new'  => $meta->value,
 						'type' => 'add',
 					];

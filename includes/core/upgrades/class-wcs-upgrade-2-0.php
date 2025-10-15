@@ -884,7 +884,6 @@ class WCS_Upgrade_2_0 {
 	 * @param WC_Subscription $new_subscription A subscription object
 	 * @param WC_Order $switch_order The original order used to purchase the subscription
 	 * @param int $subscription_item_id The order item ID of the item added to the subscription by self::add_product()
-	 * @return null
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	private static function migrate_switch_meta( $new_subscription, $switch_order, $subscription_item_id ) {

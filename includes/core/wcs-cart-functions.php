@@ -79,11 +79,12 @@ function wcs_cart_totals_shipping_html() {
 					$chosen_recurring_method = empty( $package['rates'] ) ? '' : current( $package['rates'] )->id;
 				}
 
+				$is_package_found                    = isset( $package['rates'][ $chosen_initial_method ] ) && isset( $initial_packages[ $package_index ] );
 				$shipping_selection_displayed        = false;
 				$only_one_shipping_option            = count( $package['rates'] ) === 1;
-				$recurring_rates_match_initial_rates = isset( $package['rates'][ $chosen_initial_method ] ) && isset( $initial_packages[ $package_index ] ) && $package['rates'] == $initial_packages[ $package_index ]['rates']; // phpcs:ignore WordPress.PHP.StrictComparisons
+				$recurring_rates_match_initial_rates = WC_Subscriptions_Cart::package_rates_match_initial_rates( $initial_packages, $package, $recurring_cart_package_key, $recurring_cart );
 
-				if ( $only_one_shipping_option || ( $recurring_rates_match_initial_rates && apply_filters( 'wcs_cart_totals_shipping_html_price_only', true, $package, $recurring_cart ) ) ) {
+				if ( $only_one_shipping_option || ( $is_package_found && $recurring_rates_match_initial_rates ) ) {
 					$shipping_method = ( 1 === count( $package['rates'] ) ) ? current( $package['rates'] ) : $package['rates'][ $chosen_initial_method ];
 					// packages match, display shipping amounts only
 					?>
