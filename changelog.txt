@@ -2,11 +2,10 @@
 
 2025-10-15 - version 8.0.0
 * Add: Blocks Checkout now displays a single shipping method selection for both initial and recurring carts, similar to Classic Checkout. This can be disabled using the `wcs_cart_totals_shipping_html_price_only` filter.
-* Update: Exclude orders with a "processing" status from the "subscription_orders" telemetry data.
-* Fix: Reactivating limited subscriptions from product page is now supported.
-* Fix: Gifting email previews.
-* Fix: Shipping label on blocks checkout no more shows up as "Free" when there's no shipping method available.
-* Dev: Opt-in tracking data. Data sent to WooCommerce:
+* Fix: Resubscribing to a limited subscription from the product page will now reactivate the existing subscription.
+* Fix: "New initial order - Recipient" email template preview no longer causes critical error.
+* Fix: Shipping value on blocks checkout no longer shows as "Free" when no shipping method is available.
+* Dev: Improved data telemetry which is sent to WooCommerce:
     * WooCommerce Subscriptions setting values
     * Order totals of subscription-related orders by order type and payment gateway, aggregated by month
     * Number of subscription-related orders by order type and payment gateway, aggregated by month
@@ -18,7 +17,7 @@
     * Number of gifted subscriptions
     * Number of subscribers
     * Purchase event for subscription products
-    * To disable this tracking, opt-out of WooCommerce tracking, see https://woocommerce.com/usage-tracking/
+    * Exclude orders with a "processing" status from the "subscription_orders" telemetry data.
 
 2025-09-16 - version 7.9.0
 * Add: REST API endpoint to retrieve subscriptions associated with a specific order ID.
