@@ -156,6 +156,11 @@ class WC_Subscriptions_Email_Notifications {
 		switch ( current_action() ) {
 			case 'woocommerce_scheduled_subscription_customer_notification_renewal':
 				$subscription = wcs_get_subscription( $subscription_id );
+
+				if ( ! $subscription ) {
+					break;
+				}
+
 				if ( $subscription->get_total() <= 0 ) {
 					break;
 				}
@@ -167,6 +172,11 @@ class WC_Subscriptions_Email_Notifications {
 				break;
 			case 'woocommerce_scheduled_subscription_customer_notification_trial_expiration':
 				$subscription = wcs_get_subscription( $subscription_id );
+
+				if ( ! $subscription ) {
+					break;
+				}
+
 				if ( $subscription->is_manual() ) {
 					$notification = $emails['WCS_Email_Customer_Notification_Manual_Trial_Expiration'];
 				} else {
@@ -268,7 +278,7 @@ class WC_Subscriptions_Email_Notifications {
 
 		$notification_settings = [
 			[
-				'name' => __( 'Customer Notifications', 'woocommerce-subscriptions' ),
+				'name' => __( 'Customer notifications', 'woocommerce-subscriptions' ),
 				'type' => 'title',
 				'id'   => WC_Subscriptions_Admin::$option_prefix . '_customer_notifications',
 				/* translators: Link to WC Settings > Email. */
@@ -304,7 +314,9 @@ class WC_Subscriptions_Email_Notifications {
 			],
 		];
 
-		WC_Subscriptions_Admin::insert_setting_after( $settings, WC_Subscriptions_Admin::$option_prefix . '_miscellaneous', $notification_settings, 'multiple_settings', 'sectionend' );
+		if ( ! WC_Subscriptions_Admin::insert_setting_after( $settings, WC_Subscriptions_Admin::$option_prefix . '_miscellaneous', $notification_settings, 'multiple_settings', 'sectionend' ) ) {
+			$settings = array_merge( $settings, $notification_settings );
+		}
 		return $settings;
 	}
 }

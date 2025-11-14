@@ -1282,18 +1282,6 @@ class WC_Subscriptions_Product {
 	}
 
 	/**
-	 * If a product is being marked as not purchasable because it is limited and the customer has a subscription,
-	 * but the current request is to resubscribe to the subscription, then mark it as purchasable.
-	 *
-	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
-	 * @return bool
-	 */
-	public static function is_purchasable( $is_purchasable, $product ) {
-		_deprecated_function( __METHOD__, '2.1', 'WCS_Limiter::is_purchasable_product' );
-		return WCS_Limiter::is_purchasable_product( $is_purchasable, $product );
-	}
-
-	/**
 	 * Check if the current session has an order awaiting payment for a subscription to a specific product line item.
 	 *
 	 * @return bool

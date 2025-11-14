@@ -187,14 +187,20 @@ class WCS_My_Account_Payment_Methods {
 			return;
 		}
 
-		// translators: 1: token display name, 2: opening link tag, 4: closing link tag, 3: opening link tag.
-		$notice = sprintf( esc_html__( 'Would you like to update your subscriptions to use this new payment method - %1$s?%2$sYes%4$s | %3$sNo%4$s', 'woocommerce-subscriptions' ),
+		$notice = sprintf(
+			// translators: 1: token display name, 2: opening link tag, 4: closing link tag, 3: opening link tag.
+			esc_html__( 'Would you like to update your subscriptions to use this new payment method - %1$s?%2$sYes%4$s | %3$sNo%4$s', 'woocommerce-subscriptions' ),
 			$default_token->get_display_name(),
-			'</br><a href="' . esc_url( add_query_arg( array(
-				'update-subscription-tokens' => 'true',
-				'token-id'                   => $default_token_id,
-				'_wcsnonce'                  => wp_create_nonce( 'wcs-update-subscription-tokens' ),
-			), wc_get_account_endpoint_url( 'payment-methods' ) ) ) . '"><strong>',
+			'<br><a href="' . esc_url(
+				add_query_arg(
+					array(
+						'update-subscription-tokens' => 'true',
+						'token-id'                   => $default_token_id,
+						'_wcsnonce'                  => wp_create_nonce( 'wcs-update-subscription-tokens' ),
+					),
+					wc_get_account_endpoint_url( 'payment-methods' )
+				)
+			) . '"><strong>',
 			'<a href=""><strong>',
 			'</strong></a>'
 		);

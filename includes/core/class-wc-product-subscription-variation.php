@@ -18,24 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WC_Product_Subscription_Variation extends WC_Product_Variation {
 
 	/**
-	 * A way to access the old array property.
-	 */
-	protected $subscription_variation_level_meta_data;
-
-	/**
-	 * Create a simple subscription product object.
-	 *
-	 * @access public
-	 * @param mixed $product
-	 */
-	public function __construct( $product = 0 ) {
-
-		parent::__construct( $product );
-
-		$this->subscription_variation_level_meta_data = new WCS_Array_Property_Post_Meta_Black_Magic( $this->get_id() );
-	}
-
-	/**
 	 * Magic __get method for backwards compatibility. Map legacy vars to WC_Subscriptions_Product getters.
 	 *
 	 * @param  string $key Key name.
@@ -43,19 +25,11 @@ class WC_Product_Subscription_Variation extends WC_Product_Variation {
 	 */
 	public function __get( $key ) {
 
-		if ( 'subscription_variation_level_meta_data' === $key ) {
+		$value = wcs_product_deprecated_property_handler( $key, $this );
 
-			wcs_deprecated_argument( __CLASS__ . '::$' . $key, '2.2.0', 'Product properties should not be accessed directly with WooCommerce 3.0+. Use the getter in WC_Subscriptions_Product instead.' );
-
-			$value = $this->subscription_variation_level_meta_data; // Behold, the horror that is the magic of WCS_Array_Property_Post_Meta_Black_Magic
-		} else {
-
-			$value = wcs_product_deprecated_property_handler( $key, $this );
-
-			// No matching property found in wcs_product_deprecated_property_handler()
-			if ( is_null( $value ) ) {
-				$value = parent::__get( $key );
-			}
+		// No matching property found in wcs_product_deprecated_property_handler()
+		if ( is_null( $value ) ) {
+			$value = parent::__get( $key );
 		}
 
 		return $value;
@@ -89,7 +63,6 @@ class WC_Product_Subscription_Variation extends WC_Product_Variation {
 	/**
 	 * Get the add to cart button text
 	 *
-	 * @access public
 	 * @return string
 	 */
 	public function add_to_cart_text() {
@@ -106,7 +79,6 @@ class WC_Product_Subscription_Variation extends WC_Product_Variation {
 	/**
 	 * Get the add to cart button text for the single page
 	 *
-	 * @access public
 	 * @return string
 	 */
 	public function single_add_to_cart_text() {
@@ -116,7 +88,6 @@ class WC_Product_Subscription_Variation extends WC_Product_Variation {
 	/**
 	 * Checks if the variable product this variation belongs to is purchasable.
 	 *
-	 * @access public
 	 * @return bool
 	 */
 	public function is_purchasable() {
@@ -128,12 +99,11 @@ class WC_Product_Subscription_Variation extends WC_Product_Variation {
 	 * Checks the product type to see if it is either this product's type or the parent's
 	 * product type.
 	 *
-	 * @access public
 	 * @param mixed $type Array or string of types
 	 * @return bool
 	 */
 	public function is_type( $type ) {
-		if ( 'variation' == $type || ( is_array( $type ) && in_array( 'variation', $type ) ) ) {
+		if ( 'variation' === $type || ( is_array( $type ) && in_array( 'variation', $type, true ) ) ) {
 			return true;
 		} else {
 			return parent::is_type( $type );

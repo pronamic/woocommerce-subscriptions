@@ -604,6 +604,10 @@ class WCS_Cart_Renewal {
 
 			$subscription = wcs_get_subscription( $cart_renewal_item[ $this->cart_item_key ]['subscription_id'] );
 
+			if ( ! $subscription ) {
+				return $update_customer_data;
+			}
+
 			$billing_address = array();
 			if ( $checkout_object->checkout_fields['billing'] ) {
 				foreach ( array_keys( $checkout_object->checkout_fields['billing'] ) as $field ) {
@@ -625,19 +629,6 @@ class WCS_Cart_Renewal {
 		}
 
 		return $update_customer_data;
-	}
-
-	/**
-	 * If a product is being marked as not purchasable because it is limited and the customer has a subscription,
-	 * but the current request is to resubscribe to the subscription, then mark it as purchasable.
-	 *
-	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
-	 * @return bool
-	 */
-	public function is_purchasable( $is_purchasable, $product ) {
-		_deprecated_function( __METHOD__, '2.1', 'WCS_Limiter::is_purchasable_renewal' );
-		return WCS_Limiter::is_purchasable_renewal( $is_purchasable, $product );
-
 	}
 
 	/**
@@ -1195,7 +1186,12 @@ class WCS_Cart_Renewal {
 		$cart_renewal_item = $this->cart_contains();
 
 		if ( false !== $cart_renewal_item ) {
-			$subscription         = wcs_get_subscription( $cart_renewal_item[ $this->cart_item_key ]['subscription_id'] );
+			$subscription = wcs_get_subscription( $cart_renewal_item[ $this->cart_item_key ]['subscription_id'] );
+
+			if ( ! $subscription ) {
+				return;
+			}
+
 			$subscription_updated = false;
 
 			foreach ( [ 'billing', 'shipping' ] as $address_type ) {
@@ -1230,6 +1226,10 @@ class WCS_Cart_Renewal {
 
 		if ( false !== $cart_renewal_item ) {
 			$subscription = wcs_get_subscription( $cart_renewal_item[ $this->cart_item_key ]['subscription_id'] );
+
+			if ( ! $subscription ) {
+				return;
+			}
 
 			// Billing address is a required field.
 			foreach ( $request['billing_address'] as $key => $value ) {

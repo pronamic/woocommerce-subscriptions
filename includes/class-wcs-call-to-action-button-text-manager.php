@@ -30,7 +30,7 @@ class WCS_Call_To_Action_Button_Text_Manager {
 	public static function add_settings( $settings ) {
 		$button_text_settings = array(
 			array(
-				'name' => __( 'Button Text', 'woocommerce-subscriptions' ),
+				'name' => __( 'Button text', 'woocommerce-subscriptions' ),
 				'type' => 'title',
 				'desc' => '',
 				'id'   => WC_Subscriptions_Admin::$option_prefix . '_button_text',

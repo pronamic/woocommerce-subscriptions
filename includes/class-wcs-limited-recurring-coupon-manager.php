@@ -357,7 +357,12 @@ class WCS_Limited_Recurring_Coupon_Manager {
 		$has_limited_coupon = false;
 
 		if ( $change_payment && isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) ) ) {
-			$subscription       = wcs_get_subscription( $change_payment );
+			$subscription = wcs_get_subscription( $change_payment );
+
+			if ( ! $subscription ) {
+				return $gateways;
+			}
+
 			$has_limited_coupon = self::order_has_limited_recurring_coupon( $subscription );
 		}
 

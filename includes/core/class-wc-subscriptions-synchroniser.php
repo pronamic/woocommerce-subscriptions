@@ -197,7 +197,7 @@ class WC_Subscriptions_Synchroniser {
 	public static function add_settings( $settings ) {
 		$synchronisation_settings = array(
 			array(
-				'name' => __( 'Synchronisation', 'woocommerce-subscriptions' ),
+				'name' => __( 'Synchronization', 'woocommerce-subscriptions' ),
 				'type' => 'title',
 				// translators: placeholders are opening and closing link tags
 				'desc' => sprintf( _x( 'Align subscription renewal to a specific day of the week, month or year. For example, the first day of the month. %1$sLearn more%2$s.', 'used in the general subscription options page', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'https://woocommerce.com/document/subscriptions/renewal-synchronisation/' ) . '">', '</a>' ),

@@ -106,7 +106,7 @@ function wcs_get_users_resubscribe_link_for_product( $product_id ) {
  * Checks the cart to see if it contains a subscription product renewal.
  *
  * @param bool|array $cart The cart item containing the renewal, else false.
- * @return string
+ * @return array|false
  * @since  1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 function wcs_cart_contains_resubscribe( $cart = null ) {
@@ -181,6 +181,10 @@ function wcs_can_user_resubscribe_to( $subscription, $user_id = 0 ) {
 		$can_user_resubscribe = false;
 
 	} elseif ( $subscription->get_total() <= 0 ) {
+
+		$can_user_resubscribe = false;
+
+	} elseif ( $subscription->contains_unavailable_product() ) {
 
 		$can_user_resubscribe = false;
 

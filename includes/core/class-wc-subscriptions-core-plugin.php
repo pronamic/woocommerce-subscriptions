@@ -542,6 +542,9 @@ class WC_Subscriptions_Core_Plugin {
 				update_option( WC_Subscriptions_Admin::$option_prefix . WC_Subscriptions_Email_Notifications::$switch_setting_string, 'yes' );
 			}
 
+			// Setup downloads table.
+			WC_Subscription_Downloads::install();
+
 			update_option( WC_Subscriptions_Admin::$option_prefix . '_is_active', true );
 
 			set_transient( $this->get_activation_transient(), true, 60 * 60 );

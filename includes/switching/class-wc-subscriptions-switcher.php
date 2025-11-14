@@ -1211,7 +1211,7 @@ class WC_Subscriptions_Switcher {
 	public static function cart_contains_switches( $item_action = 'switch' ) {
 		$subscription_switches = [];
 
-		if ( is_admin() && ( ! defined( 'DOING_AJAX' ) || false == DOING_AJAX ) ) {
+		if ( is_admin() && ! wp_doing_ajax() ) {
 			return false;
 		}
 
@@ -1312,7 +1312,12 @@ class WC_Subscriptions_Switcher {
 			return;
 		}
 
-		$subscription  = wcs_get_subscription( $cart_item_data['subscription_switch']['subscription_id'] );
+		$subscription = wcs_get_subscription( $cart_item_data['subscription_switch']['subscription_id'] );
+
+		if ( ! $subscription ) {
+			return;
+		}
+
 		$existing_item = wcs_get_order_item( $cart_item_data['subscription_switch']['item_id'], $subscription );
 		$cart_item     = WC()->cart->get_cart_item( $cart_item_key );
 
@@ -1360,8 +1365,13 @@ class WC_Subscriptions_Switcher {
 			}
 
 			$subscription = wcs_get_subscription( absint( $_GET['switch-subscription'] ) );
-			$item_id      = absint( $_GET['item'] );
-			$item         = wcs_get_order_item( $item_id, $subscription );
+
+			if ( ! $subscription ) {
+				throw new Exception( __( 'The subscription may have been deleted.', 'woocommerce-subscriptions' ) );
+			}
+
+			$item_id = absint( $_GET['item'] );
+			$item    = wcs_get_order_item( $item_id, $subscription );
 
 			// Prevent switching to non-subscription product
 			if ( ! WC_Subscriptions_Product::is_subscription( $product_id ) ) {
@@ -1437,6 +1447,10 @@ class WC_Subscriptions_Switcher {
 			}
 
 			$subscription = wcs_get_subscription( absint( $_GET['switch-subscription'] ) );
+
+			if ( ! $subscription ) {
+				throw new Exception( __( 'The subscription may have been deleted.', 'woocommerce-subscriptions' ) );
+			}
 
 			// Requesting a switch for someone elses subscription
 			if ( ! current_user_can( 'switch_shop_subscription', $subscription->get_id() ) ) {
@@ -1983,6 +1997,10 @@ class WC_Subscriptions_Switcher {
 			// Subscription objects hold an internal cache of line items so we need to get an updated subscription object after changing the line item types directly in the database.
 			$subscription = wcs_get_subscription( $subscription_id );
 
+			if ( ! $subscription ) {
+				continue;
+			}
+
 			if ( ! empty( $add_note ) ) {
 				$subscription->add_order_note( $add_note );
 			}
@@ -2056,7 +2074,11 @@ class WC_Subscriptions_Switcher {
 			$subscription->save();
 
 			// We just changed above the type of some items related to this subscription, so we need to reload it to get the newest items
-			wcs_get_subscription( $subscription->get_id() )->calculate_totals();
+			$refreshed_subscription = wcs_get_subscription( $subscription->get_id() );
+
+			if ( $refreshed_subscription ) {
+				$refreshed_subscription->calculate_totals();
+			}
 		}
 	}
 
@@ -2101,6 +2123,10 @@ class WC_Subscriptions_Switcher {
 			}
 
 			$subscription = wcs_get_subscription( $cart_item['subscription_switch']['subscription_id'] );
+
+			if ( ! $subscription ) {
+				continue;
+			}
 
 			$is_manual_subscription = $subscription->is_manual();
 
@@ -2546,6 +2572,10 @@ class WC_Subscriptions_Switcher {
 
 				$subscription = wcs_get_subscription( $cart_item['subscription_switch']['subscription_id'] );
 
+				if ( ! $subscription ) {
+					continue;
+				}
+
 				if (
 					! self::is_single_item_subscription( $subscription ) && (
 					self::has_different_length( $recurring_cart, $subscription ) ||
@@ -2607,6 +2637,11 @@ class WC_Subscriptions_Switcher {
 				}
 
 				$subscription = wcs_get_subscription( $cart_item['subscription_switch']['subscription_id'] );
+
+				if ( ! $subscription ) {
+					continue;
+				}
+
 				$switch_order = $subscription->get_last_order( 'all', 'switch' );
 
 				if ( empty( $switch_order ) ) {

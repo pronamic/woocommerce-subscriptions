@@ -139,6 +139,11 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			$subscription     = wcs_get_subscription( absint( $wp->query_vars['order-pay'] ) );
 			$subscription_key = isset( $_GET['key'] ) ? wc_clean( $_GET['key'] ) : '';
 
+			if ( ! $subscription ) {
+				wc_print_notice( __( 'There was an unexpected problem with your request. Please try again.', 'woocommerce-subscriptions' ), 'error' );
+				return;
+			}
+
 			do_action( 'before_woocommerce_pay' );
 
 			/**
@@ -276,19 +281,27 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
 	 */
 	public static function change_payment_method_via_pay_shortcode() {
-
 		if ( ! isset( $_POST['_wcsnonce'] ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_change_payment_method' ) ) {
 			return;
 		}
 
 		$subscription_id = absint( wc_clean( wp_unslash( $_POST['woocommerce_change_payment'] ) ) );
-		$subscription = wcs_get_subscription( $subscription_id );
+		$subscription    = wcs_get_subscription( $subscription_id );
+
+		if ( ! $subscription ) {
+			wc_add_notice( __( 'There was an unexpected problem with your request. Please try again.', 'woocommerce-subscriptions' ), 'error' );
+			return;
+		}
 
 		do_action( 'woocommerce_subscription_change_payment_method_via_pay_shortcode', $subscription );
 
-		ob_start();
+		if ( ! $subscription instanceof WC_Subscription || $subscription->get_order_key() !== wc_clean( wp_unslash( $_GET['key'] ?? '' ) ) ) {
+			return;
+		}
 
-		if ( $subscription->get_order_key() == wc_clean( wp_unslash( $_GET['key'] ) ) ) {
+		try {
+			// We open an output buffer to suppress any error noise that might break the redirect.
+			$output_buffer_opened = ob_start();
 
 			$subscription_billing_country  = $subscription->get_billing_country();
 			$subscription_billing_state    = $subscription->get_billing_state();
@@ -359,6 +372,11 @@ class WC_Subscriptions_Change_Payment_Gateway {
 				 */
 				$subscription = wcs_get_subscription( $subscription->get_id() );
 
+				if ( ! $subscription ) {
+					wc_add_notice( __( 'There was an unexpected problem with your request. Please try again.', 'woocommerce-subscriptions' ), 'error' );
+					return;
+				}
+
 				$subscription->set_requires_manual_renewal( false );
 				$subscription->save();
 
@@ -383,9 +401,13 @@ class WC_Subscriptions_Change_Payment_Gateway {
 				wp_safe_redirect( $result['redirect'] );
 				exit;
 			}
+		} finally {
+			// Close the output buffer (if we exited, this will have happened automatically, so this is primarily here
+			// to ensure we clean-up in the event that we returned early).
+			if ( $output_buffer_opened ) {
+				ob_clean();
+			}
 		}
-
-		ob_get_clean();
 	}
 
 	/**
@@ -595,7 +617,12 @@ class WC_Subscriptions_Change_Payment_Gateway {
 		 */
 		if ( ! $is_change_payment_method_request && $cart_contains_failed_renewal ) {
 			$subscription = wcs_get_subscription( $renewal_order_cart_item['subscription_renewal']['subscription_id'] );
-			$cart_contains_failed_manual_renewal = $subscription->is_manual();
+
+			// If the subscription has been deleted (which is a reason $subscription may be false), we probably do not
+			// need to concern ourselves with a failed manual renewal.
+			if ( $subscription ) {
+				$cart_contains_failed_manual_renewal = $subscription->is_manual();
+			}
 		}
 
 		if ( apply_filters( 'wcs_payment_gateways_change_payment_method', $is_change_payment_method_request || ( $cart_contains_failed_renewal && ! $cart_contains_failed_manual_renewal ) ) ) {
@@ -728,6 +755,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 		}
 
 		$subscription = wcs_get_subscription( absint( $wp->query_vars['order-pay'] ) );
+
 		if ( ! $subscription ) {
 			return $title;
 		}
@@ -823,19 +851,19 @@ class WC_Subscriptions_Change_Payment_Gateway {
 
 		$subscription = wcs_get_subscription( absint( $wp->query_vars['order-pay'] ) );
 
-		if ( $subscription ) {
-			wc_add_notice( __( 'Please log in to your account below to choose a new payment method for your subscription.', 'woocommerce-subscriptions' ), 'notice' );
-
-			ob_start();
-			woocommerce_login_form( array(
-				'redirect' => $subscription->get_change_payment_method_url(),
-				'message'  => wc_print_notices( true ),
-			) );
-
-			$content = ob_get_clean();
+		if ( ! $subscription ) {
+			return $content;
 		}
 
-		return $content;
+		wc_add_notice( __( 'Please log in to your account below to choose a new payment method for your subscription.', 'woocommerce-subscriptions' ), 'notice' );
+
+		ob_start();
+		woocommerce_login_form( array(
+			'redirect' => $subscription->get_change_payment_method_url(),
+			'message'  => wc_print_notices( true ),
+		) );
+
+		return ob_get_clean();
 	}
 
 	/** Deprecated Functions **/

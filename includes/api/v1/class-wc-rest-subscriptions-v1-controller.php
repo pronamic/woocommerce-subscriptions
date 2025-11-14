@@ -83,6 +83,10 @@ class WC_REST_Subscriptions_V1_Controller extends WC_REST_Orders_V1_Controller {
 		if ( ! empty( $post->post_type ) && ! empty( $post->ID ) && 'shop_subscription' == $post->post_type ) {
 			$subscription = wcs_get_subscription( $post->ID );
 
+			if ( ! $subscription ) {
+				return $response;
+			}
+
 			$response->data['billing_period']   = $subscription->get_billing_period();
 			$response->data['billing_interval'] = $subscription->get_billing_interval();
 
@@ -292,8 +296,13 @@ class WC_REST_Subscriptions_V1_Controller extends WC_REST_Orders_V1_Controller {
 			return new WP_Error( 'woocommerce_rest_invalid_shop_subscription_id', __( 'Invalid subscription id.', 'woocommerce-subscriptions' ), array( 'status' => 404 ) );
 		}
 
-		$this->post_type     = 'shop_order';
-		$subscription        = wcs_get_subscription( $id );
+		$this->post_type = 'shop_order';
+		$subscription    = wcs_get_subscription( $id );
+
+		if ( ! $subscription ) {
+			return new WP_Error( 'woocommerce_rest_invalid_shop_subscription_id', __( 'Invalid subscription id.', 'woocommerce-subscriptions' ), array( 'status' => 404 ) );
+		}
+
 		$subscription_orders = $subscription->get_related_orders();
 
 		$orders = array();
@@ -370,6 +379,10 @@ class WC_REST_Subscriptions_V1_Controller extends WC_REST_Orders_V1_Controller {
 			// Reload the subscription to update the meta values.
 			// In particular, the update_post_meta() called while _stripe_card_id is updated to _stripe_source_id
 			$subscription = wcs_get_subscription( $subscription->get_id() );
+
+			if ( ! $subscription ) {
+				throw new WC_REST_Exception( 'woocommerce_rest_payment_update_failed', __( 'Subscription payment method could not be set updated due to technical issues.', 'woocommerce-subscriptions' ), 500 );
+			}
 
 			if ( isset( $payment_method_meta[ $payment_method ] ) ) {
 				$payment_method_meta = $payment_method_meta[ $payment_method ];

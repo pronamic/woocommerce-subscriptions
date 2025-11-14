@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					sprintf( // Translators: The %1 placeholder is the translated order relationship ("Parent Order"), %2 placeholder is a <br> HTML tag.
 						__( 'This %1$s couldn\'t be loaded from the database. %1$s Click to learn more.', 'woocommerce-subscriptions' ),
 						esc_html( $relationship ),
-						'</br>'
+						'<br>'
 					)
 				);
 				?>

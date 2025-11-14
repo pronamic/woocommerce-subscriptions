@@ -5,10 +5,10 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
- * Version: 8.0.0
+ * Version: 8.1.0
  * Requires Plugins: woocommerce
  *
- * WC requires at least: 10.1.0
+ * WC requires at least: 10.2.0
  * WC tested up to: 10.3.0
  * Requires PHP: 7.4
  *
@@ -47,6 +47,15 @@ add_action(
 	}
 );
 
+add_action(
+	'woocommerce_init',
+	function () {
+		// Overrides the WooCommerce version to the WC()->version.
+		// This prevents the wrong version being stored in the transient during a WooCommerce core downgrade.
+		set_transient( 'wcs_woocommerce_active_version', WC()->version, HOUR_IN_SECONDS );
+	}
+);
+
 // Subscribe to automated translations.
 add_filter( 'woocommerce_translations_updates_for_woocommerce-subscriptions', '__return_true' );
 
@@ -75,7 +84,7 @@ class WC_Subscriptions {
 	public static $plugin_file = __FILE__;
 
 	/** @var string */
-	public static $version = '8.0.0'; // WRCS: DEFINED_VERSION.
+	public static $version = '8.1.0'; // WRCS: DEFINED_VERSION.
 
 	/** @var string */
 	public static $wc_minimum_supported_version = '7.7';

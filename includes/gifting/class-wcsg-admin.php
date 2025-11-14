@@ -32,7 +32,7 @@ class WCSG_Admin {
 
 		add_filter( 'woocommerce_order_items_meta_get_formatted', __CLASS__ . '::remove_recipient_order_item_meta', 1, 1 );
 
-		add_filter( 'woocommerce_subscription_settings', __CLASS__ . '::add_settings', 10, 1 );
+		add_filter( 'woocommerce_subscription_settings', __CLASS__ . '::add_settings' );
 
 		if ( wcsg_is_wc_subscriptions_pre( '2.3.5' ) ) {
 			add_filter( 'request', __CLASS__ . '::request_query', 11, 1 );
@@ -112,7 +112,12 @@ class WCSG_Admin {
 
 		if ( 'order_title' === $column && WCS_Gifting::is_gifted_subscription( $subscription ) ) {
 
-			$recipient_id   = WCS_Gifting::get_recipient_user( $subscription );
+			$recipient_id = WCS_Gifting::get_recipient_user( $subscription );
+
+			if ( ! $recipient_id ) {
+				return $column_content;
+			}
+
 			$recipient_user = get_userdata( $recipient_id );
 			$recipient_name = '<a href="' . esc_url( get_edit_user_link( $recipient_id ) ) . '">';
 
@@ -172,50 +177,52 @@ class WCSG_Admin {
 	 * @return array $settings New set of settings.
 	 */
 	public static function add_settings( $settings ) {
-
-		return array_merge(
-			$settings,
+		$gifting_settings = array(
 			array(
-				array(
-					'name' => __( 'Gifting', 'woocommerce-subscriptions' ),
-					'type' => 'title',
-					'id'   => self::$option_prefix,
+				'name' => __( 'Gifting', 'woocommerce-subscriptions' ),
+				'type' => 'title',
+				'id'   => self::$option_prefix,
+			),
+			array(
+				'name'      => __( 'Enable gifting', 'woocommerce-subscriptions' ),
+				'desc'      => __( 'Allow shoppers to gift a subscription', 'woocommerce-subscriptions' ),
+				'id'        => self::$option_prefix . '_enable_gifting',
+				'default'   => 'no',
+				'type'      => 'checkbox',
+				'row_class' => 'enable-gifting',
+			),
+			array(
+				'name'        => '',
+				'desc'        => __( 'You can override this global setting on each product.', 'woocommerce-subscriptions' ),
+				'id'          => self::$option_prefix . '_default_option',
+				'default'     => 'disabled',
+				'type'        => 'radio',
+				'desc_at_end' => true,
+				'row_class'   => 'gifting-radios',
+				'options'     => array(
+					'enabled'  => __( 'Enabled for all products', 'woocommerce-subscriptions' ),
+					'disabled' => __( 'Disabled for all products', 'woocommerce-subscriptions' ),
 				),
-				array(
-					'name'      => __( 'Enable gifting', 'woocommerce-subscriptions' ),
-					'desc'      => __( 'Allow shoppers to gift a subscription', 'woocommerce-subscriptions' ),
-					'id'        => self::$option_prefix . '_enable_gifting',
-					'default'   => 'no',
-					'type'      => 'checkbox',
-					'row_class' => 'enable-gifting',
-				),
-				array(
-					'name'        => '',
-					'desc'        => __( 'You can override this global setting on each product.', 'woocommerce-subscriptions' ),
-					'id'          => self::$option_prefix . '_default_option',
-					'default'     => 'disabled',
-					'type'        => 'radio',
-					'desc_at_end' => true,
-					'row_class'   => 'gifting-radios',
-					'options'     => array(
-						'enabled'  => __( 'Enabled for all products', 'woocommerce-subscriptions' ),
-						'disabled' => __( 'Disabled for all products', 'woocommerce-subscriptions' ),
-					),
-				),
-				array(
-					'name'      => __( 'Gifting Checkbox Text', 'woocommerce-subscriptions' ),
-					'desc'      => __( 'This is what shoppers will see in the product page and cart.', 'woocommerce-subscriptions' ),
-					'id'        => self::$option_prefix . '_gifting_checkbox_text',
-					'default'   => __( 'This is a gift', 'woocommerce-subscriptions' ),
-					'type'      => 'text',
-					'row_class' => 'gifting-checkbox-text',
-				),
-				array(
-					'type' => 'sectionend',
-					'id'   => self::$option_prefix,
-				),
-			)
+			),
+			array(
+				'name'      => __( 'Gifting Checkbox Text', 'woocommerce-subscriptions' ),
+				'desc'      => __( 'This is what shoppers will see in the product page and cart.', 'woocommerce-subscriptions' ),
+				'id'        => self::$option_prefix . '_gifting_checkbox_text',
+				'default'   => __( 'This is a gift', 'woocommerce-subscriptions' ),
+				'type'      => 'text',
+				'row_class' => 'gifting-checkbox-text',
+			),
+			array(
+				'type' => 'sectionend',
+				'id'   => self::$option_prefix,
+			),
 		);
+
+		if ( ! WC_Subscriptions_Admin::insert_setting_after( $settings, WC_Subscriptions_Admin::$option_prefix . '_renewal_options', $gifting_settings, 'multiple_settings', 'sectionend' ) ) {
+			return array_merge( $settings, $gifting_settings );
+		}
+
+		return $settings;
 	}
 
 	/**
@@ -277,9 +284,12 @@ class WCSG_Admin {
 			$user_string = '';
 			$user_id     = '';
 			if ( WCS_Gifting::is_gifted_subscription( $subscription ) ) {
-				$user_id     = WCS_Gifting::get_recipient_user( $subscription );
-				$user        = get_user_by( 'id', $user_id );
-				$user_string = esc_html( $user->display_name ) . ' (#' . absint( $user->ID ) . ' &ndash; ' . esc_html( $user->user_email );
+				$user_id = WCS_Gifting::get_recipient_user( $subscription );
+
+				if ( $user_id ) {
+					$user        = get_user_by( 'id', $user_id );
+					$user_string = esc_html( $user->display_name ) . ' (#' . absint( $user->ID ) . ' &ndash; ' . esc_html( $user->user_email );
+				}
 			}
 
 			if ( is_callable( array( 'WCS_Select2', 'render' ) ) ) {

@@ -756,7 +756,18 @@ class WC_Subscriptions_Coupon {
 	 * @return bool Whether the current page is the coupon edit page.
 	 */
 	public static function is_coupon_edit_page() {
-		$current_post_type = $_GET['post_type'] ?? ''; // phpcs:ignore
+		global $pagenow;
+
+		$current_post_type = '';
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		if ( 'post.php' === $pagenow && isset( $_GET['post'] ) ) {
+			$current_post_type = get_post_type( $_GET['post'] );
+		} elseif ( isset( $_GET['post_type'] ) ) {
+			$current_post_type = $_GET['post_type'];
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+
 		return 'shop_coupon' === $current_post_type;
 	}
 

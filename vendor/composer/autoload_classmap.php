@@ -137,4 +137,10 @@ return array(
     'WCSG_Recipient_Management' => $baseDir . '/includes/gifting/class-wcsg-recipient-management.php',
     'WCSG_Template_Loader' => $baseDir . '/includes/gifting/class-wcsg-template-loader.php',
     'WCS_Gifting' => $baseDir . '/includes/gifting/class-wcs-gifting.php',
+    'WC_Subscription_Downloads' => $baseDir . '/includes/downloads/class-wc-subscription-downloads.php',
+    'WC_Subscription_Downloads_Ajax' => $baseDir . '/includes/downloads/class-wc-subscription-downloads-ajax.php',
+    'WC_Subscription_Downloads_Install' => $baseDir . '/includes/downloads/class-wc-subscription-downloads-install.php',
+    'WC_Subscription_Downloads_Order' => $baseDir . '/includes/downloads/class-wc-subscription-downloads-order.php',
+    'WC_Subscription_Downloads_Products' => $baseDir . '/includes/downloads/class-wc-subscription-downloads-products.php',
+    'WC_Subscription_Downloads_Settings' => $baseDir . '/includes/downloads/class-wc-subscription-downloads-settings.php',
 );

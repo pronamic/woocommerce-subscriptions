@@ -280,7 +280,7 @@ class WCS_Staging {
 		if ( 'subscriptions_install' === $source ) {
 			$site_url = self::get_live_site_url();
 		} elseif ( ! is_multisite() && defined( 'WP_SITEURL' ) ) {
-			$site_url = WP_SITEURL;
+			$site_url = WP_SITEURL; // @phpstan-ignore phpstanWP.wpConstant.fetch (Using constant for performance and staging-specific behavior)
 		} else {
 			$site_url = get_site_url();
 		}

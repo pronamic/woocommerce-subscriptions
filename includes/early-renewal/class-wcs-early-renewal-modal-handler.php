@@ -178,6 +178,10 @@ class WCS_Early_Renewal_Modal_Handler {
 		$user_id      = ! empty( $user_id ) ? absint( $user_id ) : get_current_user_id();
 		$subscription = wcs_get_subscription( $subscription );
 
+		if ( ! $subscription ) {
+			return false;
+		}
+
 		if ( ! WCS_Early_Renewal_Manager::is_early_renewal_via_modal_enabled() || ! wcs_can_user_renew_early( $subscription, $user_id ) ) {
 			return false;
 		}

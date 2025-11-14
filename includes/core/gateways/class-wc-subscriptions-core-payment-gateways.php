@@ -266,14 +266,14 @@ class WC_Subscriptions_Core_Payment_Gateways {
 		}
 
 		$status_html .= '<span class="payment-method-features-info tips" data-tip="';
-		$status_html .= esc_attr( '<strong><u>' . __( 'Supported features:', 'woocommerce-subscriptions' ) . '</u></strong></br>' . implode( '<br />', str_replace( '_', ' ', $core_features ) ) );
+		$status_html .= esc_attr( '<strong><u>' . __( 'Supported features:', 'woocommerce-subscriptions' ) . '</u></strong><br>' . implode( '<br>', str_replace( '_', ' ', $core_features ) ) );
 
 		if ( ! empty( $subscription_features ) ) {
-			$status_html .= esc_attr( '</br><strong><u>' . __( 'Subscription features:', 'woocommerce-subscriptions' ) . '</u></strong></br>' . implode( '<br />', str_replace( '_', ' ', $subscription_features ) ) );
+			$status_html .= esc_attr( '<br><strong><u>' . __( 'Subscription features:', 'woocommerce-subscriptions' ) . '</u></strong><br>' . implode( '<br>', str_replace( '_', ' ', $subscription_features ) ) );
 		}
 
 		if ( ! empty( $change_payment_method_features ) ) {
-			$status_html .= esc_attr( '</br><strong><u>' . __( 'Change payment features:', 'woocommerce-subscriptions' ) . '</u></strong></br>' . implode( '<br />', str_replace( '_', ' ', $change_payment_method_features ) ) );
+			$status_html .= esc_attr( '<br><strong><u>' . __( 'Change payment features:', 'woocommerce-subscriptions' ) . '</u></strong><br>' . implode( '<br>', str_replace( '_', ' ', $change_payment_method_features ) ) );
 		}
 
 		$status_html .= '"></span>';

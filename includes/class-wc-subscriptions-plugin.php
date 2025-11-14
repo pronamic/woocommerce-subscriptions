@@ -44,6 +44,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'maybe_show_welcome_message' ) );
 		add_action( 'plugins_loaded', array( $this, 'init_gifting' ) );
+		add_action( 'plugins_loaded', array( $this, 'init_downloads' ) );
 	}
 
 	/**
@@ -284,6 +285,28 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 		);
 
 		WCS_Gifting::init();
+	}
+
+	/**
+	 * Attempts to initialize additional downloads functionality.
+	 *
+	 * This functionality makes it possible to link downloadable products with a subscription
+	 * product. Purchasers of the subscription product then automatically get access to the files associated with downloadable product.
+	 *
+	 * Previously, this functionality existed as a standalone plugin (WooCommerce Subscription Downnloads) and so,
+	 * before initializing, we try to determine if the standalone plugin is active and has already loaded (if it is
+	 * active, we do not proceed).
+	 */
+	public function init_downloads() {
+		if (
+			! defined( 'WCS_ALLOW_SUBSCRIPTION_DOWNLOADS' )
+			|| $this->is_plugin_being_activated( 'woocommerce-subscription-downloads' )
+			|| class_exists( WC_Subscription_Downloads::class, false )
+		) {
+			return;
+		}
+
+		WC_Subscription_Downloads::setup();
 	}
 
 	/**

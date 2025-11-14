@@ -237,7 +237,12 @@ class WCS_Cached_Data_Manager extends WCS_Cache_Manager {
 	protected function purge_subscription_user_cache( $subscription_id ) {
 		wcs_deprecated_argument( __METHOD__, '2.3.0', sprintf( __( 'Customer subscription caching is now handled by %1$s and %2$s.', 'woocommerce-subscriptions' ), 'WCS_Customer_Store_Cached_CPT', 'WCS_Post_Meta_Cache_Manager' ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment
 
-		$subscription         = wcs_get_subscription( $subscription_id );
+		$subscription = wcs_get_subscription( $subscription_id );
+
+		if ( ! $subscription ) {
+			return;
+		}
+
 		$subscription_user_id = $subscription->get_user_id();
 		$this->log( sprintf(
 			'Clearing cache for user ID %1$s on %2$s hook.',

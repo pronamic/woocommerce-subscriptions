@@ -34,6 +34,10 @@
     margin-bottom: 20px;
 }
 
+.woocommerce-cart-form__cart-item .wcsg_add_recipient_fields_container label {
+    margin-bottom: 4px;
+}
+
 .wcsg_add_recipient_fields_container .wcsg_add_recipient_fields .woocommerce_subscriptions_gifting_recipient_email {
     padding: 0;
     margin-bottom: 20px;

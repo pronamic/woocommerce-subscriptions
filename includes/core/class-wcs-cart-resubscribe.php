@@ -187,19 +187,6 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 	}
 
 	/**
-	 * If a product is being marked as not purchasable because it is limited and the customer has a subscription,
-	 * but the current request is to resubscribe to the subscription, then mark it as purchasable.
-	 *
-	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
-	 * @return bool
-	 */
-	public function is_purchasable( $is_purchasable, $product ) {
-		_deprecated_function( __METHOD__, '2.1', 'WCS_Limiter::is_purchasable_renewal' );
-		return WCS_Limiter::is_purchasable_renewal( $is_purchasable, $product );
-
-	}
-
-	/**
 	 * Checks the cart to see if it contains a subscription resubscribe item.
 	 *
 	 * @see wcs_cart_contains_resubscribe()

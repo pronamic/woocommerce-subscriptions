@@ -1,0 +1,256 @@
+// This data is sent under ['extensions']['wc_subscriptions].
+{
+
+  generation_timestamp: 1704067200, // int - unix timestamp when this data was generated
+  total_generation_time: 342.56,    // float - time taken to generate this data in milliseconds
+  telemetry_cache: "miss"           // string - hit|miss. Cache status - "hit" if from cache, "miss" if freshly generated
+
+  // --- Orders data
+  order_trends: {
+
+    by_order_type: {                  // object - monthly order data grouped by order type
+      store_gross: [                  // array - store's total GMV (all orders, not just subscription-related)
+        {
+          month: "2025-01",           // string - YYYY-MM format
+          gross: 1250.50,             // float - total value of all orders in this month
+        },
+        {
+          month: "2025-02",
+          gross: 1500.75,
+        },
+        // ... more months
+      ],
+
+      initial: [                      // array - parent orders (orders that created subscriptions)
+        {
+          month: "2025-01",           // string - YYYY-MM format
+          count: 15,                  // int - count of initial orders in this month
+          gross: 750.00,              // float - total value of initial orders in this month
+          non_zero_count: 12,         // int - count of initial orders with non-zero total in this month
+          quantity: 20,               // int - total quantity of items in initial orders in this month
+          non_zero_quantity: 18,      // int - total quantity of items in non-zero initial orders in this month
+        },
+        {
+          month: "2025-02",
+          count: 18,
+          gross: 900.00,
+          non_zero_count: 15,
+          quantity: 24,
+          non_zero_quantity: 22,
+        },
+        // ... more months
+      ],
+
+      renewal: [                      // array - renewal orders (recurring subscription payments)
+        {
+          month: "2025-01",
+          count: 10,
+          gross: 500.00,
+          non_zero_count: 8,
+        },
+        {
+          month: "2025-02",
+          count: 12,
+          gross: 600.00,
+          non_zero_count: 10,
+        },
+        // ... more months
+      ],
+
+      switch: [                       // array - switch orders (subscription product changes)
+        {
+          month: "2025-01",
+          count: 5,
+          gross: 250.00,
+          non_zero_count: 4,
+        },
+        // ... more months
+      ],
+
+      resubscribe: [                  // array - resubscribe orders (reactivated cancelled subscriptions)
+        {
+          month: "2025-01",
+          count: 2,
+          gross: 100.00,
+          non_zero_count: 2,
+        },
+        // ... more months
+      ],
+    },
+
+    by_payment_gateway: {   // object - monthly order data grouped by payment gateway
+      stripe: [                       // string key - payment gateway identifier (empty string for none)
+        {
+          month: "2024-01",           // string - YYYY-MM format
+          count: 145,                 // int - count of orders for this gateway in this month
+          gross: 12345.67,            // float - total value of orders for this gateway in this month
+        },
+        {
+          month: "2024-02",
+          count: 150,
+          gross: 13500.00,
+        },
+        // ... more months for this gateway
+      ],
+      paypal: [
+        {
+          month: "2024-01",
+          count: 30,
+          gross: 2500.00,
+        },
+        // ... more months for this gateway
+      ],
+      "": [                           // empty string key represents orders with no payment method
+        {
+          month: "2024-01",
+          count: 5,
+          gross: 0.00,
+        },
+      ],
+    },
+  },
+
+  // --- Subscription products data
+  products: {
+
+    frequencies: [                 // array of objects - billing frequencies for published subscription products
+      {
+        period: "month",           // string - 'day'|'week'|'month'|'year'
+        interval: 1,               // int - billing interval (1, 2, 3, etc.)
+        count: 45                  // int - count of products with this frequency
+      },
+      {
+        period: "month",
+        interval: 3,
+        count: 12
+      },
+      // ... more period/interval combinations
+    ],
+
+    giftable: 23,                  // int - count of active products eligible for gifting
+  },
+
+  // --- Subscriptions data
+  subscriptions: {
+
+    gifted: 15,                    // int - count of gifted subscriptions
+    renewing_automatically: 185,   // int - count of active subscriptions renewing automatically
+    renewing_manually: 15,         // int - count of active subscriptions requiring manual renewal
+    subscriber_count: 142,         // int - count of unique customers with at least one active subscription
+
+    payment_methods: [                      // array of objects - active subscriptions grouped by payment gateway
+      {
+        payment_method: "stripe",           // string - payment gateway identifier (empty string for none)
+        active_subscription_count: 127,     // int - count of active subscriptions
+        inactive_subscription_count: 36,    // int - count of inactive subscriptions
+        method_renews_off_site: "yes",      // string - 'yes'|'no'|'unknown'. Whether the payment gateway supports "gateway_scheduled_payments"
+        manual_renewal_only: "no",          // string - 'yes'|'no'|'unknown'. Whether the payment gateway supports "subscriptions"
+      },
+      {
+        payment_method: "",                 // empty string represents subscriptions with no payment method
+        active_subscription_count: 58,
+        inactive_subscription_count: 14,
+        method_renews_off_site: "unknown",  // "unknown" used when the paymeny gateway associated with the subscription isn't found in WC_Payment_Gateways
+        manual_renewal_only: "unknown",
+      }
+      // ... more payment gateways
+    ],
+
+    renewal_frequencies: [         // array of objects - billing frequencies for active subscriptions
+      {
+        period: "month",           // string - 'day'|'week'|'month'|'year'
+        interval: 1,               // int - billing interval (1, 2, 3, etc.)
+        count: 150                 // int - count of subscriptions with this frequency
+      },
+      {
+        period: "month",
+        interval: 3,
+        count: 35
+      },
+      // ... more period/interval combinations
+    ],
+
+    // --- Legacy subscriptions data
+                                  // Subscription dates
+    first: "2023-01-15 10:23:45", // string - date of first subscription in 'Y-m-d H:i:s' format, or '-' if none
+    last: "2024-12-28 16:42:12",  // string - date of last subscription in 'Y-m-d H:i:s' format, or '-' if none
+
+                                  // Subscription counts by status
+    "wc-active": "387",           // string - count of active subscriptions
+    "wc-on-hold": "23",           // string - count of on-hold subscriptions
+    "wc-pending": "12",           // string - count of pending subscriptions
+    "wc-cancelled": "145",        // string - count of cancelled subscriptions
+    "wc-expired": "67",           // string - count of expired subscriptions
+    "wc-pending-cancel": "5",     // string - count of pending cancellation subscriptions
+    "wc-switched": "0",           // string - count of switched subscriptions
+  },
+
+  // --- Legacy subscription orders data
+  subscription_orders: {
+    initial_count: "523",         // string - count of initial orders
+    initial_gross: "45234.50",    // string - total gross for initial orders
+
+    switch_count: "78",           // string - count of switch orders
+    switch_gross: "3421.25",      // string - total gross for switch orders
+
+    renewal_count: "1247",        // string - count of renewal orders
+    renewal_gross: "89234.75",    // string - total gross for renewal orders
+
+    resubscribe_count: "34",      // string - count of resubscribe orders
+    resubscribe_gross: "2156.00", // string - total gross for resubscribe orders
+  },
+
+  // --- Settings data
+  settings: {
+    // Staging and live site
+    wc_subscriptions_staging: "live",                           // string - 'staging'|'live'
+    wc_subscriptions_live_url: "https://example.com",           // string - URL of live site
+
+    // Button text
+    add_to_cart_button_text: "Sign up now",                     // string - Add to Cart Button Text
+    order_button_text: "Sign up now",                           // string - Place Order Button Text
+
+    // Roles
+    subscriber_role: "subscriber",                              // string - Subscriber Default Role
+    cancelled_role: "customer",                                 // string - Inactive Subscriber Role
+
+    // Renewals
+    accept_manual_renewals: "no",                               // string - Accept Manual Renewals
+    turn_off_automatic_payments: "none",                        // string - Turn off Automatic Payments
+    enable_auto_renewal_toggle: "no",                           // string - Auto Renewal Toggle
+
+    // Early renewal
+    enable_early_renewal: "yes",                                // string - Accept Early Renewal Payments
+    enable_early_renewal_via_modal: "yes",                      // string - Accept Early Renewal Payments via a Modal
+
+    // Switching
+    allow_switching: "no",                                      // string - Between Subscription Variations and Between Grouped Subscriptions
+    apportion_recurring_price: "none",                          // string - Prorate Recurring Payment
+    apportion_sign_up_fee: "none",                              // string - Prorate Sign up Fee
+    apportion_length: "none",                                   // string - Prorate Subscription Length
+    switch_button_text: "Upgrade or Downgrade",                 // string - Switch Button Text
+
+    // Gifting
+    gifting_enable_gifting: "no",                               // string - Enable gifting
+    gifting_default_option: "none",                             // string - Default gifting option
+    gifting_gifting_checkbox_text: "This is a gift",            // string - Gifting Checkbox Text
+    gifting_downloadable_products: "no",                        // string - Downloadable Products
+
+    // Synchronization
+    sync_payments: "no",                                        // string - Synchronise renewals
+    prorate_synced_payments: "none",                            // string - Prorate First Renewal
+    days_no_fee: "none",                                        // string - Sign-up grace period
+
+    // Miscellaneous
+    max_customer_suspensions: "0",                              // string - Customer Suspensions
+    multiple_purchase: "no",                                    // string - Mixed Checkout
+    allow_zero_initial_order_without_payment_method: "no",      // string - $0 Initial Checkout
+    drip_downloadable_content_on_renewal: "no",                 // string - Drip Downloadable Content
+    enable_retry: "yes",                                        // string - Retry Failed Payments
+
+    // Notifications
+    enable_notification_reminders: "no",                        // string - Enable Reminders
+    customer_notifications_offset_number: "none",               // string - Reminder Timing (number)
+    customer_notifications_offset_unit: "none",                 // string - Reminder Timing (unit)
+  },
+}

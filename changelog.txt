@@ -1,5 +1,19 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-11-13 - version 8.1.0
+* Fix: Prevent a fatal error that can occur when previewing emails in WooCommerce email settings.
+* Fix: Prevent technical subscription-specific discount types from appearing in the coupon edit UI.
+* Fix: Add admin notice and debug tool to recreate the payment retry database table when it's missing.
+* Fix: Prevent resubscribe and reactivate buttons from showing for subscriptions containing disabled, deleted, draft, or limited products.
+* Fix: Prevent error that blocks the subscriptions list from loading when gifted subscriptions are purchased with certain payment methods.
+* Fix: Ensure gift recipient email address is displayed in the order confirmation email sent to the purchaser.
+* Fix: Prevent pickup location options from displaying incorrectly alongside shipping methods on the Blocks Checkout page.
+* Fix: Fix invalid HTML tags that cause fatal errors when using themes with WordPress Interactivity API.
+* Fix: Add password reset links to the new account email template for gifted subscription recipients.
+* Tweak: Improve the gift recipient email input field on Blocks Cart and Mini Cart to match the style of other checkout fields.
+* Dev: Improve housekeeping of output buffers when handling requests to change subscription payment methods.
+* Dev: Improve type safety in relation to the `wcs_get_subscription()` function.
+
 2025-10-15 - version 8.0.0
 * Add: Blocks Checkout now displays a single shipping method selection for both initial and recurring carts, similar to Classic Checkout. This can be disabled using the `wcs_cart_totals_shipping_html_price_only` filter.
 * Fix: Resubscribing to a limited subscription from the product page will now reactivate the existing subscription.

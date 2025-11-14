@@ -1517,7 +1517,7 @@ class WC_Subscriptions_Cart {
 	 */
 	public static function pre_get_refreshed_fragments() {
 		wcs_deprecated_function( __METHOD__, '2.5.0' );
-		if ( defined( 'DOING_AJAX' ) && true === DOING_AJAX && ! defined( 'WOOCOMMERCE_CART' ) ) {
+		if ( wp_doing_ajax() && ! defined( 'WOOCOMMERCE_CART' ) ) {
 			define( 'WOOCOMMERCE_CART', true );
 			WC()->cart->calculate_totals();
 		}

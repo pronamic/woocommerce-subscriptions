@@ -45,6 +45,14 @@ class WC_Subscription extends WC_Order {
 	private $editable;
 
 	/**
+	 * Stores if the subscription is in the payment completed flow.
+	 * Allowing subscriptions to be renewed even if they have limited products.
+	 *
+	 * @var bool
+	 */
+	private $is_payment_completed_flow = false;
+
+	/**
 	 * Extra data for this object. Name value pairs (name + default value). Used to add additional information to parent.
 	 *
 	 * WC 3.0+ property.
@@ -340,7 +348,9 @@ class WC_Subscription extends WC_Order {
 				break;
 			case 'completed': // core WC order status mapped internally to avoid exceptions
 			case 'active':
-				if ( $this->payment_method_supports( 'subscription_reactivation' ) && $this->has_status( 'on-hold' ) ) {
+				if ( ! $this->is_payment_completed_flow && $this->contains_unavailable_product() ) {
+					$can_be_updated = false;
+				} elseif ( $this->payment_method_supports( 'subscription_reactivation' ) && $this->has_status( 'on-hold' ) ) {
 					// If the subscription's end date is in the past, it cannot be reactivated.
 					$end_time = $this->get_time( 'end' );
 					if ( 0 !== $end_time && $end_time < gmdate( 'U' ) ) {
@@ -413,6 +423,23 @@ class WC_Subscription extends WC_Order {
 		}
 
 		return apply_filters( 'woocommerce_can_subscription_be_updated_to_' . $new_status, $can_be_updated, $this );
+	}
+
+	/**
+	 * Checks if the subscription contains an unavailable product.
+	 *
+	 * @return bool
+	 */
+	public function contains_unavailable_product() {
+		/** @var WC_Order_Item_Product $line_item */
+		foreach ( $this->get_items() as $line_item ) {
+			$product = $line_item->get_product();
+			if ( ! $product instanceof WC_Product || ! $product->is_purchasable() ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -1996,6 +2023,7 @@ class WC_Subscription extends WC_Order {
 	 * @param WC_Order $last_order
 	 */
 	public function payment_complete_for_order( $last_order ) {
+		$this->is_payment_completed_flow = true;
 
 		// Clear the cached renewal payment counts
 		if ( isset( $this->cached_payment_count['completed'] ) ) {

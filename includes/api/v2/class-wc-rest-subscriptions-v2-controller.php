@@ -702,12 +702,16 @@ class WC_REST_Subscriptions_V2_Controller extends WC_REST_Orders_V2_Controller {
 					$subscription->add_item( $item );
 				}
 
-
 				/*
 				 * Fetch a fresh instance of the subscription because the current instance has an empty line item cache generated before we had copied the line items.
 				 * Fetching a new instance will ensure the line items are used when calculating totals.
 				 */
 				$subscription = wcs_get_subscription( $subscription->get_id() );
+
+				if ( ! $subscription ) {
+					throw new Exception( __( 'There was a problem completing this request. The subscription may have been deleted by another process.', 'woocommerce-subscriptions' ) );
+				}
+
 				$subscription->calculate_totals();
 
 				/**
@@ -719,7 +723,13 @@ class WC_REST_Subscriptions_V2_Controller extends WC_REST_Orders_V2_Controller {
 				 */
 				do_action( "woocommerce_rest_insert_{$this->post_type}_object", $subscription, $request, true );
 
-				$response = $this->prepare_object_for_response( wcs_get_subscription( $subscription->get_id() ), $request );
+				$fresh_subscription = wcs_get_subscription( $subscription->get_id() );
+
+				if ( ! $fresh_subscription ) {
+					throw new Exception( __( 'There was a problem completing this request. The subscription may have been deleted by another process.', 'woocommerce-subscriptions' ) );
+				}
+
+				$response        = $this->prepare_object_for_response( $fresh_subscription, $request );
 				$subscriptions[] = $this->prepare_response_for_collection( $response );
 			}
 		} catch ( Exception $e ) {

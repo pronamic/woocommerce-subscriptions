@@ -7,22 +7,22 @@ namespace Composer\Autoload;
 class ComposerStaticInitcb45de1ca955f89ec737c442c7cf101c
 {
     public static $prefixLengthsPsr4 = array (
-        'C' => 
+        'C' =>
         array (
             'Composer\\Installers\\' => 20,
         ),
-        'A' => 
+        'A' =>
         array (
             'Automattic\\WooCommerce_Subscriptions\\' => 37,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Composer\\Installers\\' => 
+        'Composer\\Installers\\' =>
         array (
             0 => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers',
         ),
-        'Automattic\\WooCommerce_Subscriptions\\' => 
+        'Automattic\\WooCommerce_Subscriptions\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),
@@ -160,6 +160,12 @@ class ComposerStaticInitcb45de1ca955f89ec737c442c7cf101c
         'WCSG_Recipient_Management' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-recipient-management.php',
         'WCSG_Template_Loader' => __DIR__ . '/../..' . '/includes/gifting/class-wcsg-template-loader.php',
         'WCS_Gifting' => __DIR__ . '/../..' . '/includes/gifting/class-wcs-gifting.php',
+        'WC_Subscription_Downloads' => __DIR__ . '/../..' . '/includes/downloads/class-wc-subscription-downloads.php',
+        'WC_Subscription_Downloads_Ajax' => __DIR__ . '/../..' . '/includes/downloads/class-wc-subscription-downloads-ajax.php',
+        'WC_Subscription_Downloads_Install' => __DIR__ . '/../..' . '/includes/downloads/class-wc-subscription-downloads-install.php',
+        'WC_Subscription_Downloads_Order' => __DIR__ . '/../..' . '/includes/downloads/class-wc-subscription-downloads-order.php',
+        'WC_Subscription_Downloads_Products' => __DIR__ . '/../..' . '/includes/downloads/class-wc-subscription-downloads-products.php',
+        'WC_Subscription_Downloads_Settings' => __DIR__ . '/../..' . '/includes/downloads/class-wc-subscription-downloads-settings.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

@@ -224,19 +224,19 @@ class WCS_Upgrade_1_2 {
 				// Upgrading with WC 1.x
 				if ( is_callable( array( $item_meta, 'add' ) ) ) {
 
-					$item_meta->add( '_subscription_period', $order_subscription_periods[ $product_id ] );
-					$item_meta->add( '_subscription_interval', $subscription_interval );
-					$item_meta->add( '_subscription_length', $subscription_length );
-					$item_meta->add( '_subscription_trial_length', $subscription_trial_length );
+					$item_meta->add( '_subscription_period', $order_subscription_periods[ $product_id ] ); // @phpstan-ignore method.notFound (Legacy upgrade code with proper defensive checks)
+					$item_meta->add( '_subscription_interval', $subscription_interval ); // @phpstan-ignore method.notFound (Legacy upgrade code with proper defensive checks)
+					$item_meta->add( '_subscription_length', $subscription_length ); // @phpstan-ignore method.notFound (Legacy upgrade code with proper defensive checks)
+					$item_meta->add( '_subscription_trial_length', $subscription_trial_length ); // @phpstan-ignore method.notFound (Legacy upgrade code with proper defensive checks)
 
-					$item_meta->add( '_subscription_recurring_amount', $order_item['line_subtotal'] ); // WC_Subscriptions_Product::get_price() would return a price without filters applied
-					$item_meta->add( '_subscription_sign_up_fee', $subscription_sign_up_fee );
+					$item_meta->add( '_subscription_recurring_amount', $order_item['line_subtotal'] ); // @phpstan-ignore method.notFound (Legacy upgrade code with proper defensive checks)
+					$item_meta->add( '_subscription_sign_up_fee', $subscription_sign_up_fee ); // @phpstan-ignore method.notFound (Legacy upgrade code with proper defensive checks)
 
 					// Set recurring amounts for the item
-					$item_meta->add( '_recurring_line_total', $order_item['line_total'] );
-					$item_meta->add( '_recurring_line_tax', $order_item['line_tax'] );
-					$item_meta->add( '_recurring_line_subtotal', $order_item['line_subtotal'] );
-					$item_meta->add( '_recurring_line_subtotal_tax', $order_item['line_subtotal_tax'] );
+					$item_meta->add( '_recurring_line_total', $order_item['line_total'] ); // @phpstan-ignore method.notFound (Legacy upgrade code with proper defensive checks)
+					$item_meta->add( '_recurring_line_tax', $order_item['line_tax'] ); // @phpstan-ignore method.notFound (Legacy upgrade code with proper defensive checks)
+					$item_meta->add( '_recurring_line_subtotal', $order_item['line_subtotal'] ); // @phpstan-ignore method.notFound (Legacy upgrade code with proper defensive checks)
+					$item_meta->add( '_recurring_line_subtotal_tax', $order_item['line_subtotal_tax'] ); // @phpstan-ignore method.notFound (Legacy upgrade code with proper defensive checks)
 
 					$order_item['item_meta'] = $item_meta->meta;
 

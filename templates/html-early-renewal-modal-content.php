@@ -29,7 +29,7 @@ $include_item_removal_links = $include_switch_links = false;
 		'<strong>' . esc_html( date_i18n( wc_date_format(), $subscription->get_time( 'next_payment', 'site' ) ) ) . '</strong>'
 	) );
 }?>
-</br>
+<br>
 <?php echo wp_kses_post( sprintf(
 	__( 'Want to renew early via the checkout? Click %shere.%s', 'woocommerce-subscriptions' ),
 	'<a href="' . esc_url( wcs_get_early_renewal_url( $subscription ) ) . '">',

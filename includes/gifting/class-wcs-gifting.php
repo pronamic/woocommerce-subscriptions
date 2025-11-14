@@ -468,7 +468,7 @@ class WCS_Gifting {
 						<?php
 						if ( 'WooCommerce Memberships' === $plugin_name ) {
 							// translators: 1$-2$: opening and closing <strong> tags, 3$ plugin name, 4$ required plugin version, 5$-6$: opening and closing link tags, leads to plugins.php in admin, 7$: line break, 8$-9$ Opening and closing small tags.
-							printf( esc_html__( '%1$sWooCommerce Subscriptions Gifting Membership integration is inactive.%2$s In order to integrate with WooCommerce Memberships, WooCommerce Subscriptions Gifting requires %3$s %4$s or newer. %5$sPlease update &raquo;%6$s %7$s%8$sNote: All other WooCommerce Subscriptions Gifting features will remain available, however purchasing membership plans for recipients will fail to grant the membership to the gift recipient.%9$s', 'woocommerce-subscriptions' ), '<strong>', '</strong>', esc_html( $plugin_name ), esc_html( $required_version ), '<a href="' . esc_url( admin_url( 'plugins.php' ) ) . '">', '</a>', '</br>', '<small>', '</small>' );
+							printf( esc_html__( '%1$sWooCommerce Subscriptions Gifting Membership integration is inactive.%2$s In order to integrate with WooCommerce Memberships, WooCommerce Subscriptions Gifting requires %3$s %4$s or newer. %5$sPlease update &raquo;%6$s %7$s%8$sNote: All other WooCommerce Subscriptions Gifting features will remain available, however purchasing membership plans for recipients will fail to grant the membership to the gift recipient.%9$s', 'woocommerce-subscriptions' ), '<strong>', '</strong>', esc_html( $plugin_name ), esc_html( $required_version ), '<a href="' . esc_url( admin_url( 'plugins.php' ) ) . '">', '</a>', '<br>', '<small>', '</small>' );
 						} else {
 							// translators: 1$-2$: opening and closing <strong> tags, 3$ plugin name, 4$ required plugin version, 5$-6$: opening and closing link tags, leads to plugins.php in admin.
 							printf( esc_html__( '%1$sWooCommerce Subscriptions Gifting is inactive.%2$s This version of WooCommerce Subscriptions Gifting requires %3$s %4$s or newer. %5$sPlease update &raquo;%6$s', 'woocommerce-subscriptions' ), '<strong>', '</strong>', esc_html( $plugin_name ), esc_html( $required_version ), '<a href="' . esc_url( admin_url( 'plugins.php' ) ) . '">', '</a>' );
@@ -654,20 +654,17 @@ class WCS_Gifting {
 	 * Retrieve the recipient user ID from a subscription.
 	 *
 	 * @param WC_Subscription $subscription Subscription object.
+	 *
 	 * @return string The recipient's user ID. Returns an empty string if there is no recipient set.
 	 */
 	public static function get_recipient_user( $subscription ) {
-		$recipient_user_id = '';
-
-		if ( method_exists( $subscription, 'get_meta' ) ) {
-			if ( $subscription->meta_exists( '_recipient_user' ) ) {
-				$recipient_user_id = $subscription->get_meta( '_recipient_user' );
-			}
-		} else { // WC < 3.0.
-			$recipient_user_id = $subscription->recipient_user;
+		// There may be cases, especially when emails are being previewed in the customizer, where we receive something
+		// other than a WC_Subscription object.
+		if ( $subscription instanceof WC_Subscription && $subscription->meta_exists( '_recipient_user' ) ) {
+			return $subscription->get_meta( '_recipient_user' );
 		}
 
-		return $recipient_user_id;
+		return '';
 	}
 
 	/**
@@ -677,8 +674,9 @@ class WCS_Gifting {
 	 * @param int             $user_id      The user ID of the user to set as the recipient on the subscription.
 	 * @param string          $save         Whether to save the data or not, 'save' to save the data, otherwise it won't be saved.
 	 * @param int             $meta_id      The meta ID of existing meta data if you wish to overwrite an existing recipient meta value.
+	 * @param WC_Order        $order        Order object.
 	 */
-	public static function set_recipient_user( &$subscription, $user_id, $save = 'save', $meta_id = 0 ) {
+	public static function set_recipient_user( &$subscription, $user_id, $save = 'save', $meta_id = 0, ?WC_Order $order = null ) {
 		$current_user_id              = absint( self::get_recipient_user( $subscription ) );
 		$subscription->recipient_user = $user_id;
 
@@ -690,7 +688,9 @@ class WCS_Gifting {
 			$gifting_subcription_item   = reset( $gifting_subscription_items );
 
 			if ( ! empty( $gifting_subcription_item ) ) {
-				$order = wc_get_order( $subscription->get_parent_id() );
+				if ( ! $order ) {
+					$order = wc_get_order( $subscription->get_parent_id() );
+				}
 				foreach ( $order->get_items() as $order_item ) {
 					if ( $order_item->get_meta( '_wcsg_cart_key' ) === $gifting_subcription_item->get_meta( '_wcsg_cart_key' ) ) {
 						$order_item->add_meta_data( 'wcsg_recipient', 'wcsg_recipient_id_' . $user_id, true );

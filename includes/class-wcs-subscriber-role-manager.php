@@ -74,7 +74,10 @@ class WCS_Subscriber_Role_Manager {
 			),
 		);
 
-		WC_Subscriptions_Admin::insert_setting_after( $settings, WC_Subscriptions_Admin::$option_prefix . '_button_text', $role_settings, 'multiple_settings', 'sectionend' );
+		if ( ! WC_Subscriptions_Admin::insert_setting_after( $settings, WC_Subscriptions_Admin::$option_prefix . '_button_text', $role_settings, 'multiple_settings', 'sectionend' ) ) {
+			$settings = array_merge( $settings, $role_settings );
+		}
+
 		return $settings;
 	}
 

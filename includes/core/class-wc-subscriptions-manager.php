@@ -130,11 +130,10 @@ class WC_Subscriptions_Manager {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.12
 	 */
 	public static function process_renewal( $subscription_id, $required_status, $order_note ) {
-
 		$subscription = wcs_get_subscription( $subscription_id );
 
 		// If the subscription is using manual payments, the gateway isn't active or it manages scheduled payments
-		if ( ! empty( $subscription ) && $subscription->has_status( $required_status ) && ( 0 == $subscription->get_total() || $subscription->is_manual() || '' == $subscription->get_payment_method() || ! $subscription->payment_method_supports( 'gateway_scheduled_payments' ) ) ) {
+		if ( $subscription instanceof WC_Subscription && $subscription->has_status( $required_status ) && ( 0 === absint( $subscription->get_total() ) || $subscription->is_manual() || '' === $subscription->get_payment_method() || ! $subscription->payment_method_supports( 'gateway_scheduled_payments' ) ) ) {
 
 			// Always put the subscription on hold in case something goes wrong while trying to process renewal
 			$subscription->update_status( 'on-hold', $order_note );
@@ -2075,6 +2074,11 @@ class WC_Subscriptions_Manager {
 	 */
 	public static function maybe_process_failed_renewal_for_repair( $subscription_id ) {
 		$subscription = wcs_get_subscription( $subscription_id );
+
+		if ( ! $subscription ) {
+			return;
+		}
+
 		if ( 'true' === $subscription->get_meta( '_wcs_repaired_2_0_2_needs_failed_payment', true ) ) {
 			// Always put the subscription on hold in case something goes wrong while trying to process renewal
 			$subscription->update_status( 'on-hold', _x( 'Subscription renewal payment due:', 'used in order note as reason for why subscription status changed', 'woocommerce-subscriptions' ) );

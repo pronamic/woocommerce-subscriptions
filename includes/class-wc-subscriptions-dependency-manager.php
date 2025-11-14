@@ -117,6 +117,13 @@ class WC_Subscriptions_Dependency_Manager {
 
 		$this->wc_version_cached = true;
 
+		// Try to get version from transient first
+		$this->wc_active_version = get_transient( 'wcs_woocommerce_active_version' );
+
+		if ( false !== $this->wc_active_version ) {
+			return $this->wc_active_version;
+		}
+
 		// Load plugin.php if it's not already loaded.
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -139,7 +146,13 @@ class WC_Subscriptions_Dependency_Manager {
 
 			if ( $is_woocommerce && is_plugin_active( $plugin_slug ) ) {
 				$this->wc_active_version = $plugin_data['Version'];
+				break; // Found it, no need to continue looping
 			}
+		}
+
+		// Cache the result in a transient for 1 hour
+		if ( ! empty( $this->wc_active_version ) ) {
+			set_transient( 'wcs_woocommerce_active_version', $this->wc_active_version, HOUR_IN_SECONDS );
 		}
 
 		return $this->wc_active_version;

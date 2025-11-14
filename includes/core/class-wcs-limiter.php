@@ -23,8 +23,6 @@ class WCS_Limiter {
 		if ( wcs_is_frontend_request() || wcs_is_checkout_blocks_api_request() ) {
 			add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
 			add_filter( 'woocommerce_subscription_variation_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
-			add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable_renewal', 12, 2 );
-			add_filter( 'woocommerce_subscription_variation_is_purchasable', __CLASS__ . '::is_purchasable_renewal', 12, 2 );
 			add_filter( 'woocommerce_valid_order_statuses_for_order_again', array( __CLASS__, 'filter_order_again_statuses_for_limited_subscriptions' ) );
 		}
 	}
@@ -69,11 +67,52 @@ class WCS_Limiter {
 	 * @return bool
 	 */
 	public static function is_purchasable( $purchasable, $product ) {
+
+		// Prevents making a non purchasable product purchasable again.
+		// This can happen if the product is disabled and limited and the customer is trying to renew the subscription for example.
+		if ( ! $purchasable ) {
+			return $purchasable;
+		}
+
 		switch ( $product->get_type() ) {
 			case 'subscription':
 			case 'variable-subscription':
-				if ( true === $purchasable && false === self::is_purchasable_product( $purchasable, $product ) ) {
+				// Checks if the product is limited.
+				if ( false === self::is_product_limited( $purchasable, $product ) ) {
+					// Product is limited, so it is not purchasable.
 					$purchasable = false;
+
+					// Unless it's resubscribing, renewing or restoring cart from session.
+					$resubscribe_cart_item = wcs_cart_contains_resubscribe();
+
+					// Resubscribe logic
+					// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					if ( ! empty( $_GET['resubscribe'] ) || false !== $resubscribe_cart_item ) {
+						// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+						$subscription_id = ( isset( $_GET['resubscribe'] ) ) ? absint( $_GET['resubscribe'] ) : $resubscribe_cart_item['subscription_resubscribe']['subscription_id'];
+						$subscription    = wcs_get_subscription( $subscription_id );
+
+						if ( $subscription && $subscription->has_product( $product->get_id() ) && wcs_can_user_resubscribe_to( $subscription ) ) {
+							$purchasable = true;
+						}
+
+						// Renewal logic
+					} elseif (
+						// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+						isset( $_GET['subscription_renewal'] ) ||
+						wcs_cart_contains_renewal()
+					) {
+						$purchasable = true;
+
+						// Restoring cart from session, so need to check the cart in the session (wcs_cart_contains_renewal() only checks the cart).
+					} elseif ( ! empty( WC()->session->cart ) ) {
+						foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
+							if ( (int) $product->get_id() === (int) $cart_item['product_id'] && ( isset( $cart_item['subscription_renewal'] ) || isset( $cart_item['subscription_resubscribe'] ) ) ) {
+								$purchasable = true;
+								break;
+							}
+						}
+					}
 				}
 				break;
 			case 'subscription_variation':
@@ -99,7 +138,6 @@ class WCS_Limiter {
 		return $purchasable;
 	}
 
-
 	/**
 	 * If a product is limited and the customer already has a subscription, mark it as not purchasable.
 	 *
@@ -107,6 +145,17 @@ class WCS_Limiter {
 	 * @return bool
 	 */
 	public static function is_purchasable_product( $is_purchasable, $product ) {
+		_deprecated_function( __METHOD__, '8.0.0', 'WCS_Limiter::is_product_limited' );
+		return self::is_product_limited( $is_purchasable, $product );
+	}
+
+	/**
+	 * If a product is limited and the customer already has a subscription, mark it as not purchasable.
+	 *
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1, Moved from WC_Subscriptions_Product
+	 * @return bool
+	 */
+	public static function is_product_limited( $is_purchasable, $product ) {
 
 		// Set up cache
 		if ( ! isset( self::$is_purchasable_cache[ $product->get_id() ] ) ) {
@@ -197,33 +246,9 @@ class WCS_Limiter {
 	 * @return bool
 	 */
 	public static function is_purchasable_renewal( $is_purchasable, $product ) {
-		if ( false === $is_purchasable && false === self::is_purchasable_product( $is_purchasable, $product ) ) {
-			$resubscribe_cart_item = wcs_cart_contains_resubscribe();
+		_deprecated_function( __METHOD__, '8.0.0', 'WCS_Limiter::is_product_limited' );
 
-			// Resubscribe logic
-			if ( isset( $_GET['resubscribe'] ) || false !== $resubscribe_cart_item ) {
-				$subscription_id       = ( isset( $_GET['resubscribe'] ) ) ? absint( $_GET['resubscribe'] ) : $resubscribe_cart_item['subscription_resubscribe']['subscription_id'];
-				$subscription          = wcs_get_subscription( $subscription_id );
-
-				if ( false != $subscription && $subscription->has_product( $product->get_id() ) && wcs_can_user_resubscribe_to( $subscription ) ) {
-					$is_purchasable = true;
-				}
-
-			// Renewal logic
-			} elseif ( isset( $_GET['subscription_renewal'] ) || wcs_cart_contains_renewal() ) {
-				$is_purchasable = true;
-
-			// Restoring cart from session, so need to check the cart in the session (wcs_cart_contains_renewal() only checks the cart)
-			} elseif ( ! empty( WC()->session->cart ) ) {
-				foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
-					if ( $product->get_id() == $cart_item['product_id'] && ( isset( $cart_item['subscription_renewal'] ) || isset( $cart_item['subscription_resubscribe'] ) ) ) {
-						$is_purchasable = true;
-						break;
-					}
-				}
-			}
-		}
-		return $is_purchasable;
+		return ! self::is_product_limited( $is_purchasable, $product );
 	}
 
 	/**

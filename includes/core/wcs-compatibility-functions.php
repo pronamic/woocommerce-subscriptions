@@ -516,7 +516,7 @@ function wcs_is_checkout_blocks_api_request( $endpoint = '' ) {
  * @return bool True if it's a WordPress cron request, false otherwise.
  */
 function wcs_doing_cron() {
-	return function_exists( 'wp_doing_cron' ) ? wp_doing_cron() : defined( 'DOING_CRON' ) && DOING_CRON;
+	return function_exists( 'wp_doing_cron' ) ? wp_doing_cron() : defined( 'DOING_CRON' ) && DOING_CRON; // @phpstan-ignore phpstanWP.wpConstant.fetch (Compatibility fallback for older WordPress versions)
 }
 
 /**
@@ -527,7 +527,7 @@ function wcs_doing_cron() {
  * @return bool True if it's a WordPress Ajax request, false otherwise.
  */
 function wcs_doing_ajax() {
-	return function_exists( 'wp_doing_ajax' ) ? wp_doing_ajax() : defined( 'DOING_AJAX' ) && DOING_AJAX;
+	return function_exists( 'wp_doing_ajax' ) ? wp_doing_ajax() : defined( 'DOING_AJAX' ) && DOING_AJAX; // @phpstan-ignore phpstanWP.wpConstant.fetch (Compatibility fallback for older WordPress versions)
 }
 
 /**
