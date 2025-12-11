@@ -4,7 +4,7 @@
  *
  * @package WooCommerce_Subscription/Templates
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.0
- * @version 7.2.0
+ * @version 8.2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -43,8 +43,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<?php if ( $allow_item_removal ) : ?>
 						<td class="remove_item">
 							<?php if ( wcs_can_item_be_removed( $item, $subscription ) ) : ?>
-								<?php $confirm_notice = apply_filters( 'woocommerce_subscriptions_order_item_remove_confirmation_text', __( 'Are you sure you want to remove this item from your subscription?', 'woocommerce-subscriptions' ), $item, $_product, $subscription ); ?>
-								<a href="<?php echo esc_url( WCS_Remove_Item::get_remove_url( $subscription->get_id(), $item_id ) ); ?>" class="remove" onclick="return confirm('<?php printf( esc_html( $confirm_notice ) ); ?>');">&times;</a>
+								<?php
+								// Translators: %s: product name.
+								$aria_label     = sprintf( __( 'Remove %s', 'woocommerce-subscriptions' ), esc_html( $_product->get_name() ) );
+								$confirm_notice = apply_filters( 'woocommerce_subscriptions_order_item_remove_confirmation_text', __( 'Are you sure you want to remove this item from your subscription?', 'woocommerce-subscriptions' ), $item, $_product, $subscription );
+								?>
+								<a
+									href="<?php echo esc_url( WCS_Remove_Item::get_remove_url( $subscription->get_id(), $item_id ) ); ?>"
+									class="remove"
+									role="button"
+									onclick="return confirm('<?php printf( esc_html( $confirm_notice ) ); ?>');"
+									aria-haspopup="dialog"
+									aria-label="<?php echo esc_attr( $aria_label ); ?>"
+								>
+									&times;
+								</a>
 							<?php endif; ?>
 						</td>
 					<?php endif; ?>

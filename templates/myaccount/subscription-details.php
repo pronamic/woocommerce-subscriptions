@@ -5,7 +5,7 @@
  * @author  Prospress
  * @package WooCommerce_Subscription/Templates
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.19
- * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.6.5
+ * @version 8.2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -43,22 +43,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<td>
 					<div class="wcs-auto-renew-toggle">
 						<?php
+						$is_auto_renew_on  = ! $subscription->is_manual();
+						$toggle_classes    = array( 'subscription-auto-renew-toggle', 'subscription-auto-renew-toggle--hidden' );
+						$is_duplicate_site = false;
 
-						$toggle_classes = array( 'subscription-auto-renew-toggle', 'subscription-auto-renew-toggle--hidden' );
-
-						if ( $subscription->is_manual() ) {
-							$toggle_label     = __( 'Enable auto renew', 'woocommerce-subscriptions' );
+						if ( $is_auto_renew_on ) {
+							$toggle_classes[] = 'subscription-auto-renew-toggle--on';
+						} else {
 							$toggle_classes[] = 'subscription-auto-renew-toggle--off';
 
 							if ( WCS_Staging::is_duplicate_site() ) {
-								$toggle_classes[] = 'subscription-auto-renew-toggle--disabled';
+								$toggle_classes[]  = 'subscription-auto-renew-toggle--disabled';
+								$is_duplicate_site = true;
 							}
-						} else {
-							$toggle_label     = __( 'Disable auto renew', 'woocommerce-subscriptions' );
-							$toggle_classes[] = 'subscription-auto-renew-toggle--on';
-						}?>
-						<a href="#" class="<?php echo esc_attr( implode( ' ' , $toggle_classes ) ); ?>" aria-label="<?php echo esc_attr( $toggle_label ) ?>"><i class="subscription-auto-renew-toggle__i" aria-hidden="true"></i></a>
-						<?php if ( WCS_Staging::is_duplicate_site() ) : ?>
+						}
+						?>
+						<button
+							type="button"
+							role="switch"
+							aria-checked="<?php echo $is_auto_renew_on ? 'true' : 'false'; ?>"
+							aria-label="<?php esc_attr_e( 'Auto renew', 'woocommerce-subscriptions' ); ?>"
+							class="<?php echo esc_attr( implode( ' ', $toggle_classes ) ); ?>"
+							<?php disabled( $is_duplicate_site ); ?>
+						><i class="subscription-auto-renew-toggle__i" aria-hidden="true"></i></button>
+						<?php if ( $is_duplicate_site ) : ?>
 								<small class="subscription-auto-renew-toggle-disabled-note"><?php echo esc_html__( 'Using the auto-renewal toggle is disabled while in staging mode.', 'woocommerce-subscriptions' ); ?></small>
 						<?php endif; ?>
 					</div>
@@ -88,10 +96,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 						if ( wc_wp_theme_get_element_class_name( 'button' ) ) {
 							$classes[] = wc_wp_theme_get_element_class_name( 'button' );
 						}
+
+						// Role is used for accessibility purposes. Default role is 'button', because of the default visual styling.
+						$action_role = isset( $action['role'] ) ? $action['role'] : 'button';
 						?>
 						<a
 							href="<?php echo esc_url( $action['url'] ); ?>"
+							role="<?php echo esc_attr( $action_role ); ?>"
 							class="<?php echo esc_attr( trim( implode( ' ', $classes ) ) ); ?>"
+							<?php
+							if ( isset( $action['modal_id'] ) ) {
+								echo ' aria-haspopup="dialog" aria-controls="' . esc_attr( $action['modal_id'] ) . '"';
+							}
+							?>
 						>
 							<?php echo esc_html( $action['name'] ); ?>
 						</a>
@@ -114,8 +131,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<div class="woocommerce-OrderUpdate-description description">
 						<?php echo wp_kses_post( wpautop( wptexturize( $note->comment_content ) ) ); ?>
 					</div>
-	  				<div class="clear"></div>
-	  			</div>
+					<div class="clear"></div>
+				</div>
 				<div class="clear"></div>
 			</div>
 		</li>

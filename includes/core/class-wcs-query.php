@@ -13,12 +13,13 @@ class WCS_Query extends WC_Query {
 
 		add_filter( 'the_title', array( $this, 'change_endpoint_title' ), 11, 1 );
 
+		add_filter( 'woocommerce_get_query_vars', array( $this, 'add_wcs_query_vars' ) );
+
 		if ( ! is_admin() ) {
 			add_filter( 'query_vars', array( $this, 'add_query_vars' ), 0 );
 			add_action( 'parse_request', array( $this, 'parse_request' ), 0 );
 			add_action( 'pre_get_posts', array( $this, 'maybe_redirect_payment_methods' ) );
 			add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ), 11 );
-			add_filter( 'woocommerce_get_query_vars', array( $this, 'add_wcs_query_vars' ) );
 
 			// Inserting your new tab/page into the My Account page.
 			add_filter( 'woocommerce_account_menu_items', array( $this, 'add_menu_items' ) );

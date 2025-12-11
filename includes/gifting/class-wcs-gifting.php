@@ -517,7 +517,7 @@ class WCS_Gifting {
 	public static function is_gifted_subscription( $subscription ) {
 		$is_gifted_subscription = false;
 
-		if ( ! $subscription instanceof WC_Subscription ) {
+		if ( is_int( $subscription ) ) {
 			$subscription = wcs_get_subscription( $subscription );
 		}
 

@@ -428,13 +428,38 @@ class WC_Subscription extends WC_Order {
 	/**
 	 * Checks if the subscription contains an unavailable product.
 	 *
+	 * A product is considered unavailable if it is:
+	 * - Deleted (not found)
+	 * - Not published (draft, trash, private, etc.)
+	 *
+	 * Note: This method intentionally does NOT use is_purchasable() to avoid incorrectly
+	 * flagging limited products as unavailable. Limited products return is_purchasable() = false
+	 * for users with existing subscriptions, but they should still be available for resubscribe.
+	 * Functions like wcs_can_user_resubscribe_to() have specific logic to handle limited products
+	 * by checking if the user has an active subscription.
+	 *
 	 * @return bool
 	 */
 	public function contains_unavailable_product() {
 		/** @var WC_Order_Item_Product $line_item */
 		foreach ( $this->get_items() as $line_item ) {
 			$product = $line_item->get_product();
-			if ( ! $product instanceof WC_Product || ! $product->is_purchasable() ) {
+
+			// Product doesn't exist (deleted).
+			if ( ! $product instanceof WC_Product ) {
+				return true;
+			}
+
+			// If the product is a subscription variation, use the parent product.
+			if ( $product->is_type( 'subscription_variation' ) ) {
+				$parent_product_id = $product->get_parent_id();
+				$product           = wc_get_product( $parent_product_id );
+			}
+
+			// Check if product is published. Products with other statuses (draft, trash, private)
+			// are not available for purchase or resubscribe.
+			$product_status = $product->get_status();
+			if ( 'publish' !== $product_status ) {
 				return true;
 			}
 		}

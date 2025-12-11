@@ -64,6 +64,7 @@ class WC_Subscriptions_Addresses {
 			$actions['change_address'] = array(
 				'url'  => esc_url( add_query_arg( array( 'subscription' => $subscription->get_id() ), wc_get_endpoint_url( 'edit-address', 'shipping' ) ) ),
 				'name' => __( 'Change address', 'woocommerce-subscriptions' ),
+				'role' => 'link',
 			);
 		}
 

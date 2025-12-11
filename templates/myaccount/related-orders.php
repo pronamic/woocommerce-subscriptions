@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<th class="order-date woocommerce-orders-table__header woocommerce-orders-table__header-order-date woocommerce-orders-table__header-order-date"><span class="nobr"><?php esc_html_e( 'Date', 'woocommerce-subscriptions' ); ?></span></th>
 			<th class="order-status woocommerce-orders-table__header woocommerce-orders-table__header-order-status"><span class="nobr"><?php esc_html_e( 'Status', 'woocommerce-subscriptions' ); ?></span></th>
 			<th class="order-total woocommerce-orders-table__header woocommerce-orders-table__header-order-total"><span class="nobr"><?php echo esc_html_x( 'Total', 'table heading', 'woocommerce-subscriptions' ); ?></span></th>
-			<th class="order-actions woocommerce-orders-table__header woocommerce-orders-table__header-order-actions">&nbsp;</th>
+			<th class="order-actions woocommerce-orders-table__header woocommerce-orders-table__header-order-actions"><span class="screen-reader-text"><?php esc_html_e( 'Actions', 'woocommerce-subscriptions' ); ?></span></th>
 		</tr>
 	</thead>
 

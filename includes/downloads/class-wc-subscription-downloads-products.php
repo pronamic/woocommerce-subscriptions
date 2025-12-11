@@ -68,9 +68,7 @@ class WC_Subscription_Downloads_Products {
 				<select id="subscription-downloads-ids" multiple="multiple" data-action="wc_subscription_downloads_search" data-placeholder="<?php esc_attr_e( 'Select subscriptions', 'woocommerce-subscriptions' ); ?>" class="subscription-downloads-ids wc-product-search" name="_subscription_downloads_ids[]" style="width: 50%;">
 					<?php
 					$subscriptions_ids = WC_Subscription_Downloads::get_subscriptions( $post->ID );
-					if ( empty( $subscriptions_ids ) ) {
-						$subscriptions_ids = get_post_meta( $post->ID, '_subscription_downloads_ids', true );
-					}
+
 					if ( $subscriptions_ids ) {
 						foreach ( $subscriptions_ids as $subscription_id ) {
 							$_subscription = wc_get_product( $subscription_id );
@@ -202,11 +200,8 @@ class WC_Subscription_Downloads_Products {
 	protected function update_subscription_downloads( $product_id, $subscriptions ) {
 		global $wpdb;
 
-		if ( version_compare( WC_VERSION, '3.0', '<' ) && ! empty( $subscriptions ) ) {
-			$subscriptions = explode( ',', $subscriptions );
-		}
-
-		$current = WC_Subscription_Downloads::get_subscriptions( $product_id );
+		$subscriptions = (array) $subscriptions;
+		$current       = WC_Subscription_Downloads::get_subscriptions( $product_id );
 
 		// Delete items.
 		$delete_ids = array_diff( $current, $subscriptions );
@@ -227,7 +222,7 @@ class WC_Subscription_Downloads_Products {
 				$_orders = $this->get_orders( $delete );
 				foreach ( $_orders as $order_id ) {
 					$_product  = wc_get_product( $product_id );
-					$downloads = version_compare( WC_VERSION, '3.0', '<' ) ? $_product->get_files() : $_product->get_downloads();
+					$downloads = $_product->get_downloads();
 
 					// Adds the downloadable files to the order/subscription.
 					foreach ( array_keys( $downloads ) as $download_id ) {
@@ -265,7 +260,7 @@ class WC_Subscription_Downloads_Products {
 					}
 
 					$_product  = wc_get_product( $product_id );
-					$downloads = version_compare( WC_VERSION, '3.0', '<' ) ? $_product->get_files() : $_product->get_downloads();
+					$downloads = $_product->get_downloads();
 
 					// Adds the downloadable files to the order/subscription.
 					foreach ( array_keys( $downloads ) as $download_id ) {
@@ -284,17 +279,14 @@ class WC_Subscription_Downloads_Products {
 	 * @return void
 	 */
 	public function save_simple_product_data( $product_id ) {
-		$subscription_ids = ! empty( $_POST['_subscription_downloads_ids'] ) ? wc_clean( wp_unslash( $_POST['_subscription_downloads_ids'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$subscription_downloads_ids = ! empty( $_POST['_subscription_downloads_ids'] ) ? wc_clean( wp_unslash( $_POST['_subscription_downloads_ids'] ) ) : '';
 
-		if ( ! isset( $_POST['_downloadable'] ) || 'publish' !== get_post_status( $product_id ) ) {
-			update_post_meta( $product_id, '_subscription_downloads_ids', $subscription_ids );
-			return;
+		if ( empty( $subscription_downloads_ids ) ) {
+			$subscription_downloads_ids = array();
 		}
 
-		delete_post_meta( $product_id, '_subscription_downloads_ids', $subscription_ids );
-		$subscriptions = $subscription_ids ?: array();
-
-		$this->update_subscription_downloads( $product_id, $subscriptions );
+		$this->update_subscription_downloads( $product_id, $subscription_downloads_ids );
 	}
 
 	/**
@@ -310,15 +302,11 @@ class WC_Subscription_Downloads_Products {
 			return;
 		}
 
-		$subscriptions = isset( $_POST['_variable_subscription_downloads_ids'][ $index ] ) ? wc_clean( wp_unslash( $_POST['_variable_subscription_downloads_ids'][ $index ] ) ) : array();
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$subscription_download_ids = isset( $_POST['_variable_subscription_downloads_ids'][ $index ] ) ? wc_clean( wp_unslash( $_POST['_variable_subscription_downloads_ids'][ $index ] ) ) : array();
+		$subscription_download_ids = array_filter( $subscription_download_ids ); // nosemgrep: audit.php.lang.misc.array-filter-no-callback -- $subscription_download_ids are already passed through wc_clean() and wp_unslash().
 
-		if ( version_compare( WC_VERSION, '3.0.0', '<' ) ) {
-			$subscriptions = explode( ',', $subscriptions );
-		}
-
-		$subscriptions = array_filter( $subscriptions ); // nosemgrep: audit.php.lang.misc.array-filter-no-callback -- $subscriptions are already passed through wc_clean() and wp_unslash().
-
-		$this->update_subscription_downloads( $variation_id, $subscriptions );
+		$this->update_subscription_downloads( $variation_id, $subscription_download_ids );
 	}
 
 	/**

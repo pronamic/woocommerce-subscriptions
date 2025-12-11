@@ -11,8 +11,11 @@ jQuery( function ( $ ) {
 	var $early_renewal_modal_content = $( '.wcs-modal > .content-wrapper' );
 
 	function getTxtColor() {
-		if ( ! txtColor && $icon && $icon.length ) {
-			txtColor = getComputedStyle( $icon[ 0 ] ).color;
+		if ( ! txtColor ) {
+			// Create a temporary link to get the theme's accent color.
+			var $tempLink = $( '<a href="#" style="display:none;"></a>' ).appendTo( $toggleContainer );
+			txtColor = getComputedStyle( $tempLink[ 0 ] ).color;
+			$tempLink.remove();
 		}
 
 		return txtColor;
@@ -37,9 +40,6 @@ jQuery( function ( $ ) {
 
 	function onToggle( e ) {
 		e.preventDefault();
-
-		// Remove focus from the toggle element.
-		$toggle.trigger( 'blur' );
 
 		// Ignore the request if the toggle is disabled.
 		if ( $toggle.hasClass( 'subscription-auto-renew-toggle--disabled' ) ) {
@@ -105,17 +105,20 @@ jQuery( function ( $ ) {
 		$icon.removeClass( 'fa-toggle-off' ).addClass( 'fa-toggle-on' );
 		$toggle
 			.removeClass( 'subscription-auto-renew-toggle--off' )
-			.addClass( 'subscription-auto-renew-toggle--on' );
+			.addClass( 'subscription-auto-renew-toggle--on' )
+			.attr( 'aria-checked', 'true' );
 	}
 
 	function displayToggleOff() {
 		$icon.removeClass( 'fa-toggle-on' ).addClass( 'fa-toggle-off' );
 		$toggle
 			.removeClass( 'subscription-auto-renew-toggle--on' )
-			.addClass( 'subscription-auto-renew-toggle--off' );
+			.addClass( 'subscription-auto-renew-toggle--off' )
+			.attr( 'aria-checked', 'false' );
 	}
 
 	function blockToggle() {
+		$toggle.addClass( 'subscription-auto-renew-toggle--disabled' );
 		$toggleContainer.block( {
 			message: null,
 			overlayCSS: { opacity: 0.0 },
@@ -123,6 +126,7 @@ jQuery( function ( $ ) {
 	}
 
 	function unblockToggle() {
+		$toggle.removeClass( 'subscription-auto-renew-toggle--disabled' );
 		$toggleContainer.unblock();
 	}
 

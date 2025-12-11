@@ -52,6 +52,13 @@ class WCS_Modal {
 	private $actions = array();
 
 	/**
+	 * A unique ID for the modal to use in HTML ID attribute.
+	 *
+	 * @var string
+	 */
+	private $id = '';
+
+	/**
 	 * Registers the scripts and stylesheets needed to display the modals.
 	 *
 	 * The required files will only be enqueued once. Subsequent calls will do nothing.
@@ -104,6 +111,7 @@ class WCS_Modal {
 		$this->trigger      = $trigger;
 		$this->heading      = $heading;
 		$this->actions      = $actions;
+		$this->id           = wp_unique_id( 'wcs-modal-' );
 
 		// Allow callers to provide the callback without any parameters. Assuming the content provided is the callback.
 		if ( 'callback' === $this->content_type && ! isset( $content['parameters'] ) ) {
@@ -227,6 +235,30 @@ class WCS_Modal {
 	 */
 	public function get_trigger() {
 		return $this->trigger;
+	}
+
+	/**
+	 * Sets the modal's unique ID.
+	 *
+	 * This is used for the actual HTML ID attribute, and so should follow the normal CSS identifier rules.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @param string $id The modal's unique ID.
+	 */
+	public function set_id( $id ) {
+		$this->id = $id;
+	}
+
+	/**
+	 * Returns the modal's unique ID.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @return string The modal's unique ID.
+	 */
+	public function get_id() {
+		return $this->id;
 	}
 
 	/**

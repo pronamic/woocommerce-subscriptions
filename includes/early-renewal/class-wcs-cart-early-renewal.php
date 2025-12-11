@@ -69,10 +69,20 @@ class WCS_Cart_Early_Renewal extends WCS_Cart_Renewal {
 
 		if ( wcs_can_user_renew_early( $subscription ) && $subscription->payment_method_supports( 'subscription_date_changes' ) && $subscription->has_status( 'active' ) ) {
 
-			$actions['subscription_renewal_early'] = array(
+			$action = array(
 				'url'  => wcs_get_early_renewal_url( $subscription ),
 				'name' => __( 'Renew now', 'woocommerce-subscriptions' ),
+				'role' => 'link',
 			);
+
+			// Set role to 'button' if renewal via modal is enabled (it opens a modal).
+			// Modal ID is set to a predictable value containing the subscription ID for aria-controls.
+			if ( WCS_Early_Renewal_Manager::is_early_renewal_via_modal_enabled() ) {
+				$action['role']     = 'button';
+				$action['modal_id'] = 'wcs-early-renewal-modal-' . $subscription->get_id();
+			}
+
+			$actions['subscription_renewal_early'] = $action;
 		}
 
 		return $actions;

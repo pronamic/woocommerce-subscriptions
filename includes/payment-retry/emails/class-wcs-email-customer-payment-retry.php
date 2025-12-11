@@ -35,9 +35,6 @@ class WCS_Email_Customer_Payment_Retry extends WCS_Email_Customer_Renewal_Invoic
 		$this->template_plain = 'emails/plain/customer-payment-retry.php';
 		$this->template_base  = WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'templates/' );
 
-		$this->subject        = __( 'Automatic payment failed for {order_number}, we will retry {retry_time}', 'woocommerce-subscriptions' );
-		$this->heading        = __( 'Automatic payment failed for order {order_number}', 'woocommerce-subscriptions' );
-
 		// We want all the parent's methods, with none of its properties, so call its parent's constructor, rather than my parent constructor
 		WC_Email::__construct();
 	}
@@ -50,7 +47,7 @@ class WCS_Email_Customer_Payment_Retry extends WCS_Email_Customer_Renewal_Invoic
 	 * @return string
 	 */
 	public function get_default_subject( $paid = false ) {
-		return $this->subject;
+		return __( 'Automatic payment failed for {order_number}, we will retry {retry_time}', 'woocommerce-subscriptions' );
 	}
 
 	/**
@@ -61,7 +58,7 @@ class WCS_Email_Customer_Payment_Retry extends WCS_Email_Customer_Renewal_Invoic
 	 * @return string
 	 */
 	public function get_default_heading( $paid = false ) {
-		return $this->heading;
+		return __( 'Automatic payment failed for order {order_number}', 'woocommerce-subscriptions' );
 	}
 
 	/**

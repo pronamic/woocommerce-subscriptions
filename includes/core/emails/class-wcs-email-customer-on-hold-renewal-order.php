@@ -21,8 +21,7 @@ class WCS_Email_Customer_On_Hold_Renewal_Order extends WC_Email_Customer_On_Hold
 		$this->customer_email = true;
 		$this->title          = __( 'On-hold Renewal Order', 'woocommerce-subscriptions' );
 		$this->description    = __( 'This is an order notification sent to customers containing order details after a renewal order is placed on-hold.', 'woocommerce-subscriptions' );
-		$this->subject        = __( 'Your {site_title} renewal order has been received!', 'woocommerce-subscriptions' );
-		$this->heading        = __( 'Thank you for your renewal order', 'woocommerce-subscriptions' );
+
 		$this->template_html  = 'emails/customer-on-hold-renewal-order.php';
 		$this->template_plain = 'emails/plain/customer-on-hold-renewal-order.php';
 		$this->template_base  = WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'templates/' );
@@ -47,7 +46,7 @@ class WCS_Email_Customer_On_Hold_Renewal_Order extends WC_Email_Customer_On_Hold
 	 * @return string
 	 */
 	public function get_default_subject() {
-		return $this->subject;
+		return __( 'Your {site_title} renewal order has been received!', 'woocommerce-subscriptions' );
 	}
 
 	/**
@@ -57,7 +56,7 @@ class WCS_Email_Customer_On_Hold_Renewal_Order extends WC_Email_Customer_On_Hold
 	 * @return string
 	 */
 	public function get_default_heading() {
-		return $this->heading;
+		return __( 'Thank you for your renewal order', 'woocommerce-subscriptions' );
 	}
 
 	/**

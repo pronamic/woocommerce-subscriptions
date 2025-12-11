@@ -44,9 +44,6 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 		$this->template_plain = 'emails/plain/customer-renewal-invoice.php';
 		$this->template_base  = WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'templates/' );
 
-		$this->subject        = __( 'Invoice for renewal order {order_number} from {order_date}', 'woocommerce-subscriptions' );
-		$this->heading        = __( 'Invoice for renewal order {order_number}', 'woocommerce-subscriptions' );
-
 		// Triggers for this email
 		add_action( 'woocommerce_generated_manual_renewal_order_renewal_notification', array( $this, 'trigger' ) );
 		add_action( 'woocommerce_order_status_failed_renewal_notification', array( $this, 'trigger' ) );
@@ -63,7 +60,7 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 	 * @return string
 	 */
 	public function get_default_subject( $paid = false ) {
-		return $this->subject;
+		return __( 'Invoice for renewal order {order_number} from {order_date}', 'woocommerce-subscriptions' );
 	}
 
 	/**
@@ -74,7 +71,7 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 	 * @return string
 	 */
 	public function get_default_heading( $paid = false ) {
-		return $this->heading;
+		return __( 'Invoice for renewal order {order_number}', 'woocommerce-subscriptions' );
 	}
 
 	/**

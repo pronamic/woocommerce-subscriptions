@@ -4,7 +4,7 @@
  *
  * @author   Prospress
  * @category WooCommerce Subscriptions/Templates
- * @version  7.3.0 - Migrated from WooCommerce Subscriptions v2.6.0
+ * @version  8.2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -26,7 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</tr>
 	</thead>
 	<tbody>
-		<?php foreach ( $subscriptions as $subscription_id => $subscription ) : ?>
+		<?php
+		foreach ( $subscriptions as $subscription_id => $subscription ) {
+			$view_order_label = sprintf(
+				// Translators: %1$d is the subscription number.
+				__( 'View subscription %1$d', 'woocommerce-subscriptions' ),
+				$subscription_id
+			);
+			?>
 			<tr class="order woocommerce-orders-table__row woocommerce-orders-table__row--status-<?php echo esc_attr( $subscription->get_status() ); ?>">
 				<td class="subscription-id order-number woocommerce-orders-table__cell woocommerce-orders-table__cell-subscription-id woocommerce-orders-table__cell-order-number" data-title="<?php esc_attr_e( 'ID', 'woocommerce-subscriptions' ); ?>">
 					<?php // translators: placeholder is a subscription number. ?>
@@ -44,10 +51,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<?php echo wp_kses_post( $subscription->get_formatted_order_total() ); ?>
 				</td>
 				<td class="subscription-actions order-actions woocommerce-orders-table__cell woocommerce-orders-table__cell-subscription-actions woocommerce-orders-table__cell-order-actions">
-					<a href="<?php echo esc_url( $subscription->get_view_order_url() ); ?>" class="woocommerce-button button view<?php echo esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ); ?>"><?php echo esc_html_x( 'View', 'view a subscription', 'woocommerce-subscriptions' ); ?></a>
+					<a
+						href="<?php echo esc_url( $subscription->get_view_order_url() ); ?>"
+						class="woocommerce-button button view<?php echo esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ); ?>"
+						aria-label="<?php echo esc_attr( $view_order_label ); ?>"
+					>
+						<?php echo esc_html_x( 'View', 'view a subscription', 'woocommerce-subscriptions' ); ?>
+					</a>
 				</td>
 			</tr>
-		<?php endforeach; ?>
+		<?php } // endforeach ?>
 	</tbody>
 </table>
 

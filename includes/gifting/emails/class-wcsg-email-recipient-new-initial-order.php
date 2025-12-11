@@ -51,8 +51,7 @@ class WCSG_Email_Recipient_New_Initial_Order extends WC_Email {
 		$this->title          = __( 'New Initial Order - Recipient', 'woocommerce-subscriptions' );
 		$this->description    = __( 'This email is sent to recipients notifying them of subscriptions purchased for them.', 'woocommerce-subscriptions' );
 		$this->customer_email = true;
-		$this->heading        = __( 'New Order', 'woocommerce-subscriptions' );
-		$this->subject        = __( 'Your new subscriptions at {site_title}', 'woocommerce-subscriptions' );
+
 		$this->template_html  = 'emails/recipient-new-initial-order.php';
 		$this->template_plain = 'emails/plain/recipient-new-initial-order.php';
 		$this->template_base  = plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/gifting/';
@@ -61,6 +60,28 @@ class WCSG_Email_Recipient_New_Initial_Order extends WC_Email {
 		add_action( 'wcsg_new_order_recipient_notification', array( $this, 'trigger' ), 10, 2 );
 
 		WC_Email::__construct();
+	}
+
+	/**
+	 * Get the default e-mail subject.
+	 *
+	 * @param bool $paid Whether the order has been paid or not.
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
+	 * @return string
+	 */
+	public function get_default_subject( $paid = false ) {
+		return __( 'Your new subscriptions at {site_title}', 'woocommerce-subscriptions' );
+	}
+
+	/**
+	 * Get the default e-mail heading.
+	 *
+	 * @param bool $paid Whether the order has been paid or not.
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
+	 * @return string
+	 */
+	public function get_default_heading( $paid = false ) {
+		return __( 'New Order', 'woocommerce-subscriptions' );
 	}
 
 	/**

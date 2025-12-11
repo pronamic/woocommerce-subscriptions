@@ -45,6 +45,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'maybe_show_welcome_message' ) );
 		add_action( 'plugins_loaded', array( $this, 'init_gifting' ) );
 		add_action( 'plugins_loaded', array( $this, 'init_downloads' ) );
+		add_action( 'admin_notices', array( WC_Subscription_Downloads_Settings::class, 'add_notice_about_bundled_feature' ) );
 	}
 
 	/**

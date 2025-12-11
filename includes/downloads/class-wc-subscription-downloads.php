@@ -51,7 +51,7 @@ class WC_Subscription_Downloads {
 	}
 
 	/**
-	 * Get subscriptions from a downloadable product.
+	 * Given the ID of a downloadable product, returns an array of linked subscription product IDs.
 	 *
 	 * @param  int $product_id
 	 *

@@ -32,9 +32,6 @@ class WCS_Email_Payment_Retry extends WC_Email_Failed_Order {
 		$this->title          = __( 'Payment Retry', 'woocommerce-subscriptions' );
 		$this->description    = __( 'Payment retry emails are sent to chosen recipient(s) when an attempt to automatically process a subscription renewal payment has failed and a retry rule has been applied to retry the payment in the future.', 'woocommerce-subscriptions' );
 
-		$this->heading        = __( 'Automatic renewal payment failed', 'woocommerce-subscriptions' );
-		$this->subject        = __( '[{site_title}] Automatic payment failed for {order_number}, retry scheduled to run {retry_time}', 'woocommerce-subscriptions' );
-
 		$this->template_html  = 'emails/admin-payment-retry.php';
 		$this->template_plain = 'emails/plain/admin-payment-retry.php';
 		$this->template_base  = WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'templates/' );
@@ -53,7 +50,7 @@ class WCS_Email_Payment_Retry extends WC_Email_Failed_Order {
 	 * @return string
 	 */
 	public function get_default_subject() {
-		return $this->subject;
+		return __( '[{site_title}] Automatic payment failed for {order_number}, retry scheduled to run {retry_time}', 'woocommerce-subscriptions' );
 	}
 
 	/**
@@ -63,7 +60,7 @@ class WCS_Email_Payment_Retry extends WC_Email_Failed_Order {
 	 * @return string
 	 */
 	public function get_default_heading() {
-		return $this->heading;
+		return __( 'Automatic renewal payment failed', 'woocommerce-subscriptions' );
 	}
 
 	/**

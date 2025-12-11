@@ -1,11 +1,13 @@
 jQuery( function ( $ ) {
-	const modals = $( '.wcs-modal' );
+	const $modals = $( '.wcs-modal' );
+	let $currentModal;
+	let $triggerElement;
 
 	// Resize all open modals on window resize.
 	$( window ).on( 'resize', resizeModals );
 
 	// Initialize modals
-	$( modals ).each( function () {
+	$( $modals ).each( function () {
 		trigger = $( this ).data( 'modal-trigger' );
 		$( trigger ).on( 'click', { modal: this }, show_modal );
 	} );
@@ -18,34 +20,35 @@ jQuery( function ( $ ) {
 	 * @param {JQuery event} event
 	 */
 	function show_modal( event ) {
-		const modal = $( event.data.modal );
+		$triggerElement = $( event.target );
+		$currentModal   = $( event.data.modal );
 
-		if ( ! should_show_modal( modal ) ) {
+		if ( ! should_show_modal( $currentModal ) ) {
 			return;
 		}
 
 		// Prevent the trigger element event being triggered.
 		event.preventDefault();
 
-		const contentWrapper = modal.find( '.content-wrapper' );
-		const close = modal.find( '.close' );
+		const $contentWrapper = $currentModal.find( '.content-wrapper' );
+		const $close = $currentModal.find( '.close' );
 
-		modal.trigger( 'focus' );
-		modal.addClass( 'open' );
-
-		resizeModal( modal );
+		$currentModal.addClass( 'open' );
+		resizeModal( $currentModal );
 
 		$( document.body ).toggleClass( 'wcs-modal-open', true );
+		$currentModal.focus();
+		document.addEventListener( 'focusin', keepFocusInModal );
 
 		// Attach callbacks to handle closing the modal.
-		close.on( 'click', () => close_modal( modal ) );
-		modal.on( 'click', () => close_modal( modal ) );
-		contentWrapper.on( 'click', ( e ) => e.stopPropagation() );
+		$close.on( 'click', () => close_modal( $currentModal ) );
+		$currentModal.on( 'click', () => close_modal( $currentModal ) );
+		$contentWrapper.on( 'click', ( e ) => e.stopPropagation() );
 
 		// Close the modal if the escape key is pressed.
-		modal.on( 'keyup', function ( e ) {
+		$currentModal.on( 'keyup', function ( e ) {
 			if ( 27 === e.keyCode ) {
-				close_modal( modal );
+				close_modal( $currentModal );
 			}
 		} );
 	}
@@ -53,14 +56,17 @@ jQuery( function ( $ ) {
 	/**
 	 * Closes a modal and resets any forced height styles.
 	 *
-	 * @param {JQuery Object} modal
+	 * @param {JQuery Object} $modal
 	 */
-	function close_modal( modal ) {
-		modal.removeClass( 'open' );
-		$( modal ).find( '.content-wrapper' ).css( 'height', '' );
+	function close_modal( $modal ) {
+		$modal.removeClass( 'open' );
+		$( $modal ).find( '.content-wrapper' ).css( 'height', '' );
 
-		if ( 0 === modals.filter( '.open' ).length ) {
+		if ( 0 === $modals.filter( '.open' ).length ) {
 			$( document.body ).removeClass( 'wcs-modal-open' );
+			$currentModal = false;
+			document.removeEventListener( 'focusin', keepFocusInModal );
+			$triggerElement.focus();
 		}
 	}
 
@@ -86,7 +92,7 @@ jQuery( function ( $ ) {
 	 * Resize all open modals to fit the display.
 	 */
 	function resizeModals() {
-		$( modals ).each( function () {
+		$( $modals ).each( function () {
 			if ( ! $( this ).hasClass( 'open' ) ) {
 				return;
 			}
@@ -98,17 +104,28 @@ jQuery( function ( $ ) {
 	/**
 	 * Resize a modal to fit the display.
 	 *
-	 * @param {JQuery Object} modal
+	 * @param {JQuery Object} $modal
 	 */
-	function resizeModal( modal ) {
-		var modal_container = $( modal ).find( '.content-wrapper' );
+	function resizeModal( $modal ) {
+		const $modal_container = $( $modal ).find( '.content-wrapper' );
 
 		// On smaller displays the height is already forced to be 100% in CSS. We just clear any height we might set previously.
 		if ( $( window ).width() <= 414 ) {
-			modal_container.css( 'height', '' );
-		} else if ( modal_container.height() > $( window ).height() ) {
+			$modal_container.css( 'height', '' );
+		} else if ( $modal_container.height() > $( window ).height() ) {
 			// Force the container height to trigger scroll etc if it doesn't fit on the screen.
-			modal_container.css( 'height', '90%' );
+			$modal_container.css( 'height', '90%' );
+		}
+	}
+
+	/**
+	 * If focus moves out of the open modal, return focus to it.
+	 *
+	 * @param event
+	 */
+	function keepFocusInModal( event ) {
+		if ( $currentModal && ! $currentModal[0].contains( event.target ) ) {
+			$currentModal.focus();
 		}
 	}
 } );

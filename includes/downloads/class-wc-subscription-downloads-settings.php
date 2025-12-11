@@ -1,5 +1,7 @@
 <?php
 
+use Automattic\Jetpack\Constants;
+
 /**
  * Registers and manages settings related to linked downloadable files functionality.
  *
@@ -8,6 +10,39 @@
 class WC_Subscription_Downloads_Settings {
 	public function __construct() {
 		add_filter( 'woocommerce_subscription_settings', array( $this, 'add_settings' ) );
+	}
+
+
+	/**
+	 * Check if WooCommerce Subscription Downloads plugin is enabled and add a warning about the bundled feature if it is.
+	 *
+	 * @since 8.0.0
+	 */
+	public static function add_notice_about_bundled_feature() {
+		$screen = get_current_screen();
+		if ( ! $screen ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$is_subscriptions_settings_page = 'woocommerce_page_wc-settings' === $screen->id && isset( $_GET['tab'] ) && 'subscriptions' === sanitize_text_field( wp_unslash( $_GET['tab'] ) );
+
+		// Only show notice on plugins page or subscriptions settings page.
+		if ( 'plugins' !== $screen->id && ! $is_subscriptions_settings_page ) {
+			return;
+		}
+
+		if ( Constants::get_constant( 'WC_SUBSCRIPTION_DOWNLOADS_VERSION' ) ) {
+			$message = __( 'WooCommerce Subscription Downloads is now part of WooCommerce Subscriptions — no extra plugin needed. You can deactivate and uninstall WooCommerce Subscription Downloads via the plugin admin screen.', 'woocommerce-subscriptions' );
+
+			wp_admin_notice(
+				$message,
+				array(
+					'type'        => 'warning',
+					'dismissible' => true,
+				)
+			);
+		}
 	}
 
 	/**

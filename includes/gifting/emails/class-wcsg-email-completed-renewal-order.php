@@ -30,8 +30,6 @@ class WCSG_Email_Completed_Renewal_Order extends WCS_Email_Completed_Renewal_Ord
 		$this->title          = __( 'Completed Renewal Order - Recipient', 'woocommerce-subscriptions' );
 		$this->description    = __( 'Renewal order complete emails are sent to the recipient when a subscription renewal order is marked complete and usually indicates that the item for that renewal period has been shipped.', 'woocommerce-subscriptions' );
 		$this->customer_email = true;
-		$this->heading        = __( 'Your renewal order is complete', 'woocommerce-subscriptions' );
-		$this->subject        = __( 'Your {blogname} renewal order from {order_date} is complete', 'woocommerce-subscriptions' );
 
 		$this->template_html  = 'emails/recipient-completed-renewal-order.php';
 		$this->template_plain = 'emails/plain/recipient-completed-renewal-order.php';
@@ -40,6 +38,28 @@ class WCSG_Email_Completed_Renewal_Order extends WCS_Email_Completed_Renewal_Ord
 		add_action( 'woocommerce_order_status_completed_renewal_notification_recipient', array( $this, 'trigger' ) );
 
 		WC_Email::__construct();
+	}
+
+	/**
+	 * Get the default e-mail subject.
+	 *
+	 * @param bool $paid Whether the order has been paid or not.
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
+	 * @return string
+	 */
+	public function get_default_subject( $paid = false ) {
+		return __( 'Your {blogname} renewal order from {order_date} is complete', 'woocommerce-subscriptions' );
+	}
+
+	/**
+	 * Get the default e-mail heading.
+	 *
+	 * @param bool $paid Whether the order has been paid or not.
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
+	 * @return string
+	 */
+	public function get_default_heading( $paid = false ) {
+		return __( 'Your renewal order is complete', 'woocommerce-subscriptions' );
 	}
 
 	/**

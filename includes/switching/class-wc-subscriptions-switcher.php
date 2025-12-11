@@ -1282,7 +1282,33 @@ class WC_Subscriptions_Switcher {
 				// If the switch is for a grouped product, we need to check the other products grouped with this one
 				if ( $parent_products ) {
 					foreach ( $parent_products as $parent_id ) {
-						$switch_product_ids = array_unique( array_merge( $switch_product_ids, wc_get_product( $parent_id )->get_children() ) );
+						$parent_product = wc_get_product( $parent_id );
+
+						if ( ! $parent_product ) {
+							wc_get_logger()->error(
+								'Parent product {parent_id} for switch product {product_id} not found',
+								array(
+									'parent_id'  => $parent_id,
+									'product_id' => $product_id,
+								)
+							);
+							continue;
+						}
+
+						$parent_product_children = $parent_product->get_children();
+
+						if ( ! is_array( $parent_product_children ) ) {
+							wc_get_logger()->error(
+								'Children of parent product {parent_id} for switch product {product_id} is not an array',
+								array(
+									'parent_id'  => $parent_id,
+									'product_id' => $product_id,
+								)
+							);
+							continue;
+						}
+
+						$switch_product_ids = array_unique( array_merge( $switch_product_ids, $parent_product_children ) );
 					}
 				} elseif ( $switch_product->is_type( 'subscription_variation' ) ) {
 					$switch_product_ids[] = $switch_product->get_parent_id();
@@ -1469,7 +1495,33 @@ class WC_Subscriptions_Switcher {
 
 			if ( ! empty( $parent_products ) ) {
 				foreach ( $parent_products as $parent_id ) {
-					$child_products = array_unique( array_merge( $child_products, wc_get_product( $parent_id )->get_children() ) );
+					$parent_product = wc_get_product( $parent_id );
+
+					if ( ! $parent_product ) {
+						wc_get_logger()->error(
+							'Parent product {parent_id} for switch product {product_id} not found',
+							array(
+								'parent_id'  => $parent_id,
+								'product_id' => $item['product_id'],
+							)
+						);
+						continue;
+					}
+
+					$parent_product_children = $parent_product->get_children();
+
+					if ( ! is_array( $parent_product_children ) ) {
+						wc_get_logger()->error(
+							'Children of parent product {parent_id} for switch product {product_id} is not an array',
+							array(
+								'parent_id'  => $parent_id,
+								'product_id' => $item['product_id'],
+							)
+						);
+						continue;
+					}
+
+					$child_products = array_unique( array_merge( $child_products, $parent_product_children ) );
 				}
 			}
 

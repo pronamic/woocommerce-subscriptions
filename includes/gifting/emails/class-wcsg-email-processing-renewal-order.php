@@ -30,8 +30,7 @@ class WCSG_Email_Processing_Renewal_Order extends WCS_Email_Processing_Renewal_O
 		$this->title          = __( 'Processing Renewal Order - Recipient', 'woocommerce-subscriptions' );
 		$this->description    = __( 'This is an order notification sent to the recipient after payment for a subscription renewal order is completed. It contains the renewal order details.', 'woocommerce-subscriptions' );
 		$this->customer_email = true;
-		$this->heading        = __( 'Thank you for your order', 'woocommerce-subscriptions' );
-		$this->subject        = __( 'Your {blogname} renewal order receipt from {order_date}', 'woocommerce-subscriptions' );
+
 		$this->template_html  = 'emails/recipient-processing-renewal-order.php';
 		$this->template_plain = 'emails/plain/recipient-processing-renewal-order.php';
 		$this->template_base  = plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/gifting/';
@@ -41,6 +40,29 @@ class WCSG_Email_Processing_Renewal_Order extends WCS_Email_Processing_Renewal_O
 
 		WC_Email::__construct();
 	}
+
+	/**
+	 * Get the default e-mail subject.
+	 *
+	 * @param bool $paid Whether the order has been paid or not.
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
+	 * @return string
+	 */
+	public function get_default_subject( $paid = false ) {
+		return __( 'Your {blogname} renewal order receipt from {order_date}', 'woocommerce-subscriptions' );
+	}
+
+	/**
+	 * Get the default e-mail heading.
+	 *
+	 * @param bool $paid Whether the order has been paid or not.
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.3
+	 * @return string
+	 */
+	public function get_default_heading( $paid = false ) {
+		return __( 'Thank you for your order', 'woocommerce-subscriptions' );
+	}
+
 
 	/**
 	 * Trigger function.

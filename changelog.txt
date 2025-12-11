@@ -1,5 +1,30 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2025-12-10 - version 8.2.0
+* Fix: Various accessibility issues.
+    * Added button roles.
+    * Added labels to remove product links.
+    * Adding missing header labels on related orders table.
+    * Prevented various hidden elements from being exposed to screen readers.
+    * Fixed focus problems for the renewal dialog.
+    * Fixed focus when closing modals.
+    * Fixed toggle state change using spacebar.
+    * Fixed label for sign up now button.
+    * Fixed toggle aria-label text to reflect state.
+    * Added aria-haspopup attribute to buttons that open modals.
+    * Fixed link for view order aria-label.
+    * Fixed renew now button text and aria-label.
+    * Added aria-modal and role attributes to modals and dialogs.
+* Fix: Resubscribe button now appears correctly for cancelled limited subscriptions.
+* Fix: Missing translation for pricing string on languages without plural form.
+* Fix: Customized subscriptions links in WooCommerce emails now work correctly.
+* Fix: Possible fatal errors when switching grouped subscriptions.
+* Fix: Prevent unnecessary log entries related to gifted subscriptions.
+* Fix: Make it easier for translation plugins to respect individual customer language preferences when sending subscription emails.
+* Fix: Prevent recurring local pickup options from displaying for virtual subscriptions when the cart contains physical products.
+* Fix: Prevent shipping summary from displaying on Blocks Checkout for virtual subscriptions.
+* Fix: Item price in blocks checkout is correctly displayed without "due today" words for items with zero sign up fee.
+
 2025-11-13 - version 8.1.0
 * Fix: Prevent a fatal error that can occur when previewing emails in WooCommerce email settings.
 * Fix: Prevent technical subscription-specific discount types from appearing in the coupon edit UI.

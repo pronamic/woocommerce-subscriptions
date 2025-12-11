@@ -20,6 +20,11 @@ class Events {
 	 */
 	public function __construct( ?callable $event_recorder = null ) {
 		$this->event_recorder = $event_recorder ?? function ( string $event_name, array $event_properties = array() ) {
+			// The WC_Site_Tracking class is not always available, depending on the WC version and request type (e.g. AJAX).
+			// This check prevents a fatal error if the class is not loaded.
+			if ( ! class_exists( 'WC_Site_Tracking' ) ) {
+				return;
+			}
 			// Note that the following method ensures nothing is sent home unless tracking is enabled.
 			WC_Tracks::record_event( $event_name, $event_properties );
 		};
