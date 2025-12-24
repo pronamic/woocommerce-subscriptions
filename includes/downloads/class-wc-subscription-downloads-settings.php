@@ -19,6 +19,11 @@ class WC_Subscription_Downloads_Settings {
 	 * @since 8.0.0
 	 */
 	public static function add_notice_about_bundled_feature() {
+		if ( ! Constants::is_true( 'WCS_ALLOW_SUBSCRIPTION_DOWNLOADS' ) ) {
+			// TODO: remove this conditional as soon as we are ready to make subscription downloads functionality live.
+			return;
+		}
+
 		$screen = get_current_screen();
 		if ( ! $screen ) {
 			return false;

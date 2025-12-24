@@ -8,9 +8,9 @@
  */
 
 defined( 'ABSPATH' ) || exit;
-$display_heading = true;
 
 foreach ( WC()->cart->get_coupons() as $code => $coupon ) {
+	$display_heading = true;
 	foreach ( $recurring_carts as $recurring_cart_key => $recurring_cart ) {
 		foreach ( $recurring_cart->get_coupons() as $recurring_code => $recurring_coupon ) {
 			if ( $recurring_code !== $code ) {

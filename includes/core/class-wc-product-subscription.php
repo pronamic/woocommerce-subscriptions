@@ -99,7 +99,7 @@ class WC_Product_Subscription extends WC_Product_Simple {
 			);
 		}
 
-		return apply_filters( 'woocommerce_product_add_to_cart_description', sprintf( $text, $this->get_name() ), $this );
+		return apply_filters( 'woocommerce_product_add_to_cart_description', $text, $this );
 	}
 
 	/**

@@ -190,22 +190,12 @@ function wcs_price_string( $subscription_details ) {
 				break;
 		}
 	} elseif ( ! empty( $subscription_details['initial_amount'] ) ) {
-		if ( 1 === $subscription_details['subscription_interval'] ) {
-			// translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount, 4$: subscription period (e.g. "month")
-			$subscription_string = sprintf( __( '%1$s %2$s then %3$s / %4$s', 'woocommerce-subscriptions' ), $initial_amount_string, $subscription_details['initial_description'], $recurring_amount_string, $subscription_period_string );
-		} else {
-			// translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount, 4$: subscription period (e.g. "3 months")
-			$subscription_string = sprintf( __( '%1$s %2$s then %3$s every %4$s', 'woocommerce-subscriptions' ), $initial_amount_string, $subscription_details['initial_description'], $recurring_amount_string, $subscription_period_string );
-		}
+		// translators: 1$: initial amount, 2$: initial description (e.g. "up front"), 3$: recurring amount, 4$: subscription period (e.g. "month" or "3 months")
+		$subscription_string = sprintf( _n( '%1$s %2$s then %3$s / %4$s', '%1$s %2$s then %3$s every %4$s', $subscription_details['subscription_interval'], 'woocommerce-subscriptions' ), $initial_amount_string, $subscription_details['initial_description'], $recurring_amount_string, $subscription_period_string );
 	} elseif ( ! empty( $subscription_details['recurring_amount'] ) || intval( $subscription_details['recurring_amount'] ) === 0 ) {
 		if ( true === $subscription_details['use_per_slash'] ) {
-			if ( 1 === $subscription_details['subscription_interval'] ) {
-				// translators: 1$: recurring amount, 2$: subscription period (e.g. "month") (e.g. "$15 / month")
-				$subscription_string = sprintf( __( '%1$s / %2$s', 'woocommerce-subscriptions' ), $recurring_amount_string, $subscription_period_string );
-			} else {
-				// translators: 1$: recurring amount, 2$: subscription period (e.g. "3 months") (e.g. "$15 every 2nd month")
-				$subscription_string = sprintf( __( '%1$s every %2$s', 'woocommerce-subscriptions' ), $recurring_amount_string, $subscription_period_string );
-			}
+			// translators: 1$: recurring amount, 2$: subscription period (e.g. "month" or "3 months") (e.g. "$15 / month" or "$15 every 2nd month")
+			$subscription_string = sprintf( _n( '%1$s / %2$s', '%1$s every %2$s', $subscription_details['subscription_interval'], 'woocommerce-subscriptions' ), $recurring_amount_string, $subscription_period_string );
 		} else {
 			// translators: %1$: recurring amount (e.g. "$15"), %2$: subscription period (e.g. "month") (e.g. "$15 every 2nd month")
 			$subscription_string = sprintf( __( '%1$s every %2$s', 'woocommerce-subscriptions' ), $recurring_amount_string, $subscription_period_string );

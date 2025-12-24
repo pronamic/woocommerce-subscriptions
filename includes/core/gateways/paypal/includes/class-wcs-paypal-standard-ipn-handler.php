@@ -190,7 +190,7 @@ class WCS_PayPal_Standard_IPN_Handler extends WC_Gateway_Paypal_IPN_Handler {
 			$transaction_order = wc_get_order( substr( $transaction_details['invoice'], strrpos( $transaction_details['invoice'], '-' ) + 1 ) );
 
 			// check if the failed signup has been previously recorded
-			if ( wcs_get_objects_property( $transaction_order, 'id' ) !== $subscription->get_meta( '_paypal_failed_sign_up_recorded', true ) ) {
+			if ( wcs_get_objects_property( $transaction_order, 'id' ) !== (int) $subscription->get_meta( '_paypal_failed_sign_up_recorded', true ) ) {
 				$is_renewal_sign_up_after_failure = true;
 			}
 		}
