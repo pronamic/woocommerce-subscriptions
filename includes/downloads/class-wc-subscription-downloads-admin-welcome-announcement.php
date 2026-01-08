@@ -1,6 +1,6 @@
 <?php
 /**
- * Gifting Admin Announcement Handler Class
+ * Downloads Admin Announcement Handler Class
  *
  * @package  WooCommerce Subscriptions
  * @since    1.0.0
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-class WCSG_Admin_Welcome_Announcement {
+class WC_Subscription_Downloads_Admin_Welcome_Announcement {
 
 	/**
 	 * Initialize the tour handler
@@ -35,13 +35,13 @@ class WCSG_Admin_Welcome_Announcement {
 
 		wp_localize_script(
 			'wcs-admin',
-			'wcsGiftingSettings',
+			'wcsDownloadsSettings',
 			array(
-				'imagesPath'                 => plugins_url( '/assets/images', WC_Subscriptions::$plugin_file ),
-				'pluginsUrl'                 => admin_url( 'plugins.php' ),
-				'subscriptionsUrl'           => WC_Subscriptions_Admin::settings_tab_url() . '#woocommerce_subscriptions_gifting_enable_gifting',
-				'isStandaloneGiftingEnabled' => is_plugin_active( 'woocommerce-subscriptions-gifting/woocommerce-subscriptions-gifting.php' ),
-				'isSubscriptionsListing'     => 'woocommerce_page_wc-orders--shop_subscription' === $screen->id,
+				'imagesPath'                   => plugins_url( '/assets/images', WC_Subscriptions::$plugin_file ),
+				'pluginsUrl'                   => admin_url( 'plugins.php' ),
+				'subscriptionsUrl'             => WC_Subscriptions_Admin::settings_tab_url() . '#woocommerce_subscriptions_downloads_enable',
+				'isStandaloneDownloadsEnabled' => is_plugin_active( 'woocommerce-subscription-downloads/woocommerce-subscription-downloads.php' ),
+				'isSubscriptionsListing'       => 'woocommerce_page_wc-orders--shop_subscription' === $screen->id,
 			)
 		);
 	}
@@ -55,7 +55,7 @@ class WCSG_Admin_Welcome_Announcement {
 		}
 
 		// Add a div for the tour to be rendered into
-		echo '<div id="wcs-gifting-welcome-announcement-root" class="woocommerce-tour-kit"></div>';
+		echo '<div id="wcs-downloads-welcome-announcement-root" class="woocommerce-tour-kit"></div>';
 	}
 
 	/**
@@ -65,7 +65,7 @@ class WCSG_Admin_Welcome_Announcement {
 	 */
 	public static function is_welcome_announcement_dismissed() {
 		return '1' === get_option(
-			'woocommerce_subscriptions_gifting_is_welcome_announcement_dismissed',
+			'woocommerce_subscriptions_downloads_is_welcome_announcement_dismissed',
 			''
 		);
 	}

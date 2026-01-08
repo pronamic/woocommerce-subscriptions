@@ -1,11 +1,17 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2026-01-06 - version 8.3.0
+* Add: Support for ajax add-to-cart flows from the single product page, when upgrading or downgrading subscriptions.
+* Add: Enhanced functionality from the WooCommerce Subscription Downloads plugin has now been integrated directly into WooCommerce Subscriptions.
+* Fix: Ensured the subject line for the "Customer Renewal Invoice" email correctly updates.
+
 2025-12-22 - version 8.2.1
 * Fix: Subscription pricing strings now correctly display singular and plural billing intervals like "$10 / month" and "$10 every 3 months" in cart and checkout totals.
 * Fix: Display all recurring coupon names in the totals section of classic cart and checkout when multiple recurring coupons are applied.
 * Fix: Payment method selector options on Subscriptions list page are now properly displaying the payment method name for gateways providing multiple payment methods.
 * Fix: PayPal Standard plugin IPN renewal orders not being created for failed payment retries.
 * Fix: Prevent fatal errors on shop pages when special characters like % are used in a product name.
+* Fix: Prevent an email validation error from briefly and inadvertently flashing on the screen when the "this is a gift" checkbox is used.
 
 2025-12-10 - version 8.2.0
 * Fix: Various accessibility issues.

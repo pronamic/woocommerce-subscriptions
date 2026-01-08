@@ -639,6 +639,53 @@ jQuery( function ( $ ) {
 		},
 	} );
 
+	/**
+	 * Relocates the linked downloadable product fields in the context of a variable subscription product, and
+	 * selectively shows/hides it, depending on whether the variation is downloadable or not.
+	 */
+	function initLinkedDownloadableProductFieldsForVariationProduct() {
+		$( '#variable_product_options .variable_subscription_linked_downloadable_products' )
+			.not( '.wcs_moved' )
+			.each( function () {
+				const $this            = $( this );
+				const $variablePricing = $( this ).siblings( '.variable_pricing' );
+
+				const $downloadableFiles = $( this ).siblings( '.form-row.downloadable_files' ).parent( 'div' );
+
+				$this.insertAfter( $downloadableFiles );
+				$this.addClass( 'wcs_gifting_moved' );
+			} );
+	}
+
+	/**
+	 * Move the linked downloadable product fields to the correct location (which is underneath the downloadable files
+	 * section).
+	 */
+	function relocateLinkedDownloadableProductFields() {
+		const $linkedDownloadableProducts = $( '.subscription_linked_downloadable_products_section' );
+		const $productTypeSelector        = $('select#product-type');
+
+		const showHide = () => {
+			$productTypeSelector.val() === WCSubscriptions.productType
+				? $linkedDownloadableProducts.show()
+				: $linkedDownloadableProducts.hide();
+		};
+
+		$linkedDownloadableProducts
+			.not( '.wcs_moved' )
+			.each( function () {
+				const $downloadableFilesSection = $( '.form-field.downloadable_files' ).parent( 'div' );
+
+				if ( $downloadableFilesSection.length === 1 ) {
+					$( this ).insertAfter( $downloadableFilesSection );
+					$( this ).addClass( 'wcs_moved' );
+				}
+			} );
+
+		showHide();
+		$productTypeSelector.on( 'change', showHide );
+	}
+
 	$( '.options_group.pricing ._sale_price_field .description' ).prepend(
 		'<span id="sale-price-period" style="display: none;"></span>'
 	);
@@ -653,9 +700,9 @@ jQuery( function ( $ ) {
 		$( '.options_group.subscription_pricing' )
 	);
 
-	// Move the subscription variation pricing and gifting sections to a better location in the DOM on load
-	// We do this because these sections are initially loaded at the end of the variable product options section,
-	// which is not the best location for them, so we move to before the "Sale price" section.
+	// Move the subscription variation pricing, gifting and linked downloadable product sections to a better location in
+	// the DOM on load. We do this because these sections are initially loaded at the end of the variable product
+	// options section, which is not the best location for them, so we move to before the "Sale price" section.
 	if (
 		$( '#variable_product_options .variable_subscription_pricing' ).length >
 		0
@@ -668,6 +715,7 @@ jQuery( function ( $ ) {
 	) {
 		$.moveSubscriptionGiftingFields();
 	}
+
 	// When a variation is added
 	$( '#woocommerce-product-data' ).on(
 		'woocommerce_variations_added woocommerce_variations_loaded',
@@ -677,6 +725,7 @@ jQuery( function ( $ ) {
 			$.showHideVariableSubscriptionMeta();
 			$.showHideSyncOptions();
 			$.setSubscriptionLengths();
+			initLinkedDownloadableProductFieldsForVariationProduct();
 		}
 	);
 
@@ -690,6 +739,7 @@ jQuery( function ( $ ) {
 		$.showHideSyncOptions();
 		$.disableEnableOneTimeShipping();
 		$.showHideSubscriptionsPanels();
+		relocateLinkedDownloadableProductFields();
 	}
 
 	// Update subscription ranges when subscription period or interval is changed

@@ -1,15 +1,15 @@
-# Copyright (C) 2025 WooCommerce
+# Copyright (C) 2026 WooCommerce
 # This file is distributed under the GNU General Public License v3.0.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 8.2.1\n"
+"Project-Id-Version: WooCommerce Subscriptions 8.3.0\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-12-22T21:15:57+00:00\n"
+"POT-Creation-Date: 2026-01-06T17:54:09+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woocommerce-subscriptions\n"
@@ -889,7 +889,7 @@ msgstr ""
 msgid "Order already has subscriptions associated with it."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-settings-option-controller.php:83
+#: includes/api/class-wc-rest-subscriptions-settings-option-controller.php:84
 msgid "Invalid value type; must be either boolean or array"
 msgstr ""
 
@@ -1123,26 +1123,26 @@ msgid "%1$sWooCommerce Subscriptions is inactive.%2$s This version of Subscripti
 msgstr ""
 
 #. translators: 1-2: opening/closing <b> tags, 3: Subscriptions version.
-#: includes/class-wc-subscriptions-plugin.php:70
+#: includes/class-wc-subscriptions-plugin.php:71
 #, php-format
 msgid "%1$sWarning!%2$s We can see the %1$sWooCommerce Subscriptions Early Renewal%2$s plugin is active. Version %3$s of %1$sWooCommerce Subscriptions%2$s comes with that plugin's functionality packaged into the core plugin. Please deactivate WooCommerce Subscriptions Early Renewal to avoid any conflicts."
 msgstr ""
 
-#: includes/class-wc-subscriptions-plugin.php:74
+#: includes/class-wc-subscriptions-plugin.php:75
 msgid "Installed Plugins"
 msgstr ""
 
 #. translators: $1-$2: opening and closing <strong> tags, $3-$4: opening and closing <em> tags.
-#: includes/class-wc-subscriptions-plugin.php:216
+#: includes/class-wc-subscriptions-plugin.php:217
 #, php-format
 msgid "%1$sWooCommerce Subscriptions Installed%2$s &#8211; %3$sYou're ready to start selling subscriptions!%4$s"
 msgstr ""
 
-#: includes/class-wc-subscriptions-plugin.php:234
+#: includes/class-wc-subscriptions-plugin.php:235
 msgid "Add a Subscription Product"
 msgstr ""
 
-#: includes/class-wc-subscriptions-plugin.php:235
+#: includes/class-wc-subscriptions-plugin.php:236
 #: includes/core/class-wc-subscriptions-core-plugin.php:580
 #: includes/core/upgrades/templates/wcs-about-2-0.php:35
 #: includes/core/upgrades/templates/wcs-about.php:34
@@ -1407,7 +1407,7 @@ msgid "Virtual"
 msgstr ""
 
 #: includes/core/admin/class-wc-subscriptions-admin.php:296
-#: templates/admin/html-variation-price.php:27
+#: templates/admin/html-variation-price.php:29
 msgid "Choose the subscription price, billing interval and period."
 msgstr ""
 
@@ -1421,7 +1421,7 @@ msgstr ""
 #. translators: %s: currency symbol.
 #. translators: placeholder is a currency symbol / code
 #: includes/core/admin/class-wc-subscriptions-admin.php:313
-#: templates/admin/html-variation-price.php:23
+#: templates/admin/html-variation-price.php:25
 #, php-format
 msgid "Subscription price (%s)"
 msgstr ""
@@ -1430,7 +1430,7 @@ msgstr ""
 #. translators: %s the formatted example price value.
 #: includes/core/admin/class-wc-subscriptions-admin.php:318
 #: includes/core/admin/class-wc-subscriptions-admin.php:360
-#: templates/admin/html-variation-price.php:33
+#: templates/admin/html-variation-price.php:35
 #, php-format
 msgctxt "example price"
 msgid "e.g. %s"
@@ -1447,7 +1447,7 @@ msgstr ""
 
 #: includes/core/admin/class-wc-subscriptions-admin.php:344
 #: includes/core/admin/class-wc-subscriptions-admin.php:516
-#: templates/admin/html-variation-price.php:53
+#: templates/admin/html-variation-price.php:55
 msgid "Stop renewing after"
 msgstr ""
 
@@ -1457,19 +1457,19 @@ msgstr ""
 
 #. translators: %s is a currency symbol / code
 #: includes/core/admin/class-wc-subscriptions-admin.php:358
-#: templates/admin/html-variation-price.php:69
+#: templates/admin/html-variation-price.php:71
 #, php-format
 msgid "Sign-up fee (%s)"
 msgstr ""
 
 #: includes/core/admin/class-wc-subscriptions-admin.php:361
-#: templates/admin/html-variation-price.php:72
+#: templates/admin/html-variation-price.php:74
 msgid "Optionally include an amount to be charged at the outset of the subscription. The sign-up fee will be charged immediately, even if the product has a free trial or the payment dates are synced."
 msgstr ""
 
 #: includes/core/admin/class-wc-subscriptions-admin.php:375
 #: includes/core/class-wc-subscriptions-cart.php:2458
-#: templates/admin/html-variation-price.php:79
+#: templates/admin/html-variation-price.php:81
 msgid "Free trial"
 msgstr ""
 
@@ -1480,22 +1480,22 @@ msgstr ""
 
 #: includes/core/admin/class-wc-subscriptions-admin.php:403
 #: includes/gifting/class-wcsg-admin.php:182
-#: templates/admin/html-variation-price.php:107
+#: templates/admin/html-variation-price.php:109
 msgid "Gifting"
 msgstr ""
 
 #: includes/core/admin/class-wc-subscriptions-admin.php:407
-#: templates/admin/html-variation-price.php:117
+#: templates/admin/html-variation-price.php:119
 msgid "Enabled"
 msgstr ""
 
 #: includes/core/admin/class-wc-subscriptions-admin.php:408
-#: templates/admin/html-variation-price.php:118
+#: templates/admin/html-variation-price.php:120
 msgid "Disabled"
 msgstr ""
 
 #: includes/core/admin/class-wc-subscriptions-admin.php:411
-#: templates/admin/html-variation-price.php:110
+#: templates/admin/html-variation-price.php:112
 msgid "Allow shoppers to purchase a subscription as a gift."
 msgstr ""
 
@@ -3932,13 +3932,13 @@ msgid "Never (charge the full recurring amount at sign-up)"
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-synchroniser.php:226
-#: includes/switching/class-wc-subscriptions-switcher.php:442
+#: includes/switching/class-wc-subscriptions-switcher.php:452
 msgctxt "when to prorate first payment / subscription length"
 msgid "For Virtual Subscription Products Only"
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-synchroniser.php:227
-#: includes/switching/class-wc-subscriptions-switcher.php:443
+#: includes/switching/class-wc-subscriptions-switcher.php:453
 msgctxt "when to prorate first payment / subscription length"
 msgid "For All Subscription Products"
 msgstr ""
@@ -5374,64 +5374,64 @@ msgstr ""
 msgid "Customers with a subscription are excluded from this setting."
 msgstr ""
 
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:307
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:306
 msgid "A database upgrade is required to use Subscriptions. Upgrades from the previously installed version is no longer supported. You will need to install an older version of WooCommerce Subscriptions or WooCommerce Payments to proceed with the upgrade before you can use a newer version."
 msgstr ""
 
 #. translators: 1-2: opening/closing <strong> tags, 3: active version of Subscriptions, 4: current version of Subscriptions, 5-6: opening/closing tags linked to ticket form, 7-8: opening/closing tags linked to documentation.
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:369
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:368
 #, php-format
 msgid "%1$sWarning!%2$s It appears that you have downgraded %1$sWooCommerce Subscriptions%2$s from %3$s to %4$s. Downgrading the plugin in this way may cause issues. Please update to %3$s or higher, or %5$sopen a new support ticket%6$s for further assistance. %7$sLearn more &raquo;%8$s"
 msgstr ""
 
 #. translators: placeholder is a list of version numbers (e.g. "1.3 & 1.4 & 1.5")
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:508
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:507
 #, php-format
 msgid "Database updated to version %s"
 msgstr ""
 
 #. translators: placeholder is number of upgraded subscriptions
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:516
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:515
 #, php-format
 msgctxt "used in the subscriptions upgrader"
 msgid "Marked %s subscription products as \"sold individually\"."
 msgstr ""
 
 #. translators: 1$: number of action scheduler hooks upgraded, 2$: "{execution_time}", will be replaced on front end with actual time
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:525
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:524
 #, php-format
 msgid "Migrated %1$s subscription related hooks to the new scheduler (in %2$s seconds)."
 msgstr ""
 
 #. translators: 1$: number of subscriptions upgraded, 2$: "{execution_time}", will be replaced on front end with actual time it took
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:537
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:536
 #, php-format
 msgid "Migrated %1$s subscriptions to the new structure (in %2$s seconds)."
 msgstr ""
 
 #. translators: placeholder is "{time_left}", will be replaced on front end with actual time
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:540
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:586
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:539
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:585
 #, php-format
 msgctxt "Message that gets sent to front end."
 msgid "Estimated time left (minutes:seconds): %s"
 msgstr ""
 
 #. translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:550
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:549
 #, php-format
 msgid "Unable to upgrade subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s."
 msgstr ""
 
 #. translators: placeholder is the number of subscriptions repaired
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:565
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:564
 #, php-format
 msgctxt "Repair message that gets sent to front end."
 msgid "Repaired %d subscriptions with incorrect dates, line tax data or missing customer notes."
 msgstr ""
 
 #. translators: placeholder is number of subscriptions that were checked and did not need repairs. There's a space at the beginning!
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:571
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:570
 #, php-format
 msgctxt "Repair message that gets sent to front end."
 msgid " %d other subscription was checked and did not need any repairs."
@@ -5440,36 +5440,36 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholder is "{execution_time}", which will be replaced on front end with actual time
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:575
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:574
 #, php-format
 msgctxt "Repair message that gets sent to front end."
 msgid "(in %s seconds)"
 msgstr ""
 
 #. translators: $1: "Repaired x subs with incorrect dates...", $2: "X others were checked and no repair needed", $3: "(in X seconds)". Ordering for RTL languages.
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:578
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:577
 #, php-format
 msgctxt "The assembled repair message that gets sent to front end."
 msgid "%1$s%2$s %3$s"
 msgstr ""
 
 #. translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:597
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:596
 #, php-format
 msgctxt "Error message that gets sent to front end when upgrading Subscriptions"
 msgid "Unable to repair subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s."
 msgstr ""
 
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:805
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:804
 msgid "Welcome to WooCommerce Subscriptions 2.1"
 msgstr ""
 
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:805
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:804
 msgid "About WooCommerce Subscriptions"
 msgstr ""
 
 #. translators: 1-2: opening/closing <strong> tags, 3-4: opening/closing tags linked to ticket form.
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:1043
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:1042
 #, php-format
 msgid "%1$sWarning!%2$s We discovered an issue in %1$sWooCommerce Subscriptions 2.3.0 - 2.3.2%2$s that may cause your subscription renewal order and customer subscription caches to contain invalid data. For information about how to update the cached data, please %3$sopen a new support ticket%4$s."
 msgstr ""
@@ -6457,35 +6457,53 @@ msgstr ""
 msgid "Available downloads"
 msgstr ""
 
-#: includes/downloads/class-wc-subscription-downloads-products.php:66
-#: includes/downloads/class-wc-subscription-downloads-products.php:98
-msgid "Included subscription products"
+#: includes/downloads/class-wc-subscription-downloads-products.php:216
+#: includes/downloads/class-wc-subscription-downloads-products.php:249
+msgid "Linked subscription products"
 msgstr ""
 
-#: includes/downloads/class-wc-subscription-downloads-products.php:68
-#: includes/downloads/class-wc-subscription-downloads-products.php:101
+#: includes/downloads/class-wc-subscription-downloads-products.php:218
+#: includes/downloads/class-wc-subscription-downloads-products.php:252
 msgid "Select subscriptions"
 msgstr ""
 
-#: includes/downloads/class-wc-subscription-downloads-products.php:84
-#: includes/downloads/class-wc-subscription-downloads-products.php:99
+#: includes/downloads/class-wc-subscription-downloads-products.php:234
+#: includes/downloads/class-wc-subscription-downloads-products.php:250
 msgid "Select subscription products that will include this downloadable product."
 msgstr ""
 
-#: includes/downloads/class-wc-subscription-downloads-settings.php:41
+#: includes/downloads/class-wc-subscription-downloads-products.php:291
+msgid "Select simple and variable downloadable products that will be included with this subscription product."
+msgstr ""
+
+#: includes/downloads/class-wc-subscription-downloads-products.php:292
+#: includes/downloads/class-wc-subscription-downloads-products.php:348
+msgid "Linked downloadable products"
+msgstr ""
+
+#: includes/downloads/class-wc-subscription-downloads-products.php:295
+#: includes/downloads/class-wc-subscription-downloads-products.php:351
+msgid "Select products"
+msgstr ""
+
+#: includes/downloads/class-wc-subscription-downloads-products.php:352
+msgid "Select simple and variable downloadable products that will be included with this subscription variation."
+msgstr ""
+
+#: includes/downloads/class-wc-subscription-downloads-settings.php:36
 msgid "WooCommerce Subscription Downloads is now part of WooCommerce Subscriptions — no extra plugin needed. You can deactivate and uninstall WooCommerce Subscription Downloads via the plugin admin screen."
 msgstr ""
 
-#: includes/downloads/class-wc-subscription-downloads-settings.php:63
+#: includes/downloads/class-wc-subscription-downloads-settings.php:58
 msgid "Downloads"
 msgstr ""
 
-#: includes/downloads/class-wc-subscription-downloads-settings.php:68
-msgid "Enable product linking to subscriptions"
+#: includes/downloads/class-wc-subscription-downloads-settings.php:63
+msgid "Enable downloadable file sharing"
 msgstr ""
 
-#: includes/downloads/class-wc-subscription-downloads-settings.php:69
-msgid "Allow simple and variable downloadable products to be included with subscription products."
+#: includes/downloads/class-wc-subscription-downloads-settings.php:64
+msgid "Allow downloadable files from simple and variable products to be shared with subscription products so they are available to active subscribers."
 msgstr ""
 
 #: includes/early-renewal/class-wcs-cart-early-renewal.php:74
@@ -7234,217 +7252,217 @@ msgstr ""
 msgid "Automatic renewal payment failed"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:198
+#: includes/switching/class-wc-subscriptions-switcher.php:208
 msgid "You have a subscription to this product. Choosing a new subscription will replace your existing subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:200
+#: includes/switching/class-wc-subscriptions-switcher.php:210
 msgid "Choose a new subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:240
-#: includes/switching/class-wc-subscriptions-switcher.php:1231
+#: includes/switching/class-wc-subscriptions-switcher.php:250
+#: includes/switching/class-wc-subscriptions-switcher.php:1265
 msgid "Your cart contained an invalid subscription switch request. It has been removed."
 msgid_plural "Your cart contained invalid subscription switch requests. They have been removed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:282
+#: includes/switching/class-wc-subscriptions-switcher.php:292
 msgid "You have already subscribed to this product and it is limited to one per customer. You can not purchase the product again."
 msgstr ""
 
 #. translators: 1$: is the "You have already subscribed to this product" notice, 2$-4$: opening/closing link tags, 3$: an order number
-#: includes/switching/class-wc-subscriptions-switcher.php:291
+#: includes/switching/class-wc-subscriptions-switcher.php:301
 #, php-format
 msgid "%1$s Complete payment on %2$sOrder %3$s%4$s to be able to change your subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:387
+#: includes/switching/class-wc-subscriptions-switcher.php:397
 msgid "Switching"
 msgstr ""
 
 #. translators: placeholders are opening and closing link tags
-#: includes/switching/class-wc-subscriptions-switcher.php:390
+#: includes/switching/class-wc-subscriptions-switcher.php:400
 #, php-format
 msgid "Allow subscribers to switch (upgrade or downgrade) between different subscriptions. %1$sLearn more%2$s."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:398
+#: includes/switching/class-wc-subscriptions-switcher.php:408
 msgid "Prorate Recurring Payment"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:399
+#: includes/switching/class-wc-subscriptions-switcher.php:409
 msgid "When switching to a subscription with a different recurring payment or billing period, should the price paid for the existing billing period be prorated when switching to the new subscription?"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:407
-#: includes/switching/class-wc-subscriptions-switcher.php:441
+#: includes/switching/class-wc-subscriptions-switcher.php:417
+#: includes/switching/class-wc-subscriptions-switcher.php:451
 msgctxt "when to allow a setting"
 msgid "Never"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:408
+#: includes/switching/class-wc-subscriptions-switcher.php:418
 msgctxt "when to prorate recurring fee when switching"
 msgid "For Upgrades of Virtual Subscription Products Only"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:409
+#: includes/switching/class-wc-subscriptions-switcher.php:419
 msgctxt "when to prorate recurring fee when switching"
 msgid "For Upgrades of All Subscription Products"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:410
+#: includes/switching/class-wc-subscriptions-switcher.php:420
 msgctxt "when to prorate recurring fee when switching"
 msgid "For Upgrades & Downgrades of Virtual Subscription Products Only"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:411
+#: includes/switching/class-wc-subscriptions-switcher.php:421
 msgctxt "when to prorate recurring fee when switching"
 msgid "For Upgrades & Downgrades of All Subscription Products"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:416
+#: includes/switching/class-wc-subscriptions-switcher.php:426
 msgid "Prorate Sign up Fee"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:417
+#: includes/switching/class-wc-subscriptions-switcher.php:427
 msgid "When switching to a subscription with a sign up fee, you can require the customer pay only the gap between the existing subscription's sign up fee and the new subscription's sign up fee (if any)."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:425
+#: includes/switching/class-wc-subscriptions-switcher.php:435
 msgctxt "when to prorate signup fee when switching"
 msgid "Never (do not charge a sign up fee)"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:426
+#: includes/switching/class-wc-subscriptions-switcher.php:436
 msgctxt "when to prorate signup fee when switching"
 msgid "Never (charge the full sign up fee)"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:427
+#: includes/switching/class-wc-subscriptions-switcher.php:437
 msgctxt "when to prorate signup fee when switching"
 msgid "Always"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:432
+#: includes/switching/class-wc-subscriptions-switcher.php:442
 msgid "Prorate Subscription Length"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:433
+#: includes/switching/class-wc-subscriptions-switcher.php:443
 msgid "When switching to a subscription with a length, you can take into account the payments already completed by the customer when determining how many payments the subscriber needs to make for the new subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:448
+#: includes/switching/class-wc-subscriptions-switcher.php:458
 msgid "Switch Button Text"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:449
+#: includes/switching/class-wc-subscriptions-switcher.php:459
 msgid "Customise the text displayed on the button next to the subscription on the subscriber's account page. The default is \"Switch Subscription\", but you may wish to change this to \"Upgrade\" or \"Change Subscription\"."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:453
-#: includes/switching/class-wc-subscriptions-switcher.php:555
+#: includes/switching/class-wc-subscriptions-switcher.php:463
+#: includes/switching/class-wc-subscriptions-switcher.php:565
 msgid "Upgrade or Downgrade"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:492
+#: includes/switching/class-wc-subscriptions-switcher.php:502
 msgid "Allow Switching"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:499
+#: includes/switching/class-wc-subscriptions-switcher.php:509
 msgctxt "when to allow switching"
 msgid "Between Subscription Variations"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:503
+#: includes/switching/class-wc-subscriptions-switcher.php:513
 msgctxt "when to allow switching"
 msgid "Between Grouped Subscriptions"
 msgstr ""
 
 #. translators: %s: order number.
-#: includes/switching/class-wc-subscriptions-switcher.php:1165
+#: includes/switching/class-wc-subscriptions-switcher.php:1199
 #, php-format
 msgid "Switch order cancelled due to a new switch order being created #%s."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1396
-#: includes/switching/class-wc-subscriptions-switcher.php:1478
+#: includes/switching/class-wc-subscriptions-switcher.php:1434
+#: includes/switching/class-wc-subscriptions-switcher.php:1518
 msgid "The subscription may have been deleted."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1404
+#: includes/switching/class-wc-subscriptions-switcher.php:1442
 msgid "You can only switch to a subscription product."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1410
+#: includes/switching/class-wc-subscriptions-switcher.php:1448
 msgid "We can not find your old subscription item."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1432
+#: includes/switching/class-wc-subscriptions-switcher.php:1470
 msgid "You can not switch to the same subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1483
+#: includes/switching/class-wc-subscriptions-switcher.php:1523
 msgid "You can not switch this subscription. It appears you do not own the subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1550
+#: includes/switching/class-wc-subscriptions-switcher.php:1590
 msgid "There was an error locating the switch details."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1899
+#: includes/switching/class-wc-subscriptions-switcher.php:1939
 msgctxt "a switch type"
 msgid "Downgrade"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1902
+#: includes/switching/class-wc-subscriptions-switcher.php:1942
 msgctxt "a switch type"
 msgid "Upgrade"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1905
+#: includes/switching/class-wc-subscriptions-switcher.php:1945
 msgctxt "a switch type"
 msgid "Crossgrade"
 msgstr ""
 
 #. translators: %1: product subtotal, %2: HTML span tag, %3: direction (upgrade, downgrade, crossgrade), %4: closing HTML span tag
-#: includes/switching/class-wc-subscriptions-switcher.php:1910
+#: includes/switching/class-wc-subscriptions-switcher.php:1950
 #, php-format
 msgctxt "product subtotal string"
 msgid "%1$s %2$s(%3$s)%4$s"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2026
+#: includes/switching/class-wc-subscriptions-switcher.php:2066
 msgid "The original subscription item being switched cannot be found."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2028
+#: includes/switching/class-wc-subscriptions-switcher.php:2068
 msgid "The item on the switch order cannot be found."
 msgstr ""
 
 #. translators: 1$: old item, 2$: new item when switching
-#: includes/switching/class-wc-subscriptions-switcher.php:2039
+#: includes/switching/class-wc-subscriptions-switcher.php:2079
 #, php-format
 msgctxt "used in order notes"
 msgid "Customer switched from: %1$s to %2$s."
 msgstr ""
 
 #. translators: %s: new item name.
-#: includes/switching/class-wc-subscriptions-switcher.php:2042
+#: includes/switching/class-wc-subscriptions-switcher.php:2082
 #, php-format
 msgctxt "used in order notes"
 msgid "Customer added %s."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2454
+#: includes/switching/class-wc-subscriptions-switcher.php:2494
 msgid "Switch Order"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2469
+#: includes/switching/class-wc-subscriptions-switcher.php:2509
 msgid "Switched Subscription"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2656
+#: includes/switching/class-wc-subscriptions-switcher.php:2696
 msgctxt "add to cart button text while switching a subscription"
 msgid "Switch subscription"
 msgstr ""
@@ -7507,7 +7525,7 @@ msgstr ""
 
 #. translators: placeholder is trial period validation message if passed an invalid value (e.g. "Trial period can not exceed 4 weeks")
 #: templates/admin/deprecated/html-variation-price.php:118
-#: templates/admin/html-variation-price.php:83
+#: templates/admin/html-variation-price.php:85
 #, php-format
 msgctxt "Trial period dropdown's description in pricing fields"
 msgid "An optional period of time to wait before charging the first recurring payment. Any sign up fee will still be charged at the outset of the subscription. %s"
@@ -7571,25 +7589,25 @@ msgstr[1] ""
 msgid "To see further details about these errors, view the %1$s log file from the %2$sWooCommerce logs screen.%2$s"
 msgstr ""
 
-#: templates/admin/html-variation-price.php:35
+#: templates/admin/html-variation-price.php:37
 msgid "Billing interval:"
 msgstr ""
 
-#: templates/admin/html-variation-price.php:42
+#: templates/admin/html-variation-price.php:44
 msgid "Billing Period:"
 msgstr ""
 
-#: templates/admin/html-variation-price.php:56
+#: templates/admin/html-variation-price.php:58
 msgctxt "Subscription Length dropdown's description in pricing fields"
 msgid "Automatically stop renewing the subscription after this length of time. This length is in addition to any free trial or amount of time provided before a synchronised first renewal date."
 msgstr ""
 
-#: templates/admin/html-variation-price.php:75
+#: templates/admin/html-variation-price.php:77
 msgctxt "example price"
 msgid "e.g."
 msgstr ""
 
-#: templates/admin/html-variation-price.php:90
+#: templates/admin/html-variation-price.php:92
 msgid "Subscription trial period:"
 msgstr ""
 
@@ -8660,7 +8678,7 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
-#: build/gifting-welcome-announcement.js:1
+#: build/admin.js:1
 #: client/components/announcement/index.js:112
 #: client/components/announcement/index.js:163
 #: client/components/announcement/__tests__/index.test.js:118
@@ -8668,7 +8686,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: build/gifting-welcome-announcement.js:1
+#: build/admin.js:1
 #: client/components/announcement/index.js:131
 #: client/components/announcement/__tests__/index.test.js:70
 #: client/components/announcement/__tests__/index.test.js:95
@@ -8677,50 +8695,67 @@ msgstr ""
 msgid "Step image"
 msgstr ""
 
-#: build/gifting-welcome-announcement.js:1
+#: build/admin.js:1
 #: client/components/announcement/index.js:175
 #: client/components/announcement/__tests__/index.test.js:115
 msgid "Done"
 msgstr ""
 
-#: build/gifting-welcome-announcement.js:1
-#: client/gifting/data/welcome-announcement.js:8
-msgid "Gifting is now part of WooCommerce Subscriptions"
+#: build/admin.js:1
+#: client/downloads/data/welcome-announcement.js:7
+msgid "WooCommerce Subscription Downloads is now part of WooCommerce Subscriptions"
 msgstr ""
 
-#: build/gifting-welcome-announcement.js:1
-#: client/gifting/data/welcome-announcement.js:12
-msgid "Introducing subscription gifting"
+#: build/admin.js:1
+#: client/downloads/data/welcome-announcement.js:12
+msgid "No separate extension required! WooCommerce Subscriptions now allows you to include simple and variable products with your subscriptions. And to make it easier, you can now configure which simple and variable products to include when creating a subscription product."
 msgstr ""
 
-#: build/gifting-welcome-announcement.js:1
-#: client/gifting/data/welcome-announcement.js:15
-msgid "No separate extension needed! The built-in gifting feature is fully compatible with product, cart and checkout blocks, plus you can now choose which subscription products can be gifted."
+#: build/admin.js:1
+#: client/downloads/data/welcome-announcement.js:18
+msgid "The WooCommerce Subscription Downloads extension can now be disabled via Plugins."
 msgstr ""
 
-#: build/gifting-welcome-announcement.js:1
-#: client/gifting/data/welcome-announcement.js:21
-msgid "The Gifting for WooCommerce Subscriptions extension can now be disabled via Plugins."
-msgstr ""
-
-#: build/gifting-welcome-announcement.js:1
-#: client/gifting/data/welcome-announcement.js:26
-msgid "Let your shoppers purchase subscriptions as gifts using the new built-in gifting feature in WooCommerce Subscriptions. It works seamlessly with product, cart and checkout blocks, and can be enabled storewide or managed per product."
-msgstr ""
-
-#: build/gifting-welcome-announcement.js:1
+#: build/admin.js:1
+#: client/downloads/data/welcome-announcement.js:24
 #: client/gifting/data/welcome-announcement.js:33
 msgid "Go to plugins"
 msgstr ""
 
-#: build/gifting-welcome-announcement.js:1
-#: client/gifting/data/welcome-announcement.js:34
-msgid "Set up gifting"
-msgstr ""
-
-#: build/gifting-welcome-announcement.js:1
+#: build/admin.js:1
+#: client/downloads/data/welcome-announcement.js:35
 #: client/gifting/data/welcome-announcement.js:42
 msgid "Maybe later"
+msgstr ""
+
+#: build/admin.js:1
+#: client/gifting/data/welcome-announcement.js:8
+msgid "Gifting is now part of WooCommerce Subscriptions"
+msgstr ""
+
+#: build/admin.js:1
+#: client/gifting/data/welcome-announcement.js:12
+msgid "Introducing subscription gifting"
+msgstr ""
+
+#: build/admin.js:1
+#: client/gifting/data/welcome-announcement.js:15
+msgid "No separate extension needed! The built-in gifting feature is fully compatible with product, cart and checkout blocks, plus you can now choose which subscription products can be gifted."
+msgstr ""
+
+#: build/admin.js:1
+#: client/gifting/data/welcome-announcement.js:21
+msgid "The Gifting for WooCommerce Subscriptions extension can now be disabled via Plugins."
+msgstr ""
+
+#: build/admin.js:1
+#: client/gifting/data/welcome-announcement.js:26
+msgid "Let your shoppers purchase subscriptions as gifts using the new built-in gifting feature in WooCommerce Subscriptions. It works seamlessly with product, cart and checkout blocks, and can be enabled storewide or managed per product."
+msgstr ""
+
+#: build/admin.js:1
+#: client/gifting/data/welcome-announcement.js:34
+msgid "Set up gifting"
 msgstr ""
 
 #: build/index.js:1

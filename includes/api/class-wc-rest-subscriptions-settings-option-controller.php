@@ -24,6 +24,7 @@ class WC_REST_Subscriptions_Settings_Option_Controller extends WP_REST_Controlle
 	 */
 	private const ALLOWED_OPTIONS = [
 		'woocommerce_subscriptions_gifting_is_welcome_announcement_dismissed',
+		'woocommerce_subscriptions_downloads_is_welcome_announcement_dismissed',
 	];
 
 	/**

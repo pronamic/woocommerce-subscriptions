@@ -18,7 +18,8 @@ jQuery( document ).ready( function ( $ ) {
 								.find( '.recipient_email' )
 								.trigger( 'focus' );
 						}
-					} );
+					} )
+					.removeClass( 'hidden' );
 
 				const shipToDifferentAddressCheckbox = $( document ).find(
 					'#ship-to-different-address-checkbox'
@@ -31,12 +32,14 @@ jQuery( document ).ready( function ( $ ) {
 				$( this )
 					.closest( '.wcsg_add_recipient_fields_container' )
 					.find( '.wcsg_add_recipient_fields' )
-					.slideUp( 250 );
+					.slideUp( 250 )
+					.addClass( 'hidden' );
 
 				const recipientEmailElement = $( this )
 					.closest( '.wcsg_add_recipient_fields_container' )
 					.find( '.recipient_email' );
 				recipientEmailElement.val( '' );
+				hideValidationErrorForEmailField( recipientEmailElement );
 				setShippingAddressNoticeVisibility( true );
 
 				if ( $( 'form.checkout' ).length !== 0 ) {

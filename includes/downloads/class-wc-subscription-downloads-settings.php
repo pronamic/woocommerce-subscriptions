@@ -19,11 +19,6 @@ class WC_Subscription_Downloads_Settings {
 	 * @since 8.0.0
 	 */
 	public static function add_notice_about_bundled_feature() {
-		if ( ! Constants::is_true( 'WCS_ALLOW_SUBSCRIPTION_DOWNLOADS' ) ) {
-			// TODO: remove this conditional as soon as we are ready to make subscription downloads functionality live.
-			return;
-		}
-
 		$screen = get_current_screen();
 		if ( ! $screen ) {
 			return false;
@@ -65,8 +60,8 @@ class WC_Subscription_Downloads_Settings {
 				'id'   => WC_Subscriptions_Admin::$option_prefix . '_downloads_settings',
 			),
 			array(
-				'name'      => __( 'Enable product linking to subscriptions', 'woocommerce-subscriptions' ),
-				'desc'      => __( 'Allow simple and variable downloadable products to be included with subscription products.', 'woocommerce-subscriptions' ),
+				'name'      => __( 'Enable downloadable file sharing', 'woocommerce-subscriptions' ),
+				'desc'      => __( 'Allow downloadable files from simple and variable products to be shared with subscription products so they are available to active subscribers.', 'woocommerce-subscriptions' ),
 				'id'        => WC_Subscriptions_Admin::$option_prefix . '_enable_downloadable_file_linking',
 				'default'   => 'no',
 				'type'      => 'checkbox',

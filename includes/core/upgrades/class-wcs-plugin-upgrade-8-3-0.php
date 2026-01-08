@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-class WCS_Plugin_Upgrade_8_1_0 {
+class WCS_Plugin_Upgrade_8_3_0 {
 
 	/**
 	 * Check if the Gifting plugin is enabled and update the settings.

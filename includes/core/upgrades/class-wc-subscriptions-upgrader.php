@@ -227,9 +227,8 @@ class WC_Subscriptions_Upgrader {
 			WCS_Plugin_Upgrade_7_8_0::check_gifting_plugin_is_enabled();
 		}
 
-		if ( false && version_compare( self::$stored_plugin_version, '8.2.0', '<' ) ) {
-			// TODO: remove false from the above conditional, once we are ready to make subscription downloads functionality available.
-			WCS_Plugin_Upgrade_8_1_0::check_downloads_plugin_is_enabled();
+		if ( version_compare( self::$stored_plugin_version, '8.3.0', '<' ) ) {
+			WCS_Plugin_Upgrade_8_3_0::check_downloads_plugin_is_enabled();
 		}
 	}
 

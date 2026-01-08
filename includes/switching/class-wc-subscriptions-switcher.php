@@ -1,4 +1,7 @@
 <?php
+
+use Automattic\WooCommerce_Subscriptions\Internal\Utilities\Request;
+
 /**
  * A class to make it possible to switch between different subscriptions (i.e. upgrade/downgrade a subscription)
  *
@@ -43,6 +46,9 @@ class WC_Subscriptions_Switcher {
 
 		// Add the "Switch" button to the View Subscription table
 		add_action( 'woocommerce_order_item_meta_end', array( __CLASS__, 'print_switch_link' ), 10, 3 );
+
+		// Add hidden form inputs for AJAX add-to-cart compatibility during switches
+		add_action( 'woocommerce_before_add_to_cart_button', array( __CLASS__, 'add_switch_hidden_inputs' ) );
 
 		// We need to create subscriptions on checkout and want to do it after almost all other extensions have added their products/items/fees
 		add_action( 'woocommerce_checkout_order_processed', array( __CLASS__, 'process_checkout' ), 50, 2 );
@@ -179,22 +185,26 @@ class WC_Subscriptions_Switcher {
 	public static function subscription_switch_handler() {
 		global $post;
 
-		// If the current user doesn't own the subscription, remove the query arg from the URL
-		if ( isset( $_GET['switch-subscription'] ) && isset( $_GET['item'] ) ) {
+		$switch_subscription_id = Request::get_var( 'switch-subscription' );
+		$item_id                = Request::get_var( 'item' );
 
-			$subscription = wcs_get_subscription( absint( $_GET['switch-subscription'] ) );
-			$line_item    = $subscription ? wcs_get_order_item( absint( $_GET['item'] ), $subscription ) : false;
-			$nonce        = ! empty( $_GET['_wcsnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wcsnonce'] ) ) : false;
+		// If the current user doesn't own the subscription, remove the query arg from the URL
+		if ( $switch_subscription_id && $item_id ) {
+
+			$subscription = wcs_get_subscription( absint( $switch_subscription_id ) );
+			$line_item    = $subscription ? wcs_get_order_item( absint( $item_id ), $subscription ) : false;
+			$nonce        = Request::get_var( '_wcsnonce' );
+			$nonce        = $nonce ? sanitize_text_field( wp_unslash( $nonce ) ) : false;
 
 			// Visiting a switch link for someone elses subscription or if the switch link doesn't contain a valid nonce
 			if ( ! is_object( $subscription ) || empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wcs_switch_request' ) || empty( $line_item ) || ! self::can_item_be_switched_by_user( $line_item, $subscription ) ) {
 
-				wp_safe_redirect( remove_query_arg( array( 'switch-subscription', 'auto-switch', 'item', '_wcsnonce' ) ) );
-				exit();
+				Request::redirect( remove_query_arg( array( 'switch-subscription', 'auto-switch', 'item', '_wcsnonce' ) ) );
+				return;
 
 			} else {
 
-				if ( isset( $_GET['auto-switch'] ) ) {
+				if ( Request::get_var( 'auto-switch' ) ) {
 					$switch_message = __( 'You have a subscription to this product. Choosing a new subscription will replace your existing subscription.', 'woocommerce-subscriptions' );
 				} else {
 					$switch_message = __( 'Choose a new subscription.', 'woocommerce-subscriptions' );
@@ -239,8 +249,8 @@ class WC_Subscriptions_Switcher {
 			if ( $removed_item_count > 0 ) {
 				wc_add_notice( _n( 'Your cart contained an invalid subscription switch request. It has been removed.', 'Your cart contained invalid subscription switch requests. They have been removed.', $removed_item_count, 'woocommerce-subscriptions' ), 'error' );
 
-				wp_safe_redirect( wc_get_cart_url() );
-				exit();
+				Request::redirect( wc_get_cart_url() );
+				return;
 			}
 		} elseif ( is_product() && $product = wc_get_product( $post ) ) { // Automatically initiate the switch process for limited variable subscriptions
 
@@ -308,8 +318,8 @@ class WC_Subscriptions_Switcher {
 								}
 
 								if ( apply_filters( 'wcs_initiate_auto_switch', self::can_item_be_switched_by_user( $item, $subscription ), $item, $subscription ) ) {
-									wp_safe_redirect( add_query_arg( 'auto-switch', 'true', self::get_switch_url( $item_id, $item, $subscription ) ) );
-									exit;
+									Request::redirect( add_query_arg( 'auto-switch', 'true', self::get_switch_url( $item_id, $item, $subscription ) ) );
+									return;
 								}
 							}
 						}
@@ -558,6 +568,30 @@ class WC_Subscriptions_Switcher {
 		$switch_link    = sprintf( '<a href="%s" class="%s">%s</a>', $switch_url, implode( ' ', (array) $switch_classes ), $switch_text );
 
 		echo wp_kses( apply_filters( 'woocommerce_subscriptions_switch_link', $switch_link, $item_id, $item, $subscription ), array( 'a' => array( 'href' => array(), 'title' => array(), 'class' => array() ) ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
+	}
+
+	/**
+	 * Add hidden form inputs for subscription switch parameters.
+	 *
+	 * When a customer is switching subscriptions, the switch parameters are passed via URL query arguments.
+	 * This method outputs them as hidden form inputs so they're included when AJAX add-to-cart plugins
+	 * serialize and submit the form via POST.
+	 *
+	 * @since 8.3.0
+	 */
+	public static function add_switch_hidden_inputs() {
+		$switch_subscription_id = Request::get_var( 'switch-subscription' );
+		$item_id                = Request::get_var( 'item' );
+		$nonce                  = Request::get_var( '_wcsnonce' );
+
+		// Only output if we're in a switch context with a valid nonce
+		if ( ! $switch_subscription_id || ! $item_id || ! $nonce ) {
+			return;
+		}
+
+		echo '<input type="hidden" name="switch-subscription" value="' . esc_attr( $switch_subscription_id ) . '" />';
+		echo '<input type="hidden" name="item" value="' . esc_attr( $item_id ) . '" />';
+		echo '<input type="hidden" name="_wcsnonce" value="' . esc_attr( $nonce ) . '" />';
 	}
 
 	/**
@@ -1382,21 +1416,25 @@ class WC_Subscriptions_Switcher {
 
 		try {
 
-			if ( ! isset( $_GET['switch-subscription'] ) ) {
+			$switch_subscription_id = Request::get_var( 'switch-subscription' );
+
+			if ( ! $switch_subscription_id ) {
 				return $is_valid;
 			}
 
-			if ( empty( $_GET['_wcsnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wcsnonce'] ) ), 'wcs_switch_request' ) ) {
+			$nonce = Request::get_var( '_wcsnonce' );
+
+			if ( empty( $nonce ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $nonce ) ), 'wcs_switch_request' ) ) {
 				return false;
 			}
 
-			$subscription = wcs_get_subscription( absint( $_GET['switch-subscription'] ) );
+			$subscription = wcs_get_subscription( absint( $switch_subscription_id ) );
 
 			if ( ! $subscription ) {
 				throw new Exception( __( 'The subscription may have been deleted.', 'woocommerce-subscriptions' ) );
 			}
 
-			$item_id = absint( $_GET['item'] );
+			$item_id = absint( Request::get_var( 'item' ) );
 			$item    = wcs_get_order_item( $item_id, $subscription );
 
 			// Prevent switching to non-subscription product
@@ -1468,11 +1506,13 @@ class WC_Subscriptions_Switcher {
 	public static function set_switch_details_in_cart( $cart_item_data, $product_id, $variation_id ) {
 
 		try {
-			if ( ! isset( $_GET['switch-subscription'] ) ) {
+			$switch_subscription_id = Request::get_var( 'switch-subscription' );
+
+			if ( ! $switch_subscription_id ) {
 				return $cart_item_data;
 			}
 
-			$subscription = wcs_get_subscription( absint( $_GET['switch-subscription'] ) );
+			$subscription = wcs_get_subscription( absint( $switch_subscription_id ) );
 
 			if ( ! $subscription ) {
 				throw new Exception( __( 'The subscription may have been deleted.', 'woocommerce-subscriptions' ) );
@@ -1482,11 +1522,11 @@ class WC_Subscriptions_Switcher {
 			if ( ! current_user_can( 'switch_shop_subscription', $subscription->get_id() ) ) {
 				wc_add_notice( __( 'You can not switch this subscription. It appears you do not own the subscription.', 'woocommerce-subscriptions' ), 'error' );
 				WC()->cart->empty_cart( true );
-				wp_safe_redirect( get_permalink( $product_id ) );
-				exit();
+				Request::redirect( get_permalink( $product_id ) );
+				return;
 			}
 
-			$item = wcs_get_order_item( absint( $_GET['item'] ), $subscription );
+			$item = wcs_get_order_item( absint( Request::get_var( 'item' ) ), $subscription );
 
 			// Else it's a valid switch
 			$product         = wc_get_product( $item['product_id'] );
@@ -1538,7 +1578,7 @@ class WC_Subscriptions_Switcher {
 
 			$cart_item_data['subscription_switch'] = array(
 				'subscription_id'        => $subscription->get_id(),
-				'item_id'                => absint( $_GET['item'] ),
+				'item_id'                => absint( Request::get_var( 'item' ) ),
 				'next_payment_timestamp' => $next_payment_timestamp,
 				'upgraded_or_downgraded' => '',
 			);
@@ -1549,8 +1589,8 @@ class WC_Subscriptions_Switcher {
 
 			wc_add_notice( __( 'There was an error locating the switch details.', 'woocommerce-subscriptions' ), 'error' );
 			WC()->cart->empty_cart( true );
-			wp_safe_redirect( get_permalink( wc_get_page_id( 'cart' ) ) );
-			exit();
+			Request::redirect( get_permalink( wc_get_page_id( 'cart' ) ) );
+			return;
 		}
 	}
 

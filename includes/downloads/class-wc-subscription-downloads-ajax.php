@@ -17,6 +17,7 @@ class WC_Subscription_Downloads_Ajax {
 	 */
 	public function __construct() {
 		add_action( 'wp_ajax_wc_subscription_downloads_search', array( $this, 'search_subscriptions' ) );
+		add_action( 'wp_ajax_wc_subscription_linked_downloadable_products_search', array( $this, 'search_downloadable_products' ) );
 	}
 
 	/**
@@ -71,5 +72,40 @@ class WC_Subscription_Downloads_Ajax {
 		}
 
 		wp_send_json( $found_subscriptions );
+	}
+
+	/**
+	 * Searches for downloadable products that are simple or variants.
+	 *
+	 * @return void
+	 */
+	public function search_downloadable_products(): void {
+		$results = array();
+
+		// Prevent error noise from leaking.
+		ob_start();
+
+		if ( isset( $_GET['term'] ) && check_ajax_referer( 'search-products', 'security' ) ) {
+			$term = wc_clean( wp_unslash( $_GET['term'] ) );
+		}
+
+		if ( ! empty( $term ) ) {
+			$products = wc_get_products(
+				array(
+					'downloadable' => true,
+					'limit'        => 100,
+					's'            => $term,
+					'type'         => array( 'simple', 'variation' ),
+					'status'       => 'any',
+				)
+			);
+
+			foreach ( $products as $product ) {
+				$results[ $product->get_id() ] = sanitize_text_field( $product->get_formatted_name() );
+			}
+		}
+
+		ob_clean();
+		wp_send_json( $results );
 	}
 }

@@ -45,6 +45,7 @@ class WCS_Autoloader extends WCS_Core_Autoloader {
 		'wcs_webhooks'                              => true,
 		'wcs_auth'                                  => true,
 		'wcs_upgrade_notice_manager'                => true,
+		'wcs_admin_assets'                          => true,
 		'wc_subscriptions_cli'                      => true,
 	);
 

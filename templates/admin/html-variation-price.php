@@ -2,6 +2,8 @@
 /**
  * Outputs a subscription variation's pricing fields for WooCommerce 2.3+
  *
+ * You may also be interested in assets/js/admin/admin.js, which dynamically relocates some of these fields.
+ *
  * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.12
  *
  * @var int $loop

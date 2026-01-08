@@ -58,6 +58,43 @@ class WCS_Limiter {
 	}
 
 	/**
+	 * Checks if the session contains a renewal for a given product.
+	 * Used for the pay for order flow.
+	 *
+	 * @param WC_Product $product The product to check.
+	 * @return bool
+	 */
+	private static function session_contains_renewal( $product ) {
+		if ( ! empty( WC()->session->cart ) ) {
+			foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
+				if ( (int) $product->get_id() === (int) $cart_item['product_id'] && isset( $cart_item['subscription_renewal'] ) ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Checks if the session contains a resubscribe for a given product.
+	 * Used for the pay for order flow with limited subscriptions products.
+	 *
+	 * @param WC_Product $product The product to check.
+	 * @return bool
+	 */
+	private static function session_contains_resubscribe( $product ) {
+		if ( ! empty( WC()->session->cart ) ) {
+			foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
+				if ( (int) $product->get_id() === (int) $cart_item['product_id'] && isset( $cart_item['subscription_resubscribe'] ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Canonical is_purchasable method to be called by product classes.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
@@ -68,73 +105,62 @@ class WCS_Limiter {
 	 */
 	public static function is_purchasable( $purchasable, $product ) {
 
-		// Prevents making a non purchasable product purchasable again.
-		// This can happen if the product is disabled and limited and the customer is trying to renew the subscription for example.
-		if ( ! $purchasable ) {
-			return $purchasable;
+		// Check if product is private (for variations, also check parent product)
+		$is_private_product = 'private' === $product->get_status();
+		if ( $product->get_parent_id() > 0 ) {
+			$parent_product = wc_get_product( $product->get_parent_id() );
+			if ( $parent_product ) {
+				$is_private_product = 'private' === $parent_product->get_status();
+			}
 		}
 
-		switch ( $product->get_type() ) {
-			case 'subscription':
-			case 'variable-subscription':
-				// Checks if the product is limited.
-				if ( false === self::is_product_limited( $purchasable, $product ) ) {
-					// Product is limited, so it is not purchasable.
+		// Checks limits for variable subscription products.
+		if ( $product->get_type() === 'subscription_variation' && isset( $parent_product ) ) {
+
+			if ( $is_private_product ) {
+				$purchasable = false;
+
+				// Forces product to be available when processing a renewal order. Allowing people to renew private products.
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce validation is not required for this context.
+				if ( self::is_paying_for_failed_renewal_order( $parent_product ) || isset( $_GET['subscription_renewal'] ) || wcs_cart_contains_renewal() || self::session_contains_renewal( $parent_product ) ) {
+					$purchasable = true;
+				}
+			}
+
+			if ( 'no' !== wcs_get_product_limitation( $parent_product ) && ( ! empty( WC()->cart->cart_contents ) || self::session_contains_resubscribe( $parent_product ) ) && ! wcs_is_order_received_page() && ! wcs_is_paypal_api_page() ) {
+				// When mixed checkout is disabled, the variation is replaceable.
+				if ( 'yes' === get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase', 'no' ) ) {
+					foreach ( WC()->cart->cart_contents as $cart_item ) {
+						// If the variable product is limited, it can't be purchased if it is the same variation
+						if ( $product->get_parent_id() === $cart_item['data']->get_parent_id() && $product->get_id() !== $cart_item['data']->get_id() ) {
+							$purchasable = false;
+							break;
+						}
+					}
+				}
+			}
+		} else { // Checks limits for simple subscription products.
+			if ( $is_private_product ) {
+				$purchasable = false;
+
+				// Forces product to be available when processing a renewal order. Allowing people to renew private products.
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce validation is not required for this context.
+				if ( self::is_paying_for_failed_renewal_order( $product ) || isset( $_GET['subscription_renewal'] ) || wcs_cart_contains_renewal() || self::session_contains_renewal( $product ) ) {
+					$purchasable = true;
+				}
+			}
+
+			// This actually means the product is limited when returning false.
+			if ( false === self::is_product_limited( $purchasable, $product ) ) {
+				$resubscribe_cart_item = wcs_cart_contains_resubscribe();
+				// Allows the product to be resubscribed but not purchased again.
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce validation is not required for this context.
+				if ( empty( $_GET['resubscribe'] ) && false === $resubscribe_cart_item && false === self::session_contains_resubscribe( $product ) ) {
 					$purchasable = false;
-
-					// Unless it's resubscribing, renewing or restoring cart from session.
-					$resubscribe_cart_item = wcs_cart_contains_resubscribe();
-
-					// Resubscribe logic
-					// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-					if ( ! empty( $_GET['resubscribe'] ) || false !== $resubscribe_cart_item ) {
-						// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-						$subscription_id = ( isset( $_GET['resubscribe'] ) ) ? absint( $_GET['resubscribe'] ) : $resubscribe_cart_item['subscription_resubscribe']['subscription_id'];
-						$subscription    = wcs_get_subscription( $subscription_id );
-
-						if ( $subscription && $subscription->has_product( $product->get_id() ) && wcs_can_user_resubscribe_to( $subscription ) ) {
-							$purchasable = true;
-						}
-
-						// Renewal logic
-					} elseif (
-						// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-						isset( $_GET['subscription_renewal'] ) ||
-						wcs_cart_contains_renewal()
-					) {
-						$purchasable = true;
-
-						// Restoring cart from session, so need to check the cart in the session (wcs_cart_contains_renewal() only checks the cart).
-					} elseif ( ! empty( WC()->session->cart ) ) {
-						foreach ( WC()->session->cart as $cart_item_key => $cart_item ) {
-							if ( (int) $product->get_id() === (int) $cart_item['product_id'] && ( isset( $cart_item['subscription_renewal'] ) || isset( $cart_item['subscription_resubscribe'] ) ) ) {
-								$purchasable = true;
-								break;
-							}
-						}
-					}
 				}
-				break;
-			case 'subscription_variation':
-				$variable_product = wc_get_product( $product->get_parent_id() );
-
-				if ( 'no' != wcs_get_product_limitation( $variable_product ) && ! empty( WC()->cart->cart_contents ) && ! wcs_is_order_received_page() && ! wcs_is_paypal_api_page() ) {
-
-					// When mixed checkout is disabled, the variation is replaceable
-					if ( 'no' === get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase', 'no' ) ) {
-						$purchasable = true;
-					} else { // When mixed checkout is enabled
-						foreach ( WC()->cart->cart_contents as $cart_item ) {
-							// If the variable product is limited, it can't be purchased if it is the same variation
-							if ( $product->get_parent_id() === $cart_item['data']->get_parent_id() && $product->get_id() !== $cart_item['data']->get_id() ) {
-								$purchasable = false;
-								break;
-							}
-						}
-					}
-				}
-				break;
+			}
 		}
+
 		return $purchasable;
 	}
 
@@ -303,11 +329,72 @@ class WCS_Limiter {
 	}
 
 	/**
+	 * Check if we're currently paying for a failed renewal order containing the product.
+	 *
+	 * @since 8.3.0 - Migrated from WooCommerce Subscriptions v2.1.0
+	 * @param WC_Product $product The product to check.
+	 * @return bool
+	 */
+	protected static function is_paying_for_failed_renewal_order( $product ) {
+		global $wp;
+
+		// Check if we're on the pay for order page
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET['pay_for_order'] ) || ! isset( $_GET['key'] ) || ! isset( $wp->query_vars['order-pay'] ) ) {
+			// Also check if cart contains a failed renewal order payment
+			$failed_renewal_cart_item = wcs_cart_contains_failed_renewal_order_payment();
+			if ( false !== $failed_renewal_cart_item ) {
+				$cart_item_product_id = isset( $failed_renewal_cart_item['variation_id'] ) && $failed_renewal_cart_item['variation_id'] > 0
+					? $failed_renewal_cart_item['variation_id']
+					: $failed_renewal_cart_item['product_id'];
+				// Check both the product ID and parent product ID (for variations)
+				if ( (int) $product->get_id() === (int) $cart_item_product_id || (int) $product->get_id() === (int) $failed_renewal_cart_item['product_id'] ) {
+					return true;
+				}
+				// Also check if product is a variation and matches the parent
+				if ( $product->get_parent_id() > 0 && (int) $product->get_parent_id() === (int) $failed_renewal_cart_item['product_id'] ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$order_key = isset( $_GET['key'] ) ? wc_clean( wp_unslash( $_GET['key'] ) ) : '';
+		$order_id  = isset( $wp->query_vars['order-pay'] ) ? $wp->query_vars['order-pay'] : 0;
+		$order     = wc_get_order( absint( $order_id ) );
+
+		if ( ! $order || $order->get_order_key() !== $order_key ) {
+			return false;
+		}
+
+		// Check if order is a failed renewal order
+		if ( ! $order->has_status( 'failed' ) && ! wcs_order_contains_renewal( $order ) ) {
+			return false;
+		}
+
+		// Check if the order contains the product
+		foreach ( $order->get_items() as $item ) {
+			$item_product_id = isset( $item['variation_id'] ) && $item['variation_id'] > 0 ? $item['variation_id'] : $item['product_id'];
+			// Check both the product ID and parent product ID (for variations)
+			if ( (int) $product->get_id() === (int) $item_product_id || (int) $product->get_id() === (int) $item['product_id'] ) {
+				return true;
+			}
+			// Also check if product is a variation and matches the parent
+			if ( $product->get_parent_id() > 0 && (int) $product->get_parent_id() === (int) $item['product_id'] ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Filters the order statuses that enable the order again button and functionality.
 	 *
 	 * This function will return no statuses if the order contains non purchasable or limited products.
 	 *
-	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.2
+	 * @since 8.3.0 - Migrated from WooCommerce Subscriptions v3.0.2
 	 *
 	 * @param array $statuses The order statuses that enable the order again button.
 	 * @return array $statuses An empty array if the order contains limited products, otherwise the default statuses are returned.

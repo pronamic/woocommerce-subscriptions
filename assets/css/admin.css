@@ -77,6 +77,14 @@ a.close-subscriptions-search {
 	display: block;
 	width: 50%;
 }
+
+.woocommerce_options_panel ._subscription_downloads_field .description,
+.woocommerce_options_panel .subscription_linked_downloadable_products .description {
+	clear: both;
+	display: block;
+	margin: 0;
+}
+
 /* Variation Subscription Product Sync Settings */
 .variable_subscription_sync .subscription_sync_annual > .select2-container {
 	max-width: 48%;
@@ -383,6 +391,12 @@ p._subscription_gifting_field_description.form-field .description {
 	.woocommerce_variation
 	.wcs-can-not-remove-variation-msg {
 	opacity: 0.5;
+}
+
+#woocommerce-product-data
+	.form-field._subscription_downloads_field
+	.select2-selection__choice {
+	font-size: 14px;
 }
 
 /* Variation Pricing Fields with WooCommerce 3.0+ */

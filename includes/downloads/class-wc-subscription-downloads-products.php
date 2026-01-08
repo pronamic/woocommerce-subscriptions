@@ -7,52 +7,202 @@ if ( ! defined( 'ABSPATH' ) ) {
  * WooCommerce Subscription Downloads Products.
  *
  * @package  WC_Subscription_Downloads_Products
- * @category Products
- * @author   WooThemes
  */
 class WC_Subscription_Downloads_Products {
+	public const EDITOR_UPDATE                    = 'wcsubs_subscription_download_relationships';
+	public const RELATIONSHIP_DOWNLOAD_TO_SUB     = 'download-to-sub';
+	public const RELATIONSHIP_VAR_DOWNLOAD_TO_SUB = 'var-download-to-sub';
+	public const RELATIONSHIP_SUB_TO_DOWNLOAD     = 'sub-to-download';
+	public const RELATIONSHIP_VAR_SUB_TO_DOWNLOAD = 'var-sub-to-download';
 
 	/**
 	 * Products actions.
 	 */
 	public function __construct() {
-		add_action( 'woocommerce_product_options_downloads', array( $this, 'simple_write_panel_options' ), 10 );
+		add_action( 'woocommerce_product_options_downloads', array( $this, 'simple_write_panel_options' ) );
 		add_action( 'woocommerce_variation_options_download', array( $this, 'variable_write_panel_options' ), 10, 3 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'scripts' ) );
-		add_action( 'woocommerce_process_product_meta_simple', array( $this, 'save_simple_product_data' ), 10 );
-		add_action( 'woocommerce_save_product_variation', array( $this, 'save_variation_product_data' ), 10, 2 );
+		add_action( 'woocommerce_product_options_pricing', array( $this, 'subscription_product_editor_ui' ) );
+		add_action( 'woocommerce_variable_subscription_pricing', array( $this, 'variable_subscription_product_editor_ui' ), 10, 3 );
+
+		add_action( 'save_post_product', array( $this, 'handle_product_save' ) );
+		add_action( 'save_post_product_variation', array( $this, 'handle_product_variation_save' ) );
+		add_action( 'woocommerce_save_product_variation', array( $this, 'handle_product_variation_save' ) );
+		add_action( 'woocommerce_update_product', array( $this, 'handle_product_save' ) );
+		add_action( 'woocommerce_update_product_variation', array( $this, 'handle_product_variation_save' ) );
+
 		add_action( 'init', array( $this, 'init' ) );
 	}
 
 	public function init() {
-		if ( version_compare( WC_VERSION, '3.0', '<' ) ) {
-			add_action( 'woocommerce_duplicate_product', array( $this, 'save_subscriptions_when_duplicating_product' ), 10, 2 );
-		} else {
-			add_action( 'woocommerce_product_duplicate', array( $this, 'save_subscriptions_when_duplicating_product' ), 10, 2 );
+		add_action( 'woocommerce_product_duplicate', array( $this, 'save_subscriptions_when_duplicating_product' ), 10, 2 );
+	}
+
+	/**
+	 * Handle product save - generic handler for all product updates.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return void
+	 */
+	public function handle_product_save( $post_id ) {
+		// Bail if this is an autosave or revision.
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		if ( wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+
+		$product = wc_get_product( $post_id );
+
+		if ( ! $product ) {
+			return;
+		}
+
+		$product_is_downloadable = $product->is_downloadable();
+		$product_is_subscription = $product->is_type( array( 'subscription', 'variable-subscription' ) );
+
+		// We do not allow downloadable subscription products to be linked with other subscription products; this is
+		// principally to avoid confusion (though it would be technically feasible).
+		if ( $product_is_subscription && ! $product_is_downloadable ) {
+			$this->handle_subscription_product_save( $post_id );
+		} elseif ( ! $product_is_subscription && $product_is_downloadable ) {
+			$this->handle_downloadable_product_save( $post_id );
 		}
 	}
 
 	/**
-	 * Product screen scripts.
+	 * Handle product variation save - generic handler for all variation updates.
+	 *
+	 * @param int $post_id Post ID.
 	 *
 	 * @return void
 	 */
-	public function scripts() {
-		$screen = get_current_screen();
+	public function handle_product_variation_save( $post_id ) {
+		// Bail if this is an autosave or revision.
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
 
-		if ( 'product' == $screen->id && version_compare( WC_VERSION, '2.3.0', '<' ) ) {
-			$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+		if ( wp_is_post_revision( $post_id ) ) {
+			return;
+		}
 
-			wp_enqueue_script( 'wc_subscription_downloads_writepanel', plugins_url( 'assets/js/admin/writepanel' . $suffix . '.js', plugin_dir_path( __FILE__ ) ), array( 'ajax-chosen', 'chosen' ), WC_Subscriptions::$version, true );
+		$variation = wc_get_product( $post_id );
+		if ( ! $variation || ! $variation->is_type( 'variation' ) ) {
+			return;
+		}
 
-			wp_localize_script(
-				'wc_subscription_downloads_writepanel',
-				'wc_subscription_downloads_product',
-				array(
-					'ajax_url' => admin_url( 'admin-ajax.php' ),
-					'security' => wp_create_nonce( 'search-products' ),
-				)
-			);
+		// Handle downloadable variations (they link TO subscriptions).
+		if ( $variation->is_downloadable() ) {
+			$this->handle_downloadable_product_save( $post_id );
+		}
+
+		// Handle subscription variations (they link TO downloadable products).
+		$parent = wc_get_product( $variation->get_parent_id() );
+
+		if ( $parent && $parent->is_type( 'variable-subscription' ) ) {
+			$this->handle_subscription_product_save( $post_id );
+		}
+	}
+
+	/**
+	 * Handle save for downloadable products (simple or variation).
+	 * These products link TO subscription products.
+	 *
+	 * @param int $product_id Product or variation ID.
+	 *
+	 * @return void
+	 */
+	private function handle_downloadable_product_save( $product_id ) {
+		$product = wc_get_product( $product_id );
+
+		if ( ! $product ) {
+			return;
+		}
+
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if (
+			isset( $_POST[ self::RELATIONSHIP_VAR_DOWNLOAD_TO_SUB . $product_id ] )
+			&& wp_verify_nonce( $_POST[ self::RELATIONSHIP_VAR_DOWNLOAD_TO_SUB . $product_id ], self::EDITOR_UPDATE )
+		) {
+			$subscription_ids = wc_clean( wp_unslash( $_POST['_variable_subscription_downloads_ids'][ $product_id ] ?? array() ) );
+			$subscription_ids = array_filter( (array) $subscription_ids );
+			$this->update_subscription_downloads( $product_id, $subscription_ids );
+		}
+
+		if (
+			isset( $_POST[ self::RELATIONSHIP_DOWNLOAD_TO_SUB ] )
+			&& wp_verify_nonce( $_POST[ self::RELATIONSHIP_DOWNLOAD_TO_SUB ], self::EDITOR_UPDATE )
+		) {
+			$subscription_ids = wc_clean( wp_unslash( $_POST['_subscription_downloads_ids'] ?? array() ) );
+			$subscription_ids = array_filter( (array) $subscription_ids );
+			$this->update_subscription_downloads( $product_id, $subscription_ids );
+		}
+
+		// Observe and act on product status changes (regardless of whether they were made from within the product
+		// editor, therefore we don't care about nonce checks here).
+		$this->assess_downloadable_product_status( $product_id );
+		// phpcs:enable
+	}
+
+	/**
+	 * Handle save for subscription products (simple subscription or variation).
+	 * These products link TO downloadable products.
+	 *
+	 * @param int $product_id Subscription product or variation ID.
+	 *
+	 * @return void
+	 */
+	private function handle_subscription_product_save( $product_id ) {
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if (
+			isset( $_POST[ self::RELATIONSHIP_VAR_SUB_TO_DOWNLOAD . $product_id ] )
+			&& wp_verify_nonce( $_POST[ self::RELATIONSHIP_VAR_SUB_TO_DOWNLOAD . $product_id ], self::EDITOR_UPDATE )
+		) {
+			$product_ids = wc_clean( wp_unslash( $_POST[ '_subscription_linked_downloadable_products_' . $product_id ] ?? array() ) );
+			$product_ids = array_filter( (array) $product_ids );
+			$this->update_subscription_products( $product_id, $product_ids );
+			return;
+		}
+
+		if (
+			isset( $_POST[ self::RELATIONSHIP_SUB_TO_DOWNLOAD ] )
+			&& wp_verify_nonce( $_POST[ self::RELATIONSHIP_SUB_TO_DOWNLOAD ], self::EDITOR_UPDATE )
+		) {
+			$product_ids = wc_clean( wp_unslash( (array) $_POST['_subscription_linked_downloadable_products'] ?? array() ) );
+			$product_ids = array_filter( (array) $product_ids );
+			$this->update_subscription_products( $product_id, $product_ids );
+		}
+		// phpcs:enable
+	}
+
+	/**
+	 * Assess downloadable product status and adjust permissions accordingly.
+	 * Called when no form data is available (e.g., status change, REST API update, file changes).
+	 *
+	 * @param int $product_id Product ID.
+	 *
+	 * @return void
+	 */
+	private function assess_downloadable_product_status( $product_id ) {
+		$product = wc_get_product( $product_id );
+
+		if ( ! $product || ! $product->is_downloadable() ) {
+			return;
+		}
+
+		$status_object = get_post_status_object( $product->get_status() );
+		$is_public     = $status_object && $status_object->public;
+
+		// Always revoke existing permissions first to ensure clean state.
+		// This handles file changes and status transitions.
+		$this->revoke_permissions_for_product( $product_id );
+
+		// Grant fresh permissions only if product is public.
+		if ( $is_public ) {
+			$this->grant_permissions_for_product( $product_id );
 		}
 	}
 
@@ -62,8 +212,8 @@ class WC_Subscription_Downloads_Products {
 	public function simple_write_panel_options() {
 		global $post;
 		?>
-			<p class="form-field _subscription_downloads_field">
-				<label for="subscription-downloads-ids"><?php esc_html_e( 'Included subscription products', 'woocommerce-subscriptions' ); ?></label>
+			<p class="form-field _subscription_downloads_field hide_if_subscription">
+				<label for="subscription-downloads-ids"><?php esc_html_e( 'Linked subscription products', 'woocommerce-subscriptions' ); ?></label>
 
 				<select id="subscription-downloads-ids" multiple="multiple" data-action="wc_subscription_downloads_search" data-placeholder="<?php esc_attr_e( 'Select subscriptions', 'woocommerce-subscriptions' ); ?>" class="subscription-downloads-ids wc-product-search" name="_subscription_downloads_ids[]" style="width: 50%;">
 					<?php
@@ -71,17 +221,18 @@ class WC_Subscription_Downloads_Products {
 
 					if ( $subscriptions_ids ) {
 						foreach ( $subscriptions_ids as $subscription_id ) {
-							$_subscription = wc_get_product( $subscription_id );
+							$subscription = wc_get_product( $subscription_id );
 
-							if ( $_subscription ) {
-								echo '<option value="' . esc_attr( $subscription_id ) . '" selected="selected">' . esc_html( wp_strip_all_tags( $_subscription->get_formatted_name() ) ) . '</option>';
+							if ( $subscription ) {
+								echo '<option value="' . esc_attr( $subscription_id ) . '" selected="selected">' . esc_html( wp_strip_all_tags( $subscription->get_formatted_name() ) ) . '</option>';
 							}
 						}
 					}
 					?>
 				</select>
 
-				<?php echo wc_help_tip( wc_sanitize_tooltip( __( 'Select subscription products that will include this downloadable product.', 'woocommerce-subscriptions' ) ) ); ?>
+				<span class="description"><?php esc_html_e( 'Select subscription products that will include this downloadable product.', 'woocommerce-subscriptions' ); ?></span>
+				<?php wp_nonce_field( self::EDITOR_UPDATE, self::RELATIONSHIP_DOWNLOAD_TO_SUB, false ); ?>
 			</p>
 
 		<?php
@@ -94,28 +245,143 @@ class WC_Subscription_Downloads_Products {
 		?>
 			<tr class="show_if_variation_downloadable">
 				<td colspan="2">
-					<p class="form-field form-row form-row-full">
-						<label><?php esc_html_e( 'Included subscription products', 'woocommerce-subscriptions' ); ?>:</label>
+					<p class="form-field _subscription_downloads_field form-row form-row-full hide_if_variable-subscription">
+						<label><?php esc_html_e( 'Linked subscription products', 'woocommerce-subscriptions' ); ?>:</label>
 						<?php echo wc_help_tip( wc_sanitize_tooltip( __( 'Select subscription products that will include this downloadable product.', 'woocommerce-subscriptions' ) ) ); ?>
 
-						<select multiple="multiple" data-placeholder="<?php esc_html_e( 'Select subscriptions', 'woocommerce-subscriptions' ); ?>" class="subscription-downloads-ids wc-product-search" name="_variable_subscription_downloads_ids[<?php echo esc_attr( $loop ); ?>][]" style="width: 100%">
+						<select multiple="multiple" data-placeholder="<?php esc_html_e( 'Select subscriptions', 'woocommerce-subscriptions' ); ?>" class="subscription-downloads-ids wc-product-search" name="_variable_subscription_downloads_ids[<?php echo esc_attr( $variation->ID ); ?>][]" style="width: 100%">
 							<?php
 							$subscriptions_ids = WC_Subscription_Downloads::get_subscriptions( $variation->ID );
 							if ( $subscriptions_ids ) {
 								foreach ( $subscriptions_ids as $subscription_id ) {
-									$_subscription = wc_get_product( $subscription_id );
+									$subscription = wc_get_product( $subscription_id );
 
-									if ( $_subscription ) {
-										echo '<option value="' . esc_attr( $subscription_id ) . '" selected="selected">' . esc_html( wp_strip_all_tags( $_subscription->get_formatted_name() ) ) . '</option>';
+									if ( $subscription ) {
+										echo '<option value="' . esc_attr( $subscription_id ) . '" selected="selected">' . esc_html( wp_strip_all_tags( $subscription->get_formatted_name() ) ) . '</option>';
 									}
 								}
 							}
 							?>
 						</select>
+						<?php wp_nonce_field( self::EDITOR_UPDATE, self::RELATIONSHIP_VAR_DOWNLOAD_TO_SUB . $variation->ID, false ); ?>
 					</p>
 				</td>
 			</tr>
 		<?php
+	}
+
+	/**
+	 * Adds a field with which to link the subscription product (the product being edited) with zero-or-many
+	 * downloadable products.
+	 *
+	 * @return void
+	 */
+	public function subscription_product_editor_ui(): void {
+		global $post;
+
+		if ( ! $post instanceof WP_Post ) {
+			wc_get_logger()->warning(
+				'Unable to add the downloadable products selector to the product editor (global post object is unavailable).',
+				array( 'backtrace' => true )
+			);
+
+			return;
+		}
+
+		$description     = esc_html__( 'Select simple and variable downloadable products that will be included with this subscription product.', 'woocommerce-subscriptions' );
+		$label           = esc_html__( 'Linked downloadable products', 'woocommerce-subscriptions' );
+		$linked_products = '';
+		$nonce_field     = wp_nonce_field( self::EDITOR_UPDATE, self::RELATIONSHIP_SUB_TO_DOWNLOAD, false, false );
+		$placeholder     = esc_attr__( 'Select products', 'woocommerce-subscriptions' );
+
+		foreach ( WC_Subscription_Downloads::get_downloadable_products( $post->ID ) as $product_id ) {
+			$product_id = absint( $product_id );
+			$product    = wc_get_product( $product_id );
+
+			if ( $product ) {
+				$product_name     = esc_html( wp_strip_all_tags( $product->get_formatted_name() ) );
+				$linked_products .= "<option value='$product_id' selected='selected'>$product_name</option>";
+			}
+		}
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- variables are escaped above.
+		echo "
+			<div class='options_group subscription_linked_downloadable_products_section'>
+				<p class='form-field subscription_linked_downloadable_products'>
+					<label for='subscription-linked-downloadable-products'>$label</label>
+					<select
+						class='wc-product-search subscription-downloads-ids'
+						data-action='wc_subscription_linked_downloadable_products_search'
+						data-placeholder='$placeholder'
+						id='subscription-linked-downloadable-products'
+						multiple='multiple'
+						name='_subscription_linked_downloadable_products[]'
+						style='width: 50%;'
+					>
+						$linked_products
+					</select>
+					<span class='description'>$description</span>
+					$nonce_field
+				</p>
+			</div>
+		";
+	}
+
+	/**
+	 * @param int     $loop
+	 * @param array   $variation_data
+	 * @param WP_Post $variation
+	 *
+	 * @return void
+	 */
+	public function variable_subscription_product_editor_ui( $loop, $variation_data, $variation ): void {
+		if ( ! $variation instanceof WP_Post ) {
+			wc_get_logger()->warning(
+				'Unable to add the downloadable products selector to the variation section of the product editor (we do not have a valid post object).',
+				array( 'backtrace' => true )
+			);
+
+			return;
+		}
+
+		$variation_id    = (int) $variation->ID;
+		$label           = esc_html__( 'Linked downloadable products', 'woocommerce-subscriptions' );
+		$linked_products = '';
+		$nonce_field     = wp_nonce_field( self::EDITOR_UPDATE, self::RELATIONSHIP_VAR_SUB_TO_DOWNLOAD . $variation_id, false, false );
+		$placeholder     = esc_attr__( 'Select products', 'woocommerce-subscriptions' );
+		$tooltip         = wc_help_tip( wc_sanitize_tooltip( __( 'Select simple and variable downloadable products that will be included with this subscription variation.', 'woocommerce-subscriptions' ) ) );
+
+		foreach ( WC_Subscription_Downloads::get_downloadable_products( $variation->ID ) as $product_id ) {
+			$product_id = absint( $product_id );
+			$product    = wc_get_product( $product_id );
+
+			if ( $product ) {
+				$product_name     = esc_html( wp_strip_all_tags( $product->get_formatted_name() ) );
+				$linked_products .= "<option value='$product_id' selected='selected'>$product_name</option>";
+			}
+		}
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- variables are escaped above.
+		echo "
+			<div class='variable_subscription_linked_downloadable_products show_if_variable-subscription' style='display: none'>
+				<p class='form-row form-field subscription_linked_downloadable_products'>
+					<label for='subscription-linked-downloadable-products'>$label</label>
+					$tooltip
+					<select
+						class='wc-product-search subscription-downloads-ids'
+						data-action='wc_subscription_linked_downloadable_products_search'
+						data-placeholder='$placeholder'
+						id='subscription-linked-downloadable-products'
+						multiple='multiple'
+						name='_subscription_linked_downloadable_products_{$variation_id}[]'
+						style='width: 100%;'
+					>
+						$linked_products
+					</select>
+					$nonce_field
+				</p>
+			</div>
+		";
 	}
 
 	/**
@@ -164,9 +430,7 @@ class WC_Subscription_Downloads_Products {
 			$orders[] = $order->id;
 		}
 
-		$orders = apply_filters( 'woocommerce_subscription_downloads_get_orders', $orders, $subscription_product_id );
-
-		return $orders;
+		return apply_filters( 'woocommerce_subscription_downloads_get_orders', $orders, $subscription_product_id );
 	}
 
 	/**
@@ -181,37 +445,93 @@ class WC_Subscription_Downloads_Products {
 	protected function revoke_access_to_download( $download_id, $product_id, $order_id ) {
 		global $wpdb;
 
-		$wpdb->query( $wpdb->prepare( "
-			DELETE FROM {$wpdb->prefix}woocommerce_downloadable_product_permissions
-			WHERE order_id = %d AND product_id = %d AND download_id = %s;
-		", $order_id, $product_id, $download_id  ) );
+		$wpdb->query(
+			$wpdb->prepare(
+				"
+					DELETE FROM {$wpdb->prefix}woocommerce_downloadable_product_permissions
+					WHERE order_id = %d AND product_id = %d AND download_id = %s;
+				",
+				$order_id,
+				$product_id,
+				$download_id
+			)
+		);
 
 		do_action( 'woocommerce_ajax_revoke_access_to_product_download', $download_id, $product_id, $order_id );
 	}
 
 	/**
-	 * Update subscription downloads table and orders.
+	 * Update subscription downloads table and orders according in respect to the described relationship between a
+	 * regular product and zero-to-many regular subscription products.
 	 *
-	 * @param  int $product_id
-	 * @param  array $subscriptions
+	 * @param  int   $product_id    The downloadable product ID.
+	 * @param  array $subscriptions Subscription product IDs.
 	 *
 	 * @return void
 	 */
 	protected function update_subscription_downloads( $product_id, $subscriptions ) {
+		$current       = array_map( 'intval', WC_Subscription_Downloads::get_subscriptions( $product_id ) );
+		$subscriptions = array_map( 'intval', (array) $subscriptions );
+
+		sort( $current );
+		sort( $subscriptions );
+
+		$to_delete = array_diff( $current, $subscriptions );
+		$to_create = array_diff( $subscriptions, $current );
+
+		$this->delete_relationships( $to_delete, array( $product_id ) );
+		$this->create_relationships( $to_create, array( $product_id ) );
+	}
+
+	/**
+	 * Update subscription downloads table and orders according in respect to the described relationship between a
+	 * subscription product and zero-to-many regular products.
+	 *
+	 * @param int   $subscription_product_id Subscription product ID.
+	 * @param int[] $new_ids                 IDs for downloadable products that should be associated with the subscription product.
+	 *
+	 * @return void
+	 */
+	private function update_subscription_products( int $subscription_product_id, array $new_ids ): void {
+		$existing_ids = array_map( 'intval', WC_Subscription_Downloads::get_downloadable_products( $subscription_product_id ) );
+		$new_ids      = array_map( 'intval', $new_ids );
+
+		sort( $existing_ids );
+		sort( $new_ids );
+
+		$to_delete = array_diff( $existing_ids, $new_ids );
+		$to_create = array_diff( $new_ids, $existing_ids );
+
+		$this->delete_relationships( array( $subscription_product_id ), $to_delete );
+		$this->create_relationships( array( $subscription_product_id ), $to_create );
+	}
+
+	/**
+	 * Deletes relationships that exist between any of the supplied subscription IDs and any of the supplied product
+	 * IDs.
+	 *
+	 * The most common use case will be to supply a single subscription ID and one-or-more product IDs, or else the
+	 * inverse.
+	 *
+	 * @param int[] $subscription_ids
+	 * @param int[] $product_ids
+	 *
+	 * @return void
+	 */
+	private function delete_relationships( array $subscription_ids, array $product_ids ): void {
 		global $wpdb;
 
-		$subscriptions = (array) $subscriptions;
-		$current       = WC_Subscription_Downloads::get_subscriptions( $product_id );
+		foreach ( $product_ids as $product_id ) {
+			$product_id = (int) $product_id;
 
-		// Delete items.
-		$delete_ids = array_diff( $current, $subscriptions );
-		if ( $delete_ids ) {
-			foreach ( $delete_ids as $delete ) {
+			foreach ( $subscription_ids as $subscription_id ) {
+				$subscription_id = (int) $subscription_id;
+
 				$wpdb->delete(
 					$wpdb->prefix . 'woocommerce_subscription_downloads',
 					array(
 						'product_id'      => $product_id,
-						'subscription_id' => $delete,
+						'subscription_id' => $subscription_id,
 					),
 					array(
 						'%d',
@@ -219,10 +539,10 @@ class WC_Subscription_Downloads_Products {
 					)
 				);
 
-				$_orders = $this->get_orders( $delete );
-				foreach ( $_orders as $order_id ) {
-					$_product  = wc_get_product( $product_id );
-					$downloads = $_product->get_downloads();
+				$orders = $this->get_orders( $subscription_id );
+				foreach ( $orders as $order_id ) {
+					$product   = wc_get_product( $product_id );
+					$downloads = $product->get_downloads();
 
 					// Adds the downloadable files to the order/subscription.
 					foreach ( array_keys( $downloads ) as $download_id ) {
@@ -231,16 +551,35 @@ class WC_Subscription_Downloads_Products {
 				}
 			}
 		}
+	}
 
-		// Add items.
-		$add_ids = array_diff( $subscriptions, $current );
-		if ( $add_ids ) {
-			foreach ( $add_ids as $add ) {
-				$wpdb->insert(
-					$wpdb->prefix . 'woocommerce_subscription_downloads',
+	/**
+	 * Revoke download permissions for a product across all related subscriptions.
+	 *
+	 * @param int $product_id Product ID.
+	 *
+	 * @return void
+	 */
+	private function revoke_permissions_for_product( $product_id ) {
+		global $wpdb;
+
+		$subscription_ids = WC_Subscription_Downloads::get_subscriptions( $product_id );
+
+		if ( empty( $subscription_ids ) ) {
+			return;
+		}
+
+		foreach ( $subscription_ids as $subscription_id ) {
+			$orders = $this->get_orders( $subscription_id );
+
+			foreach ( $orders as $order_id ) {
+				// Delete ALL permissions for this product+order combination.
+				// This ensures that when files change, old permissions with different download_ids are removed.
+				$wpdb->delete(
+					$wpdb->prefix . 'woocommerce_downloadable_product_permissions',
 					array(
-						'product_id'      => $product_id,
-						'subscription_id' => $add,
+						'order_id'   => $order_id,
+						'product_id' => $product_id,
 					),
 					array(
 						'%d',
@@ -248,23 +587,105 @@ class WC_Subscription_Downloads_Products {
 					)
 				);
 
-				$_orders = $this->get_orders( $add );
-				foreach ( $_orders as $order_id ) {
-					$order     = wc_get_order( $order_id );
+				do_action( 'woocommerce_revoke_access_to_product_download', $product_id, $order_id );
+			}
+		}
+	}
 
-					if ( ! is_a( $order, 'WC_Subscription' ) ) {
-						// avoid adding permissions to orders and it's
-						// subscription for the same user, causing duplicates
-						// to show up
-						continue;
-					}
+	/**
+	 * Grant download permissions for a product across all related subscriptions.
+	 *
+	 * @param int $product_id Product ID.
+	 *
+	 * @return void
+	 */
+	private function grant_permissions_for_product( $product_id ) {
+		$subscription_product_ids = WC_Subscription_Downloads::get_subscriptions( $product_id );
+		$product                  = wc_get_product( $product_id );
 
-					$_product  = wc_get_product( $product_id );
-					$downloads = $_product->get_downloads();
+		if ( empty( $subscription_product_ids ) || ! $product ) {
+			return;
+		}
 
-					// Adds the downloadable files to the order/subscription.
-					foreach ( array_keys( $downloads ) as $download_id ) {
-						wc_downloadable_file_permission( $download_id, $product_id, $order );
+		$downloads = $product->get_downloads();
+
+		foreach ( $subscription_product_ids as $subscription_id ) {
+			$orders = $this->get_orders( $subscription_id );
+
+			foreach ( $orders as $order_id ) {
+				$order = wc_get_order( $order_id );
+
+				if ( ! is_a( $order, 'WC_Subscription' ) ) {
+					continue;
+				}
+
+				foreach ( array_keys( $downloads ) as $download_id ) {
+					wc_downloadable_file_permission( $download_id, $product_id, $order );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Adds relationships between the specified subscription and product IDs.
+	 *
+	 * The most common use case will be to supply a single subscription ID and one-or-more product IDs, or else the
+	 * inverse.
+	 *
+	 * @param int[] $subscription_ids
+	 * @param int[] $product_ids
+	 *
+	 * @return void
+	 */
+	private function create_relationships( array $subscription_ids, array $product_ids ): void {
+		global $wpdb;
+
+		foreach ( $product_ids as $product_id ) {
+			$product_id = (int) $product_id;
+			$product    = wc_get_product( $product_id );
+
+			// Check if product has public status.
+			$has_public_status = false;
+			if ( $product ) {
+				$status_object     = get_post_status_object( $product->get_status() );
+				$has_public_status = $status_object && $status_object->public;
+			}
+
+			foreach ( $subscription_ids as $subscription_id ) {
+				$subscription_id = (int) $subscription_id;
+
+				$wpdb->insert(
+					$wpdb->prefix . 'woocommerce_subscription_downloads',
+					array(
+						'product_id'      => $product_id,
+						'subscription_id' => $subscription_id,
+					),
+					array(
+						'%d',
+						'%d',
+					)
+				);
+
+				// Only grant download permissions if product has public status.
+				if ( $has_public_status ) {
+					$orders = $this->get_orders( $subscription_id );
+					foreach ( $orders as $order_id ) {
+						$order = wc_get_order( $order_id );
+
+						if ( ! is_a( $order, 'WC_Subscription' ) ) {
+							// avoid adding permissions to orders and it's
+							// subscription for the same user, causing duplicates
+							// to show up
+							continue;
+						}
+
+						$product   = wc_get_product( $product_id );
+						$downloads = $product->get_downloads();
+
+						// Adds the downloadable files to the order/subscription.
+						foreach ( array_keys( $downloads ) as $download_id ) {
+							wc_downloadable_file_permission( $download_id, $product_id, $order );
+						}
 					}
 				}
 			}
@@ -287,26 +708,6 @@ class WC_Subscription_Downloads_Products {
 		}
 
 		$this->update_subscription_downloads( $product_id, $subscription_downloads_ids );
-	}
-
-	/**
-	 * Save variable product data.
-	 *
-	 * @param  int $variation_id
-	 * @param  int $index
-	 *
-	 * @return void
-	 */
-	public function save_variation_product_data( $variation_id, $index ) {
-		if ( ! isset( $_POST['variable_is_downloadable'][ $index ] ) ) {
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$subscription_download_ids = isset( $_POST['_variable_subscription_downloads_ids'][ $index ] ) ? wc_clean( wp_unslash( $_POST['_variable_subscription_downloads_ids'][ $index ] ) ) : array();
-		$subscription_download_ids = array_filter( $subscription_download_ids ); // nosemgrep: audit.php.lang.misc.array-filter-no-callback -- $subscription_download_ids are already passed through wc_clean() and wp_unslash().
-
-		$this->update_subscription_downloads( $variation_id, $subscription_download_ids );
 	}
 
 	/**
@@ -369,5 +770,46 @@ class WC_Subscription_Downloads_Products {
 		}
 
 		return (string) wc_get_formatted_variation( $product_variation, true );
+	}
+
+	/**
+	 * Deprecated, do not use. Previously took care of saving product data for variations.
+	 *
+	 * @deprecated 8.3.0
+	 *
+	 * @param int $variation_id
+	 * @param int $index
+	 *
+	 * @return void
+	 */
+	// phpcs:disable Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+	public function save_variation_product_data( $variation_id, $index ) {
+		wc_deprecated_function( __METHOD__, '8.3.0', __CLASS__ . '::handle_product_variation_save' );
+	}
+
+	/**
+	 * Deprecated, do not use. Previously took care of saving product data.
+	 *
+	 * @deprecated 8.3.0
+	 *
+	 * @param int      $subscription_product_id
+	 * @param int|null $index
+	 *
+	 * @return void
+	*/
+	// phpcs:disable Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+	public function save_subscription_product_data( int $subscription_product_id, ?int $index = null ) {
+		wc_deprecated_function( __METHOD__, '8.3.0', __CLASS__ . '::handle_product_save' );
+	}
+
+	/**
+	 * Deprecated, do not use. Previously set up assets for the Subscription Downloads extension.
+	 *
+	 * @deprecated 8.3.0
+	 *
+	 * @return void
+	 */
+	public function scripts() {
+		wc_deprecated_function( __METHOD__, '8.3.0' );
 	}
 }

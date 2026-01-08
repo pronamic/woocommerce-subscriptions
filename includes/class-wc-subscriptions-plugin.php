@@ -34,6 +34,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 		WCS_Call_To_Action_Button_Text_Manager::init();
 		WCS_Subscriber_Role_Manager::init();
 		WCS_Upgrade_Notice_Manager::init();
+		WCS_Admin_Assets::init();
 
 		$tracks_events = new WC_Tracks_Events();
 		$tracks_events->setup();
@@ -300,10 +301,16 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 	 */
 	public function init_downloads() {
 		if (
-			! defined( 'WCS_ALLOW_SUBSCRIPTION_DOWNLOADS' )
-			|| $this->is_plugin_being_activated( 'woocommerce-subscription-downloads' )
+			$this->is_plugin_being_activated( 'woocommerce-subscription-downloads' )
 			|| class_exists( WC_Subscription_Downloads::class, false )
 		) {
+			if ( class_exists( WC_Subscription_Downloads::class, false ) ) {
+				// Will show the welcome announcement if the standalone plugin is active and the welcome announcement has not been dismissed.
+				if ( ! WC_Subscription_Downloads_Admin_Welcome_Announcement::is_welcome_announcement_dismissed() ) {
+					WC_Subscription_Downloads_Admin_Welcome_Announcement::init();
+				}
+			}
+
 			return;
 		}
 

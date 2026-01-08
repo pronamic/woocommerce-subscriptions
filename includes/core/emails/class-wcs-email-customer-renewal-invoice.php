@@ -124,7 +124,7 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 	 * @return string
 	 */
 	function get_subject() {
-		return apply_filters( 'woocommerce_subscriptions_email_subject_new_renewal_order', parent::get_subject(), $this->object );
+		return apply_filters( 'woocommerce_subscriptions_email_subject_new_renewal_order', $this->format_string( $this->get_option( 'subject', $this->get_default_subject() ) ), $this->object );
 	}
 
 	/**
@@ -134,7 +134,7 @@ class WCS_Email_Customer_Renewal_Invoice extends WC_Email_Customer_Invoice {
 	 * @return string
 	 */
 	function get_heading() {
-		return apply_filters( 'woocommerce_email_heading_customer_renewal_order', parent::get_heading(), $this->object );
+		return apply_filters( 'woocommerce_email_heading_customer_renewal_order', $this->format_string( $this->get_option( 'heading', $this->get_default_heading() ) ), $this->object );
 	}
 
 	/**
