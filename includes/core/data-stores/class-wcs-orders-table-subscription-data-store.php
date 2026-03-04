@@ -56,7 +56,11 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 	/**
 	 * Table column to WC_Subscription mapping for wc_orders table.
 	 *
-	 * All columns are inherited from orders except the `transaction_id` column isn't used for subscriptions.
+	 * All columns are inherited from orders. The `transaction_id` column isn't used for subscriptions
+	 * but is included in the mapping to ensure cached data objects have all the properties the parent
+	 * order data store expects, preventing PHP warnings when HPOS Data Caching is enabled.
+	 *
+	 * @see https://github.com/woocommerce/woocommerce/issues/63272
 	 *
 	 * @var string[]
 	 */
@@ -113,6 +117,10 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 			'type' => 'string',
 			'name' => 'payment_method_title',
 		),
+		'transaction_id'       => array(
+			'type' => 'string',
+			'name' => 'transaction_id',
+		),
 		'ip_address'           => array(
 			'type' => 'string',
 			'name' => 'customer_ip_address',
@@ -130,14 +138,13 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 	/**
 	 * Table column to WC_Subscription mapping for wc_operational_data table.
 	 *
-	 * For subscriptions, all columns are inherited from orders except for the following columns:
+	 * All columns are inherited from orders. Some columns (cart_hash, new_order_email_sent,
+	 * order_stock_reduced, date_paid_gmt, recorded_sales, date_completed_gmt) aren't used for
+	 * subscriptions but are included in the mapping to ensure cached data objects have all the
+	 * properties the parent order data store expects, preventing PHP warnings when HPOS Data
+	 * Caching is enabled.
 	 *
-	 * - cart_hash
-	 * - new_order_email_sent
-	 * - order_stock_reduced
-	 * - date_paid_gmt
-	 * - recorded_sales
-	 * - date_completed_gmt
+	 * @see https://github.com/woocommerce/woocommerce/issues/63272
 	 *
 	 * @var string[]
 	 */
@@ -164,9 +171,29 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 			'type' => 'bool',
 			'name' => 'download_permissions_granted',
 		),
+		'cart_hash'                   => array(
+			'type' => 'string',
+			'name' => 'cart_hash',
+		),
+		'new_order_email_sent'        => array(
+			'type' => 'bool',
+			'name' => 'new_order_email_sent',
+		),
 		'order_key'                   => array(
 			'type' => 'string',
 			'name' => 'order_key',
+		),
+		'order_stock_reduced'         => array(
+			'type' => 'bool',
+			'name' => 'order_stock_reduced',
+		),
+		'date_paid_gmt'               => array(
+			'type' => 'date',
+			'name' => 'date_paid',
+		),
+		'date_completed_gmt'          => array(
+			'type' => 'date',
+			'name' => 'date_completed',
 		),
 		'shipping_tax_amount'         => array(
 			'type' => 'decimal',
@@ -183,6 +210,10 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 		'discount_total_amount'       => array(
 			'type' => 'decimal',
 			'name' => 'discount_total',
+		),
+		'recorded_sales'              => array(
+			'type' => 'bool',
+			'name' => 'recorded_sales',
 		),
 	);
 

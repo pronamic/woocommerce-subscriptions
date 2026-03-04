@@ -45,7 +45,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<?php if ( wcs_can_item_be_removed( $item, $subscription ) ) : ?>
 								<?php
 								// Translators: %s: product name.
-								$aria_label     = sprintf( __( 'Remove %s', 'woocommerce-subscriptions' ), esc_html( $_product->get_name() ) );
+								$product_name   = is_a( $_product, WC_Product::class ) ? $_product->get_name() : $item->get_name();
+								$aria_label     = sprintf( __( 'Remove %s', 'woocommerce-subscriptions' ), esc_html( $product_name ) );
 								$confirm_notice = apply_filters( 'woocommerce_subscriptions_order_item_remove_confirmation_text', __( 'Are you sure you want to remove this item from your subscription?', 'woocommerce-subscriptions' ), $item, $_product, $subscription );
 								?>
 								<a

@@ -68,6 +68,14 @@ class WC_Subscription_Downloads_Settings {
 				'row_class' => 'enable-downloadable-file-linking',
 			),
 			array(
+				'name'      => __( 'Show shared downloadable products in subscription details', 'woocommerce-subscriptions' ),
+				'desc'      => __( 'When enabled, shared downloadable products appear as free items to you and the subscriber on a subscription. Disable to improve performance of subscription-related processes and pages.', 'woocommerce-subscriptions' ),
+				'id'        => WC_Subscriptions_Admin::$option_prefix . '_downloads_add_line_items',
+				'default'   => 'no',
+				'type'      => 'checkbox',
+				'row_class' => 'downloads-add-line-items',
+			),
+			array(
 				'type' => 'sectionend',
 				'id'   => WC_Subscriptions_Admin::$option_prefix . '_downloads_settings',
 			),
@@ -88,5 +96,16 @@ class WC_Subscription_Downloads_Settings {
 	 */
 	public static function is_enabled() {
 		return get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_downloadable_file_linking', 'no' ) === 'yes';
+	}
+
+	/**
+	 * Check if downloadable products should be added as line items on subscriptions.
+	 *
+	 * @since 8.5.0
+	 *
+	 * @return bool
+	 */
+	public static function add_line_items_enabled() {
+		return get_option( WC_Subscriptions_Admin::$option_prefix . '_downloads_add_line_items', 'no' ) === 'yes';
 	}
 }

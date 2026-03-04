@@ -134,14 +134,71 @@ class WCS_Template_Loader {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.5.0
 	 */
 	public static function get_order_downloads_template( $subscription ) {
-		if ( $subscription->has_downloadable_item() && $subscription->is_download_permitted() ) {
+		$downloads      = $subscription->get_downloadable_items();
+		$total_products = 0;
+
+		// When the subscription downloads feature is enabled, also include downloads from the
+		// mapping table. This is needed when downloadable products are not added as line items
+		// (controlled by the "Add downloadable products as subscription line items" setting).
+		if ( class_exists( 'WC_Subscription_Downloads_Settings' ) && WC_Subscription_Downloads_Settings::is_enabled() ) {
+			/**
+			 * Filters the maximum number of linked downloadable products to display on the subscription page.
+			 *
+			 * Set to 0 to display all linked downloads (no limit). When a limit is applied and the
+			 * subscription has more linked products, a "View all downloads" link is shown instead.
+			 *
+			 * @param int             $limit        Maximum number of products to display. Default 10.
+			 * @param WC_Subscription $subscription The subscription object.
+			 *
+			 * @since 8.5.0
+			 */
+			$display_limit  = apply_filters( 'woocommerce_subscriptions_downloads_display_limit', 10, $subscription );
+			$display_limit  = is_int( $display_limit ) ? $display_limit : 10;
+			$linked_result  = WC_Subscription_Downloads::get_subscription_linked_downloads( $subscription, $display_limit );
+			$total_products = $linked_result['total_products'];
+
+			if ( $linked_result['downloads'] ) {
+				// Deduplicate by product_id + download_id to avoid showing downloads from both
+				// line items and the mapping table.
+				$existing_keys = array();
+				foreach ( $downloads as $download ) {
+					$existing_keys[] = $download['product_id'] . '_' . $download['download_id'];
+				}
+
+				foreach ( $linked_result['downloads'] as $download ) {
+					$key = $download['product_id'] . '_' . $download['download_id'];
+					if ( ! in_array( $key, $existing_keys, true ) ) {
+						$downloads[]     = $download;
+						$existing_keys[] = $key;
+					}
+				}
+			}
+		}
+
+		if ( ! empty( $downloads ) && $subscription->is_download_permitted() ) {
 			wc_get_template(
 				'order/order-downloads.php',
 				array(
-					'downloads'  => $subscription->get_downloadable_items(),
+					'downloads'  => $downloads,
 					'show_title' => true,
 				)
 			);
+
+			// Show a "View all downloads" link when the list was truncated.
+			if ( $total_products > count( $downloads ) ) {
+				$downloads_url = wc_get_endpoint_url( 'downloads', '', wc_get_page_permalink( 'myaccount' ) );
+				printf(
+					'<p class="wcs-downloads-view-all"><a href="%s">%s</a></p>',
+					esc_url( $downloads_url ),
+					esc_html(
+						sprintf(
+							/* translators: %d: total number of downloads available */
+							__( 'View all %d downloads', 'woocommerce-subscriptions' ),
+							$total_products
+						)
+					)
+				);
+			}
 		}
 	}
 

@@ -1142,6 +1142,32 @@ jQuery( function ( $ ) {
 		toggleGiftingCheckbox( $giftingEnableCheckbox.is( ':checked' ) );
 	}
 
+	// Toggle "Show shared downloadable products" checkbox visibility based on the "Enable downloadable file sharing" checkbox.
+	var $downloadsEnableCheckbox = $(
+			document.getElementById(
+				'woocommerce_subscriptions_enable_downloadable_file_linking'
+			)
+		),
+		$downloadsAddLineItems = $(
+			'.wc-settings-row-downloads-add-line-items'
+		);
+
+	if ( $downloadsEnableCheckbox.length > 0 ) {
+		function toggleDownloadsLineItems( checked ) {
+			if ( checked ) {
+				$downloadsAddLineItems.show();
+			} else {
+				$downloadsAddLineItems.hide();
+			}
+		}
+
+		$downloadsEnableCheckbox.on( 'change', function () {
+			toggleDownloadsLineItems( this.checked );
+		} );
+
+		toggleDownloadsLineItems( $downloadsEnableCheckbox.is( ':checked' ) );
+	}
+
 	// Don't display the variation notice for variable subscription products
 	$( 'body' ).on( 'woocommerce-display-product-type-alert', function (
 		e,

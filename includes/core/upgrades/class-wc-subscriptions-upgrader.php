@@ -230,6 +230,10 @@ class WC_Subscriptions_Upgrader {
 		if ( version_compare( self::$stored_plugin_version, '8.3.0', '<' ) ) {
 			WCS_Plugin_Upgrade_8_3_0::check_downloads_plugin_is_enabled();
 		}
+
+		if ( version_compare( self::$stored_plugin_version, '8.5.0', '<' ) ) {
+			WCS_Plugin_Upgrade_8_5_0::maybe_enable_downloads_line_items();
+		}
 	}
 
 	/**

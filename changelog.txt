@@ -1,5 +1,12 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2026-03-03 - version 8.5.0
+* Add: Setting to show or hide shared downloadable products in subscription details. Disable to improve performance for subscriptions with many downloads.
+* Fix: Fatal error on the View Subscription page when a subscription contains a deleted product and item removal is enabled.
+* Fix: PHP warnings when HPOS Data Caching is enabled alongside WooCommerce Subscriptions.
+* Fix: Added translation the billing period in the Cart/Checkout Block recurring total label for intervals of 2+. Changes ordinal phrasing ("every 2nd month") to cardinal ("every 2 months").
+* Dev: Refactored how subscription price strings are built internally. No changes to pricing display.
+
 2026-02-04 - version 8.4.0
 * Add: New optional notification email to alert merchants when a customer reactivates a subscription they had set to cancelled.
 * Update: Remove gender-specific language from the tooltip for the "Inactive Subscriber Role" setting.

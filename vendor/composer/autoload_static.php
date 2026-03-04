@@ -30,6 +30,9 @@ class ComposerStaticInitbaea8e4a5fa0623a37c231054de0bbe5
 
     public static $classMap = array (
         'Automattic\\Jetpack\\Constants' => __DIR__ . '/..' . '/automattic/jetpack-constants/src/class-constants.php',
+        'Automattic\\WooCommerce_Subscriptions\\Internal\\Pricing\\Price_Calculator' => __DIR__ . '/../..' . '/src/Internal/Pricing/Price_Calculator.php',
+        'Automattic\\WooCommerce_Subscriptions\\Internal\\Pricing\\Price_Context' => __DIR__ . '/../..' . '/src/Internal/Pricing/Price_Context.php',
+        'Automattic\\WooCommerce_Subscriptions\\Internal\\Pricing\\Price_String_Renderer' => __DIR__ . '/../..' . '/src/Internal/Pricing/Price_String_Renderer.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Collector' => __DIR__ . '/../..' . '/src/Internal/Telemetry/Collector.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Events' => __DIR__ . '/../..' . '/src/Internal/Telemetry/Events.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Orders' => __DIR__ . '/../..' . '/src/Internal/Telemetry/Orders.php',

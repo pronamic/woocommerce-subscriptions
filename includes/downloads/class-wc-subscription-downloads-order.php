@@ -71,7 +71,27 @@ class WC_Subscription_Downloads_Order {
 							wc_downloadable_file_permission( $download_id, $product_id, $subscription );
 						}
 
-						if ( ! in_array( $_product->get_id(), $product_item_ids ) ) {
+						/**
+						 * Controls whether linked downloadable products are added as zero-cost line items on the subscription.
+						 *
+						 * When false, download permissions are still granted via the permissions table, but no
+						 * line items are added to the subscription. This improves performance for subscriptions
+						 * with many linked downloadable products.
+						 *
+						 * @param bool            $add_as_line_item Whether to add the product as a line item.
+						 * @param WC_Product      $_product         The downloadable product.
+						 * @param WC_Subscription $subscription     The subscription.
+						 *
+						 * @since 8.5.0
+						 */
+						$add_as_line_item = apply_filters(
+							'woocommerce_subscriptions_add_downloadable_product_line_item',
+							WC_Subscription_Downloads_Settings::add_line_items_enabled(),
+							$_product,
+							$subscription
+						);
+
+						if ( $add_as_line_item && ! in_array( $_product->get_id(), $product_item_ids, true ) ) {
 							// Skip wrong recalculation of totals by adding a 0 amount Subscriptions.
 							$totals = array(
 								'subtotal'     => wc_format_decimal( 0 ),

@@ -393,7 +393,8 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 
 		$standard_packages = WC()->shipping->get_packages();
 
-		if ( ! is_numeric( $package_id ) || key( $standard_packages ) !== (int) $package_id ) {
+		// A null package_id means the rate is being applied to all packages (e.g. local pickup).
+		if ( ! is_null( $package_id ) && ( ! is_numeric( $package_id ) || key( $standard_packages ) !== (int) $package_id ) ) {
 			return;
 		}
 

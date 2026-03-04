@@ -7,6 +7,9 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Automattic\\Jetpack\\Constants' => $vendorDir . '/automattic/jetpack-constants/src/class-constants.php',
+    'Automattic\\WooCommerce_Subscriptions\\Internal\\Pricing\\Price_Calculator' => $baseDir . '/src/Internal/Pricing/Price_Calculator.php',
+    'Automattic\\WooCommerce_Subscriptions\\Internal\\Pricing\\Price_Context' => $baseDir . '/src/Internal/Pricing/Price_Context.php',
+    'Automattic\\WooCommerce_Subscriptions\\Internal\\Pricing\\Price_String_Renderer' => $baseDir . '/src/Internal/Pricing/Price_String_Renderer.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Collector' => $baseDir . '/src/Internal/Telemetry/Collector.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Events' => $baseDir . '/src/Internal/Telemetry/Events.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Orders' => $baseDir . '/src/Internal/Telemetry/Orders.php',
