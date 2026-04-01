@@ -634,7 +634,7 @@ function wcs_is_datetime_mysql_format( $time ) {
 
 	$format = wcs_get_db_datetime_format();
 
-	$date_object = DateTime::createFromFormat( $format, $time );
+	$date_object = DateTime::createFromFormat( $format, $time, new DateTimeZone( 'UTC' ) );
 
 	// DateTime::createFromFormat will return false if it is an invalid date.
 	return $date_object

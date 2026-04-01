@@ -691,10 +691,13 @@ class WCS_Gifting {
 				if ( ! $order ) {
 					$order = wc_get_order( $subscription->get_parent_id() );
 				}
-				foreach ( $order->get_items() as $order_item ) {
-					if ( $order_item->get_meta( '_wcsg_cart_key' ) === $gifting_subcription_item->get_meta( '_wcsg_cart_key' ) ) {
-						$order_item->add_meta_data( 'wcsg_recipient', 'wcsg_recipient_id_' . $user_id, true );
-						$order_item->save();
+
+				if ( $order ) {
+					foreach ( $order->get_items() as $order_item ) {
+						if ( $order_item->get_meta( '_wcsg_cart_key' ) === $gifting_subcription_item->get_meta( '_wcsg_cart_key' ) ) {
+							$order_item->add_meta_data( 'wcsg_recipient', 'wcsg_recipient_id_' . $user_id, true );
+							$order_item->save();
+						}
 					}
 				}
 			}

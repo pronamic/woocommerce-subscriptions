@@ -11,6 +11,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $text_align = is_rtl() ? 'right' : 'left';
 
+// Remove the switch/upgrade link from gifting recipient emails since recipients cannot switch the subscription.
+remove_filter( 'woocommerce_order_item_meta_end', 'WC_Subscriptions_Switcher::print_switch_link', 10 );
+
 foreach ( $items as $item_id => $item ) :
 	$product = $item->get_product();
 	if ( apply_filters( 'woocommerce_order_item_visible', true, $item ) ) {
@@ -30,7 +33,7 @@ foreach ( $items as $item_id => $item ) :
 			// SKU.
 			if ( $show_sku && is_object( $product ) && $product->get_sku() ) {
 				// Translators: placeholder is a product SKU.
-				sprintf( __( ' (#%s)', 'woocommerce-subscriptions' ), $product->get_sku() );
+				echo wp_kses_post( sprintf( __( ' (#%s)', 'woocommerce-subscriptions' ), $product->get_sku() ) );
 			}
 
 			// allow other plugins to add additional product information here.
@@ -55,4 +58,7 @@ foreach ( $items as $item_id => $item ) :
 		</tr>
 	<?php endif; ?>
 
-<?php endforeach; ?>
+<?php endforeach;
+
+add_filter( 'woocommerce_order_item_meta_end', 'WC_Subscriptions_Switcher::print_switch_link', 10, 3 );
+?>

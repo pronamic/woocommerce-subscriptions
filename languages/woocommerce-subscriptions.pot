@@ -2,14 +2,14 @@
 # This file is distributed under the GNU General Public License v3.0.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 8.5.0\n"
+"Project-Id-Version: WooCommerce Subscriptions 8.6.0\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-03T19:50:43+00:00\n"
+"POT-Creation-Date: 2026-04-01T01:03:54+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woocommerce-subscriptions\n"
@@ -1979,8 +1979,8 @@ msgid "Items"
 msgstr ""
 
 #: includes/core/admin/class-wcs-admin-post-types.php:469
-#: build/index.js:25
-#: build/index.js:26
+#: build/index.js:29
+#: build/index.js:30
 #: client/core/recurring-totals/index.js:284
 #: client/core/recurring-totals/index.js:409
 msgid "Total"
@@ -2500,7 +2500,7 @@ msgstr ""
 
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:256
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:301
-#: build/index.js:11
+#: build/index.js:15
 #: client/core/recurring-totals/index.js:176
 msgid "Shipping"
 msgstr ""
@@ -3275,7 +3275,7 @@ msgid "Renewal Discount"
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-coupon.php:700
-#: build/index.js:11
+#: build/index.js:15
 #: client/core/recurring-totals/index.js:72
 msgid "Discount"
 msgstr ""
@@ -3316,13 +3316,6 @@ msgstr ""
 
 #: includes/core/class-wc-subscriptions-email-notifications.php:299
 msgid "How long before the event should the notification be sent."
-msgstr ""
-
-#: includes/core/class-wc-subscriptions-email-notifications.php:304
-#: includes/core/emails/class-wcs-email-customer-notification.php:60
-#: includes/core/privacy/class-wcs-privacy.php:281
-#: templates/gifting/order-details-customer.php:26
-msgid "N/A"
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:194
@@ -4671,6 +4664,12 @@ msgstr ""
 
 #: includes/core/emails/class-wcs-email-customer-notification.php:58
 msgid "Text to appear below the main email content."
+msgstr ""
+
+#: includes/core/emails/class-wcs-email-customer-notification.php:60
+#: includes/core/privacy/class-wcs-privacy.php:281
+#: templates/gifting/order-details-customer.php:26
+msgid "N/A"
 msgstr ""
 
 #: includes/core/emails/class-wcs-email-customer-notification.php:66
@@ -8356,25 +8355,25 @@ msgid "Shipping address"
 msgstr ""
 
 #. Translators: placeholder is the product name.
-#: templates/gifting/emails/plain/recipient-email-order-items.php:19
+#: templates/gifting/emails/plain/recipient-email-order-items.php:22
 #, php-format
 msgid "Product: %s"
 msgstr ""
 
 #. Translators: placeholder is the product SKU.
-#: templates/gifting/emails/plain/recipient-email-order-items.php:23
+#: templates/gifting/emails/plain/recipient-email-order-items.php:26
 #, php-format
 msgid "SKU: #%s"
 msgstr ""
 
 #. Translators: placeholder is the item's quantity.
-#: templates/gifting/emails/plain/recipient-email-order-items.php:48
+#: templates/gifting/emails/plain/recipient-email-order-items.php:51
 #, php-format
 msgid "Quantity: %s"
 msgstr ""
 
 #. Translators: placeholder is a purchase note.
-#: templates/gifting/emails/plain/recipient-email-order-items.php:53
+#: templates/gifting/emails/plain/recipient-email-order-items.php:56
 #, php-format
 msgid "Purchase Note: %s"
 msgstr ""
@@ -8448,12 +8447,12 @@ msgstr ""
 msgid "Quantity"
 msgstr ""
 
-#: templates/gifting/emails/recipient-email-order-items.php:24
+#: templates/gifting/emails/recipient-email-order-items.php:27
 msgid "Product image"
 msgstr ""
 
 #. Translators: placeholder is a product SKU.
-#: templates/gifting/emails/recipient-email-order-items.php:33
+#: templates/gifting/emails/recipient-email-order-items.php:36
 #, php-format
 msgid " (#%s)"
 msgstr ""
@@ -8852,166 +8851,166 @@ msgid_plural "years"
 msgstr[0] ""
 msgstr[1] ""
 
-#. translators: %1$s is the price of the product. %2$s is the separator used e.g "every" or "/", %3$d is the length, %4$s is week, month, year
-#: build/index.js:10
-#: client/core/utils/index.js:154
+#. translators: %1$s is the price of the product. %2$s is the separator used e.g "every" or "/", %3$d is the billing interval, %4$s is the period e.g. week, month, year. The non-breaking space (\u00a0) between %1$s and %2$s ensures visible spacing when rendered inside a CSS flex container. Please preserve it.
+#: build/index.js:14
+#: client/core/utils/index.js:157
 #, js-format
-msgid "%1$s %2$s %3$d %4$s"
+msgid "%1$s %2$s %3$d %4$s"
 msgstr ""
 
 #. translators: %s Field label.
-#: build/index.js:11
+#: build/index.js:15
 #: client/core/utils/address.js:94
 #, js-format
 msgid "%s (optional)"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:15
 #: client/core/recurring-totals/index.js:122
 msgid "Pickup"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:15
 #: client/core/recurring-totals/index.js:123
 msgid "Delivery"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:15
 #: client/core/recurring-totals/index.js:128
 msgid "No available delivery option"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:15
 #: client/core/recurring-totals/index.js:132
 msgid "Enter address to calculate"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:15
 #: client/core/recurring-totals/index.js:185
 msgid "Free"
 msgstr ""
 
 #. translators: %s selected shipping rate (ex: flat rate)
-#: build/index.js:14
+#: build/index.js:18
 #: client/core/recurring-totals/index.js:200
 #, js-format
 msgid "via %s"
 msgstr ""
 
 #. Translators: %1$s is the number of intervals after which the subscription will stop. %2$s is the interval unit (days, months etc).
-#: build/index.js:23
+#: build/index.js:27
 #: client/core/utils/index.js:112
 #, js-format
 msgid "For %1$d %2$s"
 msgstr ""
 
 #. Translators: %1$s is a date.
-#: build/index.js:24
+#: build/index.js:28
 #: client/core/recurring-totals/index.js:234
 #, js-format
 msgid "Due: %1$s"
 msgstr ""
 
 #. Translators: %1$s is a date.
-#: build/index.js:25
+#: build/index.js:29
 #: client/core/recurring-totals/index.js:239
 #, js-format
 msgid "Starting: %1$s"
 msgstr ""
 
 #. translators: %1$d is the billing interval (e.g. 2, 3), %2$s is the translated period (e.g. months, weeks)
-#: build/index.js:26
+#: build/index.js:30
 #: client/core/utils/index.js:91
 #, js-format
 msgid "Recurring total every %1$d %2$s"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:30
 #: client/core/utils/index.js:65
 msgid "Daily recurring total"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:30
 #: client/core/utils/index.js:70
 msgid "Weekly recurring total"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:30
 #: client/core/utils/index.js:75
 msgid "Monthly recurring total"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:30
 #: client/core/utils/index.js:80
 msgid "Yearly recurring total"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:30
 #: client/core/recurring-totals/index.js:374
 msgid "Details"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:30
 #: client/core/filters/index.js:33
 msgid "Total due today"
 msgstr ""
 
 #. translators: the word used to describe billing frequency, e.g. "for" 1 day or "for" 1 month.
-#: build/index.js:29
+#: build/index.js:33
 #: client/core/filters/index.js:60
 msgid "for 1"
 msgstr ""
 
 #. translators: the word used to describe billing frequency, e.g. "for" 6 days or "for" 2 weeks.
-#: build/index.js:32
+#: build/index.js:36
 #: client/core/filters/index.js:67
 msgid "for"
 msgstr ""
 
 #. translators: the word used to describe billing frequency, e.g. "every" 6 days or "every" 2 weeks.
-#: build/index.js:35
+#: build/index.js:39
 #: client/core/filters/index.js:74
 msgid "every"
 msgstr ""
 
 #. translators: %s Product name.
-#: build/index.js:38
+#: build/index.js:42
 #: client/core/filters/index.js:93
 #, js-format
 msgid "%s (resubscription)"
 msgstr ""
 
 #. translators: %1$s Product name, %2$s Switch type (upgraded, downgraded, or crossgraded).
-#: build/index.js:41
+#: build/index.js:45
 #: client/core/filters/index.js:100
 #, js-format
 msgid "%1$s (%2$s)"
 msgstr ""
 
-#: build/index.js:41
-#: client/core/utils/index.js:173
+#: build/index.js:45
+#: client/core/utils/index.js:176
 msgid "Upgrade"
 msgstr ""
 
-#: build/index.js:41
-#: client/core/utils/index.js:176
+#: build/index.js:45
+#: client/core/utils/index.js:179
 msgid "Downgrade"
 msgstr ""
 
-#: build/index.js:41
-#: client/core/utils/index.js:179
+#: build/index.js:45
+#: client/core/utils/index.js:182
 msgid "Crossgrade"
 msgstr ""
 
 #. translators: %s is the subscription price to pay immediately (ie: $10).
-#: build/index.js:42
+#: build/index.js:46
 #: client/core/filters/index.js:115
 #, js-format
 msgid "Due today %s"
 msgstr ""
 
 #. translators: %s is the subscription price to pay immediately (ie: $10).
-#: build/index.js:43
+#: build/index.js:47
 #: client/core/filters/index.js:120
 #, js-format
 msgid "%s due today"

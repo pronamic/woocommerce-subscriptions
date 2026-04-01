@@ -131,7 +131,7 @@ class WCS_Action_Scheduler_Customer_Notifications extends WCS_Scheduler {
 	protected static function convert_offset_to_seconds( $offset ) {
 		$default_offset = 3 * DAY_IN_SECONDS;
 
-		if ( ! isset( $offset['unit'] ) || ! isset( $offset['number'] ) ) {
+		if ( empty( $offset['unit'] ) || empty( $offset['number'] ) ) {
 			return $default_offset;
 		}
 

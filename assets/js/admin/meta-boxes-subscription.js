@@ -34,13 +34,6 @@ jQuery( function ( $ ) {
 		moment().toDate()
 	);
 
-	// Make sure other date pickers are in the future
-	$( '.woocommerce-subscriptions.date-picker:not(#start)' ).datepicker(
-		'option',
-		'minDate',
-		moment().add( 1, 'hours' ).toDate()
-	);
-
 	// Validate date when hour/minute inputs change
 	$( '[name$="_hour"], [name$="_minute"]' ).on( 'change', function () {
 		$(
@@ -69,6 +62,8 @@ jQuery( function ( $ ) {
 				: one_hour_from_now,
 			$date_input = $( this ),
 			date_type = $date_input.attr( 'id' ),
+			original_timestamp = $( '#' + date_type + '_timestamp_utc' ).val(),
+			original_date = original_timestamp > 0 ? moment.unix( original_timestamp ).local() : null,
 			date_pieces = $date_input.val().split( '-' ),
 			$hour_input = $( '#' + date_type + '_hour' ),
 			$minute_input = $( '#' + date_type + '_minute' ),
@@ -211,24 +206,18 @@ jQuery( function ( $ ) {
 		) {
 			alert( wcs_admin_meta_boxes.i18n_past_date_notice );
 
-			// Set date to current day
-			$date_input.val(
-				one_hour_from_now.year() +
-					'-' +
-					zeroise( one_hour_from_now.months() + 1 ) +
-					'-' +
-					one_hour_from_now.format( 'DD' )
-			);
+			// Restore the previous value if available, otherwise fall back to one hour from now.
+			var restore_date = original_date || one_hour_from_now;
 
-			// Set time if current time is in the past
-			if (
-				chosen_date.hours() < one_hour_from_now.hours() ||
-				( chosen_date.hours() == one_hour_from_now.hours() &&
-					chosen_date.minutes() < one_hour_from_now.minutes() )
-			) {
-				$hour_input.val( one_hour_from_now.format( 'HH' ) );
-				$minute_input.val( one_hour_from_now.format( 'mm' ) );
-			}
+			$date_input.val(
+				restore_date.year() +
+					'-' +
+					zeroise( restore_date.months() + 1 ) +
+					'-' +
+					restore_date.format( 'DD' )
+			);
+			$hour_input.val( restore_date.format( 'HH' ) );
+			$minute_input.val( restore_date.format( 'mm' ) );
 		}
 
 		if ( 0 == $hour_input.val().length ) {

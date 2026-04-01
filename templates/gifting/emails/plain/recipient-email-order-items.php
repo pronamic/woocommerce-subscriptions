@@ -11,6 +11,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $text_align = is_rtl() ? 'right' : 'left';
 
+// Remove the switch/upgrade link from gifting recipient emails since recipients cannot switch the subscription.
+remove_filter( 'woocommerce_order_item_meta_end', 'WC_Subscriptions_Switcher::print_switch_link', 10 );
+
 foreach ( $items as $item_id => $item ) {
 	$product = $item->get_product();
 	if ( apply_filters( 'woocommerce_order_item_visible', true, $item ) ) {
@@ -53,5 +56,7 @@ foreach ( $items as $item_id => $item ) {
 		echo sprintf( esc_html__( 'Purchase Note: %s', 'woocommerce-subscriptions' ), do_shortcode( $purchase_note ) ) . "\n\n";
 	}
 }
+
+add_filter( 'woocommerce_order_item_meta_end', 'WC_Subscriptions_Switcher::print_switch_link', 10, 3 );
 
 echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";

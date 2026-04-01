@@ -301,7 +301,7 @@ class WC_Subscriptions_Email_Notifications {
 				'id'          => WC_Subscriptions_Admin::$option_prefix . self::$offset_setting_string,
 				'desc_tip'    => true,
 				'type'        => 'relative_date_selector',
-				'placeholder' => __( 'N/A', 'woocommerce-subscriptions' ),
+				'placeholder' => '3',
 				'default'     => [
 					'number' => '3',
 					'unit'   => 'days',

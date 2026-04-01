@@ -1,5 +1,14 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2026-03-31 - version 8.6.0
+* Fix: Missing space between subscription price and billing period in the Cart and Checkout Blocks.
+* Fix: Fatal error when setting a gift recipient on a manually created subscription with no parent order.
+* Fix: Empty reminder timing causes fatal errors.
+* Fix: Prevent browser autocomplete on subscription schedule inputs.
+* Fix: Subscription checkout failing during DST spring-forward gap on servers with non-UTC PHP timezone.
+* Fix: Remove the "Upgrade or Downgrade" button from gifting recipient emails where switching is not available.
+* Fix: Schedule panel now displays actual stored dates instead of today's date for subscriptions with past dates.
+
 2026-03-03 - version 8.5.0
 * Add: Setting to show or hide shared downloadable products in subscription details. Disable to improve performance for subscriptions with many downloads.
 * Fix: Fatal error on the View Subscription page when a subscription contains a deleted product and item removal is enabled.
