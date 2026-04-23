@@ -2,14 +2,14 @@
 # This file is distributed under the GNU General Public License v3.0.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 8.6.0\n"
+"Project-Id-Version: WooCommerce Subscriptions 8.6.1\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-01T01:03:54+00:00\n"
+"POT-Creation-Date: 2026-04-23T02:01:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woocommerce-subscriptions\n"
@@ -2815,7 +2815,7 @@ msgstr ""
 #. translators: %s: order number.
 #. translators: placeholder is a subscription ID.
 #: includes/core/class-wc-subscriptions-addresses.php:349
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:790
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:806
 #: includes/core/class-wcs-query.php:102
 #, php-format
 msgctxt "hash before order number"
@@ -2966,7 +2966,7 @@ msgstr ""
 
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:143
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:292
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:376
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:382
 msgid "There was an unexpected problem with your request. Please try again."
 msgstr ""
 
@@ -3035,38 +3035,38 @@ msgstr ""
 msgid "Payment method added."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:393
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:395
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:399
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:401
 msgid "Payment method updated for all your current subscriptions."
 msgstr ""
 
 #. translators: 1: old payment title, 2: new payment title.
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:562
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:578
 #, php-format
 msgctxt "%1$s: old payment title, %2$s: new payment title"
 msgid "Payment method changed from \"%1$s\" to \"%2$s\" by the subscriber."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:573
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:589
 msgid "An error occurred updating your subscription's payment method. Please contact us for assistance."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:581
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:597
 #, php-format
 msgid "%1$sError:%2$s %3$s"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:812
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:828
 msgctxt "the page title of the change payment method form"
 msgid "Change payment method"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:814
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:830
 msgctxt "the page title of the add payment method form"
 msgid "Add payment method"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:858
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:874
 msgid "Please log in to your account below to choose a new payment method for your subscription."
 msgstr ""
 
@@ -7477,15 +7477,15 @@ msgctxt "used in order notes"
 msgid "Customer added %s."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2498
+#: includes/switching/class-wc-subscriptions-switcher.php:2508
 msgid "Switch Order"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2513
+#: includes/switching/class-wc-subscriptions-switcher.php:2523
 msgid "Switched Subscription"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2700
+#: includes/switching/class-wc-subscriptions-switcher.php:2710
 msgctxt "add to cart button text while switching a subscription"
 msgid "Switch subscription"
 msgstr ""

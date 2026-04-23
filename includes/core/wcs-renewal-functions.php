@@ -211,3 +211,37 @@ function wcs_is_manual_renewal_required() {
 function wcs_is_manual_renewal_enabled() {
 	return class_exists( 'WCS_Manual_Renewal_Manager' ) ? WCS_Manual_Renewal_Manager::is_manual_renewal_enabled() : false;
 }
+
+/**
+ * Determine whether a subscription should require manual renewal after a payment method or gateway change.
+ *
+ * - If the store forces manual renewals, always manual.
+ * - If the new gateway is missing or cannot process automatic subscriptions, manual (the gateway cannot
+ *   satisfy an automatic preference).
+ * - If the merchant allows subscribers to toggle their renewal preference (the store-level
+ *   "Display the auto renewal toggle" setting is on), preserve the subscription's existing preference.
+ * - Otherwise, automatic (the gateway supports it and the merchant doesn't let subscribers choose).
+ *
+ * @since 8.6.1
+ *
+ * @param WC_Subscription              $subscription The subscription whose renewal preference is being evaluated.
+ * @param WC_Payment_Gateway|null|bool $new_gateway  The gateway being set on the subscription, or null/false if none.
+ * @return bool Whether the subscription should require manual renewal.
+ */
+function wcs_should_require_manual_renewal( $subscription, $new_gateway ) {
+
+	if ( wcs_is_manual_renewal_required() ) {
+		return true;
+	}
+
+	if ( empty( $new_gateway ) || ! is_a( $new_gateway, 'WC_Payment_Gateway' ) || ! $new_gateway->supports( 'subscriptions' ) ) {
+		return true;
+	}
+
+	// If the toggle is enabled, a manual subscription will be kept in manual mode on an upgrade to a payment method that does, even if it wasn't an actual decision from the shopper (e.g., original payment method not supporting automatic renewals).
+	if ( class_exists( 'WCS_My_Account_Auto_Renew_Toggle' ) && WCS_My_Account_Auto_Renew_Toggle::is_enabled() ) {
+		return (bool) $subscription->get_requires_manual_renewal();
+	}
+
+	return false;
+}

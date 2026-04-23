@@ -1,5 +1,9 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2026-04-22 - version 8.6.1
+* Fix: Changing the payment details on a subscription could sometimes override the subscriber's renewal method choice when the 'Display the auto renewal toggle' setting is enabled.
+* Fix: Updated the subscription switching flow to respect the renewal method choice on the subscription.
+
 2026-03-31 - version 8.6.0
 * Fix: Missing space between subscription price and billing period in the Cart and Checkout Blocks.
 * Fix: Fatal error when setting a gift recipient on a manually created subscription with no parent order.

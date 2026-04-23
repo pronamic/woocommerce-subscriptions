@@ -2265,12 +2265,16 @@ class WC_Subscriptions_Switcher {
 	}
 
 	/**
-	 * Once payment is processed on a switch from a $0 / period subscription to a non-zero $ / period subscription, if
-	 * payment was completed with a payment method which supports automatic payments, update the payment on the subscription
-	 * and the manual renewals flag so that future renewals are processed automatically.
+	 * Reconcile a manual subscription's renewal preference after a product switch is paid.
 	 *
-	 * @param WC_Order $order
+	 * Applies the unified rule in {@see wcs_should_require_manual_renewal()} so the subscriber's existing
+	 * preference is preserved when the merchant's "Display the auto renewal toggle" setting is on, and
+	 * otherwise flips the subscription to automatic when the gateway can handle it.
+	 *
+	 * @param WC_Order $order The switch order.
 	 * @since 2.1
+	 * @since 8.6.1 Defers the manual/automatic decision to wcs_should_require_manual_renewal() so the switcher
+	 *              and change-payment-method flows apply the same rule.
 	 */
 	public static function maybe_set_payment_method_after_switch( $order ) {
 
@@ -2285,20 +2289,26 @@ class WC_Subscriptions_Switcher {
 				continue;
 			}
 
-			if ( $subscription->get_payment_method() !== wcs_get_objects_property( $order, 'payment_method' ) ) {
+			// @phpstan-ignore property.notFound
+			$available_gateways   = WC()->payment_gateways->get_available_payment_gateways();
+			$order_payment_method = wcs_get_objects_property( $order, 'payment_method' );
+			$payment_method       = '' != $order_payment_method && isset( $available_gateways[ $order_payment_method ] ) ? $available_gateways[ $order_payment_method ] : false;
 
-				// Set the new payment method on the subscription
-				// @phpstan-ignore property.notFound
-				$available_gateways   = WC()->payment_gateways->get_available_payment_gateways();
-				$order_payment_method = wcs_get_objects_property( $order, 'payment_method' );
-				$payment_method       = '' != $order_payment_method && isset( $available_gateways[ $order_payment_method ] ) ? $available_gateways[ $order_payment_method ] : false;
-
-				if ( $payment_method && $payment_method->supports( 'subscriptions' ) ) {
-					$subscription->set_payment_method( $payment_method );
-					$subscription->set_requires_manual_renewal( false );
-					$subscription->save();
-				}
+			if ( ! $payment_method || ! $payment_method->supports( 'subscriptions' ) ) {
+				continue;
 			}
+
+			// Compute the desired renewal mode before calling set_payment_method() below, since that setter
+			// may flip the manual-renewal flag as a side effect and we want the unified rule to see the
+			// subscriber's pre-change preference.
+			$new_requires_manual_renewal = wcs_should_require_manual_renewal( $subscription, $payment_method );
+
+			if ( $subscription->get_payment_method() !== $order_payment_method ) {
+				$subscription->set_payment_method( $payment_method );
+			}
+
+			$subscription->set_requires_manual_renewal( $new_requires_manual_renewal );
+			$subscription->save();
 		}
 	}
 
