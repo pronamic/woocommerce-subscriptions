@@ -14,6 +14,9 @@ class WC_Subscriptions_CLI {
 	 */
 	public function __construct() {
 		WP_CLI::add_hook( 'before_invoke:wc shop_order subscriptions create', [ $this, 'abort_create_subscriptions_from_order' ] );
+
+		WP_CLI::add_command( 'wc-subs generate', \Automattic\WooCommerce_Subscriptions\Internal\CLI\Test_Data\Generate_Command::class );
+		WP_CLI::add_command( 'wc-subs purge-test', \Automattic\WooCommerce_Subscriptions\Internal\CLI\Test_Data\Purge_Command::class );
 	}
 
 	/**

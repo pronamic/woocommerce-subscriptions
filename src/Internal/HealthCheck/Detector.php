@@ -3,6 +3,7 @@
 namespace Automattic\WooCommerce_Subscriptions\Internal\HealthCheck;
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
+use Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\RenewalSnapshot;
 use WCS_Payment_Tokens;
 use WC_Subscription;
 
@@ -33,6 +34,16 @@ use WC_Subscription;
  * @internal This class may be modified, moved or removed in future releases.
  */
 class Detector {
+
+	/**
+	 * Per-request cache of prefetched renewal data, keyed by subscription
+	 * id. Populated by `prefetch_renewals_by_sub()` so repeated calls
+	 * for the same IDs (e.g. warm-up batch then per-row classify) skip
+	 * the DB round-trip.
+	 *
+	 * @var array<int, RenewalSnapshot>
+	 */
+	private array $renewals_cache = array();
 
 	/**
 	 * SQL-side base candidate IDs for the requested signal. Keyset-paginated
@@ -161,17 +172,28 @@ class Detector {
 
 		// Single batched scan into the `_subscription_renewal` postmeta /
 		// wc_orders_meta bucket — the structural bottleneck that no per-sub
-		// rewrite can avoid. Both classifiers consume the same map.
-		$renewals_by_sub = $this->prefetch_renewals_by_sub( array_map( 'intval', $subscription_ids ) );
-
+		// rewrite can avoid. Both classifiers read from $this->renewals_cache.
+		$this->prefetch_renewals_by_sub( array_map( 'intval', $subscription_ids ) );
 		$out = array();
 
 		foreach ( $subscription_ids as $sub_id ) {
-			$id = (int) $sub_id;
+			$id           = (int) $sub_id;
+			$subscription = wcs_get_subscription( $id );
+			if ( ! $subscription instanceof WC_Subscription ) {
+				continue;
+			}
 
-			$result = CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL === $signal_type
-				? $this->classify_missing_renewal_one( $id, $renewals_by_sub )
-				: $this->classify_supports_auto_renewal_one( $id, $renewals_by_sub );
+			switch ( $signal_type ) {
+				case CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL:
+					$result = $this->classify_missing_renewal_one( $subscription );
+					break;
+				case CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL:
+					$result = $this->classify_supports_auto_renewal_one( $subscription );
+					break;
+				default:
+					$result = null;
+					break;
+			}
 
 			if ( null !== $result ) {
 				$out[ $id ] = $result;
@@ -182,13 +204,31 @@ class Detector {
 	}
 
 	/**
+	 * Classify a single subscription against all signal types.
+	 *
+	 * @param WC_Subscription $subscription Subscription to classify.
+	 *
+	 * @return array<string, array{signals: string[], details: array<string, mixed>}|null>
+	 *         Keyed by signal type. Value is the classification array
+	 *         or null when the subscription doesn't match the signal.
+	 */
+	public function classify_all_signals( WC_Subscription $subscription ): array {
+		$this->prefetch_renewals_by_sub( array( (int) $subscription->get_id() ) );
+
+		return array(
+			CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL => $this->classify_missing_renewal_one( $subscription ),
+			CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL => $this->classify_supports_auto_renewal_one( $subscription ),
+		);
+	}
+
+	/**
 	 * Per-batch prefetch of every renewal order linked to any sub in the
 	 * input list. Returns a map keyed by `sub_id`, each value carrying the
 	 * latest renewal (id + status) and the full timestamp list (consumed
 	 * by the missing-renewal classifier's window check).
 	 *
 	 * Pipeline:
-	 *  1. `read_renewal_ids_from_cache()` reads WCS's
+	 *  1. `read_renewal_ids_from_order_meta()` reads WCS's
 	 *     `_subscription_renewal_order_ids_cache` postmeta — bounded by
 	 *     sub count, not total store renewals.
 	 *  2. `bucket_scan_renewal_ids()` is a one-shot fallback for subs
@@ -196,48 +236,140 @@ class Detector {
 	 *     intervention, partial migrations) — mirrors WCS's own lazy
 	 *     rebuild so missing cache doesn't surface false positives in
 	 *     the missing-renewal classifier.
-	 *  3. `fetch_renewal_data()` resolves status + `date_gmt` for every
-	 *     renewal id collected, in a single PK IN-list.
-	 *  4. `build_renewals_by_sub_map()` reduces the two maps into the
-	 *     final by-sub structure, picking the latest renewal in a
-	 *     single `(date_gmt DESC, id DESC)` pass.
+	 *  3. Per-sub renewal IDs are capped to the top 10 by ID DESC, then
+	 *     accumulated into chunks of up to 1 000 IDs.
+	 *     `resolve_latest_renewal_chunk()` calls `fetch_renewal_data()`
+	 *     for each chunk and picks the single latest renewal per sub
+	 *     via `(date_gmt DESC, id DESC)`.
 	 *
-	 * Subs with no renewals are absent from the returned map. Per-sub
-	 * readers fall back to
-	 * `[ 'latest' => [ 'id' => 0, 'status' => '' ], 'timestamps' => [] ]`,
-	 * matching what `WC_Subscription::get_related_orders()` would return.
+	 * Subs with no renewals are stored as null sentinels so subsequent
+	 * lookups skip the DB. Classifiers read directly from
+	 * `$this->renewals_cache[ $sub_id ] ?? null`.
 	 *
 	 * @param int[] $sub_ids Subscription ids to fetch renewals for.
-	 *
-	 * @return array<int, array{latest: array{id: int, status: string}, timestamps: int[]}>
 	 */
-	private function prefetch_renewals_by_sub( array $sub_ids ): array {
+	private function prefetch_renewals_by_sub( array $sub_ids ): void {
 		if ( empty( $sub_ids ) ) {
-			return array();
+			return;
 		}
 
 		$sub_ids = array_map( 'intval', $sub_ids );
 
-		$renewal_ids_by_sub = $this->read_renewal_ids_from_cache( $sub_ids );
+		// Check if all requested IDs are already cached.
+		$cache    = &$this->renewals_cache;
+		$uncached = array_filter(
+			$sub_ids,
+			static function ( $id ) use ( &$cache ) {
+				return ! array_key_exists( $id, $cache );
+			}
+		);
 
-		$subs_without_cache = array_values( array_diff( $sub_ids, array_keys( $renewal_ids_by_sub ) ) );
+		if ( empty( $uncached ) ) {
+			return;
+		}
+
+		// Get "Sub ID => Renewal ID" map
+		$renewal_ids_by_sub = $this->read_renewal_ids_from_order_meta( $uncached );
+		$subs_without_cache = array_filter(
+			$uncached,
+			static function ( $id ) use ( $renewal_ids_by_sub ) {
+				return ! array_key_exists( $id, $renewal_ids_by_sub );
+			}
+		);
 		if ( ! empty( $subs_without_cache ) ) {
 			$renewal_ids_by_sub += $this->bucket_scan_renewal_ids( $subs_without_cache );
 		}
 
-		$all_renewal_ids = array();
-		foreach ( $renewal_ids_by_sub as $renewal_ids ) {
-			foreach ( $renewal_ids as $renewal_id ) {
-				$all_renewal_ids[ $renewal_id ] = true;
+		// Resolve the latest renewal per subscription in chunks to keep
+		// the IN() clause bounded. Each sub contributes at most its top
+		// 10 renewal IDs (by ID DESC); chunks are flushed to
+		// fetch_renewal_data() once the accumulated count reaches the
+		// threshold.
+		$max_candidates_per_sub = 10;
+		$chunk_threshold        = 1000;
+		$by_sub                 = array();
+		$chunk_ids              = array();
+		$chunk_subs             = array();
+
+		foreach ( $renewal_ids_by_sub as $subscription_id => $renewal_ids ) {
+			if ( empty( $renewal_ids ) ) {
+				continue;
+			}
+
+			rsort( $renewal_ids, SORT_NUMERIC );
+			$top_ids                        = array_slice( $renewal_ids, 0, $max_candidates_per_sub );
+			$chunk_subs[ $subscription_id ] = $top_ids;
+			foreach ( $top_ids as $rid ) {
+				$chunk_ids[ $rid ] = true;
+			}
+
+			if ( count( $chunk_ids ) >= $chunk_threshold ) {
+				$this->resolve_latest_renewal_chunk( $chunk_subs, $chunk_ids, $by_sub );
+				$chunk_ids  = array();
+				$chunk_subs = array();
 			}
 		}
-		if ( empty( $all_renewal_ids ) ) {
-			return array();
+
+		if ( ! empty( $chunk_ids ) ) {
+			$this->resolve_latest_renewal_chunk( $chunk_subs, $chunk_ids, $by_sub );
 		}
 
-		$renewals_data = $this->fetch_renewal_data( array_keys( $all_renewal_ids ) );
+		// Store null sentinels for subscriptions confirmed to have no
+		// renewals so subsequent calls don't re-query them.
+		foreach ( $uncached as $id ) {
+			if ( ! isset( $by_sub[ $id ] ) ) {
+				$by_sub[ $id ] = null;
+			}
+		}
 
-		return $this->build_renewals_by_sub_map( $renewal_ids_by_sub, $renewals_data );
+		$this->store_renewals_in_cache( $by_sub );
+	}
+
+	/**
+	 * Merge fetched renewal data into the per-request cache.
+	 *
+	 * @param array<int, RenewalSnapshot|null> $renewals Keyed by subscription id.
+	 */
+	private function store_renewals_in_cache( array $renewals ): void {
+		$this->renewals_cache += $renewals;
+	}
+
+	/**
+	 * Fetch renewal data for a chunk of renewal IDs and pick the latest
+	 * renewal per subscription using `(date_gmt DESC, id DESC)`.
+	 *
+	 * Results are merged into the `$by_sub` map passed by reference.
+	 *
+	 * @param array<int, int[]>       $chunk_subs Sub_id => candidate renewal ids for this chunk.
+	 * @param array<int, true>        $chunk_ids  Flat set of all renewal ids in the chunk.
+	 * @param array<int, array>       &$by_sub    Accumulated results, keyed by sub_id.
+	 */
+	private function resolve_latest_renewal_chunk( array $chunk_subs, array $chunk_ids, array &$by_sub ): void {
+		$renewals_data = $this->fetch_renewal_data( array_keys( $chunk_ids ) );
+
+		foreach ( $chunk_subs as $subscription_id => $renewal_ids ) {
+			$latest_id     = 0;
+			$latest_status = '';
+			$latest_ts     = 0;
+
+			foreach ( $renewal_ids as $renewal_id ) {
+				if ( ! isset( $renewals_data[ $renewal_id ] ) ) {
+					continue;
+				}
+				$data = $renewals_data[ $renewal_id ];
+				if ( $data['date_gmt'] > $latest_ts || ( $data['date_gmt'] === $latest_ts && $renewal_id > $latest_id ) ) {
+					$latest_ts     = $data['date_gmt'];
+					$latest_id     = $renewal_id;
+					$latest_status = $data['status'];
+				}
+			}
+
+			if ( 0 === $latest_id ) {
+				continue;
+			}
+
+			$by_sub[ $subscription_id ] = new RenewalSnapshot( $latest_id, $latest_status, $latest_ts );
+		}
 	}
 
 	/**
@@ -255,7 +387,7 @@ class Detector {
 	 *
 	 * @return array<int, int[]> Map of sub_id => renewal_ids.
 	 */
-	private function read_renewal_ids_from_cache( array $sub_ids ): array {
+	private function read_renewal_ids_from_order_meta( array $sub_ids ): array {
 		global $wpdb;
 
 		$placeholders = implode( ', ', array_fill( 0, count( $sub_ids ), '%d' ) );
@@ -417,70 +549,18 @@ class Detector {
 	}
 
 	/**
-	 * Reduce a `sub_id => renewal_ids[]` map plus a `renewal_id => data`
-	 * map into the final by-sub structure: `latest` (id + status) and
-	 * the full `timestamps` list. Latest is picked in one pass via
-	 * `(date_gmt DESC, id DESC)`. Subs with no resolvable renewals are
-	 * dropped from the result.
-	 *
-	 * @param array<int, int[]>                                  $renewal_ids_by_sub
-	 * @param array<int, array{status: string, date_gmt: int}>   $renewals_data
-	 *
-	 * @return array<int, array{latest: array{id: int, status: string}, timestamps: int[]}>
-	 */
-	private function build_renewals_by_sub_map( array $renewal_ids_by_sub, array $renewals_data ): array {
-		$by_sub = array();
-		foreach ( $renewal_ids_by_sub as $subscription_id => $renewal_ids ) {
-			$latest_id     = 0;
-			$latest_status = '';
-			$latest_ts     = 0;
-			$timestamps    = array();
-			foreach ( $renewal_ids as $renewal_id ) {
-				if ( ! isset( $renewals_data[ $renewal_id ] ) ) {
-					continue;
-				}
-				$renewal_data = $renewals_data[ $renewal_id ];
-				$timestamps[] = $renewal_data['date_gmt'];
-				if ( $renewal_data['date_gmt'] > $latest_ts || ( $renewal_data['date_gmt'] === $latest_ts && $renewal_id > $latest_id ) ) {
-					$latest_ts     = $renewal_data['date_gmt'];
-					$latest_id     = $renewal_id;
-					$latest_status = $renewal_data['status'];
-				}
-			}
-			if ( empty( $timestamps ) ) {
-				continue;
-			}
-			$by_sub[ $subscription_id ] = array(
-				'latest'     => array(
-					'id'     => $latest_id,
-					'status' => $latest_status,
-				),
-				'timestamps' => $timestamps,
-			);
-		}
-
-		return $by_sub;
-	}
-
-	/**
 	 * Supports-auto-renewal classifier.
 	 *
 	 * Returns null when the subscription should be excluded; returns the
 	 * classification array otherwise. Exclusion checks are ordered from
 	 * cheapest to most expensive so we bail out as early as possible.
 	 *
-	 * @param int   $sub_id          The subscription id.
-	 * @param array $renewals_by_sub Per-batch renewal map from
-	 *                               `prefetch_renewals_by_sub()`. Used for
-	 *                               the latest-renewal-id/status lookup.
+	 * @param WC_Subscription $subscription Subscription object.
 	 *
 	 * @return array{signals: string[], details: array<string, mixed>}|null
 	 */
-	private function classify_supports_auto_renewal_one( int $sub_id, array $renewals_by_sub ): ?array {
-		$subscription = wcs_get_subscription( $sub_id );
-		if ( ! $subscription instanceof WC_Subscription ) {
-			return null;
-		}
+	private function classify_supports_auto_renewal_one( WC_Subscription $subscription ): ?array {
+		$sub_id = (int) $subscription->get_id();
 
 		// If something between scan and classify flipped the manual flag
 		// back off, the sub is no longer a victim — drop it.
@@ -497,9 +577,40 @@ class Detector {
 			return null;
 		}
 
-		// Fetch the latest 50 order notes once. Consumed by both the
-		// Renewal preference helper (opt-out / re-enable detection) and
-		// the imported-as-manual diagnostic flag.
+		$renewal = $this->renewals_cache[ $sub_id ] ?? null;
+
+		return array(
+			'signals' => array( 'has_token' ),
+			'details' => array_merge(
+				array(
+					'gateway'               => $gateway_id,
+					'latest_renewal_id'     => $renewal ? $renewal->id : 0,
+					'latest_renewal_status' => $renewal ? $renewal->status : '',
+					'latest_renewal_date'   => $renewal ? $renewal->date_gmt : 0,
+				),
+				$this->notes_derived_details( $subscription )
+			),
+		);
+	}
+
+	/**
+	 * Fetch the latest 50 order notes once and derive the note-keyed
+	 * diagnostic fields the candidate row carries — `renewal_preference`
+	 * (opt-out / re-enable detection) and `imported_as_manual`.
+	 *
+	 * Both signal-type classifiers share the same shape so the
+	 * list-table renderer, filter, and sort code paths can rely on the
+	 * keys being present regardless of which signal flagged the row.
+	 * The two underlying string matchers (`last_renewal_preference_note`,
+	 * `has_imported_as_manual_note`) both consume the same notes array,
+	 * so fetching once and feeding both keeps the per-row work to a
+	 * single `wc_get_order_notes()` query.
+	 *
+	 * @param WC_Subscription $subscription Subscription whose notes to inspect.
+	 *
+	 * @return array{renewal_preference: string|null, imported_as_manual: bool}
+	 */
+	private function notes_derived_details( WC_Subscription $subscription ): array {
 		$notes = wc_get_order_notes(
 			array(
 				'order_id' => $subscription->get_id(),
@@ -507,22 +618,9 @@ class Detector {
 			)
 		);
 
-		$latest_renewal = isset( $renewals_by_sub[ $sub_id ]['latest'] )
-			? $renewals_by_sub[ $sub_id ]['latest']
-			: array(
-				'id'     => 0,
-				'status' => '',
-			);
-
 		return array(
-			'signals' => array( 'has_token' ),
-			'details' => array(
-				'gateway'               => $gateway_id,
-				'latest_renewal_id'     => $latest_renewal['id'],
-				'latest_renewal_status' => $latest_renewal['status'],
-				'renewal_preference'    => $this->last_renewal_preference_note( $notes ),
-				'imported_as_manual'    => $this->has_imported_as_manual_note( $notes ),
-			),
+			'renewal_preference' => $this->last_renewal_preference_note( $notes ),
+			'imported_as_manual' => $this->has_imported_as_manual_note( $notes ),
 		);
 	}
 
@@ -819,10 +917,9 @@ class Detector {
 	 * Re-verifies the SQL shortlist against the live WC_Subscription — a
 	 * sub whose status changed between scan and classify (customer paid,
 	 * subscription cancelled, etc.) should not surface. For the past-due
-	 * branch, also matches the sub's related renewal orders against the
-	 * expected due date — if a renewal order already exists within the
-	 * tolerance window of the stale next-payment date, the renewal fired
-	 * successfully and this is not a missing-renewal case.
+	 * branch, it re-checks that the date is still stale under the current
+	 * freshness grace and skips any subscription with a scheduled payment
+	 * retry, since the retry system is still working on it.
 	 *
 	 * Details payload shape:
 	 *   - next_payment_timestamp: int Unix timestamp, 0 if missing.
@@ -835,20 +932,12 @@ class Detector {
 	 *     renewal signal so `render_renewal_order_status()` can use the
 	 *     same stash key regardless of which tab surfaced the row.
 	 *
-	 * @param int   $sub_id          Subscription id.
-	 * @param array $renewals_by_sub Per-batch renewal map from
-	 *                               `prefetch_renewals_by_sub()`. Used both
-	 *                               for the latest-renewal-id/status
-	 *                               lookup and the past-due branch's
-	 *                               in-window existence check.
+	 * @param WC_Subscription $subscription Subscription object.
 	 *
 	 * @return array{signals: string[], details: array<string, mixed>}|null
 	 */
-	private function classify_missing_renewal_one( int $sub_id, array $renewals_by_sub ): ?array {
-		$subscription = wcs_get_subscription( $sub_id );
-		if ( ! $subscription instanceof WC_Subscription ) {
-			return null;
-		}
+	private function classify_missing_renewal_one( WC_Subscription $subscription ): ?array {
+		$sub_id = (int) $subscription->get_id();
 
 		// Re-verify status — the SQL shortlist saw active/on-hold, but
 		// anything could have happened between the SQL page and this
@@ -860,13 +949,11 @@ class Detector {
 
 		$next_payment_ts   = (int) $subscription->get_time( 'next_payment' );
 		$end_ts            = (int) $subscription->get_time( 'end' );
+		$retry_ts          = (int) $subscription->get_time( 'payment_retry' );
 		$now_ts            = time();
 		$freshness_seconds = $this->past_due_freshness_seconds();
-		$match_window_secs = $this->renewal_match_window_seconds();
 
-		$timestamps = isset( $renewals_by_sub[ $sub_id ]['timestamps'] )
-			? $renewals_by_sub[ $sub_id ]['timestamps']
-			: array();
+		$renewal = $this->renewals_cache[ $sub_id ] ?? null;
 
 		// Determine which branch this candidate surfaced through. The
 		// SQL shortlist already filtered to one of the two; the
@@ -892,8 +979,9 @@ class Detector {
 		} else {
 			// Branch 2 — past-due. SQL already applied the freshness
 			// grace for the "is this stale" decision; the classifier
-			// narrows to genuinely-stuck rows by checking whether a
-			// renewal order already exists for the expected due date.
+			// narrows to genuinely-stuck rows by re-checking the
+			// freshness window and skipping subscriptions with a
+			// scheduled payment retry.
 			if ( $next_payment_ts >= $now_ts - $freshness_seconds ) {
 				// Freshness grace shifted in the interval between SQL
 				// scan and classify (e.g. the filter returned a larger
@@ -902,30 +990,33 @@ class Detector {
 				// past-due under the current grace period.
 				return null;
 			}
-			if ( $this->any_timestamp_in_window( $timestamps, $next_payment_ts, $match_window_secs ) ) {
+			// If a payment retry is scheduled, the retry system is
+			// still working on this subscription — don't surface it
+			// as past-due to avoid the merchant triggering a duplicate
+			// charge via "process missed renewal."
+			if ( $retry_ts > $now_ts ) {
 				return null;
 			}
+
 			$state = 'past_due';
 		}
 
-		$latest_renewal = isset( $renewals_by_sub[ $sub_id ]['latest'] )
-			? $renewals_by_sub[ $sub_id ]['latest']
-			: array(
-				'id'     => 0,
-				'status' => '',
-			);
-
 		return array(
 			'signals' => array( 'missing_renewal' ),
-			'details' => array(
-				'next_payment_timestamp' => $next_payment_ts,
-				'next_payment_state'     => $state,
-				'cycle_period'           => (string) $subscription->get_billing_period(),
-				'cycle_interval'         => (int) $subscription->get_billing_interval(),
-				'billing_mode'           => $subscription->is_manual() ? 'manual' : 'auto',
-				'end_timestamp'          => $end_ts,
-				'latest_renewal_id'      => $latest_renewal['id'],
-				'latest_renewal_status'  => $latest_renewal['status'],
+			'details' => array_merge(
+				array(
+					'next_payment_timestamp' => $next_payment_ts,
+					'next_payment_state'     => $state,
+					'cycle_period'           => (string) $subscription->get_billing_period(),
+					'cycle_interval'         => (int) $subscription->get_billing_interval(),
+					'billing_mode'           => $subscription->is_manual() ? 'manual' : 'auto',
+					'end_timestamp'          => $end_ts,
+					'latest_renewal_id'      => $renewal ? $renewal->id : 0,
+					'latest_renewal_status'  => $renewal ? $renewal->status : '',
+					'latest_renewal_date'    => $renewal ? $renewal->date_gmt : 0,
+					'payment_retry_date'     => $retry_ts,
+				),
+				$this->notes_derived_details( $subscription )
 			),
 		);
 	}
@@ -960,73 +1051,5 @@ class Detector {
 		);
 
 		return max( 0, $seconds );
-	}
-
-	/**
-	 * Symmetric ±window (seconds) within which a renewal order's
-	 * `date_created` is treated as the fulfilment of an expected
-	 * `_schedule_next_payment` due date. A renewal landing inside
-	 * `[due_ts - window, due_ts + window]` excludes the row from the
-	 * Missing renewals list (the renewal fired on time, whatever its
-	 * status; the schedule just has not advanced yet). Defaults to
-	 * `DAY_IN_SECONDS`.
-	 *
-	 * Clamped to a non-negative integer.
-	 *
-	 * @return int
-	 */
-	private function renewal_match_window_seconds(): int {
-		/**
-		 * Filters the symmetric ±window applied when matching a renewal
-		 * order's creation timestamp against an expected due date.
-		 * Values ≤ 0 are clamped to 0 (exact match required).
-		 *
-		 * @since 8.7.0
-		 *
-		 * @param int $seconds Default `DAY_IN_SECONDS`.
-		 */
-		$seconds = (int) apply_filters(
-			'wcs_health_check_renewal_match_window_seconds',
-			DAY_IN_SECONDS
-		);
-
-		return max( 0, $seconds );
-	}
-
-	/**
-	 * Whether any of the given Unix-timestamp values lands inside the
-	 * `[ $due_ts - $tolerance_secs, $due_ts + $tolerance_secs ]` window,
-	 * inclusive on both ends.
-	 *
-	 * Used by the missing-renewal branch-2 classifier to distinguish
-	 * "next-payment is stale AND no matching charge yet" (surface) from
-	 * "next-payment is stale but the renewal fired on time and WCS
-	 * simply hasn't advanced the schedule yet" (don't surface). Operates
-	 * over the per-sub timestamp list pre-fetched in
-	 * `prefetch_renewals_by_sub()` — no SQL.
-	 *
-	 * @param int[] $timestamps     Renewal `date_created_gmt` values for
-	 *                              the subscription, as Unix timestamps.
-	 * @param int   $due_ts         Expected due-date timestamp (from
-	 *                              `_schedule_next_payment`).
-	 * @param int   $tolerance_secs Window width in seconds.
-	 *
-	 * @return bool
-	 */
-	private function any_timestamp_in_window( array $timestamps, int $due_ts, int $tolerance_secs ): bool {
-		if ( $due_ts <= 0 ) {
-			return false;
-		}
-
-		$window_start = $due_ts - $tolerance_secs;
-		$window_end   = $due_ts + $tolerance_secs;
-
-		foreach ( $timestamps as $ts ) {
-			if ( $ts >= $window_start && $ts <= $window_end ) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 }

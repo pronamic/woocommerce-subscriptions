@@ -69,6 +69,57 @@ class Request {
 	}
 
 	/**
+	 * Best-effort decouple the PHP process from the client connection so subsequent work can run after the
+	 * response has been sent. Useful in shutdown-time handlers and other "respond fast, then keep working"
+	 * patterns (for example, the external-trigger endpoint dispatches its queue run after calling this).
+	 *
+	 * Layered behaviour:
+	 *
+	 *  - {@see ignore_user_abort()} is set unconditionally so the PHP process keeps running even if the
+	 *    client times out and disconnects. This is the most important guarantee for our use cases — the
+	 *    work runs to completion regardless of what the client does.
+	 *  - {@see session_write_close()} is called unconditionally to release the session lock (if any was
+	 *    held). No-op when no session is active; defensive coverage for the case where a plugin has
+	 *    silently started one.
+	 *  - {@see fastcgi_finish_request()} (FPM) or {@see litespeed_finish_request()} (LSAPI) — preferred,
+	 *    cleanly closes the FastCGI / LSAPI connection while leaving the PHP process alive.
+	 *  - mod_php / CGI fallback — flush whatever's in the output buffer. Some setups (reverse proxy, gzip
+	 *    compression, etc.) will continue to buffer; we can't fix those from a shutdown handler. The work
+	 *    runs to completion regardless thanks to ignore_user_abort() above.
+	 *
+	 * @since 8.8.0
+	 *
+	 * @return void
+	 */
+	public static function release_client(): void {
+		ignore_user_abort( true );
+		session_write_close();
+
+		// Production-side-effects path. Skipped under test to avoid (a) the fallback flush closing
+		// PHPUnit's own output buffers, which trips the "did not close its own buffers" risky-test
+		// flag, and (b) interfering with whatever SAPI / response flow the test harness is using.
+		// Matches the gating pattern in {@see exit()} and {@see redirect()}.
+		if ( defined( 'WCS_ENVIRONMENT_TYPE' ) && 'tests' === WCS_ENVIRONMENT_TYPE ) {
+			return;
+		}
+
+		if ( function_exists( 'fastcgi_finish_request' ) ) {
+			fastcgi_finish_request();
+			return;
+		}
+
+		if ( function_exists( 'litespeed_finish_request' ) ) {
+			litespeed_finish_request();
+			return;
+		}
+
+		while ( ob_get_level() > 0 ) {
+			ob_end_flush();
+		}
+		flush();
+	}
+
+	/**
 	 * Supplies the value of the POST or URL query parameter matching $key, or else returns $default.
 	 *
 	 * Essentially, this is an alternative to inspecting the $_REQUEST super-global and is intended for cases where we

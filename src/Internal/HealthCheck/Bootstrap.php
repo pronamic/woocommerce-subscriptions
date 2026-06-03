@@ -34,6 +34,49 @@ class Bootstrap {
 	private const ADMIN_SCRIPT_HANDLE = 'wcs-health-check-admin';
 
 	/**
+	 * Script handle for the resolve-dialog modal JS.
+	 */
+	private const DIALOG_SCRIPT_HANDLE = 'wcs-health-check-dialog';
+
+	/**
+	 * @var RemediationLock
+	 */
+	private RemediationLock $lock;
+
+	/**
+	 * @var CandidateStore
+	 */
+	private CandidateStore $candidate_store;
+
+	/**
+	 * @var RunStore
+	 */
+	private RunStore $run_store;
+
+	/**
+	 * @var RemediationAdvisor
+	 */
+	private RemediationAdvisor $advisor;
+
+	/**
+	 * @var ToolRunner
+	 */
+	private ToolRunner $runner;
+
+	/**
+	 * @var Admin\AjaxController|null
+	 */
+	private ?Admin\AjaxController $ajax_controller = null;
+
+	public function __construct( ?RemediationLock $lock = null, ?CandidateStore $candidate_store = null, ?RunStore $run_store = null, ?RemediationAdvisor $advisor = null, ?ToolRunner $runner = null ) {
+		$this->lock            = $lock ?? new RemediationLock();
+		$this->candidate_store = $candidate_store ?? new CandidateStore();
+		$this->run_store       = $run_store ?? new RunStore();
+		$this->advisor         = $advisor ?? new RemediationAdvisor();
+		$this->runner          = $runner ?? new ToolRunner();
+	}
+
+	/**
 	 * Whether the Health Check tool surface is enabled at the support level.
 	 *
 	 * Distinct from the merchant nightly-scan toggle in `CircuitBreaker`:
@@ -119,6 +162,20 @@ class Bootstrap {
 		// registration keeps non-admin requests clean.
 		if ( is_admin() ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+			// AjaxController lazy-constructs the CandidatesListTable inside
+			// its AJAX handlers — by then the wp-admin screen context is
+			// fully loaded, so WP_List_Table's constructor (which calls
+			// convert_to_screen()) can succeed. Constructing it eagerly here
+			// fatals on the `init` hook because the wp-admin include hasn't
+			// run yet.
+			$this->ajax_controller = new Admin\AjaxController(
+				$this->lock,
+				$this->candidate_store,
+				$this->run_store,
+				$this->advisor,
+				$this->runner
+			);
+			$this->ajax_controller->register();
 			( new StatusTab() )->register();
 		}
 	}
@@ -134,6 +191,15 @@ class Bootstrap {
 	 * itself stays visible regardless — only the AS-driven nightly
 	 * scan is gated by this option.
 	 *
+	 * The checkbox's `desc_tip` embeds an anchor that deep-links into
+	 * the Health Check Status tab so merchants who keep nightly scans
+	 * off still see an obvious path to running an ad-hoc scan. WC core
+	 * renders `desc_tip` for checkbox fields as
+	 * `<p class="description">{desc_tip}</p>` without additional
+	 * escaping (see `WC_Admin_Settings::get_field_description()`), so
+	 * the anchor passes through cleanly; the URL is `esc_url()`-d and
+	 * the link text is escaped via `esc_html__()`.
+	 *
 	 * @param array<int, array<string, mixed>> $settings Existing settings array.
 	 *
 	 * @return array<int, array<string, mixed>>
@@ -141,17 +207,28 @@ class Bootstrap {
 	public function add_settings( $settings ) {
 		$section_id = 'woocommerce_subscriptions_health_check_options';
 
+		// The anchor open/close tags are passed as `%1$s` / `%2$s` so translators see a single,
+		// complete sentence rather than a verb-phrase fragment they have to translate separately.
+		// `esc_url()` runs on the href before it ever reaches the translatable string, and the
+		// anchor tags themselves are not user-controllable, so the assembled fragment is safe.
+		$tool_url = esc_url( admin_url( 'admin.php?page=wc-status&tab=' . StatusTab::TAB_SLUG ) );
+
 		$health_check_section = array(
 			array(
-				'name' => __( 'Subscriptions Health Check', 'woocommerce-subscriptions' ),
+				'name' => __( 'Subscriptions health check', 'woocommerce-subscriptions' ),
 				'type' => 'title',
 				'id'   => $section_id,
 			),
 			array(
 				'id'       => CircuitBreaker::OPTION_SCHEDULE_ENABLED,
-				'name'     => __( 'Enable scans', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'Enable subscriptions health check scans', 'woocommerce-subscriptions' ),
-				'desc_tip' => __( 'When enabled, Subscriptions runs a nightly scan to surface subscriptions that may need attention under WooCommerce > Status > Subscriptions. Disabling this stops the nightly scan only — you can still run an on-demand scan from the health check tool at any time.', 'woocommerce-subscriptions' ),
+				'name'     => __( 'Enable nightly scans', 'woocommerce-subscriptions' ),
+				'desc'     => __( 'Allow nightly health check scans on your subscriptions', 'woocommerce-subscriptions' ),
+				'desc_tip' => sprintf(
+					/* translators: %1$s and %2$s wrap the link text "Subscriptions health check" in an <a> element pointing at the Health Check Status tab. */
+					__( 'When enabled, a health check scan will run on your store each night to identify subscriptions that may need your attention. To view results or run a manual scan, go to %1$sSubscriptions health check%2$s.', 'woocommerce-subscriptions' ),
+					'<a href="' . $tool_url . '">',
+					'</a>'
+				),
 				'default'  => 'no',
 				'type'     => 'checkbox',
 			),
@@ -168,11 +245,11 @@ class Bootstrap {
 	 * Enqueue Health Check admin assets. Scoped to WooCommerce > Status so
 	 * other admin pages stay unaffected.
 	 *
-	 * @param string $hook_suffix Current admin page hook suffix.
+	 * @param mixed $hook_suffix Current admin page hook suffix.
 	 *
 	 * @return void
 	 */
-	public function enqueue_admin_assets( string $hook_suffix ): void {
+	public function enqueue_admin_assets( $hook_suffix = null ): void {
 		if ( 'woocommerce_page_wc-status' !== $hook_suffix ) {
 			return;
 		}
@@ -215,6 +292,73 @@ class Bootstrap {
 			array(),
 			$js_version,
 			true
+		);
+
+		// Localize on the admin handle (not the dialog handle) so the
+		// inline `var wcsHealthCheck = {...}` runs BEFORE admin.js. The
+		// admin script's notices helper then extends the existing
+		// global instead of getting overwritten when WP inlines the
+		// localized values right before the next script tag.
+		wp_localize_script(
+			self::ADMIN_SCRIPT_HANDLE,
+			'wcsHealthCheck',
+			array_merge(
+				$this->ajax_controller ? $this->ajax_controller->get_script_data() : array(),
+				array(
+					'i18n' => array(
+						'unexpectedError' => __( 'An unexpected error occurred.', 'woocommerce-subscriptions' ),
+						'noItemsToReview' => $this->build_no_items_message(),
+						'opensInNewTab'   => __( 'opens in a new tab', 'woocommerce-subscriptions' ),
+						'dismiss'         => __( 'Dismiss this notice.', 'woocommerce-subscriptions' ),
+					),
+				)
+			)
+		);
+
+		$dialog_js_path    = $plugin_dir . 'assets/js/admin/health-check-dialog.js';
+		$dialog_js_version = file_exists( $dialog_js_path )
+			? (string) filemtime( $dialog_js_path )
+			: $core_plugin->get_library_version();
+
+		// Dialog depends on the admin handle so admin.js (and its
+		// notices helper) is in the DOM before dialog.js needs to call
+		// wcsHealthCheck.notices.inject().
+		wp_enqueue_script(
+			self::DIALOG_SCRIPT_HANDLE,
+			$core_url . 'assets/js/admin/health-check-dialog.js',
+			array( 'jquery', 'wc-backbone-modal', self::ADMIN_SCRIPT_HANDLE ),
+			$dialog_js_version,
+			true
+		);
+	}
+
+	/**
+	 * Build the empty-state message for the JS no-items row, matching the
+	 * copy `CandidatesListTable::no_items()` renders server-side.
+	 *
+	 * @return string
+	 */
+	private function build_no_items_message(): string {
+		$run_id = $this->run_store->get_latest_scan_run_id();
+
+		if ( 0 === $run_id ) {
+			return (string) __( 'No items to review.', 'woocommerce-subscriptions' );
+		}
+
+		$run      = $this->run_store->get( $run_id );
+		$when_utc = is_array( $run ) ? (string) ( $run['completed_at'] ?? $run['started_at'] ?? '' ) : '';
+
+		if ( '' === $when_utc ) {
+			$how_long = (string) __( 'recently', 'woocommerce-subscriptions' );
+		} else {
+			$ts       = strtotime( $when_utc . ' UTC' );
+			$how_long = false !== $ts ? human_time_diff( $ts, time() ) : (string) __( 'recently', 'woocommerce-subscriptions' );
+		}
+
+		return sprintf(
+			/* translators: %s: human-readable time diff. */
+			(string) __( 'No subscriptions currently need review. The latest scan completed %s ago.', 'woocommerce-subscriptions' ),
+			esc_html( $how_long )
 		);
 	}
 }

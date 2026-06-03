@@ -25,7 +25,7 @@ jQuery( function ( $ ) {
 	 */
 	$( document ).on(
 		'change',
-		'select.shipping_method, :input[name^=shipping_method]',
+		'select.shipping_method, input[name^=shipping_method]',
 		function ( event ) {
 			var shipping_method_option = $( event.target );
 			var shipping_method_id = shipping_method_option.val();

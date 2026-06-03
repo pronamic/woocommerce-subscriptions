@@ -7,7 +7,8 @@ namespace Automattic\WooCommerce_Subscriptions\Internal\HealthCheck;
  *
  * A "run" represents a single scan performed by the Health Check tool.
  * Creates the row when a scan starts and transitions it to a terminal
- * state (completed / failed) along with any associated metadata.
+ * state (completed / failed / cancelled) along with any associated
+ * metadata.
  *
  * When a scan run completes successfully, the latest scan id is cached
  * in an autoloaded option so the admin notice can check for pending candidates
@@ -21,6 +22,34 @@ namespace Automattic\WooCommerce_Subscriptions\Internal\HealthCheck;
 class RunStore {
 
 	private const TYPE_SCAN = 'scan';
+
+	/**
+	 * Status value: the run row is in flight - the scan started and has
+	 * not yet reached a terminal state.
+	 */
+	public const STATUS_RUNNING = 'running';
+
+	/**
+	 * Status value: the run completed successfully.
+	 */
+	public const STATUS_COMPLETED = 'completed';
+
+	/**
+	 * Status value: the run terminated because of an error or the
+	 * CircuitBreaker tripping. Distinct from `STATUS_CANCELLED` so the
+	 * breaker's failure counters do not include merchant-initiated
+	 * cancellations.
+	 */
+	public const STATUS_FAILED = 'failed';
+
+	/**
+	 * Status value: the run was cancelled by the merchant before it
+	 * completed. Soft-cancel: candidates already detected stay in the
+	 * candidate table; the row carries partial-progress stats so the
+	 * Status tab can render "Cancelled X seconds ago" with partial
+	 * counts.
+	 */
+	public const STATUS_CANCELLED = 'cancelled';
 
 	/**
 	 * Option key used to cache the latest completed scan's run id.
@@ -93,9 +122,10 @@ class RunStore {
 			// serialised on the same named lock.
 			$existing = $wpdb->get_var(
 				$wpdb->prepare(
-					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is a hard-coded internal constant.
-					"SELECT 1 FROM {$wpdb->prefix}wcs_health_check_runs WHERE type = %s AND status = 'running' LIMIT 1",
-					$type
+					'SELECT 1 FROM %i WHERE type = %s AND status = %s LIMIT 1',
+					$wpdb->prefix . 'wcs_health_check_runs',
+					$type,
+					self::STATUS_RUNNING
 				)
 			);
 
@@ -108,7 +138,7 @@ class RunStore {
 				array(
 					'type'         => $type,
 					'started_at'   => current_time( 'mysql', true ),
-					'status'       => 'running',
+					'status'       => self::STATUS_RUNNING,
 					'triggered_by' => $triggered_by,
 				),
 				array( '%s', '%s', '%s', '%s' )
@@ -148,16 +178,24 @@ class RunStore {
 	public function complete( int $run_id, string $type, array $stats ): void {
 		global $wpdb;
 
+		// Conditional UPDATE: only flip rows that are still `running`. Without this guard a
+		// batch that is already executing when the merchant clicks Cancel (the `handle_scan_batch`
+		// preflight cannot stop it - it has already passed the read) would finish its work and
+		// silently overwrite the `cancelled` row back to `completed`, defeating the cancellation.
+		// Mirrors the guard already in place on `cancel()` and `fail()`.
 		$result = $wpdb->update(
 			$wpdb->prefix . 'wcs_health_check_runs',
 			array(
-				'status'       => 'completed',
+				'status'       => self::STATUS_COMPLETED,
 				'completed_at' => current_time( 'mysql', true ),
 				'stats_json'   => wp_json_encode( $stats ),
 			),
-			array( 'id' => $run_id ),
+			array(
+				'id'     => $run_id,
+				'status' => self::STATUS_RUNNING,
+			),
 			array( '%s', '%s', '%s' ),
-			array( '%d' )
+			array( '%d', '%s' )
 		);
 
 		if ( false === $result ) {
@@ -165,6 +203,14 @@ class RunStore {
 				sprintf( 'Health Check: failed to mark run %d as completed — %s', $run_id, $wpdb->last_error ),
 				array( 'source' => 'wcs-health-check' )
 			);
+			return;
+		}
+
+		// Zero affected rows means the row is no longer running (cancelled / failed / already
+		// completed by a peer call). Do NOT promote a non-completed run into the autoloaded
+		// `LATEST_SCAN_RUN_ID_OPTION`; the option must track genuinely completed scans only.
+		if ( 0 === $result ) {
+			return;
 		}
 
 		if ( self::TYPE_SCAN === $type ) {
@@ -184,16 +230,24 @@ class RunStore {
 	public function fail( int $run_id, string $error_message ): void {
 		global $wpdb;
 
+		// Conditional UPDATE: same shape as `complete()` and `cancel()`. A batch already mid-
+		// execution can throw and route here AFTER the merchant has cancelled; without the
+		// `status = running` guard, that late-arriving `fail()` would overwrite the cancelled
+		// row to `failed` and bump the circuit-breaker counter for an event the merchant
+		// already intentionally aborted.
 		$result = $wpdb->update(
 			$wpdb->prefix . 'wcs_health_check_runs',
 			array(
-				'status'        => 'failed',
+				'status'        => self::STATUS_FAILED,
 				'completed_at'  => current_time( 'mysql', true ),
 				'error_message' => $error_message,
 			),
-			array( 'id' => $run_id ),
+			array(
+				'id'     => $run_id,
+				'status' => self::STATUS_RUNNING,
+			),
 			array( '%s', '%s', '%s' ),
-			array( '%d' )
+			array( '%d', '%s' )
 		);
 
 		if ( false === $result ) {
@@ -202,6 +256,61 @@ class RunStore {
 				array( 'source' => 'wcs-health-check' )
 			);
 		}
+	}
+
+	/**
+	 * Mark a running scan as cancelled by the merchant. Conditional UPDATE:
+	 * the WHERE clause restricts the change to rows still in `running`, so a
+	 * race against a parallel batch finalising the run (completed) or
+	 * tripping the breaker (failed) loses cleanly without overwriting the
+	 * terminal state.
+	 *
+	 * Soft cancel by design: the candidates persisted during the run stay
+	 * in the candidate table, and the supplied `$stats` snapshot is
+	 * persisted on the row so the Status tab can render the partial
+	 * progress (e.g. "412 of ~2,300 scanned before cancel").
+	 *
+	 * The autoloaded `LATEST_SCAN_RUN_ID_OPTION` is intentionally NOT
+	 * touched here: that option drives the SCOPE card and tracks
+	 * completed runs only - a cancelled run must not promote itself to
+	 * "latest".
+	 *
+	 * @param int                  $run_id The run id returned from `start()`.
+	 * @param array<string, mixed> $stats  Partial-progress snapshot to
+	 *                                     persist alongside the cancel marker.
+	 *
+	 * @return bool True when the row was flipped from `running` to
+	 *              `cancelled`; false when the WHERE clause rejected the
+	 *              UPDATE (already completed / failed / cancelled) or the
+	 *              UPDATE itself errored.
+	 */
+	public function cancel( int $run_id, array $stats ): bool {
+		global $wpdb;
+
+		$result = $wpdb->update(
+			$wpdb->prefix . 'wcs_health_check_runs',
+			array(
+				'status'       => self::STATUS_CANCELLED,
+				'completed_at' => current_time( 'mysql', true ),
+				'stats_json'   => wp_json_encode( $stats ),
+			),
+			array(
+				'id'     => $run_id,
+				'status' => self::STATUS_RUNNING,
+			),
+			array( '%s', '%s', '%s' ),
+			array( '%d', '%s' )
+		);
+
+		if ( false === $result ) {
+			wc_get_logger()->error(
+				sprintf( 'Health Check: failed to mark run %d as cancelled - %s', $run_id, $wpdb->last_error ),
+				array( 'source' => 'wcs-health-check' )
+			);
+			return false;
+		}
+
+		return $result > 0;
 	}
 
 	/**
@@ -217,7 +326,8 @@ class RunStore {
 
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}wcs_health_check_runs WHERE id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'SELECT * FROM %i WHERE id = %d',
+				$wpdb->prefix . 'wcs_health_check_runs',
 				$run_id
 			),
 			ARRAY_A
@@ -238,6 +348,51 @@ class RunStore {
 	 */
 	public function get_latest_scan_run_id(): int {
 		return (int) get_option( self::LATEST_SCAN_RUN_ID_OPTION, 0 );
+	}
+
+	/**
+	 * Returns the most recent `scan`-type run in any terminal status -
+	 * `completed`, `failed`, or `cancelled` - or null when no terminal scan
+	 * row exists yet.
+	 *
+	 * Unlike `get_latest_scan_run_id()`, which is sourced from the autoloaded
+	 * `LATEST_SCAN_RUN_ID_OPTION` and tracks completed runs only, this helper
+	 * surfaces the freshest terminal row regardless of how it ended. The LAST
+	 * SCAN card on the Status tab uses it so a cancelled scan can render
+	 * "Cancelled X seconds ago" with the partial counts persisted by
+	 * `cancel()` - the completed-only option would otherwise mask the
+	 * cancelled row behind the previous successfully-completed run.
+	 *
+	 * In-flight (`running`) rows are excluded by construction: the card is
+	 * for terminal states only and surfacing a half-finished row here would
+	 * read as a UI glitch on the eight-second auto-reload. Non-scan-type runs
+	 * are also excluded - the card is exclusively for scan rows.
+	 *
+	 * Ordering is `id DESC` (auto-increment), so a delayed write cannot mask
+	 * a newer row.
+	 *
+	 * @return array<string, mixed>|null The most recent terminal scan row,
+	 *                                   or null when none exists.
+	 */
+	public function get_latest_terminal_run(): ?array {
+		global $wpdb;
+
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT * FROM %i
+				 WHERE type = %s AND status IN ( %s, %s, %s )
+				 ORDER BY id DESC
+				 LIMIT 1',
+				$wpdb->prefix . 'wcs_health_check_runs',
+				self::TYPE_SCAN,
+				self::STATUS_COMPLETED,
+				self::STATUS_FAILED,
+				self::STATUS_CANCELLED
+			),
+			ARRAY_A
+		);
+
+		return is_array( $row ) ? $row : null;
 	}
 
 	/**
@@ -280,11 +435,15 @@ class RunStore {
 		global $wpdb;
 
 		$row = $wpdb->get_row(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- no caller-supplied input.
-			"SELECT * FROM {$wpdb->prefix}wcs_health_check_runs
-			 WHERE type = 'scan' AND status = 'running'
-			 ORDER BY id DESC
-			 LIMIT 1",
+			$wpdb->prepare(
+				'SELECT * FROM %i
+				 WHERE type = %s AND status = %s
+				 ORDER BY id DESC
+				 LIMIT 1',
+				$wpdb->prefix . 'wcs_health_check_runs',
+				self::TYPE_SCAN,
+				self::STATUS_RUNNING
+			),
 			ARRAY_A
 		);
 
@@ -322,13 +481,13 @@ class RunStore {
 			$updated = $wpdb->update(
 				$wpdb->prefix . 'wcs_health_check_runs',
 				array(
-					'status'        => 'failed',
+					'status'        => self::STATUS_FAILED,
 					'completed_at'  => current_time( 'mysql', true ),
 					'error_message' => $auto_fail_reason,
 				),
 				array(
 					'id'     => $run_id,
-					'status' => 'running',
+					'status' => self::STATUS_RUNNING,
 				),
 				array( '%s', '%s', '%s' ),
 				array( '%d', '%s' )

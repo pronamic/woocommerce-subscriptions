@@ -3,6 +3,7 @@
 namespace Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\Admin;
 
 use Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\CandidateStore;
+use Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\Detector;
 use Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\RunStore;
 use WC_Payment_Token_CC;
 use WCS_Payment_Tokens;
@@ -81,9 +82,18 @@ class CandidatesListTable extends WP_List_Table {
 	 */
 	private $subscription_cache = array();
 
-	public function __construct( ?RunStore $run_store = null, ?CandidateStore $candidate_store = null ) {
+	/**
+	 * Detector used by render_row_for() to live-classify a subscription
+	 * for the transformed-row update path. Lazily instantiated.
+	 *
+	 * @var Detector|null
+	 */
+	private $detector;
+
+	public function __construct( ?RunStore $run_store = null, ?CandidateStore $candidate_store = null, ?Detector $detector = null ) {
 		$this->run_store       = $run_store ?? new RunStore();
 		$this->candidate_store = $candidate_store ?? new CandidateStore();
+		$this->detector        = $detector;
 
 		parent::__construct(
 			array(
@@ -93,6 +103,124 @@ class CandidatesListTable extends WP_List_Table {
 				'screen'   => 'wcs_health_check',
 			)
 		);
+	}
+
+	/**
+	 * Render a single candidate row as an HTML `<tr>` string, suitable
+	 * for swapping into the candidates table from the Resolve modal's
+	 * AJAX response after a transformed-case action (the subscription
+	 * is still flagged, just under a different signal — see T7 / T10
+	 * in the WOOSUBS-1674 spec).
+	 *
+	 * Self-contained — live-classifies the subscription via Detector so
+	 * the rendered row reflects the post-action state, even when the
+	 * candidate_store doesn't yet have a row for the new signal. No
+	 * state mutation.
+	 *
+	 * Threads `$view` through the table's view-dependent rendering by
+	 * temporarily overriding `$_REQUEST['view']` for the duration of
+	 * the `single_row()` call; restores the prior value in a `finally`
+	 * so the override doesn't leak.
+	 *
+	 * @param WC_Subscription $subscription Subscription to render.
+	 * @param string          $view         One of 'all', 'supports_auto_renewal',
+	 *                                       'missing_renewals'.
+	 *                                       Determines which signal's data
+	 *                                       drives the row and which row
+	 *                                       actions appear (see T8 gating).
+	 *
+	 * @return string Full `<tr>...</tr>` HTML for the subscription, or an
+	 *                empty string when the subscription doesn't classify
+	 *                under any signal at the moment of the call.
+	 */
+	public function render_row_for( WC_Subscription $subscription, string $view ): string {
+		$signal_type = self::signal_type_for_view( $view );
+
+		$detector        = $this->detector ?? new Detector();
+		$classifications = $detector->classify_all_signals( $subscription );
+
+		// Pick the signal whose data should drive the row. For per-signal
+		// views, prefer that signal; for 'all', fall back to the first
+		// non-null signal — the All view doesn't depend on signal-specific
+		// columns, but `signals_from()` / `details_from()` still need a
+		// `signal_summary` to decode.
+		$signal_data = null;
+		if ( '' !== $signal_type && isset( $classifications[ $signal_type ] ) && is_array( $classifications[ $signal_type ] ) ) {
+			$signal_data = $classifications[ $signal_type ];
+		} else {
+			foreach ( $classifications as $candidate_data ) {
+				if ( is_array( $candidate_data ) ) {
+					$signal_data = $candidate_data;
+					break;
+				}
+			}
+		}
+
+		if ( null === $signal_data ) {
+			return '';
+		}
+
+		$summary = wp_json_encode( $signal_data );
+		$item    = array(
+			'subscription_id' => (int) $subscription->get_id(),
+			'signal_summary'  => is_string( $summary ) ? $summary : '{}',
+		);
+
+		// Drop any cached subscription instance — the row may be re-rendered
+		// after a state-mutating action, so column renderers must re-load.
+		unset( $this->subscription_cache[ (int) $subscription->get_id() ] );
+
+		// Thread the view through column renderers that read $_REQUEST['view'].
+		// Restore in finally so the override can't leak even on a renderer fatal.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$had_prior_view   = isset( $_REQUEST['view'] );
+		$prior_view       = $had_prior_view ? $_REQUEST['view'] : null;
+		$_REQUEST['view'] = $view;
+		// phpcs:enable
+
+		// Track buffer ownership so an exception inside single_row() can't
+		// leave a dangling output buffer on the PHP-FPM worker. Mirrors the
+		// fix in commit 5dfa6133a for class-wc-subscriptions-change-payment-gateway.
+		// Closing the buffer in `finally` (rather than the normal path) means
+		// we always close exactly the buffer we opened — we never reach for
+		// an outer buffer we don't own, even when single_row() succeeds with
+		// empty output.
+		$row_html             = '';
+		$output_buffer_opened = ob_start();
+		try {
+			$this->single_row( $item );
+		} finally {
+			if ( $output_buffer_opened ) {
+				$row_html = (string) ob_get_clean();
+			}
+			if ( $had_prior_view ) {
+				$_REQUEST['view'] = $prior_view;
+			} else {
+				unset( $_REQUEST['view'] );
+			}
+		}
+		return $row_html;
+	}
+
+	/**
+	 * View slug -> CandidateStore signal type mapping shared between
+	 * the table view, the row-render helper, and AjaxController's
+	 * per-view re-classify wiring. Empty string for the All view,
+	 * which has no signal-specific column data.
+	 *
+	 * @param string $view 'all', 'supports_auto_renewal' or 'missing_renewals'.
+	 *
+	 * @return string SIGNAL_TYPE_* constant or empty string.
+	 */
+	public static function signal_type_for_view( string $view ): string {
+		switch ( $view ) {
+			case 'missing_renewals':
+				return CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL;
+			case 'supports_auto_renewal':
+				return CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL;
+			default:
+				return '';
+		}
 	}
 
 	/**
@@ -172,9 +300,9 @@ class CandidatesListTable extends WP_List_Table {
 	 * carries the bare tab URL; the All and Missing tabs get explicit
 	 * `?view=` params.
 	 *
-	 * Internal slugs (`all`, `eligible`, `missing`) are deliberately
-	 * stable — URLs shared in support tickets need to resolve across
-	 * copy changes.
+	 * View slugs (`all`, `supports_auto_renewal`, `missing_renewals`)
+	 * map directly to the signal types so URLs shared in support
+	 * tickets stay self-describing.
 	 *
 	 * @return array<string, string>
 	 */
@@ -188,24 +316,24 @@ class CandidatesListTable extends WP_List_Table {
 		$base    = remove_query_arg( array( 'view', 'paged', 'orderby', 'order', 's' ) );
 
 		return array(
-			'all'      => sprintf(
+			'all'                   => sprintf(
 				'<a href="%1$s" class="%2$s">%3$s <span class="count">(%4$d)</span></a>',
 				esc_url( add_query_arg( 'view', 'all', $base ) ),
 				'all' === $current ? 'current' : '',
 				esc_html__( 'All', 'woocommerce-subscriptions' ),
 				$all_total
 			),
-			'eligible' => sprintf(
+			'supports_auto_renewal' => sprintf(
 				'<a href="%1$s" class="%2$s">%3$s <span class="count">(%4$d)</span></a>',
 				esc_url( $base ),
-				'eligible' === $current ? 'current' : '',
+				'supports_auto_renewal' === $current ? 'current' : '',
 				esc_html__( 'Supports auto-renewal', 'woocommerce-subscriptions' ),
 				$eligible_total
 			),
-			'missing'  => sprintf(
+			'missing_renewals'      => sprintf(
 				'<a href="%1$s" class="%2$s">%3$s <span class="count">(%4$d)</span></a>',
-				esc_url( add_query_arg( 'view', 'missing', $base ) ),
-				'missing' === $current ? 'current' : '',
+				esc_url( add_query_arg( 'view', 'missing_renewals', $base ) ),
+				'missing_renewals' === $current ? 'current' : '',
 				esc_html__( 'Missing renewals', 'woocommerce-subscriptions' ),
 				$missing_total
 			),
@@ -277,40 +405,32 @@ class CandidatesListTable extends WP_List_Table {
 	}
 
 	/**
-	 * Currently-selected filter tab. Defaults to 'eligible' — the
-	 * design treats "things that need attention" as the merchant's
+	 * Currently-selected filter tab. Defaults to 'supports_auto_renewal' —
+	 * the design treats "things that need attention" as the merchant's
 	 * primary entry point. Unknown values fall back to the default
 	 * view rather than surfacing as an empty page.
 	 */
 	private function current_view(): string {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only filter switch.
 		if ( ! isset( $_REQUEST['view'] ) ) {
-			return 'eligible';
+			return 'supports_auto_renewal';
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$view = sanitize_key( wp_unslash( $_REQUEST['view'] ) );
-		return in_array( $view, array( 'all', 'eligible', 'missing' ), true ) ? $view : 'eligible';
+		return in_array( $view, array( 'all', 'supports_auto_renewal', 'missing_renewals' ), true ) ? $view : 'supports_auto_renewal';
 	}
 
 	/**
 	 * Candidate-store signal_type corresponding to the currently-selected
-	 * view. Only meaningful for candidate-backed views ('eligible' and
-	 * 'missing'); the All view reads from `wcs_get_subscriptions()` and
-	 * ignores signal type.
+	 * view. Only meaningful for candidate-backed views ('supports_auto_renewal'
+	 * and 'missing_renewals'); the All view reads from `wcs_get_subscriptions()`
+	 * and ignores signal type.
 	 *
 	 * @return string Empty string for the All view; a SIGNAL_TYPE_*
 	 *                constant otherwise.
 	 */
 	private function signal_type_for_current_view(): string {
-		$view = $this->current_view();
-		switch ( $view ) {
-			case 'missing':
-				return CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL;
-			case 'eligible':
-				return CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL;
-			default:
-				return '';
-		}
+		return self::signal_type_for_view( $this->current_view() );
 	}
 
 	/**
@@ -325,10 +445,9 @@ class CandidatesListTable extends WP_List_Table {
 
 		if ( 'all' === $this->current_view() ) {
 			$this->prepare_items_all_view();
-			return;
+		} else {
+			$this->prepare_items_signal_view( $this->signal_type_for_current_view() );
 		}
-
-		$this->prepare_items_signal_view( $this->signal_type_for_current_view() );
 	}
 
 	/**
@@ -360,7 +479,7 @@ class CandidatesListTable extends WP_List_Table {
 	/**
 	 * Hard cap on the number of candidate rows fetched into PHP when
 	 * search / filter / PHP-sortable column fallback kicks in on a
-	 * candidate-backed view (Eligible / Missing renewals). Candidate
+	 * candidate-backed view (Supports auto-renewal / Missing renewals). Candidate
 	 * counts are bounded in practice (~100s), but a pathologically
 	 * broken store could produce thousands — without this cap,
 	 * `usort` + per-row `load_subscription()` would run O(N log N)
@@ -430,7 +549,12 @@ class CandidatesListTable extends WP_List_Table {
 
 		$has_filters = $this->has_active_filters( $filters );
 
-		if ( '' === $search && ! $has_filters && ! $this->signal_view_requires_php_sort( $orderby ) ) {
+		$signal_view_requires_php_sort = in_array(
+			$orderby,
+			array( 'status', 'billing_mode', 'renewal_preference', 'next_payment', 'renewal_order_status', 'last_payment', 'created' ),
+			true
+		);
+		if ( '' === $search && ! $has_filters && ! $signal_view_requires_php_sort ) {
 			$store_orderby = in_array( $orderby, array( 'id', 'subscription_id', 'created_at' ), true ) ? $orderby : null;
 			$total_items   = $this->candidate_store->count_by_run_and_signal( $run_id, $signal_type );
 
@@ -480,7 +604,7 @@ class CandidatesListTable extends WP_List_Table {
 			);
 		}
 
-		if ( in_array( $orderby, array( 'subscription_id', 'status', 'billing_mode', 'renewal_preference', 'next_payment', 'renewal_order_status', 'last_payment' ), true ) ) {
+		if ( $signal_view_requires_php_sort ) {
 			$items = $this->php_sort_items( $items, $orderby, $order );
 		}
 
@@ -493,26 +617,6 @@ class CandidatesListTable extends WP_List_Table {
 				'per_page'    => $per_page,
 				'total_pages' => (int) ceil( $total_items / $per_page ),
 			)
-		);
-	}
-
-	/**
-	 * Whether a candidate-backed view needs the full candidate set
-	 * before slicing.
-	 *
-	 * Search is PHP-side, and these sortable columns are derived from
-	 * live subscription/order data or row details rather than supported
-	 * by CandidateStore's SQL ordering whitelist.
-	 *
-	 * @param string $orderby Current list-table orderby value.
-	 *
-	 * @return bool
-	 */
-	private function signal_view_requires_php_sort( string $orderby ): bool {
-		return in_array(
-			$orderby,
-			array( 'status', 'billing_mode', 'renewal_preference', 'next_payment', 'renewal_order_status', 'last_payment', 'created' ),
-			true
 		);
 	}
 
@@ -531,7 +635,7 @@ class CandidatesListTable extends WP_List_Table {
 	 * search term is treated as a subscription id lookup (cheap +
 	 * correct); free-text email search is not supported here because
 	 * `wcs_get_subscriptions` has no native text index. Merchants who
-	 * need email search should use the Eligible view (which already
+	 * need email search should use the Supports auto-renewal view (which already
 	 * supports it via PHP filtering over a small dataset) or the
 	 * standard WC subscriptions list page.
 	 */
@@ -612,8 +716,8 @@ class CandidatesListTable extends WP_List_Table {
 	 * doesn't expose a dedicated orderby for `_schedule_next_payment`,
 	 * and wiring a `meta_value` sort would mean bypassing the function
 	 * and hand-building the HPOS-vs-CPT query. Out of scope for v1;
-	 * falls back to ID order on the All view. The Eligible + Missing
-	 * views keep real next-payment sort via `php_sort_items()` because
+	 * falls back to ID order on the All view. The Supports auto-renewal
+	 * + Missing renewals views keep real next-payment sort via `php_sort_items()` because
 	 * their row count is bounded.
 	 *
 	 * @return string
@@ -727,7 +831,7 @@ class CandidatesListTable extends WP_List_Table {
 		$latest_run_id = $this->run_store->get_latest_scan_run_id();
 		if ( 0 === $latest_run_id ) {
 			esc_html_e(
-				"No scan results yet. Click 'Run scan now' above to audit your subscriptions, or wait for the scheduled nightly scan.",
+				"No scan results yet. Click 'Run now' above to audit your subscriptions, or wait for the scheduled nightly scan.",
 				'woocommerce-subscriptions'
 			);
 			return;
@@ -773,14 +877,47 @@ class CandidatesListTable extends WP_List_Table {
 			$subscription_id
 		);
 
+		$subscription = $this->load_subscription( $subscription_id );
+
+		$actions = array(
+			'edit' => sprintf(
+				'<a href="%1$s" aria-label="%2$s">%3$s</a>',
+				esc_url( $url ),
+				/* translators: %d: subscription ID. */
+				esc_attr( sprintf( __( 'Edit subscription #%d', 'woocommerce-subscriptions' ), $subscription_id ) ),
+				esc_html__( 'Edit', 'woocommerce-subscriptions' )
+			),
+		);
+
+		// The All view is intended as a list-and-navigate surface across
+		// signals. Remediation needs signal-specific context that's only
+		// clear on the per-signal tabs, so Resolve is available only
+		// there. Edit stays everywhere. The View order action was
+		// dropped in iteration 2: the row's Edit link already covers
+		// the nav case, and the parent-order link added little signal.
+		$is_all_view = 'all' === $this->current_view();
+
+		if ( ! $is_all_view && $this->can_resolve() ) {
+			$actions['resolve'] = sprintf(
+				'<a href="#" class="wcs-health-check-resolve" data-subscription-id="%1$d" aria-haspopup="dialog" aria-label="%2$s">%3$s</a>',
+				$subscription_id,
+				/* translators: %d: subscription ID. */
+				esc_attr( sprintf( __( 'Resolve subscription #%d', 'woocommerce-subscriptions' ), $subscription_id ) ),
+				esc_html__( 'Resolve', 'woocommerce-subscriptions' )
+			);
+		}
+
+		$row_actions = $this->row_actions( $actions );
+
 		if ( '' === $title ) {
-			return $line1;
+			return $line1 . $row_actions;
 		}
 
 		return sprintf(
-			'<div class="woocommerce-subscriptions-health-check-subscription"><div>%1$s</div><div class="woocommerce-subscriptions-health-check-subscription-title">%2$s</div></div>',
+			'<div class="woocommerce-subscriptions-health-check-subscription"><div>%1$s</div><div class="woocommerce-subscriptions-health-check-subscription-title">%2$s</div></div>%3$s',
 			$line1,
-			esc_html( $title )
+			esc_html( $title ),
+			$row_actions
 		);
 	}
 
@@ -869,14 +1006,21 @@ class CandidatesListTable extends WP_List_Table {
 		$status = (string) $subscription->get_status();
 		$label  = (string) wcs_get_subscription_status_name( $status );
 
-		// WC core's Orders list styles `.order-status.status-{slug}`
-		// (Active / On hold / Pending cancel / …) via its admin CSS.
-		// Reusing the same markup lets Health Check inherit the
-		// colour palette + pill shape without shipping duplicate
-		// styles.
+		// Mirror the main Subscriptions list table's status pill markup
+		// (`WCS_Admin_Post_Types::render_columns()`) so Health Check shows the
+		// same colour language merchants are used to. The `subscription-status`
+		// class is what WCS's status palette (Active = green, Expired, Pending
+		// Cancellation) keys off - the bare `order-status` markup we used before
+		// only picked up WC core's order-status colours, which cover shared
+		// statuses (On hold / Cancelled / Pending) but leave the
+		// subscription-specific ones uncoloured. The matching `.subscription-status`
+		// rules are shipped in `health-check-admin.css` (the list table's own
+		// `admin.css` is not enqueued on the WC Status screen). The `tips`
+		// tooltip is dropped: the label is already visible and the Status screen
+		// does not load WC's tipTip JS.
 		return sprintf(
-			'<mark class="order-status status-%1$s"><span>%2$s</span></mark>',
-			esc_attr( $status ),
+			'<mark class="subscription-status order-status status-%1$s %1$s"><span>%2$s</span></mark>',
+			esc_attr( sanitize_title( $status ) ),
 			esc_html( $label )
 		);
 	}
@@ -956,7 +1100,7 @@ class CandidatesListTable extends WP_List_Table {
 			$warning = '';
 			if ( in_array( 'has_token', $signals, true ) ) {
 				$warning = $this->render_warning_icon(
-					__( 'This customer has a payment method on file, so make sure this subscription should be set to manual renewal.', 'woocommerce-subscriptions' )
+					__( 'The payment method on this subscription supports automatic renewal. Switch the billing mode to enable it.', 'woocommerce-subscriptions' )
 				) . ' ';
 			}
 
@@ -998,7 +1142,7 @@ class CandidatesListTable extends WP_List_Table {
 		$interval = isset( $details['cycle_interval'] ) ? (int) $details['cycle_interval'] : 0;
 
 		if ( '' === $period ) {
-			// No stashed cycle (All-view rows; Eligible-view rows that
+			// No stashed cycle (All-view rows; Supports-auto-renewal-view rows that
 			// don't currently stash). Live-load the subscription so
 			// the column still populates.
 			$subscription = $this->load_subscription( $subscription_id );
@@ -1146,7 +1290,7 @@ class CandidatesListTable extends WP_List_Table {
 
 		if ( 'missing' === $stashed_state || 0 === $timestamp ) {
 			$warning = $this->render_warning_icon(
-				__( 'There is no scheduled payment date and no renewal order for this subscription.', 'woocommerce-subscriptions' )
+				__( 'There is no scheduled payment date for this subscription. Process now to resume billing.', 'woocommerce-subscriptions' )
 			);
 			return $warning . ' &mdash;';
 		}
@@ -1164,7 +1308,7 @@ class CandidatesListTable extends WP_List_Table {
 			/* translators: %s: human-readable time diff like "3 days". */
 			$diff_text = sprintf( __( '%s ago', 'woocommerce-subscriptions' ), $diff );
 			$warning   = $this->render_warning_icon(
-				__( "The payment date is in the past and there's no status for the renewal order, so the renewal date may need an update.", 'woocommerce-subscriptions' )
+				__( 'The scheduled payment date for this subscription is in the past. Process now to resume billing.', 'woocommerce-subscriptions' )
 			);
 			return sprintf(
 				'<div class="woocommerce-subscriptions-health-check-next-payment woocommerce-subscriptions-health-check-next-payment-past">%3$s<div class="woocommerce-subscriptions-health-check-next-payment-text"><div>%1$s</div><div class="woocommerce-subscriptions-health-check-next-payment-diff">%2$s</div></div></div>',
@@ -1185,7 +1329,7 @@ class CandidatesListTable extends WP_List_Table {
 	}
 
 	/**
-	 * Renewal-order-status pill. Eligible-view rows carry the status
+	 * Renewal-order-status pill. Supports-auto-renewal-view rows carry the status
 	 * pre-stashed in `details.latest_renewal_status` by the Detector;
 	 * All-view rows have no details payload, so we fall back to a
 	 * live `WC_Subscription::get_related_orders('renewal')` lookup.
@@ -1601,10 +1745,10 @@ class CandidatesListTable extends WP_List_Table {
 		// wraps the filter controls in the StatusTab's GET form, so a
 		// filter click drops any query-arg not represented as a form
 		// field. Without this hidden input, filtering from a non-
-		// default view would bounce back to the Eligible view. The
-		// default view's tab URL omits `?view=` by design, so the
-		// hidden input is suppressed for it too.
-		if ( 'eligible' !== $current_view ) {
+		// default view would bounce back to the Supports auto-renewal
+		// view. The default view's tab URL omits `?view=` by design, so
+		// the hidden input is suppressed for it too.
+		if ( 'supports_auto_renewal' !== $current_view ) {
 			printf(
 				'<input type="hidden" name="view" value="%s" />',
 				esc_attr( $current_view )
@@ -1689,7 +1833,7 @@ class CandidatesListTable extends WP_List_Table {
 
 	/**
 	 * Render a "showing first N" notice when a candidate-backed view
-	 * (Eligible / Missing renewals) capped the fallback PHP fetch.
+	 * (Supports auto-renewal / Missing renewals) capped the fallback PHP fetch.
 	 * Kept in the table header so merchants see the cap before they
 	 * scroll an incomplete list wondering where the rest of their
 	 * candidates went.
@@ -1970,7 +2114,7 @@ class CandidatesListTable extends WP_List_Table {
 	//
 
 	/**
-	 * Load a subscription by id.
+	 * Load a subscription by id, caching results along the way.
 	 *
 	 * @internal Public only for static sort comparator closures; not extension API.
 	 *
@@ -1979,43 +2123,45 @@ class CandidatesListTable extends WP_List_Table {
 	 * @return WC_Subscription|null
 	 */
 	public function load_subscription( int $subscription_id ): ?WC_Subscription {
-		if ( $subscription_id <= 0 ) {
-			return null;
-		}
+		if ( $subscription_id > 0 ) {
+			if ( ! array_key_exists( $subscription_id, $this->subscription_cache ) ) {
+				$sub = wcs_get_subscription( $subscription_id );
+				$this->subscription_cache[ $subscription_id ] = $sub instanceof WC_Subscription ? $sub : null;
+			}
 
-		if ( array_key_exists( $subscription_id, $this->subscription_cache ) ) {
 			return $this->subscription_cache[ $subscription_id ];
 		}
-
-		$sub = wcs_get_subscription( $subscription_id );
-		$this->subscription_cache[ $subscription_id ] = $sub instanceof WC_Subscription ? $sub : null;
-
-		return $this->subscription_cache[ $subscription_id ];
+		return null;
 	}
 
 	private function subscription_title( int $subscription_id ): string {
 		$subscription = $this->load_subscription( $subscription_id );
-		if ( ! $subscription instanceof WC_Subscription ) {
-			return '';
-		}
 
-		foreach ( $subscription->get_items() as $item ) {
-			if ( $item instanceof \WC_Order_Item ) {
-				$name = (string) $item->get_name();
-				if ( '' !== $name ) {
-					return $name;
+		if ( null !== $subscription ) {
+			foreach ( $subscription->get_items() as $item ) {
+				if ( $item instanceof \WC_Order_Item ) {
+					$name = (string) $item->get_name();
+					if ( '' !== $name ) {
+						return $name;
+					}
 				}
 			}
 		}
+
 		return '';
 	}
 
 	private function subscription_edit_url( int $subscription_id ): string {
-		if ( wcs_is_custom_order_tables_usage_enabled() ) {
-			return admin_url(
-				sprintf( 'admin.php?page=wc-orders--shop_subscription&id=%d&action=edit', $subscription_id )
-			);
+		// Go through `load_subscription()` so the per-request cache is
+		// populated by the first column that needs the subscription.
+		// `render_subscription_link()` calls this immediately before
+		// `subscription_title()` — bypassing the cache here would force
+		// two `wcs_get_subscription()` loads per row.
+		$subscription = $this->load_subscription( $subscription_id );
+		if ( $subscription instanceof WC_Subscription ) {
+			return $subscription->get_edit_order_url();
 		}
+
 		return admin_url( sprintf( 'post.php?post=%d&action=edit', $subscription_id ) );
 	}
 
@@ -2071,20 +2217,22 @@ class CandidatesListTable extends WP_List_Table {
 	 * @return array<int, \WC_Payment_Token>
 	 */
 	private function resolve_tokens( int $customer_id, string $gateway ): array {
-		if ( $customer_id <= 0 || '' === $gateway || ! class_exists( '\WCS_Payment_Tokens' ) ) {
-			return array();
+		$tokens = array();
+
+		if ( '' !== $gateway && $customer_id > 0 && class_exists( '\WCS_Payment_Tokens' ) ) {
+			$limit_filter = static function () {
+				return 100;
+			};
+
+			add_filter( 'woocommerce_get_customer_payment_tokens_limit', $limit_filter );
+			try {
+				$tokens = WCS_Payment_Tokens::get_customer_tokens( $customer_id, $gateway );
+			} finally {
+				remove_filter( 'woocommerce_get_customer_payment_tokens_limit', $limit_filter );
+			}
 		}
 
-		$limit_filter = static function () {
-			return 100;
-		};
-
-		add_filter( 'woocommerce_get_customer_payment_tokens_limit', $limit_filter );
-		try {
-			return WCS_Payment_Tokens::get_customer_tokens( $customer_id, $gateway );
-		} finally {
-			remove_filter( 'woocommerce_get_customer_payment_tokens_limit', $limit_filter );
-		}
+		return $tokens;
 	}
 
 	protected function details_from( array $item ): array {
@@ -2120,6 +2268,19 @@ class CandidatesListTable extends WP_List_Table {
 			return array();
 		}
 		return array_values( array_filter( $decoded['signals'], 'is_string' ) );
+	}
+
+	/**
+	 * Whether the Resolve action should be available for candidates.
+	 *
+	 * Disabled on staging/duplicate sites where automatic payments are
+	 * locked to manual — remediation actions would have no effect and
+	 * could confuse merchants reviewing a cloned environment.
+	 *
+	 * @return bool
+	 */
+	private function can_resolve(): bool {
+		return ! \WCS_Staging::is_duplicate_site();
 	}
 
 	/**

@@ -1,26 +1,21 @@
 parameters:
+	# IMPORTANT: phpstan-development.neon re-declares the list below under `analyse!:`
+	# to carve out src/Internal/Abilities/Domain/*. If you add or remove entries here,
+	# update the override there or local PHPStan will silently diverge from QIT.
 	excludePaths:
 		analyse:
 			- includes/api/legacy/*
 			- includes/core/legacy/*
 			- includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
+			# Domain ability classes implement Automattic\WooCommerce\Abilities\AbilityDefinition,
+			# which ships in WooCommerce 10.9. PHPStan refuses to ignore "implements unknown
+			# interface" errors via ignoreErrors, so QIT runs (which pin a WC version that may
+			# predate 10.9) need these files excluded. Local PHPStan re-includes them via
+			# phpstan-development.neon's `analyse!` override + the abilities stub in scanFiles.
+			# @todo Remove when QIT's pinned WC version is ≥ 10.9.
+			- src/Internal/Abilities/Domain/*
 	ignoreErrors:
 		- '#Constant WC_VERSION not found#'
-		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 2
-			path: includes/admin/reports/class-wcs-report-cache-manager.php
-
-		-
-			message: "#^Function as_schedule_single_action not found\\.$#"
-			count: 2
-			path: includes/admin/reports/class-wcs-report-cache-manager.php
-
-		-
-			message: "#^Function as_unschedule_action not found\\.$#"
-			count: 1
-			path: includes/admin/reports/class-wcs-report-cache-manager.php
-
 		-
 			message: "#^Access to an undefined property WP_User\\:\\:\\$active_subscriptions\\.$#"
 			count: 1
@@ -100,26 +95,6 @@ parameters:
 			message: "#^Access to property \\$WC_API_Subscriptions on an unknown class WC_API\\.$#"
 			count: 2
 			path: includes/class-wcs-webhooks.php
-
-		-
-			message: "#^Function as_schedule_single_action not found\\.$#"
-			count: 1
-			path: includes/core/abstracts/abstract-wcs-background-repairer.php
-
-		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 1
-			path: includes/core/abstracts/abstract-wcs-background-updater.php
-
-		-
-			message: "#^Function as_schedule_single_action not found\\.$#"
-			count: 1
-			path: includes/core/abstracts/abstract-wcs-background-updater.php
-
-		-
-			message: "#^Function as_unschedule_action not found\\.$#"
-			count: 1
-			path: includes/core/abstracts/abstract-wcs-background-updater.php
 
 		-
 			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
@@ -357,11 +332,6 @@ parameters:
 			path: includes/core/class-wc-subscriptions-coupon.php
 
 		-
-			message: "#^Function as_unschedule_all_actions not found\\.$#"
-			count: 1
-			path: includes/core/class-wc-subscriptions-email-notifications.php
-
-		-
 			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_carts\\.$#"
 			count: 1
 			path: includes/core/class-wc-subscriptions-extend-store-endpoint.php
@@ -417,56 +387,6 @@ parameters:
 			path: includes/core/class-wc-subscriptions-tracker.php
 
 		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 2
-			path: includes/core/class-wcs-action-scheduler-customer-notifications.php
-
-		-
-			message: "#^Function as_schedule_single_action not found\\.$#"
-			count: 1
-			path: includes/core/class-wcs-action-scheduler-customer-notifications.php
-
-		-
-			message: "#^Function as_unschedule_all_actions not found\\.$#"
-			count: 1
-			path: includes/core/class-wcs-action-scheduler-customer-notifications.php
-
-		-
-			message: "#^Call to static method instance\\(\\) on an unknown class ActionScheduler_Versions\\.$#"
-			count: 1
-			path: includes/core/class-wcs-action-scheduler.php
-
-		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 3
-			path: includes/core/class-wcs-action-scheduler.php
-
-		-
-			message: "#^Function as_schedule_single_action not found\\.$#"
-			count: 2
-			path: includes/core/class-wcs-action-scheduler.php
-
-		-
-			message: "#^Function as_unschedule_all_actions not found\\.$#"
-			count: 1
-			path: includes/core/class-wcs-action-scheduler.php
-
-		-
-			message: "#^Function as_has_scheduled_action not found\\.$#"
-			count: 2
-			path: includes/core/class-wcs-batch-processing-controller.php
-
-		-
-			message: "#^Function as_schedule_single_action not found\\.$#"
-			count: 2
-			path: includes/core/class-wcs-batch-processing-controller.php
-
-		-
-			message: "#^Function as_unschedule_all_actions not found\\.$#"
-			count: 3
-			path: includes/core/class-wcs-batch-processing-controller.php
-
-		-
 			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_order_type\\(\\)\\.$#"
 			count: 3
 			path: includes/core/class-wcs-cached-data-manager.php
@@ -520,36 +440,6 @@ parameters:
 			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
 			count: 1
 			path: includes/core/class-wcs-download-handler.php
-
-		-
-			message: "#^Call to method get_args\\(\\) on an unknown class ActionScheduler_Action\\.$#"
-			count: 2
-			path: includes/core/class-wcs-failed-scheduled-action-manager.php
-
-		-
-			message: "#^Call to method get_hook\\(\\) on an unknown class ActionScheduler_Action\\.$#"
-			count: 3
-			path: includes/core/class-wcs-failed-scheduled-action-manager.php
-
-		-
-			message: "#^Call to static method instance\\(\\) on an unknown class ActionScheduler_Logger\\.$#"
-			count: 1
-			path: includes/core/class-wcs-failed-scheduled-action-manager.php
-
-		-
-			message: "#^Call to static method instance\\(\\) on an unknown class ActionScheduler_Store\\.$#"
-			count: 1
-			path: includes/core/class-wcs-failed-scheduled-action-manager.php
-
-		-
-			message: "#^Method WCS_Failed_Scheduled_Action_Manager\\:\\:get_action\\(\\) has invalid return type ActionScheduler_Action\\.$#"
-			count: 1
-			path: includes/core/class-wcs-failed-scheduled-action-manager.php
-
-		-
-			message: "#^Parameter \\$action of method WCS_Failed_Scheduled_Action_Manager\\:\\:get_context_from_action_error\\(\\) has invalid type ActionScheduler_Action\\.$#"
-			count: 1
-			path: includes/core/class-wcs-failed-scheduled-action-manager.php
 
 		-
 			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
@@ -1187,21 +1077,6 @@ parameters:
 			path: includes/core/gateways/paypal/includes/templates/html-ipn-failure-notice.php
 
 		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 3
-			path: includes/core/privacy/class-wcs-privacy-background-updater.php
-
-		-
-			message: "#^Function as_schedule_single_action not found\\.$#"
-			count: 3
-			path: includes/core/privacy/class-wcs-privacy-background-updater.php
-
-		-
-			message: "#^Function as_unschedule_action not found\\.$#"
-			count: 2
-			path: includes/core/privacy/class-wcs-privacy-background-updater.php
-
-		-
 			message: "#^Call to an undefined method WC_Data_Store\\:\\:get_orders\\(\\)\\.$#"
 			count: 1
 			path: includes/core/privacy/class-wcs-privacy-erasers.php
@@ -1252,19 +1127,9 @@ parameters:
 			path: includes/core/upgrades/class-wc-subscriptions-upgrader.php
 
 		-
-			message: "#^Access to constant POST_TYPE on an unknown class ActionScheduler_wpPostStore\\.$#"
-			count: 1
-			path: includes/core/upgrades/class-wcs-repair-2-0-2.php
-
-		-
 			message: "#^Variable \\$matching_line_item_id might not be defined\\.$#"
 			count: 1
 			path: includes/core/upgrades/class-wcs-repair-2-0-2.php
-
-		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 1
-			path: includes/core/upgrades/class-wcs-repair-2-0.php
 
 		-
 			message: "#^PHPDoc tag @param references unknown parameter\\: \\$subscription_key$#"
@@ -1280,16 +1145,6 @@ parameters:
 			message: "#^Function wc_format_decimalw not found\\.$#"
 			count: 1
 			path: includes/core/upgrades/class-wcs-upgrade-1-2.php
-
-		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 1
-			path: includes/core/upgrades/class-wcs-upgrade-1-5.php
-
-		-
-			message: "#^Function as_schedule_single_action not found\\.$#"
-			count: 1
-			path: includes/core/upgrades/class-wcs-upgrade-1-5.php
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$meta_key\\.$#"
@@ -1308,21 +1163,6 @@ parameters:
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$order_item_name\\.$#"
-			count: 1
-			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
-
-		-
-			message: "#^Access to constant POST_TYPE on an unknown class ActionScheduler_wpPostStore\\.$#"
-			count: 1
-			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
-
-		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 2
-			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
-
-		-
-			message: "#^Function as_schedule_single_action not found\\.$#"
 			count: 1
 			path: includes/core/upgrades/class-wcs-upgrade-2-0.php
 
@@ -1378,16 +1218,6 @@ parameters:
 
 		-
 			message: "#^Callback expects 1 parameter, \\$accepted_args is set to 2\\.$#"
-			count: 1
-			path: includes/core/upgrades/class-wcs-upgrade-2-2-7.php
-
-		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 1
-			path: includes/core/upgrades/class-wcs-upgrade-2-2-7.php
-
-		-
-			message: "#^Function as_schedule_single_action not found\\.$#"
 			count: 1
 			path: includes/core/upgrades/class-wcs-upgrade-2-2-7.php
 
@@ -1625,16 +1455,6 @@ parameters:
 			message: "#^Access to an undefined property object\\:\\:\\$count\\.$#"
 			count: 2
 			path: src/Internal/Telemetry/Products.php
-
-		-
-			message: "#^Function as_has_scheduled_action not found\\.$#"
-			count: 1
-			path: src/Internal/Utilities/Scheduled_Actions.php
-
-		-
-			message: "#^Function as_schedule_recurring_action not found\\.$#"
-			count: 1
-			path: src/Internal/Utilities/Scheduled_Actions.php
 
 		-
 			message: "#^Call to an undefined method WP_Post\\:\\:get_id\\(\\)\\.$#"
@@ -3715,3 +3535,13 @@ parameters:
 			message: "#^Variable \\$available_variations might not be defined\\.$#"
 			count: 1
 			path: templates/single-product/add-to-cart/variable-subscription.php
+
+		# rest_do_request() is typed as returning WP_REST_Response by core stubs, but
+		# WP filters and certain failure paths can substitute a WP_Error at runtime
+		# (e.g. when the registered route's permission_callback returns one). The
+		# defensive is_wp_error() check preserves that runtime safety; PHPStan's
+		# narrower view doesn't reflect the filter contract.
+		-
+			message: "#^is_wp_error\\(WP_REST_Response\\) will always evaluate to false\\.$#"
+			count: 1
+			path: src/Internal/Abilities/Domain/Abstract_WCS_Ability.php

@@ -54,9 +54,9 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 		}
 
 		// @phpstan-ignore class.notFound
-		self::$schema             = class_exists( 'Automattic\WooCommerce\StoreApi\StoreApi' ) ? Automattic\WooCommerce\StoreApi\StoreApi::container()->get( Automattic\WooCommerce\StoreApi\SchemaController::class ) : Package::container()->get( Automattic\WooCommerce\Blocks\StoreApi\SchemaController::class );
+		self::$schema = class_exists( 'Automattic\WooCommerce\StoreApi\StoreApi' ) ? Automattic\WooCommerce\StoreApi\StoreApi::container()->get( Automattic\WooCommerce\StoreApi\SchemaController::class ) : Package::container()->get( Automattic\WooCommerce\Blocks\StoreApi\SchemaController::class );
 		// @phpstan-ignore class.notFound
-		self::$money_formatter    = function_exists( 'woocommerce_store_api_get_formatter' ) ? woocommerce_store_api_get_formatter( 'money' ) : Package::container()->get( ExtendRestApi::class )->get_formatter( 'money' );
+		self::$money_formatter = function_exists( 'woocommerce_store_api_get_formatter' ) ? woocommerce_store_api_get_formatter( 'money' ) : Package::container()->get( ExtendRestApi::class )->get_formatter( 'money' );
 		// @phpstan-ignore class.notFound
 		self::$currency_formatter = function_exists( 'woocommerce_store_api_get_formatter' ) ? woocommerce_store_api_get_formatter( 'currency' ) : Package::container()->get( ExtendRestApi::class )->get_formatter( 'currency' );
 		self::extend_store();
@@ -117,6 +117,18 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 				'data_callback'   => array( 'WC_Subscriptions_Extend_Store_Endpoint', 'extend_cart_data' ),
 				'schema_callback' => array( 'WC_Subscriptions_Extend_Store_Endpoint', 'extend_cart_schema' ),
 				'schema_type'     => ARRAY_N,
+			)
+		);
+
+		// Register cart-level subscription metadata (hidden coupons, etc.)
+		self::register_endpoint_data(
+			array(
+				// @phpstan-ignore class.notFound
+				'endpoint'        => CartSchema::IDENTIFIER,
+				'namespace'       => 'subscriptions_cart_meta',
+				'data_callback'   => array( 'WC_Subscriptions_Extend_Store_Endpoint', 'extend_cart_meta_data' ),
+				'schema_callback' => array( 'WC_Subscriptions_Extend_Store_Endpoint', 'extend_cart_meta_schema' ),
+				'schema_type'     => ARRAY_A,
 			)
 		);
 
@@ -353,6 +365,7 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 					'billing_period'      => WC_Subscriptions_Product::get_period( $product ),
 					'billing_interval'    => (int) WC_Subscriptions_Product::get_interval( $product ),
 					'subscription_length' => (int) WC_Subscriptions_Product::get_length( $product ),
+					'coupons'             => self::get_recurring_cart_coupons( $cart ),
 					'totals'              => self::$currency_formatter->format(
 						array(
 							'total_items'        => self::$money_formatter->format( $cart->get_subtotal() ),
@@ -525,6 +538,29 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 				'context'     => array( 'view', 'edit' ),
 				'readonly'    => true,
 			),
+			'coupons'             => array(
+				'description' => __( 'Coupons applied to this recurring cart.', 'woocommerce-subscriptions' ),
+				'type'        => 'array',
+				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
+				'items'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'code'           => array(
+							'description' => __( 'The coupon code.', 'woocommerce-subscriptions' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
+						),
+						'total_discount' => array(
+							'description' => __( 'Total discount from this coupon.', 'woocommerce-subscriptions' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
+						),
+					),
+				),
+			),
 			'totals'              => array(
 				'description' => __( 'Cart total amounts provided using the smallest unit of the currency.', 'woocommerce-subscriptions' ),
 				'type'        => 'object',
@@ -656,6 +692,93 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,
 					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Get coupon data for a recurring cart.
+	 *
+	 * Excludes internal pseudo-renewal coupon types (`renewal_cart`, `renewal_fee`,
+	 * `renewal_percent`) which are applied programmatically to renewal/resubscribe
+	 * carts and should never surface in customer-facing UI.
+	 *
+	 * @param \WC_Cart $cart Recurring cart instance.
+	 * @return array Array of coupon data with code and total_discount.
+	 */
+	protected static function get_recurring_cart_coupons( $cart ) {
+		$coupons         = array();
+		$discount_totals = $cart->get_coupon_discount_totals();
+
+		foreach ( $cart->get_coupons() as $coupon_code => $coupon ) {
+			$coupon_type = wcs_get_coupon_property( $coupon, 'discount_type' );
+
+			if ( WC_Subscriptions_Coupon::is_renewal_cart_coupon( $coupon_type ) ) {
+				continue;
+			}
+
+			$discount  = isset( $discount_totals[ $coupon_code ] ) ? $discount_totals[ $coupon_code ] : 0;
+			$coupons[] = array(
+				'code'           => $coupon_code,
+				'total_discount' => self::$money_formatter->format( $discount ),
+			);
+		}
+
+		return $coupons;
+	}
+
+	/**
+	 * Get coupon codes that should be hidden from the initial cart display in block checkout.
+	 *
+	 * Mirrors the logic in WC_Subscriptions_Coupon::mark_recurring_coupon_in_initial_cart_for_hiding()
+	 * for the classic cart/checkout.
+	 *
+	 * @return array List of coupon codes to hide.
+	 */
+	protected static function get_hidden_coupon_codes() {
+		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() || ! WC_Subscriptions_Cart::all_cart_items_have_free_trial() ) {
+			return array();
+		}
+
+		$hidden_coupons = array();
+
+		foreach ( WC()->cart->get_coupons() as $coupon_code => $coupon ) {
+			$coupon_type = wcs_get_coupon_property( $coupon, 'discount_type' );
+
+			if ( WC_Subscriptions_Coupon::is_recurring_coupon( $coupon_type ) ) {
+				$hidden_coupons[] = $coupon_code;
+			}
+		}
+
+		return $hidden_coupons;
+	}
+
+	/**
+	 * Provide cart-level subscription metadata to the Store API.
+	 *
+	 * @return array Cart-level subscription data.
+	 */
+	public static function extend_cart_meta_data() {
+		return array(
+			'hidden_coupon_codes' => self::get_hidden_coupon_codes(),
+		);
+	}
+
+	/**
+	 * Schema for cart-level subscription metadata.
+	 *
+	 * @return array Registered schema.
+	 */
+	public static function extend_cart_meta_schema() {
+		return array(
+			'hidden_coupon_codes' => array(
+				'description' => __( 'Coupon codes that should be hidden from the initial order summary.', 'woocommerce-subscriptions' ),
+				'type'        => 'array',
+				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
+				'items'       => array(
+					'type' => 'string',
 				),
 			),
 		);

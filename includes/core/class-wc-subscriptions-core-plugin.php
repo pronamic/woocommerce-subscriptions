@@ -8,8 +8,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once dirname( __FILE__ ) . '/class-wcs-core-autoloader.php';
-
 class WC_Subscriptions_Core_Plugin {
 
 	/**
@@ -31,13 +29,6 @@ class WC_Subscriptions_Core_Plugin {
 	 * @var WCS_Action_Scheduler_Customer_Notifications
 	 */
 	public $notifications_scheduler = null;
-
-	/**
-	 * The plugin's autoloader instance.
-	 *
-	 * @var WCS_Autoloader
-	 */
-	protected $autoloader = null;
 
 	/**
 	 * The plugin's cache manager instance.
@@ -65,15 +56,13 @@ class WC_Subscriptions_Core_Plugin {
 
 	/**
 	 * Initialise class and attach callbacks.
+	 *
+	 * @since 8.8.0 The $autoloader parameter is no longer used; classes are loaded via Composer.
+	 *
+	 * @param mixed $autoloader Unused. Retained for backwards compatibility.
 	 */
-	public function __construct( $autoloader = null ) {
-		if ( $autoloader ) {
-			$this->autoloader = $autoloader;
-		} else {
-			$this->autoloader = new WCS_Core_Autoloader( $this->get_subscriptions_core_directory() );
-			$this->autoloader->register();
-		}
-
+	// @phpstan-ignore constructor.unusedParameter
+	public function __construct( $autoloader = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		// Load the Order Tables/Data Store Controller class early.
 		new WCS_Orders_Table_Data_Store_Controller();
 
@@ -317,12 +306,19 @@ class WC_Subscriptions_Core_Plugin {
 	}
 
 	/**
-	 * Gets the autoloader instance.
+	 * Returns an instance of the (now deprecated) bespoke autoloader.
+	 *
+	 * Class loading is handled by Composer; this method is retained only for
+	 * third-party integrations that still call it. The returned instance is a
+	 * no-op shell and does not register any autoload callbacks.
+	 *
+	 * @deprecated 8.8.0 Composer handles class autoloading; no replacement is required.
 	 *
 	 * @return WCS_Autoloader
 	 */
 	public function get_autoloader() {
-		return $this->autoloader;
+		wcs_deprecated_function( __METHOD__, '8.8.0' );
+		return new WCS_Autoloader( $this->get_subscriptions_core_directory() );
 	}
 
 	/**

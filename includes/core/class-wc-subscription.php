@@ -1395,14 +1395,14 @@ class WC_Subscription extends WC_Order {
 		}
 
 		if ( $timestamp_gmt > 0 ) {
-			$time_diff = $timestamp_gmt - current_time( 'timestamp', true );
+			$time_diff = $timestamp_gmt - time();
 
 			if ( $time_diff > 0 && $time_diff < WEEK_IN_SECONDS ) {
 				// translators: placeholder is human time diff (e.g. "3 weeks")
-				$date_to_display = sprintf( __( 'In %s', 'woocommerce-subscriptions' ), human_time_diff( current_time( 'timestamp', true ), $timestamp_gmt ) );
+				$date_to_display = sprintf( __( 'in %s', 'woocommerce-subscriptions' ), human_time_diff( time(), $timestamp_gmt ) );
 			} elseif ( $time_diff < 0 && absint( $time_diff ) < WEEK_IN_SECONDS ) {
 				// translators: placeholder is human time diff (e.g. "3 weeks")
-				$date_to_display = sprintf( __( '%s ago', 'woocommerce-subscriptions' ), human_time_diff( current_time( 'timestamp', true ), $timestamp_gmt ) );
+				$date_to_display = sprintf( __( '%s ago', 'woocommerce-subscriptions' ), human_time_diff( time(), $timestamp_gmt ) );
 			} else {
 				$date_to_display = date_i18n( wc_date_format(), $timestamp_gmt + wc_timezone_offset() );
 			}

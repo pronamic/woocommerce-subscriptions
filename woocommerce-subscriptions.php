@@ -5,15 +5,15 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
- * Version: 8.7.1
+ * Version: 8.8.0
  * Requires Plugins: woocommerce
  *
- * Requires at least: 6.8
- * Tested up to: 6.9
+ * Requires at least: 6.9
+ * Tested up to: 7.0
  * Requires PHP: 7.4
  *
- * WC requires at least: 10.6
- * WC tested up to: 10.7
+ * WC requires at least: 10.7
+ * WC tested up to: 10.8
  *
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -62,9 +62,6 @@ add_action(
 // Subscribe to automated translations.
 add_filter( 'woocommerce_translations_updates_for_woocommerce-subscriptions', '__return_true' );
 
-// Load and set up the Autoloader
-$wcs_autoloader = wcs_init_autoloader();
-
 /**
  * The main subscriptions class.
  *
@@ -87,7 +84,7 @@ class WC_Subscriptions {
 	public static $plugin_file = __FILE__;
 
 	/** @var string */
-	public static $version = '8.7.1'; // WRCS: DEFINED_VERSION.
+	public static $version = '8.8.0'; // WRCS: DEFINED_VERSION.
 
 	/** @var string */
 	public static $wc_minimum_supported_version = '7.7';
@@ -95,20 +92,17 @@ class WC_Subscriptions {
 	/** @var WCS_Cache_Manager */
 	public static $cache;
 
-	/** @var WCS_Autoloader */
-	protected static $autoloader;
-
 	/**
 	 * Set up the class, including it's hooks & filters, when the file is loaded.
 	 *
 	 * @since 1.0
+	 * @since 8.8.0 The $autoloader parameter is no longer used; classes are loaded via Composer.
 	 *
-	 * @param WCS_Autoloader $autoloader Autoloader instance.
+	 * @param mixed $autoloader Unused. Retained for backwards compatibility.
 	 */
 	public static function init( $autoloader = null ) {
-		$plugin           = new WC_Subscriptions_Plugin( $autoloader );
-		self::$cache      = $plugin->cache;
-		self::$autoloader = $plugin->get_autoloader();
+		$plugin      = new WC_Subscriptions_Plugin( $autoloader );
+		self::$cache = $plugin->cache;
 	}
 
 	/*
@@ -179,26 +173,4 @@ if ( ! function_exists( 'add_woocommerce_inbox_variant' ) ) {
 add_action( 'woocommerce_subscriptions_upgraded', 'add_woocommerce_inbox_variant', 10 );
 register_activation_hook( __FILE__, 'add_woocommerce_inbox_variant' );
 
-
-/**
- * Load and set up the Autoloader
- *
- * If the `woocommerce-subscriptions-core` plugin is active, setup the autoloader using this plugin directory
- * as the base file path for loading subscription core classes.
- *
- * @since 4.0.0
- * @return WCS_Autoloader
- */
-function wcs_init_autoloader() {
-	$wcs_core_path = __DIR__ . '/includes/core/';
-
-	require_once $wcs_core_path . '/class-wcs-core-autoloader.php';
-	require_once dirname( __FILE__ ) . '/includes/class-wcs-autoloader.php';
-
-	$wcs_autoloader = new WCS_Autoloader( $wcs_core_path );
-	$wcs_autoloader->register();
-
-	return $wcs_autoloader;
-}
-
-WC_Subscriptions::init( $wcs_autoloader );
+WC_Subscriptions::init();

@@ -30,8 +30,8 @@ class CandidateStore {
 	/**
 	 * Signal type: subscription is flagged for manual renewal but holds a
 	 * saved token on a gateway that supports automatic renewal. The
-	 * remediation-worthy cohort surfaced under the "Eligible for automatic
-	 * renewal" tab.
+	 * remediation-worthy cohort surfaced under the "Supports auto-renewal"
+	 * tab.
 	 */
 	public const SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL = 'supports_auto_renewal';
 
@@ -137,6 +137,95 @@ class CandidateStore {
 	}
 
 	/**
+	 * Whether the (run_id, subscription_id) pair is currently a pending
+	 * candidate. Used by the remediation AJAX endpoint as a defense-in-
+	 * depth check that the subscription was actually flagged by this
+	 * scan run before mutating it — narrows the authorization surface
+	 * from "any subscription in the database" to "subscriptions the
+	 * scan identified as problematic and that haven't been resolved
+	 * yet."
+	 *
+	 * @param int $run_id          The scan run id.
+	 * @param int $subscription_id The subscription id.
+	 *
+	 * @return bool True when a row exists with status='pending'.
+	 */
+	public function is_pending_candidate( int $run_id, int $subscription_id ): bool {
+		global $wpdb;
+
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT COUNT(*) FROM {$wpdb->prefix}wcs_health_check_candidates WHERE run_id = %d AND subscription_id = %d AND status = 'pending'",
+				$run_id,
+				$subscription_id
+			)
+		);
+
+		return $count > 0;
+	}
+
+	/**
+	 * Mark a candidate row as fixed. Sets `status = 'fixed'` and
+	 * `fixed_at` to the current UTC timestamp.
+	 *
+	 * The optional `$signal_type` scopes the update so a resolve action
+	 * from one tab (e.g. Supports auto-renewal) only clears that
+	 * tab's row, leaving any sibling rows the same subscription owns
+	 * on other tabs intact. Without it, a subscription that surfaces
+	 * under both signals disappears from both tabs after a single
+	 * resolve click — violating the per-view independence the redesign
+	 * spec asserts.
+	 *
+	 * @param int         $run_id          The run id.
+	 * @param int         $subscription_id The subscription id.
+	 * @param string|null $signal_type     Optional signal-type scope
+	 *                                     (`SIGNAL_TYPE_*`). When null,
+	 *                                     every signal row for the
+	 *                                     (run, sub) pair is updated.
+	 */
+	public function mark_fixed( int $run_id, int $subscription_id, ?string $signal_type = null ): bool {
+		global $wpdb;
+
+		$where_data    = array(
+			'run_id'          => $run_id,
+			'subscription_id' => $subscription_id,
+		);
+		$where_formats = array( '%d', '%d' );
+		if ( null !== $signal_type ) {
+			$where_data['signal_type'] = $signal_type;
+			$where_formats[]           = '%s';
+		}
+
+		$result = $wpdb->update(
+			$wpdb->prefix . 'wcs_health_check_candidates',
+			array(
+				'status'   => 'fixed',
+				'fixed_at' => current_time( 'mysql', true ),
+			),
+			$where_data,
+			array( '%s', '%s' ),
+			$where_formats
+		);
+
+		if ( false === $result ) {
+			wc_get_logger()->error(
+				'Health Check: failed to mark candidate as fixed',
+				array(
+					'source'          => 'wcs-health-check',
+					'run_id'          => $run_id,
+					'subscription_id' => $subscription_id,
+					'signal_type'     => $signal_type,
+				)
+			);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Every candidate row for the given run.
 	 *
 	 * Default ordering is insertion id ASC (chronological). Callers can pass
@@ -175,7 +264,7 @@ class CandidateStore {
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $order_clause composed from whitelist above; $limit_clause uses placeholders only.
-				"SELECT * FROM {$wpdb->prefix}wcs_health_check_candidates WHERE run_id = %d ORDER BY {$order_clause}{$limit_clause}",
+				"SELECT * FROM {$wpdb->prefix}wcs_health_check_candidates WHERE run_id = %d AND status = 'pending' ORDER BY {$order_clause}{$limit_clause}",
 				...$query_args
 			),
 			ARRAY_A
@@ -197,7 +286,7 @@ class CandidateStore {
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT COUNT(*) FROM {$wpdb->prefix}wcs_health_check_candidates WHERE run_id = %d",
+				"SELECT COUNT(*) FROM {$wpdb->prefix}wcs_health_check_candidates WHERE run_id = %d AND status = 'pending'",
 				$run_id
 			)
 		);
@@ -242,13 +331,47 @@ class CandidateStore {
 			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- $query_args carries (run_id, signal_type) plus optional (limit, offset) aligned with $limit_clause.
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $order_clause composed from whitelist above; $limit_clause uses placeholders only.
-				"SELECT * FROM {$wpdb->prefix}wcs_health_check_candidates WHERE run_id = %d AND signal_type = %s ORDER BY {$order_clause}{$limit_clause}",
+				"SELECT * FROM {$wpdb->prefix}wcs_health_check_candidates WHERE run_id = %d AND signal_type = %s AND status = 'pending' ORDER BY {$order_clause}{$limit_clause}",
 				...$query_args
 			),
 			ARRAY_A
 		);
 
 		return is_array( $rows ) ? $rows : array();
+	}
+
+	/**
+	 * Count pending candidates for a run, grouped by signal type, in a
+	 * single query using conditional aggregation.
+	 *
+	 * @param int $run_id The run id.
+	 *
+	 * @return array{total: int, supports_auto_renewal: int, missing_renewal: int}
+	 */
+	public function count_by_run_grouped( int $run_id ): array {
+		global $wpdb;
+
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT
+					COUNT(*) AS total,
+					SUM( CASE WHEN signal_type = %s THEN 1 ELSE 0 END ) AS eligible,
+					SUM( CASE WHEN signal_type = %s THEN 1 ELSE 0 END ) AS missing
+				FROM {$wpdb->prefix}wcs_health_check_candidates
+				WHERE run_id = %d AND status = 'pending'",
+				self::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL,
+				self::SIGNAL_TYPE_MISSING_RENEWAL,
+				$run_id
+			),
+			ARRAY_A
+		);
+
+		return array(
+			'total'                                 => (int) ( $row['total'] ?? 0 ),
+			self::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL => (int) ( $row['eligible'] ?? 0 ),
+			self::SIGNAL_TYPE_MISSING_RENEWAL       => (int) ( $row['missing'] ?? 0 ),
+		);
 	}
 
 	/**
@@ -267,7 +390,7 @@ class CandidateStore {
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT COUNT(*) FROM {$wpdb->prefix}wcs_health_check_candidates WHERE run_id = %d AND signal_type = %s",
+				"SELECT COUNT(*) FROM {$wpdb->prefix}wcs_health_check_candidates WHERE run_id = %d AND signal_type = %s AND status = 'pending'",
 				$run_id,
 				$signal_type
 			)

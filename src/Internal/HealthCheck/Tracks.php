@@ -7,7 +7,7 @@ use WC_Tracks;
 /**
  * Thin Tracks emitter for Health Check telemetry.
  *
- * Three events are defined:
+ * Four events are defined:
  *
  *   - `wcs_health_check_scan_completed` — fires once per completed
  *     scan run with aggregate metrics (scanned count, candidate
@@ -18,6 +18,8 @@ use WC_Tracks;
  *   - `wcs_health_check_manual_scan_triggered` — fires when the
  *     merchant clicks "Run scan now" and the request passes the
  *     nonce + lock gates.
+ *   - `wcs_health_check_scan_cancelled` - fires when the merchant
+ *     cancels an in-flight scan via the Cancel scan button.
  *
  * Every event carries a canonical `source` label so downstream
  * processors can route health-check events without pattern-matching
@@ -52,6 +54,13 @@ class Tracks {
 	 * Event name: merchant clicked Run-scan-now.
 	 */
 	public const EVENT_MANUAL_SCAN_TRIGGERED = 'wcs_health_check_manual_scan_triggered';
+
+	/**
+	 * Event name: merchant cancelled an in-flight scan via the
+	 * Status tab. Distinct from EVENT_SCAN_COMPLETED so consumers can
+	 * differentiate finished runs from terminated ones.
+	 */
+	public const EVENT_SCAN_CANCELLED = 'wcs_health_check_scan_cancelled';
 
 	/**
 	 * Callable invoked to record events. Signature:
@@ -123,6 +132,19 @@ class Tracks {
 	 */
 	public function manual_scan_triggered( array $props ): void {
 		$this->emit( self::EVENT_MANUAL_SCAN_TRIGGERED, $props );
+	}
+
+	/**
+	 * Fire the scan-cancelled event. Expected payload keys:
+	 *   run_id, triggered_by, subscriptions_scanned,
+	 *   total_subscriptions.
+	 *
+	 * @param array<string, mixed> $props
+	 *
+	 * @return void
+	 */
+	public function scan_cancelled( array $props ): void {
+		$this->emit( self::EVENT_SCAN_CANCELLED, $props );
 	}
 
 	/**

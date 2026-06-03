@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'woocommerce/woocommerce-subscriptions',
-        'pretty_version' => 'dev-release/8.7.1',
-        'version' => 'dev-release/8.7.1',
-        'reference' => '1dba7996b08272e33a652a6717e084d93e02a82c',
+        'pretty_version' => 'dev-release/8.8.0',
+        'version' => 'dev-release/8.8.0',
+        'reference' => '418f269c5eec2e64db7f0fcd62d234df80ce1145',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'automattic/jetpack-constants' => array(
-            'pretty_version' => 'v3.0.8',
-            'version' => '3.0.8.0',
-            'reference' => 'f9bf00ab48956b8326209e7c0baf247a0ed721c4',
+            'pretty_version' => 'v3.0.10',
+            'version' => '3.0.10.0',
+            'reference' => '1c64f65a7d19eea7944ee5d84c1463b5733eb17a',
             'type' => 'jetpack-library',
             'install_path' => __DIR__ . '/../automattic/jetpack-constants',
             'aliases' => array(),
@@ -29,9 +29,9 @@
             'dev_requirement' => false,
         ),
         'woocommerce/woocommerce-subscriptions' => array(
-            'pretty_version' => 'dev-release/8.7.1',
-            'version' => 'dev-release/8.7.1',
-            'reference' => '1dba7996b08272e33a652a6717e084d93e02a82c',
+            'pretty_version' => 'dev-release/8.8.0',
+            'version' => 'dev-release/8.8.0',
+            'reference' => '418f269c5eec2e64db7f0fcd62d234df80ce1145',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

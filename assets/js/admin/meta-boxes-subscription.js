@@ -375,7 +375,7 @@ jQuery( function ( $ ) {
 		
 		if ( invalid_dates.length > 0 ) {
 			// Focus the first invalid date to make it noticeable.
-			$( '#subscription-' + invalid_dates[0] + '-date' ).find( '.wcs-date-input input' ).first().focus();
+			$( '#subscription-' + invalid_dates[0] + '-date' ).find( '.wcs-date-input input' ).first().trigger( 'focus' );
 			return false;
 		}
 	} )

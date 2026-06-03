@@ -677,8 +677,7 @@ class WCS_Gifting {
 	 * @param WC_Order        $order        Order object.
 	 */
 	public static function set_recipient_user( &$subscription, $user_id, $save = 'save', $meta_id = 0, ?WC_Order $order = null ) {
-		$current_user_id              = absint( self::get_recipient_user( $subscription ) );
-		$subscription->recipient_user = $user_id;
+		$current_user_id = absint( self::get_recipient_user( $subscription ) );
 
 		if ( 'save' === $save ) {
 			$subscription->update_meta_data( '_recipient_user', $user_id, $meta_id );
@@ -714,8 +713,6 @@ class WCS_Gifting {
 	 * @param int             $meta_id      The meta ID of existing recipient meta data if you wish to only delete a field specified by ID.
 	 */
 	public static function delete_recipient_user( &$subscription, $save = 'save', $meta_id = 0 ) {
-		unset( $subscription->recipient_user );
-
 		// Save the data.
 		if ( 'save' === $save ) {
 			if ( ! empty( $meta_id ) ) {
@@ -734,8 +731,12 @@ class WCS_Gifting {
 	 * @see wc_get_orders()
 	 *
 	 * @param array $args Custom args for query, excluding 'type' and custom var 'is_gifted_subscription'.
+	 *                    Passing `'paginate' => true` switches the return shape to the standard
+	 *                    `wc_get_orders()` paginated stdClass envelope ({orders, total, max_num_pages});
+	 *                    callers that need a count and a page in one shot should use that form.
 	 *
-	 * @return WC_Order[]
+	 * @return WC_Order[]|\stdClass `WC_Order[]` by default, or the paginated envelope
+	 *                              when `$args['paginate']` is true.
 	 *
 	 * @since 7.8.0 - Originally implemented in WooCommerce Subscriptions Gifting 2.0.3.
 	 */

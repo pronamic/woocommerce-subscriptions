@@ -25,7 +25,7 @@ jQuery( document ).ready( function ( $ ) {
 					'#ship-to-different-address-checkbox'
 				);
 				if ( ! shipToDifferentAddressCheckbox.is( ':checked' ) ) {
-					shipToDifferentAddressCheckbox.click();
+					shipToDifferentAddressCheckbox.trigger( 'click' );
 				}
 				setShippingAddressNoticeVisibility( false );
 			} else {
@@ -103,7 +103,7 @@ jQuery( document ).ready( function ( $ ) {
 
 			// If the recipient email element is the active element, the clicked button is the update cart button.
 			if ( $submit.is( 'input.recipient_email' ) ) {
-				$( ':input[type="submit"][name="update_cart"]' ).attr(
+				$( '[type="submit"][name="update_cart"]' ).attr(
 					'clicked',
 					'true'
 				);
@@ -156,7 +156,7 @@ jQuery( document ).ready( function ( $ ) {
 
 		// Control update cart button state
 		const $updateCartButton = $(
-			'.woocommerce-cart-form :input[type="submit"][name="update_cart"]'
+			'.woocommerce-cart-form [type="submit"][name="update_cart"]'
 		);
 
 		if ( $updateCartButton.length && ! allValid ) {
@@ -230,7 +230,7 @@ jQuery( document ).ready( function ( $ ) {
 				e.stopPropagation();
 
 				// Focus on the email field
-				$emailField.focus();
+				$emailField.trigger( 'focus' );
 				return false;
 			}
 		}

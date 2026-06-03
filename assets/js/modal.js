@@ -37,7 +37,7 @@ jQuery( function ( $ ) {
 		resizeModal( $currentModal );
 
 		$( document.body ).toggleClass( 'wcs-modal-open', true );
-		$currentModal.focus();
+		$currentModal.trigger( 'focus' );
 		document.addEventListener( 'focusin', keepFocusInModal );
 
 		// Attach callbacks to handle closing the modal.
@@ -66,7 +66,7 @@ jQuery( function ( $ ) {
 			$( document.body ).removeClass( 'wcs-modal-open' );
 			$currentModal = false;
 			document.removeEventListener( 'focusin', keepFocusInModal );
-			$triggerElement.focus();
+			$triggerElement.trigger( 'focus' );
 		}
 	}
 
@@ -125,7 +125,7 @@ jQuery( function ( $ ) {
 	 */
 	function keepFocusInModal( event ) {
 		if ( $currentModal && ! $currentModal[0].contains( event.target ) ) {
-			$currentModal.focus();
+			$currentModal.trigger( 'focus' );
 		}
 	}
 } );

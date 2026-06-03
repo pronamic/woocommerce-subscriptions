@@ -9,6 +9,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Automattic\WooCommerce_Subscriptions\Internal\Queue_Management\External_Trigger_Settings;
+use Automattic\WooCommerce_Subscriptions\Internal\Queue_Management\Settings as Queue_Management_Settings;
 use Automattic\WooCommerce_Subscriptions\Internal\Telemetry\Collector;
 
 class WC_Subscriptions_Tracker {
@@ -133,6 +135,14 @@ class WC_Subscriptions_Tracker {
 			// Reminder Timing
 			'customer_notifications_offset_number' => $customer_notifications_offset['number'] ?? 'none',
 			'customer_notifications_offset_unit'   => $customer_notifications_offset['unit'] ?? 'none',
+
+			// Processing reliability (Queue Management)
+			// Dedicated processing (Dedicated Queues + Queue Isolator).
+			'dedicated_queues_enabled'             => get_option( Queue_Management_Settings::OPTION_ENABLED ),
+			// Effective rotation value, filtered and clamped to the Min/Max band.
+			'dedicated_queues_effective_rotation'  => ( new Queue_Management_Settings() )->get_effective_rotation(),
+			// External trigger endpoint, for sites that prefer driving Action Scheduler from cron/uptime monitors.
+			'external_trigger_enabled'             => get_option( External_Trigger_Settings::OPTION_ENABLED ),
 		];
 	}
 

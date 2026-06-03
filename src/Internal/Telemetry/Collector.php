@@ -66,27 +66,32 @@ class Collector {
 	 * @return array
 	 */
 	public function collect_telemetry_data(): array {
-		$orders        = new Orders();
-		$products      = new Products();
-		$subscriptions = new Subscriptions();
-		$start_timer   = microtime( true );
+		$orders                = new Orders();
+		$products              = new Products();
+		$subscriptions         = new Subscriptions();
+		$background_processing = new Background_Processing();
+		$start_timer           = microtime( true );
 
 		$telemetry = array(
-			'order_trends'  => array(
+			'order_trends'          => array(
 				'by_order_type'      => $orders->get_aggregated_monthly_order_data( time() - YEAR_IN_SECONDS, time() ),
 				'by_payment_gateway' => $orders->get_aggregated_monthly_order_data_by_payment_gateway( time() - YEAR_IN_SECONDS, time() ),
 			),
-			'products'      => array(
+			'products'              => array(
 				'frequencies' => $products->get_product_frequencies(),
 				'giftable'    => $products->get_active_giftable_products_count(),
 			),
-			'subscriptions' => array(
+			'subscriptions'         => array(
 				'gifted'                 => $subscriptions->get_gifted_subscriptions_count(),
 				'payment_methods'        => $subscriptions->get_subscriptions_by_payment_method(),
 				'renewal_frequencies'    => $subscriptions->get_subscriptions_by_frequency(),
 				'renewing_automatically' => $subscriptions->get_active_subscriptions_renewing_automatically(),
 				'renewing_manually'      => $subscriptions->get_active_subscriptions_renewing_manually(),
 				'subscriber_count'       => $subscriptions->get_subscriber_count(),
+			),
+			'background_processing' => array(
+				'past_due_total'    => $background_processing->get_past_due_action_count(),
+				'past_due_in_group' => $background_processing->get_past_due_action_count_in_subscriptions_group(),
 			),
 		);
 

@@ -2,6 +2,7 @@
 
 namespace Automattic\WooCommerce_Subscriptions\Internal\HealthCheck;
 
+use Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\Admin\CandidatesListTable;
 use DateTimeImmutable;
 use Throwable;
 
@@ -199,10 +200,10 @@ class ScheduleManager {
 	 * @return void
 	 */
 	public function unschedule_daily_scan(): void {
-		if ( ! function_exists( 'as_unschedule_all_actions' ) ) {
-			return;
-		}
-		as_unschedule_all_actions( self::DAILY_SCAN, array(), self::ACTION_GROUP );
+		// Delegate to the protected helper so the AS-availability guard + warning log + spy seam
+		// live in exactly one place. Passing `array()` here is correct: DAILY_SCAN actions are
+		// always enqueued with no args, so filtering for zero-arg matches the real-world shape.
+		$this->unschedule_all_actions( self::DAILY_SCAN, array(), self::ACTION_GROUP );
 	}
 
 	/**
@@ -373,6 +374,99 @@ class ScheduleManager {
 	}
 
 	/**
+	 * Cancel an in-flight scan: clear queued batches from Action Scheduler,
+	 * flip the run row to `cancelled`, and emit the Tracks event so
+	 * downstream analytics know why the run terminated.
+	 *
+	 * Soft-cancel pipeline:
+	 *  1. Read the in-flight row. No row -> nothing to cancel; return null
+	 *     so the form handler can show "no scan to cancel".
+	 *  2. Unschedule any queued SCAN_BATCH actions in the wcs-health-check
+	 *     group. The currently-executing batch (if any) is left to finish;
+	 *     its preflight in `handle_scan_batch()` reads the row's new
+	 *     `cancelled` status and stops chaining further.
+	 *  3. Snapshot the partial-progress counters via `collect_run_stats()`
+	 *     so the Status tab can render "412 of ~2,300 scanned before
+	 *     cancel" without re-querying the candidate table later.
+	 *  4. Atomic UPDATE `running -> cancelled` via `RunStore::cancel()`.
+	 *     The conditional WHERE prevents overwriting a row that another
+	 *     path (batch finalising completed, breaker tripping failed) has
+	 *     already moved out of `running`. If the UPDATE matches zero rows
+	 *     (the race lost), return null so the handler routes the same
+	 *     "no scan to cancel" notice rather than a misleading success.
+	 *  5. Emit Tracks event and return the run id.
+	 *
+	 * Works for any triggered_by value - the merchant clicked the button,
+	 * so the cancel proceeds regardless of whether the scan started
+	 * manually or from the nightly cron.
+	 *
+	 * @return int|null The cancelled scan run id, or null when no scan was
+	 *                  in flight or the atomic guard rejected the UPDATE.
+	 */
+	public function cancel_scan(): ?int {
+		$run = $this->run_store->get_in_flight_scan();
+		if ( null === $run ) {
+			return null;
+		}
+
+		$run_id = (int) $run['id'];
+
+		// Drop queued SCAN_BATCH actions before flipping the row so the
+		// AS worker can't pick a queued batch off the heap between our
+		// status write and the unschedule call. Mirrors the pattern in
+		// `unschedule_daily_scan()` at line 201.
+		//
+		// `null` for the args parameter is load-bearing: `as_unschedule_all_actions()` treats
+		// `array()` as "filter for actions with exactly these args" (i.e. zero-arg actions), which
+		// would never match our SCAN_BATCH actions (they carry the 3-arg `[$run_id, $after_id,
+		// $check_type]` vector). Passing `null` skips the args filter so every queued SCAN_BATCH
+		// in the group is unscheduled regardless of its args.
+		$this->unschedule_all_actions( self::SCAN_BATCH, null, self::ACTION_GROUP );
+
+		// Snapshot the partial-progress counters under the semantic keys the StatusTab
+		// cancelled-state renderer (`render_cancelled_partial_counts()`) reads:
+		//   - `subscriptions_scanned`: how many subs the SQL filter has visited so far.
+		//   - `total_subscriptions`:   store-wide subscription count snapshot at cancel time.
+		//
+		// `total_subscriptions` is a fresh `COUNT(*)` against the subscriptions store rather than
+		// a derivation from `candidates_found` (which only counts classified candidates, NOT the
+		// store total). Preserves all the keys produced by `collect_run_stats()` for forward-compat
+		// (`total_scanned`, `candidates_found`, `candidates_<signal>`, `completed_at`).
+		$collected = $this->collect_run_stats( $run_id );
+		$stats     = array_merge(
+			$collected,
+			array(
+				'subscriptions_scanned' => (int) ( $collected['total_scanned'] ?? 0 ),
+				'total_subscriptions'   => $this->count_all_subscriptions(),
+			)
+		);
+
+		if ( ! $this->run_store->cancel( $run_id, $stats ) ) {
+			// Lost the race - another path moved the row out of
+			// `running`. Surface as "no scan to cancel" rather than
+			// pretending the cancel happened.
+			return null;
+		}
+
+		$raw_triggered_by = (string) ( $run['triggered_by'] ?? '' );
+		$triggered_by     = 'user' === $raw_triggered_by || 0 === strpos( $raw_triggered_by, 'user:' )
+			? 'user'
+			: 'scheduled';
+
+		$this->tracks->scan_cancelled(
+			array(
+				'run_id'                => $run_id,
+				'triggered_by'          => $triggered_by,
+				'subscriptions_scanned' => (int) ( $stats['subscriptions_scanned'] ?? 0 ),
+				'total_subscriptions'   => (int) ( $stats['total_subscriptions'] ?? 0 ),
+			)
+		);
+
+		return $run_id;
+	}
+
+
+	/**
 	 * Handler for the SCAN_BATCH single-action. Processes one keyset
 	 * page for the given check type, persists the classifications, and
 	 * enqueues the next page.
@@ -418,6 +512,17 @@ class ScheduleManager {
 	 */
 	public function handle_scan_batch( int $run_id, int $after_id, string $check_type = self::CHECK_TYPE_SUPPORTS_AUTO_RENEWAL ): void {
 		try {
+			// Preflight: read the run row before doing any work. A run that
+			// is no longer in `running` (cancelled by the merchant, already
+			// completed, failed elsewhere, or missing entirely) must short-
+			// circuit the entire pipeline - including the back-off retry
+			// below, which would otherwise re-enqueue a cancelled chain in
+			// 5 minutes.
+			$run = $this->run_store->get( $run_id );
+			if ( null === $run || RunStore::STATUS_RUNNING !== (string) ( $run['status'] ?? '' ) ) {
+				return;
+			}
+
 			if ( $this->circuit_breaker->should_back_off() ) {
 				$this->schedule_single_action(
 					time() + self::BACK_OFF_DELAY_SECONDS,
@@ -667,9 +772,18 @@ class ScheduleManager {
 	 * @return void
 	 */
 	protected function enqueue_async_action( string $hook, array $args, string $group ): void {
-		if ( function_exists( 'as_enqueue_async_action' ) ) {
-			as_enqueue_async_action( $hook, $args, $group );
+		if ( ! function_exists( 'as_enqueue_async_action' ) ) {
+			wc_get_logger()->warning(
+				sprintf(
+					'Health Check: as_enqueue_async_action() is not available - skipping enqueue of "%s" in group "%s". Action Scheduler may not be loaded; the scan chain cannot advance.',
+					$hook,
+					$group
+				),
+				array( 'source' => 'wcs-health-check' )
+			);
+			return;
 		}
+		as_enqueue_async_action( $hook, $args, $group );
 	}
 
 	/**
@@ -683,9 +797,18 @@ class ScheduleManager {
 	 * @return void
 	 */
 	protected function schedule_single_action( int $timestamp, string $hook, array $args, string $group ): void {
-		if ( function_exists( 'as_schedule_single_action' ) ) {
-			as_schedule_single_action( $timestamp, $hook, $args, $group );
+		if ( ! function_exists( 'as_schedule_single_action' ) ) {
+			wc_get_logger()->warning(
+				sprintf(
+					'Health Check: as_schedule_single_action() is not available - skipping schedule of "%s" in group "%s". Action Scheduler may not be loaded; the scan chain cannot advance.',
+					$hook,
+					$group
+				),
+				array( 'source' => 'wcs-health-check' )
+			);
+			return;
 		}
+		as_schedule_single_action( $timestamp, $hook, $args, $group );
 	}
 
 	/**
@@ -701,9 +824,18 @@ class ScheduleManager {
 	 * @return void
 	 */
 	protected function schedule_recurring_action( int $timestamp, int $interval, string $hook, array $args, string $group ): void {
-		if ( function_exists( 'as_schedule_recurring_action' ) ) {
-			as_schedule_recurring_action( $timestamp, $interval, $hook, $args, $group );
+		if ( ! function_exists( 'as_schedule_recurring_action' ) ) {
+			wc_get_logger()->warning(
+				sprintf(
+					'Health Check: as_schedule_recurring_action() is not available - skipping schedule of "%s" in group "%s". Action Scheduler may not be loaded; the nightly scan will not re-arm.',
+					$hook,
+					$group
+				),
+				array( 'source' => 'wcs-health-check' )
+			);
+			return;
 		}
+		as_schedule_recurring_action( $timestamp, $interval, $hook, $args, $group );
 	}
 
 	/**
@@ -723,5 +855,53 @@ class ScheduleManager {
 		}
 
 		return (bool) as_next_scheduled_action( $hook, $args, $group );
+	}
+
+	/**
+	 * Delegate to `as_unschedule_all_actions()`. Overridable for tests so
+	 * `cancel_scan()` can be exercised without a running AS worker.
+	 *
+	 * `$args` accepts `null` to skip Action Scheduler's args-match filter (used by
+	 * `cancel_scan()` to unschedule every queued SCAN_BATCH in the group regardless
+	 * of its arg vector). Passing `array()` filters for zero-arg actions only - that
+	 * shape would never match SCAN_BATCH actions, which always carry the 3-arg
+	 * `[$run_id, $after_id, $check_type]` vector.
+	 *
+	 * @param string     $hook  Action hook to unschedule.
+	 * @param array|null $args  Handler args to match, or null to skip the args filter.
+	 * @param string     $group AS group identifier.
+	 *
+	 * @return void
+	 */
+	protected function unschedule_all_actions( string $hook, ?array $args, string $group ): void {
+		if ( ! function_exists( 'as_unschedule_all_actions' ) ) {
+			wc_get_logger()->warning(
+				sprintf(
+					'Health Check: as_unschedule_all_actions() is not available - skipping unschedule of "%s" in group "%s". Action Scheduler may not be loaded.',
+					$hook,
+					$group
+				),
+				array( 'source' => 'wcs-health-check' )
+			);
+			return;
+		}
+
+		as_unschedule_all_actions( $hook, $args, $group );
+	}
+
+	/**
+	 * Snapshot of the store-wide subscription total at the moment the helper is called.
+	 *
+	 * Used by `cancel_scan()` to persist a `total_subscriptions` figure on the cancelled run
+	 * row so the StatusTab can render "N of ~M scanned before cancel" without enumerating the
+	 * subscriptions store on every render. Delegates to the same
+	 * `CandidatesListTable::count_all_subscriptions()` static helper the StatusTab uses for the
+	 * SCOPE card so the two surfaces agree on the denominator. Overridable for tests so the
+	 * cancel-scan suite can pin the value without seeding real subscription rows.
+	 *
+	 * @return int
+	 */
+	protected function count_all_subscriptions(): int {
+		return CandidatesListTable::count_all_subscriptions();
 	}
 }

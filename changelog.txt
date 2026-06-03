@@ -1,5 +1,25 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2026-06-02 - version 8.8.0
+* Add: Resolve action for the Subscriptions Health Check tool — review a flagged subscription and apply the recommended fix (switch to automatic renewal, or process the renewal now).
+* Add: Cancel button for in-flight Subscriptions Health Check scans, with partial scan results preserved in the candidates table.
+* Add: New tools to improve scheduled action reliability, including supporting changes within the Health Check screen.
+* Update: Subscriptions Health Check tool no longer owns the nightly-scan toggle; manage the schedule from WooCommerce > Settings > Subscriptions.
+* Update: Subscriptions Health Check status bar — suppress Action Scheduler admin notices on the tab to avoid redundant or divergent past-due counts, keep the past-due actions link inside WC > Status, and refine card typography and spacing per design.
+* Update: Subscriptions health check no longer reloads the whole page every few seconds while a scan runs; it updates the scan progress in the background and reloads only once the scan finishes or is cancelled.
+* Update: Subscriptions Health Check candidates table now colours subscription status labels (Active, Expired, Pending Cancellation, etc.) consistently with the main Subscriptions list.
+* Fix: Prevent fatal error in wp-admin from overly narrow argument type.
+* Fix: Lowercase "in" in the relative date display (e.g. "in 2 days") for consistency with the existing "X ago" format.
+* Fix: Subscriptions health check now shows live scan progress while a scan is running.
+* Fix: Subscriptions health check empty-state message now references the correct "Run now" button label.
+* Fix: Prevent cart errors during subscription switching when a prorated upgrade calculation encounters a zero-day billing cycle.
+* Fix: Adding a subscription product to the cart while a Resubscribe or Subscription Switch for the same product is already in progress is now blocked with a clear error, preventing accidental duplicate line items.
+* Fix: "Limit to one active subscription" is now enforced at the cart and checkout level, closing duplicate-subscription bypasses that previously slipped through to the order.
+* Fix: Hide recurring-only coupons from block checkout initial order summary.
+* Dev: When retrying a failed renewal with the same payment gateway, `update_payment_method()` is no longer called. This means `woocommerce_subscriptions_pre_update_payment_method`, `woocommerce_subscription_payment_method_updated`, and `woocommerce_subscription_payment_method_updated_to_{gateway}` no longer fire for same-gateway retries. Extensions needing retry-event notifications should use `woocommerce_subscription_failing_payment_method_updated`, which always fires.
+* Dev: Class autoloading now uses Composer's classmap in place of the bespoke `WCS_Autoloader` / `WCS_Core_Autoloader` implementations. Both classes, and `WC_Subscriptions_Core_Plugin::get_autoloader()`, are retained as deprecated no-op shells under `includes/deprecated/` for back-compat with external integrations.
+* Dev: Improved compatibility with jQuery 4.x, which is expected to roll out in a future WordPress release.
+
 2026-05-01 - version 8.7.1
 * Fix: Subscriptions health check — Renewal preference column sorting now groups rows by their displayed value, and a "Default" filter option has been added.
 

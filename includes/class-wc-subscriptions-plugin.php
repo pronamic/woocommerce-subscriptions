@@ -9,6 +9,7 @@
 defined( 'ABSPATH' ) || exit;
 
 use Automattic\WooCommerce_Subscriptions\Internal\Telemetry\Events as WC_Tracks_Events;
+use Automattic\WooCommerce_Subscriptions\Internal\Queue_Management\Manager as Queue_Management;
 
 /**
  * @method static WC_Subscriptions_Plugin instance()
@@ -27,6 +28,8 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 		WCS_Manual_Renewal_Manager::init();
 
 		( new \Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\Bootstrap() )->register();
+		( new Queue_Management() )->setup();
+		\Automattic\WooCommerce_Subscriptions\Internal\Abilities\Abilities_Registrar::init();
 		WCS_Customer_Suspension_Manager::init();
 		WCS_Drip_Downloads_Manager::init();
 		WCS_Zero_Initial_Payment_Checkout_Manager::init();

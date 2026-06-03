@@ -213,7 +213,7 @@ class WCS_Admin_Reports {
 	 */
 	public static function get_report( $name ) {
 		$name  = sanitize_title( str_replace( '_', '-', $name ) );
-		$class = 'WCS_Report_' . str_replace( '-', '_', $name );
+		$class = 'WCS_Report_' . str_replace( ' ', '_', ucwords( str_replace( '-', ' ', $name ) ) );
 
 		if ( ! class_exists( $class ) ) {
 			return;

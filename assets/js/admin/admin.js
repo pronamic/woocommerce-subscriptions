@@ -397,7 +397,8 @@ jQuery( function ( $ ) {
 
 					// Replace the regular price field with the trial period field
 					$regularPriceRow
-						.children( ':first' )
+						.children()
+						.first()
 						.addClass( 'hide_if_variable-subscription' );
 
 					$( this ).addClass( 'wcs_moved' );
@@ -692,7 +693,7 @@ jQuery( function ( $ ) {
 		.not(
 			'.variable_subscription_pricing .options_group.subscription_pricing'
 		)
-		.insertBefore( $( '.options_group.pricing:first' ) );
+		.insertBefore( $( '.options_group.pricing' ).first() );
 	$( '.show_if_subscription.clear' ).insertAfter(
 		$( '.options_group.subscription_pricing' )
 	);
@@ -851,7 +852,7 @@ jQuery( function ( $ ) {
 			'select#product-type option[value="' +
 				WCSubscriptions.productType +
 				'"]'
-		).attr( 'selected', 'selected' );
+		).prop( 'selected', true );
 		$( 'select#product-type' ).trigger( 'select' ).trigger( 'change' );
 	}
 
@@ -1166,6 +1167,22 @@ jQuery( function ( $ ) {
 		} );
 
 		toggleDownloadsLineItems( $downloadsEnableCheckbox.is( ':checked' ) );
+	}
+
+	// Obtain references to the 'Enable web cron support' input checkbox, and to its sibling row containing the 'Web cron URL' field.
+	const externalTriggerEnabled  = document.getElementById( 'woocommerce_subscriptions_external_trigger_enabled' );
+	const externalTriggerUrlInput = document.getElementById( 'woocommerce_subscriptions_external_trigger_options_url_display' );
+	const externalTriggerUrlRow   = externalTriggerUrlInput ? externalTriggerUrlInput.closest( 'tr' ) : null;
+
+	if ( externalTriggerEnabled && externalTriggerUrlRow ) {
+		// Selectively show or hide the 'Web cron URL' field (it isn't needed if web cron support is disabled).
+		const toggleExternalTriggerUrlRow = () => {
+			externalTriggerUrlRow.style.display = externalTriggerEnabled.checked ? '' : 'none';
+		};
+
+		// Set the visibility initially, then again everytime the checkbox is toggled.
+		toggleExternalTriggerUrlRow();
+		externalTriggerEnabled.addEventListener( 'change', toggleExternalTriggerUrlRow );
 	}
 
 	// Don't display the variation notice for variable subscription products

@@ -704,8 +704,34 @@ class WC_Subscriptions_Change_Payment_Gateway {
 				$new_payment_method = wcs_get_objects_property( $renewal_order, 'payment_method' );
 			}
 
-			self::update_payment_method( $subscription, $new_payment_method );
+			// Only call update_payment_method() when the gateway has actually changed.
+			// When retrying a failed renewal with the same gateway (e.g. via the
+			// Health Check tool), calling it would produce a confusing order note
+			// ("changed from X to X") and unnecessarily cancel/re-register the
+			// subscription with the gateway.
+			//
+			// Note: this means the hooks inside update_payment_method() —
+			// woocommerce_subscriptions_pre_update_payment_method,
+			// woocommerce_subscription_payment_method_updated, and
+			// woocommerce_subscription_payment_method_updated_to_{gateway} —
+			// do not fire for same-gateway retries. No built-in integration
+			// is affected (PayPal's cancellation guard and its trigger are
+			// both inside update_payment_method, so skipping the function
+			// skips both atomically). Third-party extensions relying on
+			// these hooks for same-gateway events should use the
+			// woocommerce_subscription_failing_payment_method_updated hook
+			// below, which always fires.
+			if ( $new_payment_method !== $subscription->get_payment_method() ) {
+				self::update_payment_method( $subscription, $new_payment_method );
+			}
 
+			/**
+			 * Always fire the hooks so third-party extensions that listen for
+			 * retry-event side effects (clearing failure counters, re-registering
+			 * with external billing systems, etc.) continue to receive them.
+			 *
+			 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
+			 */
 			do_action( 'woocommerce_subscription_failing_payment_method_updated', $subscription, $renewal_order );
 			do_action( 'woocommerce_subscription_failing_payment_method_updated_' . $new_payment_method, $subscription, $renewal_order );
 		}
