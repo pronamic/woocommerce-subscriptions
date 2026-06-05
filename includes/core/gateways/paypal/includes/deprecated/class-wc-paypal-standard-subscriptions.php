@@ -119,8 +119,8 @@ class WC_PayPal_Standard_Subscriptions {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.2
 	 */
 	public static function get_order_id_and_key( $args ) {
-		_deprecated_function( __METHOD__, '2.0', 'WCS_Paypal_Standard_IPN_Handler::get_order_id_and_key()' );
-		return WCS_Paypal_Standard_IPN_Handler::get_order_id_and_key( $args, 'shop_order' );
+		_deprecated_function( __METHOD__, '2.0', 'WCS_PayPal_Standard_IPN_Handler::get_order_id_and_key()' );
+		return WCS_PayPal_Standard_IPN_Handler::get_order_id_and_key( $args, 'shop_order' );
 	}
 
 	/**

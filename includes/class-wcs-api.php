@@ -66,7 +66,6 @@ class WCS_API {
 		);
 
 		foreach ( $endpoint_classes as $class ) {
-			// @phpstan-ignore class.nameCase
 			$controller = new $class();
 			$controller->register_routes();
 		}

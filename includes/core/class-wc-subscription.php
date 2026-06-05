@@ -1337,7 +1337,7 @@ class WC_Subscription extends WC_Order {
 			foreach ( $this->get_related_orders( 'all', $order_type ) as $related_order_id ) {
 				$related_order = wc_get_order( $related_order_id );
 				$date          = ( ! $related_order ) ? null : wcs_get_objects_property( $related_order, $date_type );
-				if ( is_a( $date, 'WC_Datetime' ) ) {
+				if ( is_a( $date, 'WC_DateTime' ) ) {
 					break;
 				}
 			}

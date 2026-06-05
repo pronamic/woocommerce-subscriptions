@@ -571,7 +571,7 @@ class WCS_PayPal {
 		if ( 'reference' === $ipn_type ) {
 
 			if ( ! isset( self::$ipn_handlers['reference'] ) ) {
-				self::$ipn_handlers['reference'] = new WCS_Paypal_Reference_Transaction_IPN_Handler( $use_sandbox, self::get_option( 'receiver_email' ) );
+				self::$ipn_handlers['reference'] = new WCS_PayPal_Reference_Transaction_IPN_Handler( $use_sandbox, self::get_option( 'receiver_email' ) );
 			}
 
 			$ipn_handler = self::$ipn_handlers['reference'];
@@ -579,7 +579,7 @@ class WCS_PayPal {
 		} else {
 
 			if ( ! isset( self::$ipn_handlers['standard'] ) ) {
-				self::$ipn_handlers['standard'] = new WCS_Paypal_Standard_IPN_Handler( $use_sandbox, self::get_option( 'receiver_email' ) );
+				self::$ipn_handlers['standard'] = new WCS_PayPal_Standard_IPN_Handler( $use_sandbox, self::get_option( 'receiver_email' ) );
 			}
 
 			$ipn_handler = self::$ipn_handlers['standard'];

@@ -71,6 +71,7 @@ class ComposerStaticInit7386317e337c3b28ab5f3c870e2c0504
         'Automattic\\WooCommerce_Subscriptions\\Internal\\Queue_Management\\External_Trigger_Settings' => __DIR__ . '/../..' . '/src/Internal/Queue_Management/External_Trigger_Settings.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\Queue_Management\\Manager' => __DIR__ . '/../..' . '/src/Internal/Queue_Management/Manager.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\Queue_Management\\Queue_Isolator' => __DIR__ . '/../..' . '/src/Internal/Queue_Management/Queue_Isolator.php',
+        'Automattic\\WooCommerce_Subscriptions\\Internal\\Queue_Management\\Resolves_Existing_Groups' => __DIR__ . '/../..' . '/src/Internal/Queue_Management/Resolves_Existing_Groups.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\Queue_Management\\Settings' => __DIR__ . '/../..' . '/src/Internal/Queue_Management/Settings.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Background_Processing' => __DIR__ . '/../..' . '/src/Internal/Telemetry/Background_Processing.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Collector' => __DIR__ . '/../..' . '/src/Internal/Telemetry/Collector.php',

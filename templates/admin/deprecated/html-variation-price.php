@@ -3,7 +3,7 @@
  * Outputs a subscription variation's pricing fields for WooCommerce prior to 2.3
  *
  * @var int $loop
- * @var WP_POST $variation
+ * @var WP_Post $variation
  * @var string $subscription_period
  * @var array $variation_data array of variation data
  */

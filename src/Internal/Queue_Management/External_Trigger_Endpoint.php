@@ -21,6 +21,8 @@ use WP_REST_Response;
  */
 class External_Trigger_Endpoint {
 
+	use Resolves_Existing_Groups;
+
 	/**
 	 * REST API namespace the endpoint is registered under. We piggy-back on WC's stable public namespace so
 	 * the URL structure aligns with other Subscriptions / WooCommerce endpoints.
@@ -100,13 +102,16 @@ class External_Trigger_Endpoint {
 	}
 
 	/**
-	 * Handle an incoming request. Four-step decision:
+	 * Handle an incoming request. Five-step decision:
 	 *
 	 *  1. Feature gate — `disabled` 403 if the option is off (defensive; the route is normally not registered
 	 *     in this state, but this protects against test paths or future code that bypasses Manager).
 	 *  2. Token check — `invalid_token` 403 on mismatch or missing.
 	 *  3. Rate limit — `rate_limited` 200 if within the window since the last dispatch.
-	 *  4. Dispatch — `dispatched` 200, record the timestamp, and register a shutdown callback that runs the
+	 *  4. Target group — `not_dispatched` 200 if no target action group exists yet: there is no subscription
+	 *     work to run, and scoping a claim to a non-existent group would make Action Scheduler throw. The
+	 *     rate-limit clock is left untouched, since nothing was dispatched.
+	 *  5. Dispatch — `dispatched` 200, record the timestamp, and register a shutdown callback that runs the
 	 *     queue scoped to our groups after the response has been sent.
 	 *
 	 * @param WP_REST_Request $request Incoming request.
@@ -147,6 +152,21 @@ class External_Trigger_Endpoint {
 			);
 		}
 
+		// Nothing to dispatch if the target action group has no row yet: scoping the run to a non-existent
+		// group makes Action Scheduler throw, and there is no subscription work to process anyway. Report it
+		// rather than firing an unscoped run, and leave the rate-limit clock untouched — this was not a
+		// dispatch. See Resolves_Existing_Groups for the full rationale.
+		if ( empty( $this->existing_groups( $this->groups ) ) ) {
+			$this->log( 'External trigger not dispatched: target action group does not exist yet.' );
+			return new WP_REST_Response(
+				array(
+					'status' => 'not_dispatched',
+					'hint'   => 'Target action group does not exist yet.',
+				),
+				200
+			);
+		}
+
 		update_option( External_Trigger_Settings::OPTION_LAST_DISPATCH, $now, false );
 		$next_eligible_at = $now + $window;
 
@@ -173,13 +193,20 @@ class External_Trigger_Endpoint {
 	 * Shutdown-time callback that flushes the response to the client (where the SAPI permits), then runs the
 	 * AS queue with the claim filter scoped to our groups. Public because WordPress's hook system invokes it.
 	 *
-	 * The scope is set unconditionally for this run (not subject to the dedicated-queue rotation logic): the
-	 * external trigger's contract is "run subscription work right now," not "maybe run subscription work."
+	 * The scope is not subject to the dedicated-queue rotation logic — the external trigger's contract is "run
+	 * subscription work right now." It does, however, stand down entirely if the target group has no row yet
+	 * (scoping a claim to a non-existent group makes Action Scheduler throw, and there is nothing to run). The
+	 * primary gate for that is in {@see handle_request()}, which never schedules this in that case; the check
+	 * here is a defensive re-check for any direct caller. See {@see Resolves_Existing_Groups}.
 	 *
 	 * @return void
 	 */
 	public function run_dispatched_queue(): void {
 		Request::release_client();
+
+		if ( empty( $this->existing_groups( $this->groups ) ) ) {
+			return;
+		}
 
 		$store   = ActionScheduler_Store::instance();
 		$capable = is_callable( array( $store, 'set_claim_filter' ) ) && is_callable( array( $store, 'get_claim_filter' ) );

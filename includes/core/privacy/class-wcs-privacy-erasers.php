@@ -112,7 +112,7 @@ class WCS_Privacy_Erasers {
 		 *
 		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 		 * @param array    $props Keys are the prop names, values are the data type we'll be passing to wp_privacy_anonymize_data().
-		 * @param WC_subscription $subscription A subscription object.
+		 * @param WC_Subscription $subscription A subscription object.
 		 */
 		$props_to_remove = apply_filters( 'woocommerce_privacy_remove_subscription_personal_data_props', array(
 			'customer_ip_address' => 'ip',
@@ -192,7 +192,7 @@ class WCS_Privacy_Erasers {
 		 * Allow extensions to remove their own personal data for this subscription.
 		 *
 		 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
-		 * @param WC_subscription $subscription A subscription object.
+		 * @param WC_Subscription $subscription A subscription object.
 		 */
 		do_action( 'woocommerce_privacy_remove_subscription_personal_data', $subscription );
 	}

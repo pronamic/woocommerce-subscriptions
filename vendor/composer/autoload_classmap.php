@@ -48,6 +48,7 @@ return array(
     'Automattic\\WooCommerce_Subscriptions\\Internal\\Queue_Management\\External_Trigger_Settings' => $baseDir . '/src/Internal/Queue_Management/External_Trigger_Settings.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\Queue_Management\\Manager' => $baseDir . '/src/Internal/Queue_Management/Manager.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\Queue_Management\\Queue_Isolator' => $baseDir . '/src/Internal/Queue_Management/Queue_Isolator.php',
+    'Automattic\\WooCommerce_Subscriptions\\Internal\\Queue_Management\\Resolves_Existing_Groups' => $baseDir . '/src/Internal/Queue_Management/Resolves_Existing_Groups.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\Queue_Management\\Settings' => $baseDir . '/src/Internal/Queue_Management/Settings.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Background_Processing' => $baseDir . '/src/Internal/Telemetry/Background_Processing.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\Telemetry\\Collector' => $baseDir . '/src/Internal/Telemetry/Collector.php',

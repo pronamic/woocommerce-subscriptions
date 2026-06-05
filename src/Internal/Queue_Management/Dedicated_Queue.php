@@ -21,6 +21,9 @@ use ActionScheduler_Store;
  * @internal This class may be modified, moved or removed in future releases.
  */
 class Dedicated_Queue {
+
+	use Resolves_Existing_Groups;
+
 	/**
 	 * Prefix for the per-scope option key that persists the turn counter. Suffixed with `$this->name`.
 	 */
@@ -122,6 +125,15 @@ class Dedicated_Queue {
 					$this->name
 				)
 			);
+			return;
+		}
+
+		// A `group` claim for a slug that has never been used makes Action Scheduler throw when it resolves the
+		// slug at claim time, aborting the entire focus run. Skip without consuming a rotation turn (return
+		// before the counter is touched), so we apply the scope on a later run once the group exists. See
+		// Resolves_Existing_Groups for the full rationale.
+		if ( empty( $this->existing_groups( $this->groups ) ) ) {
+			$this->log( sprintf( 'Dedicated queue runner "%1$s" not applied: none of its groups exist yet.', $this->name ) );
 			return;
 		}
 

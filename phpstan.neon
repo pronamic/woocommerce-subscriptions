@@ -787,16 +787,6 @@ parameters:
 			path: includes/core/gateways/paypal/class-wcs-paypal.php
 
 		-
-			message: "#^Class WCS_PayPal_Reference_Transaction_IPN_Handler referenced with incorrect case\\: WCS_Paypal_Reference_Transaction_IPN_Handler\\.$#"
-			count: 1
-			path: includes/core/gateways/paypal/class-wcs-paypal.php
-
-		-
-			message: "#^Class WCS_PayPal_Standard_IPN_Handler referenced with incorrect case\\: WCS_Paypal_Standard_IPN_Handler\\.$#"
-			count: 1
-			path: includes/core/gateways/paypal/class-wcs-paypal.php
-
-		-
 			message: "#^Method WCS_PayPal\\:\\:get_api\\(\\) has invalid return type WCS_PayPal_Express_API\\.$#"
 			count: 1
 			path: includes/core/gateways/paypal/class-wcs-paypal.php
@@ -1052,11 +1042,6 @@ parameters:
 			path: includes/core/gateways/paypal/includes/deprecated/class-wc-paypal-standard-subscriptions.php
 
 		-
-			message: "#^Class WCS_PayPal_Standard_IPN_Handler referenced with incorrect case\\: WCS_Paypal_Standard_IPN_Handler\\.$#"
-			count: 1
-			path: includes/core/gateways/paypal/includes/deprecated/class-wc-paypal-standard-subscriptions.php
-
-		-
 			message: "#^PHPDoc tag @param references unknown parameter\\: \\$item_name$#"
 			count: 1
 			path: includes/core/gateways/paypal/includes/deprecated/class-wc-paypal-standard-subscriptions.php
@@ -1094,11 +1079,6 @@ parameters:
 		-
 			message: "#^Binary operation \"\\+\" between string and 120 results in an error\\.$#"
 			count: 1
-			path: includes/core/upgrades/class-wc-subscriptions-upgrader.php
-
-		-
-			message: "#^Class WC_Logger referenced with incorrect case\\: WC_logger\\.$#"
-			count: 2
 			path: includes/core/upgrades/class-wc-subscriptions-upgrader.php
 
 		-
@@ -1472,16 +1452,6 @@ parameters:
 			path: templates/admin/deprecated/html-variation-price.php
 
 		-
-			message: "#^Class WP_Post referenced with incorrect case\\: WP_POST\\.$#"
-			count: 1
-			path: templates/admin/deprecated/html-variation-price.php
-
-		-
-			message: "#^Class WP_Post referenced with incorrect case\\: WP_POST\\.$#"
-			count: 1
-			path: templates/admin/deprecated/html-variation-synchronisation.php
-
-		-
 			message: "#^Variable \\$display_annual_select might not be defined\\.$#"
 			count: 1
 			path: templates/admin/deprecated/html-variation-synchronisation.php
@@ -1540,16 +1510,6 @@ parameters:
 			message: "#^Calling self\\:\\:get_trial_period_validation_message\\(\\) outside of class scope\\.$#"
 			count: 1
 			path: templates/admin/html-variation-price.php
-
-		-
-			message: "#^Class WP_Post referenced with incorrect case\\: WP_POST\\.$#"
-			count: 1
-			path: templates/admin/html-variation-price.php
-
-		-
-			message: "#^Class WP_Post referenced with incorrect case\\: WP_POST\\.$#"
-			count: 1
-			path: templates/admin/html-variation-synchronisation.php
 
 		-
 			message: "#^Variable \\$display_annual_select might not be defined\\.$#"

@@ -145,8 +145,7 @@ class WCS_Webhooks {
 				case 'wp_api_v2':
 					// There is no v2 subscritpion endpoint support so they fall back to v1.
 					$request    = new WP_REST_Request( 'GET' );
-					// @phpstan-ignore class.nameCase
-					$controller = new WC_REST_Subscriptions_v1_Controller();
+					$controller = new WC_REST_Subscriptions_V1_Controller();
 
 					$request->set_param( 'id', $resource_id );
 					$result  = $controller->get_item( $request );

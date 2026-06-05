@@ -278,7 +278,7 @@ class WC_Subscriptions_Upgrader {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.4.0
 	 */
 	public static function initialise_background_updaters() {
-		$logger = new WC_logger();
+		$logger = new WC_Logger();
 		self::$background_updaters['3.1']['subtracted_base_tax_repair'] = new WCS_Repair_Subtracted_Base_Tax_Line_Item_Meta( $logger );
 
 		// Init the updaters
@@ -1009,7 +1009,7 @@ class WC_Subscriptions_Upgrader {
 		$woocommerce_database_version = get_option( 'woocommerce_version' );
 
 		if ( $woocommerce_active_version !== $woocommerce_database_version && version_compare( $woocommerce_active_version, '3.0', '>=' ) && version_compare( $woocommerce_database_version, '3.0', '<' ) ) {
-			$logger             = new WC_logger();
+			$logger             = new WC_Logger();
 			$background_updater = new WCS_Repair_Subscription_Address_Indexes( $logger );
 			$background_updater->init();
 			$background_updater->schedule_repair();

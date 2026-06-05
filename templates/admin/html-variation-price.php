@@ -7,7 +7,7 @@
  * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.12
  *
  * @var int $loop
- * @var WP_POST $variation
+ * @var WP_Post $variation
  * @var WC_Product_Subscription_Variation $variation_product
  * @var string $billing_period
  * @var array $variation_data array of variation data

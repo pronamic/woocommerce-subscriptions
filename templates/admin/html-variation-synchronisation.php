@@ -5,7 +5,7 @@
  * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.0
  *
  * @var int $loop
- * @var WP_POST $variation
+ * @var WP_Post $variation
  * @var string $subscription_period
  * @var array $variation_data array of variation data
  */

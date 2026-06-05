@@ -31,7 +31,7 @@ All classes live under `Automattic\WooCommerce_Subscriptions\Internal\Queue_Mana
 
 ### Processing channels
 - **`Dedicated_Queue`** — rotation-based queue scoping. On every *N*th run, sets a `group` claim filter so that run claims only subscription actions. Hooks `action_scheduler_before_process_queue` at priority `100`. Default rotation is `3` (every third run is a focus turn).
-- **`External_Trigger_Endpoint`** — REST route at `/wp-json/wc/v3/subscriptions/job-queue?wcs_token=<token>`. Accepts `GET`/`POST`/`PUT`. On a valid + non-rate-limited hit, returns `200 { "status": "dispatched" }` immediately and registers a `shutdown` callback that fires `action_scheduler_run_queue` with the subscription `group` filter set. Token-gated (courtesy, not authentication); rate-limited (default 60s, filterable).
+- **`External_Trigger_Endpoint`** — REST route at `/wp-json/wc/v3/subscriptions/job-queue?wcs_token=<token>`. Accepts `GET`/`POST`/`PUT`. On a valid + non-rate-limited hit, returns `200 { "status": "dispatched" }` immediately and registers a `shutdown` callback that fires `action_scheduler_run_queue` with the subscription `group` filter set. If none of the target action groups exist yet (no subscription action has ever been scheduled under them), it instead returns `200 { "status": "not_dispatched", "hint": "..." }` without registering the shutdown callback and without advancing the rate-limit clock — there is no subscription work to run, and scoping a claim to a non-existent group would make Action Scheduler throw. Token-gated (courtesy, not authentication); rate-limited (default 60s, filterable).
 
 ### Supporting tools
 - **`Queue_Isolator`** — asserts an `exclude-groups` claim filter on regular queue runs so the run skips subscription work. Hooks at priority `101` — one step later than `Dedicated_Queue` so it observes `Dedicated_Queue`'s focus-turn filter and defers silently. By default, this will be active whenever the dedicated queue is on, because isolating subscription work from regular runs only makes sense alongside a dedicated path to process it.
@@ -62,15 +62,16 @@ WP-CLI's `--group` / `--exclude-groups` flags populate the same filters, so the 
 
 ## Diagnostics
 
-Three log sources, all at WC's `debug` level:
+Log sources, at WC's `debug` level except where noted:
 
 | Source | Emitter | Shapes |
 |---|---|---|
-| `woocommerce-subscriptions-dedicated-queue` | `Dedicated_Queue` | *applied* / *blocked (foreign filter)* / *not yet (counter < rotation)* |
-| `woocommerce-subscriptions-queue-isolator` | `Queue_Isolator` | *applied* / *deferred (foreign filter)* / *no capable store* |
-| `woocommerce-subscriptions-external-trigger` | `External_Trigger_Endpoint` | *dispatched* / *rate-limited* / *invalid token* / *disabled* |
+| `woocommerce-subscriptions-dedicated-queue` | `Dedicated_Queue` | *applied* / *blocked (foreign filter)* / *not yet (counter < rotation)* / *skipped (group absent)* |
+| `woocommerce-subscriptions-queue-isolator` | `Queue_Isolator` | *applied* / *deferred (foreign filter)* / *no capable store* / *skipped (group absent)* |
+| `woocommerce-subscriptions-external-trigger` | `External_Trigger_Endpoint` | *dispatched* / *not dispatched (group absent)* / *rate-limited* / *invalid token* / *disabled* |
+| `woocommerce-subscriptions` (shared plugin log) | `Resolves_Existing_Groups` | *group lookup failed (DB error)* — `warning` level |
 
-Every `Dedicated_Queue` entry is prefixed with `[scope=<colon-joined-groups>]` so multiple co-resident scopes (current or future) can be distinguished. The *blocked* / *deferred* shapes include the offending filter name and its value, so an operator chasing a "feature enabled, no observable effect" report has a breadcrumb.
+Every `Dedicated_Queue` entry is prefixed with `[scope=<colon-joined-groups>]` so multiple co-resident scopes (current or future) can be distinguished. The *blocked* / *deferred* shapes include the offending filter name and its value, so an operator chasing a "feature enabled, no observable effect" report has a breadcrumb. The *skipped (group absent)* / *not dispatched (group absent)* shapes appear when a feature stands down because none of its target groups have a row in the `actionscheduler_groups` table yet — expected on a fresh store, until the first subscription action is scheduled. The `warning`-level *group lookup failed* entry — emitted to the shared `woocommerce-subscriptions` log rather than a queue-specific source — distinguishes a genuine database error in that existence check from the normal first-activation case (both otherwise present as "no groups yet").
 
 ## Extension points
 

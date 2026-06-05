@@ -27,6 +27,8 @@ use ActionScheduler_Store;
  */
 class Queue_Isolator {
 
+	use Resolves_Existing_Groups;
+
 	/**
 	 * Hook priority. One step later than {@see Dedicated_Queue}'s 100 so Dedicated_Queue gets first crack
 	 * at the run, and we defer to its focus-mode claim filter when one is set.
@@ -114,6 +116,15 @@ class Queue_Isolator {
 					$this->format_filter_value( $existing_filter['value'] )
 				)
 			);
+			return;
+		}
+
+		// Nothing to isolate until at least one of our groups exists as a row. Asserting an `exclude-groups`
+		// filter for a group slug that has never been used makes Action Scheduler throw when it resolves the
+		// slug at claim time, aborting the entire regular run (not just subscription work). See
+		// Resolves_Existing_Groups for the full rationale; we engage on a later run once the group exists.
+		if ( empty( $this->existing_groups( $this->groups ) ) ) {
+			$this->log( 'Isolation not applied: none of the configured groups exist yet.' );
 			return;
 		}
 
