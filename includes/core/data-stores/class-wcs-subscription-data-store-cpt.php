@@ -645,6 +645,24 @@ class WCS_Subscription_Data_Store_CPT extends WC_Order_Data_Store_CPT implements
 	}
 
 	/**
+	 * Get a subscription's raw stored status directly from the posts table.
+	 *
+	 * Unlike WC_Subscription::get_status(), this bypasses the in-memory conversion of the
+	 * 'draft' and 'auto-draft' statuses to 'pending' that WC_Subscription::set_status() applies
+	 * when a subscription object is read.
+	 *
+	 * @since 9.0.0
+	 *
+	 * @param int $subscription_id The subscription ID.
+	 * @return string The raw stored status (e.g. 'auto-draft', 'draft', 'wc-active'), or an empty string if it could not be determined.
+	 */
+	public function get_subscription_raw_status( $subscription_id ) {
+		$status = get_post_status( $subscription_id );
+
+		return is_string( $status ) ? $status : '';
+	}
+
+	/**
 	 * Sets the subscription's start date.
 	 *
 	 * This method is not intended for public use and is called by @see OrdersTableDataStore::backfill_post_record()

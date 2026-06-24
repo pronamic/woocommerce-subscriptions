@@ -77,6 +77,7 @@ class WC_Subscriptions_Order {
 
 		add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'add_subscription_order_query_args' ), 10, 2 );
 
+		add_filter( 'woocommerce_order_query_args', array( __CLASS__, 'add_subscription_relation_meta_query' ) );
 		add_filter( 'woocommerce_order_query_args', array( __CLASS__, 'map_order_query_args_for_subscriptions' ) );
 
 		add_filter( 'woocommerce_orders_table_query_clauses', [ __CLASS__, 'filter_orders_query_by_parent_orders' ], 10, 2 );
@@ -1246,8 +1247,8 @@ class WC_Subscriptions_Order {
 	}
 
 	/**
-	 * Automatically set the order's status to complete if the order total is zero and all the subscriptions
-	 * in an order are synced or the order contains a resubscribe.
+	 * Automatically set the order's status to complete if the order is fully paid ($0 owed) and all the
+	 * subscriptions in an order are synced, or the order contains a resubscribe or switch.
 	 *
 	 * @param string   $new_order_status
 	 * @param int      $order_id
@@ -1270,8 +1271,22 @@ class WC_Subscriptions_Order {
 			add_filter( 'woocommerce_payment_complete_order_status', __METHOD__, 10, 3 );
 		}
 
-		// Exit early if the order subtotal is not zero, or if the order does not contain a subscription.
-		if ( 0 != $order->get_subtotal() || ! wcs_order_contains_subscription( $order ) ) {
+		// Exit early if the order does not contain a subscription.
+		if ( ! wcs_order_contains_subscription( $order ) ) {
+			return $new_order_status;
+		}
+
+		// Switch and resubscribe orders carry the value of the new/repeated product in their subtotal
+		// even when nothing is owed (e.g. switching within a sync grace period, or a fully prorated
+		// switch, leaves a $0 total). For those order types we gate on the amount actually charged (the
+		// total) rather than the subtotal, so $0 switches and resubscribes can still be auto-completed.
+		// For ordinary orders we keep gating on the subtotal: a non-zero subtotal reduced to a $0 total by
+		// a coupon may still contain a product the merchant needs to fulfil, so it must not be auto-completed.
+		$gate_on_total   = wcs_order_contains_switch( $order ) || wcs_order_contains_resubscribe( $order );
+		$amount_to_check = $gate_on_total ? $order->get_total() : $order->get_subtotal();
+
+		// Exit early if there is still an amount to pay.
+		if ( 0.0 !== (float) $amount_to_check ) {
 			return $new_order_status;
 		}
 
@@ -1325,6 +1340,61 @@ class WC_Subscriptions_Order {
 		}
 
 		return $new_order_status;
+	}
+
+	/**
+	 * Translate the friendly subscription-relation query args (`subscription_renewal`,
+	 * `subscription_switch`, `subscription_resubscribe`) into a `meta_query` clause so
+	 * the HPOS order data store honors them.
+	 *
+	 * Under CPT, the legacy handler `add_subscription_order_query_args()` below already
+	 * translates these args inside the CPT-specific filter. Injecting a `meta_query` arg
+	 * upstream of the CPT store would also trigger a `wc_doing_it_wrong` notice from
+	 * WC core (`meta_query` is not a supported `wc_get_orders()` arg under CPT). So
+	 * this handler is a no-op when HPOS is not the active order data store.
+	 *
+	 * @param array $args @see wc_get_orders() arguments.
+	 * @return array The args, with subscription-relation conditions expressed as a meta_query under HPOS.
+	 */
+	public static function add_subscription_relation_meta_query( $args ) {
+		if ( ! wcs_is_custom_order_tables_usage_enabled() ) {
+			return $args;
+		}
+
+		$relation_meta_keys = array(
+			'subscription_renewal'     => '_subscription_renewal',
+			'subscription_switch'      => '_subscription_switch',
+			'subscription_resubscribe' => '_subscription_resubscribe',
+		);
+
+		foreach ( $relation_meta_keys as $arg_key => $meta_key ) {
+			if ( ! isset( $args[ $arg_key ] ) ) {
+				continue;
+			}
+
+			$value      = $args[ $arg_key ];
+			$meta_query = array( 'key' => $meta_key );
+
+			if ( empty( $value ) ) {
+				$meta_query['compare'] = 'NOT EXISTS';
+			} elseif ( true === $value ) {
+				$meta_query['compare'] = 'EXISTS';
+			} elseif ( is_array( $value ) ) {
+				$meta_query['value']   = $value;
+				$meta_query['compare'] = 'IN';
+			} else {
+				$meta_query['value']   = $value;
+				$meta_query['compare'] = '=';
+			}
+
+			if ( ! isset( $args['meta_query'] ) || ! is_array( $args['meta_query'] ) ) {
+				$args['meta_query'] = array(); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			}
+
+			$args['meta_query'][] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		}
+
+		return $args;
 	}
 
 	/**

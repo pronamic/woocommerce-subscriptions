@@ -1008,9 +1008,6 @@ jQuery( function ( $ ) {
 				'woocommerce_subscriptions_allow_switching'
 			)
 		),
-		$syncRenewals = $(
-			document.getElementById( 'woocommerce_subscriptions_sync_payments' )
-		),
 		$customerNotifications = $(
 			document.getElementById( 'woocommerce_subscriptions_customer_notifications_enabled' )
 		);
@@ -1022,15 +1019,19 @@ jQuery( function ( $ ) {
 			$switchSettingsRows = $allowSwitching
 				.parents( 'tr' )
 				.siblings( 'tr' ),
-			$prorateFirstRenewal = $(
+			$firstBillingBehavior = $(
 				document.getElementById(
-					'woocommerce_subscriptions_prorate_synced_payments'
+					'woocommerce_subscriptions_first_billing_behavior'
 				)
 			),
-			$syncRows = $syncRenewals.parents( 'tr' ).siblings( 'tr' ),
 			$daysNoFeeRow = $(
 				document.getElementById(
 					'woocommerce_subscriptions_days_no_fee'
+				)
+			).parents( 'tr' ),
+			$prorateOptionsRow = $(
+				document.getElementById(
+					'woocommerce_subscriptions_prorate_virtual'
 				)
 			).parents( 'tr' ),
 			$suspensionExtensionRow = $(
@@ -1068,30 +1069,33 @@ jQuery( function ( $ ) {
 			} )
 			.trigger( 'change' );
 
-		// No animation when initially hiding prorated rows.
-		if ( ! $syncRenewals.is( ':checked' ) ) {
-			$syncRows.hide();
-		} else if ( 'recurring' !== $prorateFirstRenewal.val() ) {
-			$daysNoFeeRow.hide();
+		// Show/hide sub-fields based on the "First billing behavior" selection.
+		var $firstBillingBehaviorDesc = $firstBillingBehavior.siblings( '.description' ),
+			firstBillingBehaviorDescriptions = $firstBillingBehavior.data( 'descriptions' ) || {};
+
+		function updateFirstBillingBehaviorRows( animate ) {
+			var val = $firstBillingBehavior.val();
+
+			$firstBillingBehaviorDesc.text( firstBillingBehaviorDescriptions[ val ] || '' );
+
+			if ( 'full' === val ) {
+				animate ? $daysNoFeeRow.fadeIn() : $daysNoFeeRow.show();
+				animate ? $prorateOptionsRow.fadeOut() : $prorateOptionsRow.hide();
+			} else if ( 'prorate' === val ) {
+				animate ? $daysNoFeeRow.fadeOut() : $daysNoFeeRow.hide();
+				animate ? $prorateOptionsRow.fadeIn() : $prorateOptionsRow.show();
+			} else {
+				animate ? $daysNoFeeRow.fadeOut() : $daysNoFeeRow.hide();
+				animate ? $prorateOptionsRow.fadeOut() : $prorateOptionsRow.hide();
+			}
 		}
 
-		// Animate showing and hiding the synchronization rows.
-		$syncRenewals.on( 'change', function () {
-			if ( $( this ).is( ':checked' ) ) {
-				$syncRows.not( $daysNoFeeRow ).fadeIn();
-				$prorateFirstRenewal.trigger( 'change' );
-			} else {
-				$syncRows.fadeOut();
-			}
-		} );
+		// No animation on initial page load.
+		updateFirstBillingBehaviorRows( false );
 
-		// Watch the Prorate First Renewal field for changes.
-		$prorateFirstRenewal.on( 'change', function () {
-			if ( 'recurring' === $( this ).val() ) {
-				$daysNoFeeRow.fadeIn();
-			} else {
-				$daysNoFeeRow.fadeOut();
-			}
+		// Animate on change.
+		$firstBillingBehavior.on( 'change', function () {
+			updateFirstBillingBehaviorRows( true );
 		} );
 
 		// No animation when initially hiding customer notification offset row.

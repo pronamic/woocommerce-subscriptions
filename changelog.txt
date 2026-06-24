@@ -1,5 +1,32 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2026-06-23 - version 9.0.0
+* Add: All Products for Subscriptions is now built into WooCommerce Subscriptions — sell any product as a one-time purchase, a subscription, or both, with no separate plugin needed. Existing installations migrate automatically, so you can deactivate the standalone plugin. We've also enhanced it along the way:
+    * Subscription plans now support free trials, sign-up fees, and fixed-amount discounts.
+    * Choose which storewide subscription plans are assigned to a product.
+    * Disable one-time purchases on products that use storewide subscription plans.
+    * Subscription gifting now works with products sold via subscription plans.
+    * Bulk edit now supports updating purchase options, so you can apply storewide plans to specific products in bulk — replacing the deprecated "Limit to categories" option.
+    * Improved billing-date-alignment settings (formerly Synchronization), with clearer first-billing options.
+    * Subscription frequency and expiration are clearer — expiration is now set as a number of payments ("Total payments") rather than a length of time.
+    * The Subscriptions by Product report now includes products sold via subscription plans.
+* Fix: Schedule dates set to the same minute (e.g. trial end and next payment) are now treated as equal, instead of differing by a few seconds and silently reverting the save.
+* Fix: The schedule editor's warning for a next-payment date set before the trial end now reads "Please enter a date after the trial end" instead of incorrectly referring to the start date.
+* Fix: The My Account > Subscriptions page no longer intermittently 404s right after the plugin is activated.
+* Fix: $0 subscription switches made within the renewal-sync grace period are now auto-completed instead of left pending.
+* Fix: Related orders for active subscriptions are no longer swept by the privacy eraser when HPOS is enabled.
+* Fix: When a customer's subscription becomes active or inactive, their user role now switches cleanly per your settings instead of leaving the old role in place.
+* Fix: Paying for the renewal of a gifted subscription with multiple items no longer drops all but the first item.
+* Fix: Guarded `wcs_get_subscription_period_strings()` and `wcs_get_subscription_trial_period_strings()` against PHP 8.1+ "Undefined array key" warnings when an integration uses the `woocommerce_subscription_periods` / `woocommerce_subscription_trial_periods` filter to remove a period.
+* Fix: PHP warning on the Subscriptions by Customer report when a customer account has been deleted or anonymized.
+* Fix: Prevent spurious cancellation emails when never-activated auto-draft subscriptions are deleted.
+* Fix: Don't re-apply the product sign-up fee to renewal, resubscribe or switch order line items when those orders are updated via the Orders REST API, which previously inflated their stored totals.
+* Fix: Prevent the "Limit to one active subscription" setting from being bypassed by paying for an old failed order, which previously let a customer who already had an active subscription end up with a second one.
+* Fix: Email template theme overrides are no longer reported as "out of date" in WooCommerce > Status when the override matches the plugin's template.
+* Fix: Free trials one period long now read "1 week" instead of "week".
+* Tweak: Subscription products now show the free trial and sign-up fee on their own lines below the price, instead of appended to the price text.
+* Dev: The `subscription_renewal`, `subscription_switch` and `subscription_resubscribe` query args are now supported when HPOS is enabled.
+
 2026-06-04 - version 8.8.1
 * Fix: Restore PayPal Standard renewal payments. A regression in 8.8.0 stopped these payments from being recorded, leaving the affected subscriptions stuck in Pending.
 * Fix: Prevent a fatal error that could occur when the new "Dedicated processing" setting is enabled before any subscription background tasks have been scheduled.

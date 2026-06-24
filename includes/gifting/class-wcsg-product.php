@@ -23,7 +23,8 @@ class WCSG_Product {
 		add_filter( 'woocommerce_get_cart_item_from_session', __CLASS__ . '::get_cart_items_from_session', 1, 2 );
 		add_filter( 'woocommerce_available_variation', __CLASS__ . '::add_gifting_to_variation_data', 10, 3 );
 
-		add_action( 'woocommerce_before_add_to_cart_button', __CLASS__ . '::add_gifting_option_product' );
+		// Priority 101 to render after subscription plans options (priority 100).
+		add_action( 'woocommerce_before_add_to_cart_button', __CLASS__ . '::add_gifting_option_product', 101 );
 	}
 
 	/**
@@ -82,7 +83,13 @@ class WCSG_Product {
 				$email = $_POST['recipient_email'][0]; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 			}
 
-			WCS_Gifting::render_add_recipient_fields( $email );
+			// For products with subscription plans where one-time purchase is the default, hide the gifting container initially.
+			// The JS will show it when a subscription plan is selected.
+			$should_hide_gifting_ui_on_render = self::product_has_subscription_plans( $product )
+				&& ! WCS_ATT_Product_Schemes::has_forced_subscription_scheme( $product )
+				&& ! WC_Subscriptions_Product::is_subscription( $product );
+
+			WCS_Gifting::render_add_recipient_fields( $email, '', 'print', $should_hide_gifting_ui_on_render );
 		}
 	}
 
@@ -100,19 +107,30 @@ class WCSG_Product {
 
 		$is_giftable = false;
 
-		if ( WCSG_Admin::is_gifting_enabled() && WC_Subscriptions_Product::is_subscription( $product ) ) {
-			// On variable subscription products, it's always true to load the checkbox,
-			// let the variation handle showing the checkbox when it is giftable.
-			if ( WC_Subscriptions_Product::is_variable_subscription( $product ) ) {
-				$is_giftable = true;
-			} else {
-				// "Allow gifting" is set to "Enabled for all products".
-				$is_giftable     = WCSG_Admin::is_gifting_enabled_for_all_products();
-				$product_gifting = WC_Subscriptions_Product::get_gifting( $product );
+		if ( WCSG_Admin::is_gifting_enabled() ) {
+			$is_subscription        = WC_Subscriptions_Product::is_subscription( $product );
+			$has_subscription_plans = self::product_has_subscription_plans( $product );
 
-				// Apply product-level override if it's set.
-				if ( '' !== $product_gifting ) {
-					$is_giftable = 'enabled' === $product_gifting;
+			if ( $is_subscription || $has_subscription_plans ) {
+				// On variable products, it's always true to load the checkbox,
+				// let the variation/JS handle showing the checkbox when it is giftable.
+				if ( WC_Subscriptions_Product::is_variable_subscription( $product ) || ( $has_subscription_plans && $product->is_type( 'variable' ) ) ) {
+					$is_giftable = true;
+				} else {
+					// "Allow gifting" is set to "Enabled for all products".
+					$is_giftable     = WCSG_Admin::is_gifting_enabled_for_all_products();
+					$product_gifting = WC_Subscriptions_Product::get_gifting( $product );
+
+					// For products with subscription plans but without an active scheme, get_gifting() returns ''
+					// because get_meta_data() gates on is_subscription(). Read the meta directly as fallback.
+					if ( '' === $product_gifting && $has_subscription_plans ) {
+						$product_gifting = $product->get_meta( '_subscription_gifting', true );
+					}
+
+					// Apply product-level override if it's set.
+					if ( '' !== $product_gifting ) {
+						$is_giftable = 'enabled' === $product_gifting;
+					}
 				}
 			}
 		}
@@ -138,12 +156,42 @@ class WCSG_Product {
 	 * @return array The variation data with added gifting data.
 	 */
 	public static function add_gifting_to_variation_data( $variation_data, $product, $variation ) {
-		if ( ! WC_Subscriptions_Product::is_subscription( $product ) ) {
-			return $variation_data;
+		static $parent_has_subscription_plans = array();
+
+		$is_subscription = WC_Subscriptions_Product::is_subscription( $product );
+
+		if ( ! $is_subscription ) {
+			$parent_id = $product->get_id();
+
+			if ( ! isset( $parent_has_subscription_plans[ $parent_id ] ) ) {
+				$parent_has_subscription_plans[ $parent_id ] = self::product_has_subscription_plans( $product );
+			}
+
+			if ( ! $parent_has_subscription_plans[ $parent_id ] ) {
+				return $variation_data;
+			}
 		}
 
 		$variation_data['gifting'] = self::is_giftable( $variation );
 
 		return $variation_data;
+	}
+
+	/**
+	 * Checks if a product has subscription plans and is not set to one-time only.
+	 *
+	 * @param WC_Product $product Product object to check.
+	 * @return bool
+	 */
+	public static function product_has_subscription_plans( $product ) {
+		if ( ! class_exists( 'WCS_ATT_Product_Schemes' ) ) {
+			return false;
+		}
+
+		if ( 'yes' === $product->get_meta( '_wcsatt_disabled' ) ) {
+			return false;
+		}
+
+		return WCS_ATT_Product_Schemes::has_subscription_schemes( $product );
 	}
 }

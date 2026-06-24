@@ -2667,12 +2667,26 @@ class WC_Subscription extends WC_Order {
 			$sign_up_fee = 0;
 
 		} else {
-			// Find the matching item on the order
-			foreach ( $parent_order->get_items() as $order_item ) {
-				if ( wcs_get_canonical_product_id( $line_item ) == wcs_get_canonical_product_id( $order_item ) ) {
-					/** @var WC_Order_Item_Product $original_order_item */
-					$original_order_item = $order_item;
-					break;
+			/**
+			 * Allow integrations (e.g. Product Bundles, Composite Products) to match a subscription
+			 * line item to its corresponding parent order item by custom identifiers before falling
+			 * back to product ID matching.
+			 *
+			 * @since 8.7.0
+			 *
+			 * @param WC_Order_Item|null     $matched_item  The matched order item, or null if no match found.
+			 * @param WC_Order_Item_Product  $line_item     The subscription line item.
+			 * @param WC_Order               $parent_order  The parent order.
+			 * @param WC_Subscription        $subscription  The subscription.
+			 */
+			$original_order_item = apply_filters( 'woocommerce_subscription_match_order_item_for_sign_up_fee', null, $line_item, $parent_order, $this );
+
+			if ( null === $original_order_item ) {
+				foreach ( $parent_order->get_items() as $order_item ) {
+					if ( wcs_get_canonical_product_id( $line_item ) === wcs_get_canonical_product_id( $order_item ) ) {
+						$original_order_item = $order_item;
+						break;
+					}
 				}
 			}
 
@@ -2932,8 +2946,12 @@ class WC_Subscription extends WC_Order {
 						$messages[] = sprintf( __( 'The %s date must occur after the next payment date.', 'woocommerce-subscriptions' ), $date_type );
 					}
 				case 'next_payment':
-					// Guarantees that end is strictly after trial_end, because if next_payment and end can't be at same time
-					if ( array_key_exists( 'trial_end', $timestamps ) && $timestamp < $timestamps['trial_end'] ) {
+					// The schedule editor is minute-precision, so compare at minute resolution: a next_payment
+					// date (or, via the switch fall-through, an end/cancelled date) that lands in the same minute
+					// as the trial end is treated as occurring "after" it. This mirrors a trial purchase, which
+					// seeds next_payment and trial_end to the same instant, and avoids rejecting an edit over a
+					// sub-minute difference the merchant can neither see nor control. See WOOSUBS-380.
+					if ( array_key_exists( 'trial_end', $timestamps ) && intdiv( $timestamp, MINUTE_IN_SECONDS ) < intdiv( $timestamps['trial_end'], MINUTE_IN_SECONDS ) ) {
 						// translators: %s: date type (e.g. "end").
 						$messages[] = sprintf( __( 'The %s date must occur after the trial end date.', 'woocommerce-subscriptions' ), $date_type );
 					}

@@ -92,6 +92,32 @@ class Price_Calculator {
 	}
 
 	/**
+	 * Returns the regular price to use as the cap when displaying a fixed discount.
+	 *
+	 * Variable products have no single regular price; use the highest variation regular
+	 * price so that "save up to $X" is capped against the most expensive variant.
+	 *
+	 * @param  WC_Product $product  Product object.
+	 * @return float
+	 * @since 8.5.0
+	 */
+	public static function get_regular_price_for_discount_cap( $product ) {
+		if ( $product->is_type( 'variable' ) ) {
+			// @phpstan-ignore method.notFound
+			return (float) $product->get_variation_regular_price( 'max' );
+		}
+		if ( $product->is_type( 'composite' ) && method_exists( $product, 'get_composite_price' ) ) {
+			// @phpstan-ignore method.notFound
+			return (float) $product->get_composite_price( 'min' );
+		}
+		if ( $product->is_type( 'bundle' ) && method_exists( $product, 'get_bundle_price' ) ) {
+			// @phpstan-ignore method.notFound
+			return (float) $product->get_bundle_price( 'min' );
+		}
+		return (float) $product->get_regular_price();
+	}
+
+	/**
 	 * ------------------------------------------------
 	 * Private implementation methods
 	 * ------------------------------------------------
@@ -107,29 +133,61 @@ class Price_Calculator {
 	 * @param mixed      $plan    Subscription plan object, or null.
 	 * @return Price_Context Populated with raw subscription data.
 	 */
-	private static function extract( $product, $plan = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- $plan will be used during APFS consolidation.
+	private static function extract( $product, $plan = null ) {
 		$price_context = new Price_Context();
 
-		// Read via existing static getters — each fires its own filter hook.
-		$price_context->base_recurring_price = (float) WC_Subscriptions_Product::get_price( $product );
-		$price_context->billing_interval     = (int) WC_Subscriptions_Product::get_interval( $product );
-		$price_context->billing_period       = WC_Subscriptions_Product::get_period( $product );
-		$price_context->subscription_length  = (int) WC_Subscriptions_Product::get_length( $product );
-		$price_context->trial_length         = (int) WC_Subscriptions_Product::get_trial_length( $product );
-		$price_context->trial_period         = WC_Subscriptions_Product::get_trial_period( $product );
-		$price_context->base_sign_up_fee     = (float) WC_Subscriptions_Product::get_sign_up_fee( $product );
+		if ( $plan instanceof \WCS_ATT_Scheme ) {
+			// Plan-based: read subscription parameters from scheme object.
+			$price_context->billing_period      = $plan->get_period();
+			$price_context->billing_interval    = (int) $plan->get_interval();
+			$price_context->subscription_length = (int) $plan->get_length();
+			$price_context->trial_length        = (int) $plan->get_trial_length();
+			$price_context->trial_period        = $plan->get_trial_period();
+			$price_context->base_sign_up_fee    = $plan->get_signup_fee();
+
+			// Resolve recurring price from scheme pricing mode.
+			$raw_prices = array(
+				'price'         => $product->get_price( 'edit' ),
+				'regular_price' => $product->get_regular_price( 'edit' ),
+				'sale_price'    => $product->get_sale_price( 'edit' ),
+			);
+
+			if ( $plan->has_price_filter() ) {
+				$resolved                            = $plan->get_prices( $raw_prices );
+				$price_context->base_recurring_price = (float) $resolved['price'];
+			} else {
+				$price_context->base_recurring_price = (float) $raw_prices['price'];
+			}
+
+			// Sync state from scheme.
+			if ( $plan->is_synced() ) {
+				$price_context->is_synced              = true;
+				$price_context->payment_day            = $plan->get_sync_date();
+				$price_context->first_billing_behavior = \WC_Subscriptions_Synchroniser::resolve_billing_behavior( \WCS_ATT_Sync::is_first_payment_prorated( $product, $plan ) );
+			}
+		} else {
+			// Native subscription: read via existing static getters.
+			$price_context->base_recurring_price = (float) WC_Subscriptions_Product::get_price( $product );
+			$price_context->billing_interval     = (int) WC_Subscriptions_Product::get_interval( $product );
+			$price_context->billing_period       = WC_Subscriptions_Product::get_period( $product );
+			$price_context->subscription_length  = (int) WC_Subscriptions_Product::get_length( $product );
+			$price_context->trial_length         = (int) WC_Subscriptions_Product::get_trial_length( $product );
+			$price_context->trial_period         = WC_Subscriptions_Product::get_trial_period( $product );
+			$price_context->base_sign_up_fee     = (float) WC_Subscriptions_Product::get_sign_up_fee( $product );
+
+			// Sync state.
+			if ( WC_Subscriptions_Synchroniser::is_product_synced( $product )
+				&& in_array( $price_context->billing_period, array( 'week', 'month', 'year' ), true ) ) {
+
+				$price_context->is_synced              = true;
+				$price_context->payment_day            = WC_Subscriptions_Synchroniser::get_products_payment_day( $product );
+				$price_context->first_billing_behavior = WC_Subscriptions_Synchroniser::resolve_billing_behavior( WC_Subscriptions_Synchroniser::is_product_prorated( $product ) );
+			}
+		}
 
 		// Default empty billing period to 'month' (matches existing behavior).
 		if ( empty( $price_context->billing_period ) ) {
 			$price_context->billing_period = 'month';
-		}
-
-		// Sync state.
-		if ( WC_Subscriptions_Synchroniser::is_product_synced( $product )
-			&& in_array( $price_context->billing_period, array( 'week', 'month', 'year' ), true ) ) {
-
-			$price_context->is_synced   = true;
-			$price_context->payment_day = WC_Subscriptions_Synchroniser::get_products_payment_day( $product );
 		}
 
 		return $price_context;
@@ -147,19 +205,30 @@ class Price_Calculator {
 	 */
 	private static function apply_tax( $product, Price_Context $price_context, $tax_display ) {
 		if ( $tax_display ) {
-			if ( in_array( $tax_display, array( 'exclude_tax', 'excl' ), true ) ) {
-				$price_context->recurring_price = wcs_get_price_excluding_tax( $product );
-				$price_context->sign_up_fee     = wcs_get_price_excluding_tax(
-					$product,
-					array( 'price' => $price_context->base_sign_up_fee )
-				);
-			} else {
-				$price_context->recurring_price = wcs_get_price_including_tax( $product );
-				$price_context->sign_up_fee     = wcs_get_price_including_tax(
-					$product,
-					array( 'price' => $price_context->base_sign_up_fee )
-				);
-			}
+			$exclude = in_array( $tax_display, array( 'exclude_tax', 'excl' ), true );
+
+			// Use wc_get_price_* directly instead of the wcs_get_price_* wrappers.
+			//
+			// The wcs_* wrappers call wp_parse_args() with 'price' => $product->get_price()
+			// as the default, which triggers the woocommerce_product_get_price filter and
+			// causes an infinite loop when this method is called from within a price filter
+			// callback (e.g. woocommerce_subscriptions_cart_get_price).
+			//
+			// This is safe because both wcs_get_price_including_tax() and wcs_get_price_excluding_tax()
+			// are thin wrappers around the wc_* equivalents — they only add the default 'price' arg,
+			// which we already supply explicitly here.
+			$args                           = array(
+				'qty'   => 1,
+				'price' => $price_context->base_recurring_price,
+			);
+			$price_context->recurring_price = $exclude
+				? wc_get_price_excluding_tax( $product, $args )
+				: wc_get_price_including_tax( $product, $args );
+
+			$args['price']              = $price_context->base_sign_up_fee;
+			$price_context->sign_up_fee = $exclude
+				? wc_get_price_excluding_tax( $product, $args )
+				: wc_get_price_including_tax( $product, $args );
 		} else {
 			// No tax adjustment — use base values.
 			$price_context->recurring_price = $price_context->base_recurring_price;
@@ -167,13 +236,18 @@ class Price_Calculator {
 		}
 
 		// Determine initial amount for synced subscriptions with upfront payment.
-		if ( $price_context->is_synced
-			&& WC_Subscriptions_Synchroniser::is_payment_upfront( $product )
-			&& ! WC_Subscriptions_Synchroniser::is_today(
-				WC_Subscriptions_Synchroniser::calculate_first_payment_date( $product, 'timestamp' )
-			) ) {
+		// For native subscriptions, pass the product to preserve filters and static cache.
+		// For plan-based (APFS), pass the Price_Context which holds the scheme's sync data.
+		if ( $price_context->is_synced ) {
+			$sync_source             = WC_Subscriptions_Synchroniser::is_product_synced( $product )
+				? $product
+				: $price_context;
+			$first_payment_timestamp = WC_Subscriptions_Synchroniser::calculate_first_payment_date( $sync_source, 'timestamp' );
 
-			$price_context->initial_amount = $price_context->recurring_price;
+			if ( WC_Subscriptions_Synchroniser::is_payment_upfront( $sync_source )
+				&& ! WC_Subscriptions_Synchroniser::is_today( $first_payment_timestamp ) ) {
+				$price_context->initial_amount = $price_context->recurring_price;
+			}
 		}
 	}
 }

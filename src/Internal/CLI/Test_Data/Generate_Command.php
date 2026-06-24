@@ -18,7 +18,7 @@ use WP_CLI;
  *  - Refuses to run unless WP_ENVIRONMENT_TYPE is 'local' or 'development'.
  *  - Short-circuits pre_wp_mail so no outbound mail leaves the process during the command.
  *
- * @since   x.x.x
+ * @since   9.0.0
  * @internal This class may be modified, moved or removed in future releases.
  */
 class Generate_Command {

@@ -2,31 +2,31 @@
     "packages": [
         {
             "name": "automattic/jetpack-constants",
-            "version": "v3.0.11",
-            "version_normalized": "3.0.11.0",
+            "version": "v3.0.12",
+            "version_normalized": "3.0.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Automattic/jetpack-constants.git",
-                "reference": "4f0ab12431a3b96e271aef021081f4f9f7fc5434"
+                "reference": "672be0a51baadfc6eee0ffd3bf8e9db691a8ab27"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Automattic/jetpack-constants/zipball/4f0ab12431a3b96e271aef021081f4f9f7fc5434",
-                "reference": "4f0ab12431a3b96e271aef021081f4f9f7fc5434",
+                "url": "https://api.github.com/repos/Automattic/jetpack-constants/zipball/672be0a51baadfc6eee0ffd3bf8e9db691a8ab27",
+                "reference": "672be0a51baadfc6eee0ffd3bf8e9db691a8ab27",
                 "shasum": ""
             },
             "require": {
                 "php": ">=7.2"
             },
             "require-dev": {
-                "automattic/phpunit-select-config": "^1.0.7",
+                "automattic/phpunit-select-config": "^1.0.8",
                 "brain/monkey": "^2.6.2",
                 "yoast/phpunit-polyfills": "^4.0.0"
             },
             "suggest": {
                 "automattic/jetpack-autoloader": "Allow for better interoperability with other plugins that use this package."
             },
-            "time": "2026-06-03T21:19:55+00:00",
+            "time": "2026-06-08T08:27:00+00:00",
             "type": "jetpack-library",
             "extra": {
                 "autotagger": true,
@@ -50,7 +50,7 @@
             ],
             "description": "A wrapper for defining constants in a more testable way.",
             "support": {
-                "source": "https://github.com/Automattic/jetpack-constants/tree/v3.0.11"
+                "source": "https://github.com/Automattic/jetpack-constants/tree/v3.0.12"
             },
             "install-path": "../automattic/jetpack-constants"
         },

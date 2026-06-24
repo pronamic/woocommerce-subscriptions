@@ -89,17 +89,37 @@ class WCS_Admin_Product_Import_Export_Manager {
 	}
 
 	/**
-	 * Filters product import data so subscription variations are imported correctly (as variations).
+	 * Filters product import data to handle subscription product types.
 	 *
-	 * Subscription variations are the exact same as standard variations. What sets them apart is the fact they are linked
-	 * to a variable subscription parent rather than a standard variable product. With that in mind, we need to import them just
-	 * like a variation.
+	 * Auto-enables legacy subscription product type settings when the CSV importer encounters
+	 * subscription or variable-subscription types that are currently disabled, so the import
+	 * succeeds instead of failing with "Invalid product type".
+	 *
+	 * Also converts subscription_variation types to variation, since subscription variations
+	 * are identical to standard variations except for their parent product type.
 	 *
 	 * @param array $data The product's import data.
 	 * @return array $data
 	 */
 	public static function import_subscription_variations( $data ) {
-		if ( isset( $data['type'] ) && 'subscription_variation' === $data['type'] ) {
+		if ( ! isset( $data['type'] ) ) {
+			return $data;
+		}
+
+		$type_to_option = array(
+			'subscription'          => WC_Subscriptions_Admin::$option_prefix . '_enable_simple_subscription',
+			'variable-subscription' => WC_Subscriptions_Admin::$option_prefix . '_enable_variable_subscription',
+		);
+
+		if ( isset( $type_to_option[ $data['type'] ] ) ) {
+			$option_name = $type_to_option[ $data['type'] ];
+
+			if ( 'yes' !== get_option( $option_name, 'no' ) ) {
+				update_option( $option_name, 'yes' );
+			}
+		}
+
+		if ( 'subscription_variation' === $data['type'] ) {
 			$data['type'] = 'variation';
 		}
 

@@ -36,6 +36,11 @@ class Dedicated_Queue {
 	private const HOOK_PRIORITY = 100;
 
 	/**
+	 * WC Logger source for diagnostic entries.
+	 */
+	private const LOG_SOURCE = 'woocommerce-subscriptions-dedicated-queue';
+
+	/**
 	 * Identifier for this scope. Used to namespace per-scope state (e.g. the turn counter option key).
 	 *
 	 * @var string
@@ -300,7 +305,7 @@ class Dedicated_Queue {
 	private function log( string $message ): void {
 		wc_get_logger()->debug(
 			sprintf( '[scope=%s] %s', implode( ':', $this->groups ), $message ),
-			array( 'source' => 'woocommerce-subscriptions-dedicated-queue' )
+			array( 'source' => self::LOG_SOURCE )
 		);
 	}
 

@@ -19,7 +19,7 @@ use WP_CLI;
  *  - Refuses to run unless WP_ENVIRONMENT_TYPE is 'local' or 'development' (overridable only with an explicit flag).
  *  - Defaults to preview mode; actual deletion requires --yes.
  *
- * @since   x.x.x
+ * @since   9.0.0
  * @internal This class may be modified, moved or removed in future releases.
  */
 class Purge_Command {

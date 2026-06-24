@@ -8,6 +8,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Automattic\WooCommerce_Subscriptions\Internal\Products\BulkActions;
 use Automattic\WooCommerce_Subscriptions\Internal\Telemetry\Events as WC_Tracks_Events;
 use Automattic\WooCommerce_Subscriptions\Internal\Queue_Management\Manager as Queue_Management;
 
@@ -40,6 +41,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 		WCS_Subscriber_Role_Manager::init();
 		WCS_Upgrade_Notice_Manager::init();
 		WCS_Admin_Assets::init();
+		BulkActions::init();
 
 		$tracks_events = new WC_Tracks_Events();
 		$tracks_events->setup();
@@ -49,6 +51,7 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 		}
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'maybe_show_welcome_message' ) );
+		add_action( 'plugins_loaded', array( $this, 'init_apfs' ) );
 		add_action( 'plugins_loaded', array( $this, 'init_gifting' ) );
 		add_action( 'plugins_loaded', array( $this, 'init_downloads' ) );
 		add_action( 'admin_notices', array( WC_Subscription_Downloads_Settings::class, 'add_notice_about_bundled_feature' ) );
@@ -245,6 +248,52 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Attempts to initialize APFS (All Products for Subscriptions) functionality.
+	 *
+	 * By the time `plugins_loaded` fires, WordPress has already included every active plugin file.
+	 * If the standalone APFS plugin is active, its top-level `function WCS_ATT()` declaration will
+	 * have executed during file inclusion - so `function_exists( 'WCS_ATT' )` is a reliable check.
+	 *
+	 * The `is_plugin_being_activated` fallback covers the single request where a merchant activates
+	 * the standalone plugin: WordPress calls `activate_plugin()` after `plugins_loaded`, so the
+	 * standalone file has not been included yet and `function_exists` would be false. Without this
+	 * check the standalone's unconditional `function WCS_ATT()` declaration would redeclare-fatal.
+	 */
+	public function init_apfs() {
+		if (
+			$this->is_plugin_being_activated( 'woocommerce-all-products-for-subscriptions' )
+			|| function_exists( 'WCS_ATT' )
+		) {
+			// Standalone APFS is active or being activated. Still show the
+			// Subscription Plans welcome announcement so the merchant sees the
+			// migration prompt even without the bundled code path.
+			add_action(
+				'admin_init',
+				function () {
+					if ( ! class_exists( 'WCS_ATT_Admin_Welcome_Announcement' ) ) {
+						return;
+					}
+
+					if ( WCS_ATT_Admin_Welcome_Announcement::is_welcome_announcement_dismissed() ) {
+						return;
+					}
+
+					WCS_ATT_Admin_Welcome_Announcement::init();
+				},
+				5
+			);
+			return;
+		}
+
+		// Declare the legacy global function used by internal APFS code and
+		// third-party integrations.  PHPStan does not support inner named
+		// functions (phpstan/phpstan#165), so we load a dedicated file.
+		require_once $this->get_plugin_directory( 'includes/apfs/wcs-att-global-function.php' );
+
+		$GLOBALS['woocommerce_subscribe_all_the_things'] = WCS_ATT();
 	}
 
 	/**

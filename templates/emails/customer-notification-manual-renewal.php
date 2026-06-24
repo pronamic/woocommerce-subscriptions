@@ -3,7 +3,9 @@
  * Customer Notification: Manual renewal needed.
  *
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 7.3.0 - Updated for WC core email improvements.
+ * @version 7.3.0
+ *
+ * Updated for WC core email improvements.
  */
 
 defined( 'ABSPATH' ) || exit;

@@ -10,7 +10,7 @@ namespace Automattic\WooCommerce_Subscriptions\Internal\CLI\Test_Data;
  * special because the RemediationAdvisor uses the gateway error code to decide between
  * TC-F2 and TC-D3. Everything else is flavour text.
  *
- * @since   x.x.x
+ * @since   9.0.0
  * @internal This class may be modified, moved or removed in future releases.
  */
 class Failure_Reasons {

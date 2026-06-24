@@ -57,9 +57,15 @@ jQuery( function ( $ ) {
 
 		var time_now = moment(),
 			one_hour_from_now = moment().add( 1, 'hours' ),
-			minimum_date = wcs_admin_meta_boxes.is_duplicate_site
+			// The schedule editor only exposes hour/minute precision, so the
+			// minimum date is floored to the minute. Otherwise the current
+			// wall-clock seconds would leak in and could falsely trip the
+			// "at least one hour in the future" check against the (now
+			// second-less) chosen date below.
+			minimum_date = ( wcs_admin_meta_boxes.is_duplicate_site
 				? moment().add( 2, 'minutes' )
-				: one_hour_from_now,
+				: one_hour_from_now.clone()
+			).startOf( 'minute' ),
 			$date_input = $( this ),
 			date_type = $date_input.attr( 'id' ),
 			original_timestamp = $( '#' + date_type + '_timestamp_utc' ).val(),
@@ -81,7 +87,9 @@ jQuery( function ( $ ) {
 				date: date_pieces[ 2 ],
 				hours: chosen_hour,
 				minutes: chosen_minute,
-				seconds: one_hour_from_now.format( 'ss' ),
+				// The editor is minute-precision; pin seconds to 0 so two dates
+				// set to the same minute are genuinely equal (see WOOSUBS-380).
+				seconds: 0,
 			} );
 
 		// Make sure start date is before now.
@@ -237,7 +245,9 @@ jQuery( function ( $ ) {
 			date: date_pieces[ 2 ],
 			hours: $hour_input.val(),
 			minutes: $minute_input.val(),
-			seconds: one_hour_from_now.format( 'ss' ),
+			// Minute-precision editor: pin seconds to 0 so the value sent to
+			// the server matches what the merchant sees (see WOOSUBS-380).
+			seconds: 0,
 		} )
 			.utc()
 			.unix();

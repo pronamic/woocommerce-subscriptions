@@ -935,10 +935,12 @@ span.product-type.variable-subscription::before {
 }
 
 /* Settings Page */
-.wcs_setting_switching_options {
+.wcs_setting_switching_options,
+.wcs_setting_proration_options {
 	margin-top: 6px;
 }
-.wcs_setting_switching_options label {
+.wcs_setting_switching_options label,
+.wcs_setting_proration_options label {
 	display: block;
 	width: 400px;
 	margin-bottom: 1em;
@@ -1010,4 +1012,8 @@ table.form-table input#woocommerce_subscriptions_customer_notifications_offset {
 .wc-settings-row-gifting-radios p {
 	margin: 2px 0 5px;
 	color: #646970;
+}
+
+.woocommerce-subscriptions-deprecation-notice {
+	color: #d63638;
 }

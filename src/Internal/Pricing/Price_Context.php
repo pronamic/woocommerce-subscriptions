@@ -86,6 +86,17 @@ class Price_Context {
 	public bool $is_synced = false;
 
 	/**
+	 * Resolved first billing behavior for this product/scheme.
+	 *
+	 * One of WC_Subscriptions_Synchroniser::FIRST_BILLING_BEHAVIOR_* ('full', 'prorate',
+	 * 'next_billing_date'). Combines the global setting and product-specific proration eligibility
+	 * so consumers do not need to re-evaluate the global option or product type downstream.
+	 *
+	 * @var string
+	 */
+	public string $first_billing_behavior = 'full';
+
+	/**
 	 * Payment day for synced subscriptions.
 	 *
 	 * int for week (1-7) and month (1-28), array('month'=>string,'day'=>string) for year.

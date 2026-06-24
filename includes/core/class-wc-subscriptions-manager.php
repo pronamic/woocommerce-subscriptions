@@ -1,4 +1,7 @@
 <?php
+
+use Automattic\WooCommerce_Subscriptions\Internal\Utilities\Subscriptions;
+
 /**
  * Subscriptions Management Class
  *
@@ -954,6 +957,20 @@ class WC_Subscriptions_Manager {
 		}
 
 		if ( $subscription->get_type() !== 'shop_subscription' ) {
+			return;
+		}
+
+		// Subscriptions that were never activated must be deleted silently, without sending a
+		// cancellation email. These are 'auto-draft' or 'draft' records created when a subscription
+		// is started in the admin but never saved, and are later removed by the scheduled
+		// auto-draft cleanup: WordPress's wp_delete_auto_drafts() for the posts (CPT) store, and
+		// WooCommerce's DataSynchronizer::delete_auto_draft_orders() for HPOS.
+		//
+		// The raw stored status is read here rather than relying on the subscription object,
+		// because WC_Subscription::set_status() masks 'auto-draft' and 'draft' as 'pending' while
+		// the object is read. The loaded subscription can therefore no longer report that it was a
+		// draft, which would let can_be_updated_to( 'cancelled' ) return true and trigger the email.
+		if ( in_array( Subscriptions::get_raw_status( $subscription ), array( 'auto-draft', 'draft' ), true ) ) {
 			return;
 		}
 

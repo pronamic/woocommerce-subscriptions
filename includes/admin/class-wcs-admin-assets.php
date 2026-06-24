@@ -43,11 +43,17 @@ class WCS_Admin_Assets {
 			true
 		);
 
+		// Version the stylesheet by its own file modification time. The webpack
+		// asset.php version ($script_asset['version']) is a content hash of the
+		// JS bundle only, so CSS-only changes would otherwise reuse the same
+		// `?ver` and browsers would serve a stale cached stylesheet.
+		$style_admin_path = \WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'build/style-admin.css' );
+
 		wp_enqueue_style(
 			'wcs-admin',
 			plugins_url( '/build/style-admin.css', WC_Subscriptions::$plugin_file ),
 			array( 'wp-components' ),
-			$script_asset['version']
+			file_exists( $style_admin_path ) ? filemtime( $style_admin_path ) : $script_asset['version']
 		);
 
 		wp_set_script_translations(

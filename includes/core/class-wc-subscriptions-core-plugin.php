@@ -545,7 +545,12 @@ class WC_Subscriptions_Core_Plugin {
 
 			set_transient( $this->get_activation_transient(), true, 60 * 60 );
 
-			flush_rewrite_rules();
+			/*
+			 * Flush rewrite rules so the My Account subscription endpoints resolve. This runs on `init` (@see init_hooks()), but the
+			 * endpoints are not registered until WCS_Query::add_endpoints() runs later on the same `init` hook, so flushing now would
+			 * regenerate the rules without them. Defer the flush to `wp_loaded` (after `init`) to ensure the endpoints are included.
+			 */
+			add_action( 'wp_loaded', 'flush_rewrite_rules' );
 
 			do_action( 'woocommerce_subscriptions_activated' );
 		}

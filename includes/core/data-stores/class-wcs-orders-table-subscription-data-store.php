@@ -932,6 +932,27 @@ class WCS_Orders_Table_Subscription_Data_Store extends \Automattic\WooCommerce\I
 	}
 
 	/**
+	 * Get a subscription's raw stored status directly from the orders table.
+	 *
+	 * Unlike WC_Subscription::get_status(), this bypasses the in-memory conversion of the
+	 * 'draft' and 'auto-draft' statuses to 'pending' that WC_Subscription::set_status() applies
+	 * when a subscription object is read.
+	 *
+	 * @since 9.0.0
+	 *
+	 * @param int $subscription_id The subscription ID.
+	 * @return string The raw stored status (e.g. 'auto-draft', 'draft', 'wc-active'), or an empty string if it could not be determined.
+	 */
+	public function get_subscription_raw_status( $subscription_id ) {
+		global $wpdb;
+
+		$table  = self::get_orders_table_name();
+		$status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$table} WHERE id = %d", $subscription_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		return is_string( $status ) ? $status : '';
+	}
+
+	/**
 	 * Fetches the subscription's start date.
 	 * This method is called by @see parent::backfill_post_record() when backfilling subscriptions details to WP_Post DB.
 	 *

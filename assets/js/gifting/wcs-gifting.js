@@ -1,6 +1,17 @@
 jQuery( document ).ready( function ( $ ) {
 	setShippingAddressNoticeVisibility( true );
 
+	// Capture whether subscription plans control gifting visibility for this product.
+	// PHP adds the 'hidden' class when one-time purchase is the default and
+	// a subscription plan must be selected before gifting is available.
+	// This must run before any event handler can modify the container classes.
+	$( '.wcsg_add_recipient_fields_container' ).each( function () {
+		$( this ).data(
+			'wcsg_plans_controls_visibility',
+			$( this ).hasClass( 'hidden' )
+		);
+	} );
+
 	$( document ).on(
 		'change',
 		'.woocommerce_subscription_gifting_checkbox[type="checkbox"]',
@@ -51,27 +62,187 @@ jQuery( document ).ready( function ( $ ) {
 	);
 
 	/**
-	 * Handles showing and hiding the gifting checkbox on variable subscription products.
+	 * Hide the gifting container.
 	 */
 	function hideGiftingCheckbox() {
+		$( '.wcsg_add_recipient_fields_container' ).addClass( 'hidden' );
+	}
+
+	/**
+	 * Show the gifting container.
+	 */
+	function showGiftingCheckbox() {
+		$( '.wcsg_add_recipient_fields_container' ).removeClass( 'hidden' );
+	}
+
+	/**
+	 * Reset gifting fields: uncheck the checkbox and clear the email.
+	 */
+	function resetGiftingFields() {
 		$( '.woocommerce_subscription_gifting_checkbox[type="checkbox"]' )
 			.prop( 'checked', false )
 			.trigger( 'change' );
-		$( '.wcsg_add_recipient_fields_container' ).hide();
 	}
 
 	// When a variation is found, show the gifting checkbox if it's enabled for the variation, otherwise hide it.
+	// For products with subscription plans, defer visibility to the plan selection listener.
 	$( document ).on( 'found_variation', function ( event, variationData ) {
 		if ( variationData.gifting ) {
-			$( '.wcsg_add_recipient_fields_container' ).show();
+			const $container = $( '.wcsg_add_recipient_fields_container' );
+
+			// If subscription plans control visibility (non-subscription products with subscription plans),
+			// defer to the change:active_scheme_key listener which shows the
+			// container only when a subscription plan is actually selected.
+			// We use the flag captured at page load because subscription plans JS may not have
+			// added its DOM elements yet when found_variation fires.
+			if ( $container.data( 'wcsg_plans_controls_visibility' ) ) {
+				return;
+			}
+
+			showGiftingCheckbox();
 			return;
 		}
 
+		resetGiftingFields();
 		hideGiftingCheckbox();
 	} );
 
-	// When the data is reset, hide the gifting checkbox.
-	$( document ).on( 'reset_data', hideGiftingCheckbox );
+	// When the data is reset, reset and hide the gifting checkbox.
+	$( document ).on( 'reset_data', function () {
+		resetGiftingFields();
+		hideGiftingCheckbox();
+	} );
+
+	/**
+	 * Subscription plans integration.
+	 *
+	 * Shows/hides the gifting checkbox when the user toggles between
+	 * one-time purchase and subscription plans on product pages.
+	 *
+	 * Uses per-form tracking (via jQuery data) instead of a global flag so that
+	 * dynamically added forms (e.g. quickview modals) get their own listener.
+	 * This mirrors how the subscription plans extension uses maybe_initialize_form() with a per-form guard.
+	 */
+	function bindSubscriptionPlanListener() {
+		$( 'form.cart' ).each( function () {
+			const $form = $( this );
+
+			if ( $form.data( 'wcsg_listener_bound' ) ) {
+				return;
+			}
+
+			const sattScript = $form.data( 'satt_script' );
+			if ( ! sattScript || ! sattScript.schemes_model ) {
+				return;
+			}
+
+			$form.data( 'wcsg_listener_bound', true );
+
+			sattScript.schemes_model.on(
+				'change:active_scheme_key',
+				function ( model, value ) {
+					// '0' is the one-time purchase key - only show for actual subscription plans.
+					if ( value && value !== '0' ) {
+						showGiftingCheckbox();
+					} else if (
+						$form.find( '.wcsatt-options-wrapper' ).length
+					) {
+						// Only hide when subscription plans actually control the
+						// purchase mode for this product. On native subscription
+						// products without plans, the scheme key may reset when a
+						// variation changes - the found_variation handler manages
+						// gifting visibility in that case.
+						hideGiftingCheckbox();
+					}
+				}
+			);
+
+			// If a subscription plan is already active on page load (subscription-only product), show immediately.
+			const initialSchemeKey =
+				sattScript.schemes_model.get( 'active_scheme_key' );
+			if ( initialSchemeKey && initialSchemeKey !== '0' ) {
+				showGiftingCheckbox();
+			}
+		} );
+	}
+
+	// Try binding immediately (works when subscription plans script loads before gifting).
+	bindSubscriptionPlanListener();
+
+	// Deferred fallback: subscription plans script typically loads after gifting, so defer to run
+	// after all document.ready callbacks complete.
+	setTimeout( function () {
+		bindSubscriptionPlanListener();
+	}, 0 );
+
+	// Window load fallback: handles cases where subscription plans script initializes very late.
+	$( window ).on( 'load', function () {
+		bindSubscriptionPlanListener();
+	} );
+
+	// External initialization fallback: handles quickview modals and other
+	// cases where subscription plans reinitialize dynamically after page load.
+	$( document.body ).on( 'wcsatt-initialize', function () {
+		bindSubscriptionPlanListener();
+	} );
+
+	/**
+	 * Repositions the gifting container below the subscription plans options.
+	 *
+	 * For bundles and composites, subscription plans JS moves its options inside the
+	 * bundle_wrap/composite_wrap div (after bundle_price/composite_price).
+	 * This runs after subscription plans initialization to place the gifting container
+	 * right after the relocated subscription plans options.
+	 */
+	function repositionGiftingContainer() {
+		$( 'form.cart' ).each( function () {
+			const $form = $( this );
+
+			if ( $form.data( 'wcsg_gifting_repositioned' ) ) {
+				return;
+			}
+
+			const $giftingContainer = $form.find(
+				'.wcsg_add_recipient_fields_container'
+			);
+			const $planOptions = $form.find( '.wcsatt-options-wrapper' );
+
+			if ( ! $giftingContainer.length || ! $planOptions.length ) {
+				return;
+			}
+
+			// Only reposition if they aren't already adjacent.
+			if (
+				$giftingContainer.prev( '.wcsatt-options-wrapper' ).length > 0
+			) {
+				$form.data( 'wcsg_gifting_repositioned', true );
+				return;
+			}
+
+			$planOptions.after( $giftingContainer );
+			$form.data( 'wcsg_gifting_repositioned', true );
+		} );
+	}
+
+	// Reposition after subscription plans JS has finished moving its UI elements.
+	// For bundles: subscription plans JS hooks into 'woocommerce-product-bundle-initializing' and
+	// moves options in initialize_ui(). We listen for 'initialized' (fires after).
+	$( '.bundle_form .bundle_data' ).on(
+		'woocommerce-product-bundle-initialized',
+		repositionGiftingContainer
+	);
+
+	// For composites: subscription plans JS moves options during 'wc-composite-initializing'.
+	// Defer to the next tick so subscription plans JS finishes its DOM move first.
+	$( '.composite_form .composite_data' ).on(
+		'wc-composite-initializing',
+		function () {
+			setTimeout( repositionGiftingContainer, 0 );
+		}
+	);
+
+	// For dynamically loaded forms (quickview modals, etc.).
+	$( document.body ).on( 'wcsatt-initialize', repositionGiftingContainer );
 
 	/**
 	 * Handles recipient e-mail inputs on the cart page.
@@ -111,6 +282,85 @@ jQuery( document ).ready( function ( $ ) {
 		},
 	};
 	cart.init();
+
+	// Classic cart: show/hide gifting when subscription plan radio buttons change.
+	// The radio buttons (.wcsatt-options input[type="radio"]) and the gifting
+	// container (.wcsg_add_recipient_fields_container) are in different <td>
+	// elements but the same <tr>, so closest('tr') scopes per cart item.
+	$( document ).on(
+		'change',
+		'.wcsatt-options input[type="radio"]',
+		function () {
+			var $radio = $( this );
+			var value = $radio.val();
+			var $row = $radio.closest( 'tr' );
+			var $container = $row.find(
+				'.wcsg_add_recipient_fields_container'
+			);
+
+			if ( ! $container.length ) {
+				return;
+			}
+
+			// '0' is the one-time purchase value.
+			if ( value && value !== '0' ) {
+				$container.removeClass( 'hidden' );
+			} else {
+				// Hide without resetting state so gifting checkbox and
+				// email persist across plan toggles.
+				$container.addClass( 'hidden' );
+			}
+		}
+	);
+
+	// Clear gifting data on form submit when one-time purchase is selected.
+	// Since we preserve gifting state visually across plan toggles, the
+	// recipient email input may still have a value when one-time is active.
+	// Clear it before submit so gifting data is not applied to one-time purchases.
+
+	// Product page: clear gifting fields if the active scheme is one-time.
+	$( document ).on( 'submit', 'form.cart', function () {
+		const $form = $( this );
+
+		// Only act when subscription plan options are present. Native
+		// subscription products have no plan toggle and should not be
+		// affected by this cleanup.
+		if ( ! $form.find( '.wcsatt-options' ).length ) {
+			return;
+		}
+
+		const sattScript = $form.data( 'satt_script' );
+
+		if ( ! sattScript || ! sattScript.schemes_model ) {
+			return;
+		}
+
+		const activeScheme =
+			sattScript.schemes_model.get( 'active_scheme_key' );
+
+		if ( ! activeScheme || activeScheme === '0' ) {
+			$form
+				.find( '.woocommerce_subscription_gifting_checkbox' )
+				.prop( 'checked', false );
+			$form.find( '.recipient_email' ).val( '' );
+		}
+	} );
+
+	// Classic cart: clear gifting fields for rows where one-time is selected.
+	$( document ).on( 'submit', 'form.woocommerce-cart-form', function () {
+		$( this )
+			.find( '.wcsatt-options input[type="radio"]:checked' )
+			.each( function () {
+				if ( $( this ).val() === '0' ) {
+					const $row = $( this ).closest( 'tr' );
+					$row.find( '.woocommerce_subscription_gifting_checkbox' ).prop(
+						'checked',
+						false
+					);
+					$row.find( '.recipient_email' ).val( '' );
+				}
+			} );
+	} );
 
 	/**
 	 * Email validation function

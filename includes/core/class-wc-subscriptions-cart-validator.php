@@ -20,7 +20,6 @@ class WC_Subscriptions_Cart_Validator {
 		add_filter( 'woocommerce_cart_loaded_from_session', array( __CLASS__, 'validate_cart_contents_for_mixed_checkout' ), 10 );
 		add_filter( 'woocommerce_add_to_cart_validation', array( __CLASS__, 'can_add_product_to_cart' ), 10, 6 );
 		add_action( 'woocommerce_check_cart_items', array( __CLASS__, 'validate_subscription_limits' ) );
-
 	}
 
 	/**
@@ -116,12 +115,24 @@ class WC_Subscriptions_Cart_Validator {
 			return $cart;
 		}
 
+		// Pre-compute unique subscription product IDs using product objects so that products
+		// with subscription plans applied are properly detected. Calling
+		// WC_Subscriptions_Product::is_subscription() with an integer ID doesn't trigger the
+		// filter, which requires a WC_Product object with a subscription plan already set on it.
+		$subscription_product_ids = array();
+		foreach ( $cart->cart_contents as $cart_item ) {
+			if ( WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
+				$subscription_product_ids[ wcs_get_canonical_product_id( $cart_item['data'] ) ] = true;
+			}
+		}
+
 		foreach ( $cart->cart_contents as $key => $item ) {
 
 			// If two different subscription products are in the cart
 			// or a non-subscription product is found in the cart containing subscriptions
 			// ( maybe because of carts merge while logging in )
 			if ( ! WC_Subscriptions_Product::is_subscription( $item['data'] ) ||
+				count( $subscription_product_ids ) > 1 ||
 				WC_Subscriptions_Cart::cart_contains_other_subscription_products( wcs_get_canonical_product_id( $item['data'] ) ) ) {
 				// remove the subscriptions from the cart
 				WC_Subscriptions_Cart::remove_subscriptions_from_cart();

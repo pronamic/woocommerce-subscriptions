@@ -101,6 +101,8 @@ class WC_Subscriptions_Upgrader {
 		}
 
 		add_action( 'init', [ __CLASS__, 'initialise_background_updaters' ], 0 );
+
+		WCS_Upgrade_9_0_0::init();
 	}
 
 	/**
@@ -237,6 +239,12 @@ class WC_Subscriptions_Upgrader {
 
 		if ( version_compare( self::$stored_plugin_version, '8.8.0', '<' ) ) {
 			WCS_Plugin_Upgrade_8_8_0::maybe_auto_enable_reserved_processing_capacity();
+		}
+
+		if ( version_compare( self::$stored_plugin_version, '9.0.0', '<' ) ) {
+			WCS_Upgrade_9_0_0::maybe_migrate_proration_option();
+			WCS_Upgrade_9_0_0::maybe_enable_subscription_product_types();
+			WCS_Upgrade_9_0_0::log_apfs_products_migration_status();
 		}
 	}
 

@@ -64,10 +64,8 @@ class WC_Subscription_Downloads_Admin_Welcome_Announcement {
 	 * @return bool
 	 */
 	public static function is_welcome_announcement_dismissed() {
-		return '1' === get_option(
-			'woocommerce_subscriptions_downloads_is_welcome_announcement_dismissed',
-			''
-		);
+		// WOOSUBS-1570: retired in favor of the Subscription Plans welcome announcement.
+		return true;
 	}
 
 	/**

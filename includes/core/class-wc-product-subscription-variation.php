@@ -54,7 +54,17 @@ class WC_Product_Subscription_Variation extends WC_Product_Variation {
 		$price = parent::get_price_html( $price );
 
 		if ( ! empty( $price ) ) {
-			$price = WC_Subscriptions_Product::get_price_string( $this, array( 'price' => $price ) );
+			$price_args = array( 'price' => $price );
+
+			// On the single product page and in catalog/shop loops the trial and sign-up fee are surfaced separately
+			// (as detail lines) or deliberately hidden, so omit them from the inline price string in those contexts.
+			// Every other context (REST API, widgets, mini-cart, page builders, ...) keeps the suffix.
+			if ( WC_Subscriptions_Product::should_omit_inline_trial_and_fee() ) {
+				$price_args['sign_up_fee']  = false;
+				$price_args['trial_length'] = false;
+			}
+
+			$price = WC_Subscriptions_Product::get_price_string( $this, $price_args );
 		}
 
 		return $price;

@@ -29,6 +29,10 @@
     color: var(--wc-red, #cc1818);
 }
 
+.wcsg_add_recipient_fields_container.hidden {
+    display: none;
+}
+
 .wcsg_add_recipient_fields_container label {
     display: inline-block;
     margin-bottom: 20px;

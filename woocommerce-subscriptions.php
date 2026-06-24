@@ -5,14 +5,14 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
- * Version: 8.8.1
+ * Version: 9.0.0
  * Requires Plugins: woocommerce
  *
  * Requires at least: 6.9
  * Tested up to: 7.0
  * Requires PHP: 7.4
  *
- * WC requires at least: 10.7
+ * WC requires at least: 10.8
  * WC tested up to: 10.8
  *
  * License: GNU General Public License v3.0
@@ -43,7 +43,7 @@ if ( ! $dependency_manager->has_valid_dependencies() ) {
  */
 add_action(
 	'before_woocommerce_init',
-	function() {
+	function () {
 		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
 		}
@@ -84,7 +84,7 @@ class WC_Subscriptions {
 	public static $plugin_file = __FILE__;
 
 	/** @var string */
-	public static $version = '8.8.1'; // WRCS: DEFINED_VERSION.
+	public static $version = '9.0.0'; // WRCS: DEFINED_VERSION.
 
 	/** @var string */
 	public static $wc_minimum_supported_version = '7.7';
@@ -118,7 +118,7 @@ class WC_Subscriptions {
 	 */
 	public static function woocommerce_inactive_notice() {
 		_deprecated_function( __METHOD__, '5.0.0', 'WC_Subscriptions_Dependency_Manager::display_dependency_admin_notice' );
-		$dependency_manager = new WC_Subscriptions_Dependency_Manager( WC_Subscriptions::$wc_minimum_supported_version );
+		$dependency_manager = new WC_Subscriptions_Dependency_Manager( self::$wc_minimum_supported_version );
 		$dependency_manager->display_dependency_admin_notice();
 	}
 

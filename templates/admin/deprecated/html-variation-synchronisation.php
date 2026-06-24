@@ -27,7 +27,7 @@ global $wp_locale;
 		) );?>
 	</td>
 	<td colspan="1" class="subscription_sync_annual"<?php echo esc_attr( $display_annual_select ); ?>>
-		<label><?php esc_html_e( 'Synchronise Renewals', 'woocommerce-subscriptions' ); ?></label>
+		<label><?php esc_html_e( 'Align Billing', 'woocommerce-subscriptions' ); ?></label>
 		<?php woocommerce_wp_text_input( array(
 			'id'            => 'variable' . WC_Subscriptions_Synchroniser::$post_meta_key_day . '[' . $loop . ']',
 			'class'         => 'wc_input_subscription_payment_sync wc-enhanced-select',

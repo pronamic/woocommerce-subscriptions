@@ -72,27 +72,48 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 	/**
 	 * Get column value.
 	 *
-	 * @param WP_User $user
+	 * @param stdClass $user
 	 * @param string $column_name
 	 * @return string
 	 */
 	public function column_default( $user, $column_name ) {
-		global $wpdb;
+		// When this is zero, it represents *all* deleted customers, and not a single deleted customer. We will only
+		// build user-specific links when dealing with individual customers.
+		$customer_id      = (int) $user->customer_id;
+		$build_user_links = $customer_id > 0;
 
 		switch ( $column_name ) {
 
 			case 'customer_name':
-				$user_info = get_userdata( $user->customer_id );
-				return '<a href="' . get_edit_user_link( $user->customer_id ) . '">' . $user_info->user_email . '</a>';
+				$user_info = get_userdata( $customer_id );
+
+				if ( 0 === $customer_id ) {
+					return esc_html__( 'Deleted customers', 'woocommerce-subscriptions' );
+				} elseif ( false === $user_info ) {
+					// It's also possible that we will retain a record of the customer's user ID, even if the user record
+					// itself has been deleted (though hopefully unusual).
+					return sprintf(
+						/* translators: %1$d: customer ID. */
+						esc_html__( 'Unknown customer #%1$d', 'woocommerce-subscriptions' ),
+						$customer_id
+					);
+				}
+
+				return '<a href="' . get_edit_user_link( $customer_id ) . '">' . esc_html( $user_info->user_email ) . '</a>';
 
 			case 'active_subscription_count':
 				return $user->active_subscriptions;
 
 			case 'total_subscription_count':
-				return sprintf( '<a href="%s%d">%d</a>', admin_url( 'edit.php?post_type=shop_subscription&_customer_user=' ), $user->customer_id, $user->total_subscriptions );
+				return $build_user_links
+					? sprintf( '<a href="%s%d">%d</a>', admin_url( 'edit.php?post_type=shop_subscription&_customer_user=' ), $customer_id, $user->total_subscriptions )
+					: absint( $user->total_subscriptions );
 
 			case 'total_subscription_order_count':
-				return sprintf( '<a href="%s%d">%d</a>', admin_url( 'edit.php?post_type=shop_order&_paid_subscription_orders_for_customer_user=' ), $user->customer_id, $user->initial_order_count + $user->renewal_switch_count );
+				$subscription_order_count = $user->initial_order_count + $user->renewal_switch_count;
+				return $build_user_links
+					? sprintf( '<a href="%s%d">%d</a>', admin_url( 'edit.php?post_type=shop_order&_paid_subscription_orders_for_customer_user=' ), $customer_id, $subscription_order_count )
+					: absint( $subscription_order_count );
 
 			case 'customer_lifetime_value':
 				return wc_price( $user->initial_order_total + $user->renewal_switch_total );
@@ -425,6 +446,8 @@ class WCS_Report_Subscription_By_Customer extends WP_List_Table {
 
 	/**
 	 * Fetch subscriptions by customer.
+	 *
+	 * Records for deleted customers will be grouped under customer_id 0 (zero).
 	 *
 	 * @param array $query_options The query options.
 	 * @return array The subscriptions by customer.

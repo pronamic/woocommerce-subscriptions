@@ -471,7 +471,7 @@ class WC_Subscriptions_Switcher {
 		);
 
 		// Insert the switch settings in after the synchronisation section otherwise add them to the end.
-		if ( ! WC_Subscriptions_Admin::insert_setting_after( $settings, WC_Subscriptions_Synchroniser::$setting_id . '_title', $switching_settings, 'multiple-settings', 'sectionend' ) ) {
+		if ( ! WC_Subscriptions_Admin::insert_setting_after( $settings, WC_Subscriptions_Synchroniser::$setting_id_section_title, $switching_settings, 'multiple-settings', 'sectionend' ) ) {
 			$settings = array_merge( $settings, $switching_settings );
 		}
 

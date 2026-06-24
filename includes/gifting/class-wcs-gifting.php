@@ -122,8 +122,8 @@ class WCS_Gifting {
 			return;
 		}
 
-		// We don't need to load the script on product pages that are not subscriptions or not giftable subscriptions.
-		if ( is_product() && ( ! WC_Subscriptions_Product::is_subscription( $post->ID ) || ! WCSG_Product::is_giftable( $post->ID ) ) ) {
+		// We don't need to load the script on product pages that are not giftable.
+		if ( is_product() && ! WCSG_Product::is_giftable( $post->ID ) ) {
 			return;
 		}
 
@@ -249,13 +249,17 @@ class WCS_Gifting {
 	 * @param string $email           E-mail address.
 	 * @param string $id              ID, for uniqueness on page.
 	 * @param string $print_or_return Wether to print or return the HTML content. Optional. Default behaviour is to print the string. Pass 'return' to return the HTML content instead.
+	 * @param bool   $hidden          Whether the container should be initially hidden (display:none). Used for products with subscription plans where the gifting UI is shown/hidden by JS based on plan selection.
 	 * @return string Returns the HTML string if $print_or_return is set to 'return', otherwise prints the HTML and nothing is returned.
 	 * @since 7.8.0 - Originally implemented in WooCommerce Subscriptions Gifting 2.1.
 	 */
-	public static function render_add_recipient_fields( $email = '', $id = '', $print_or_return = 'print' ) {
+	public static function render_add_recipient_fields( $email = '', $id = '', $print_or_return = 'print', $hidden = false ) {
+		$args           = self::get_add_recipient_template_args( $email, $id );
+		$args['hidden'] = $hidden;
+
 		$output = wc_get_template_html(
 			'html-add-recipient.php',
-			self::get_add_recipient_template_args( $email, $id ),
+			$args,
 			'',
 			plugin_dir_path( WC_Subscriptions::$plugin_file ) . 'templates/gifting/'
 		);

@@ -24,7 +24,7 @@ class WCSG_Cart {
 
 		add_filter( 'woocommerce_update_cart_action_cart_updated', __CLASS__ . '::cart_update', 1, 1 );
 
-		add_filter( 'woocommerce_add_to_cart_validation', __CLASS__ . '::prevent_products_in_gifted_renewal_orders', 10 );
+		add_filter( 'woocommerce_add_to_cart_validation', __CLASS__ . '::prevent_products_in_gifted_renewal_orders', 10, 6 );
 
 		add_filter( 'woocommerce_order_again_cart_item_data', __CLASS__ . '::add_recipient_to_resubscribe_initial_payment_item', 10, 3 );
 
@@ -90,6 +90,9 @@ class WCSG_Cart {
 		}
 
 		WC()->cart->cart_contents[ $key ]['wcsg_gift_recipients_email'] = $recipient;
+
+		// Propagate recipient to bundle/composite child items.
+		self::propagate_recipient_to_children( $key, $recipient );
 	}
 
 	/**
@@ -153,7 +156,11 @@ class WCSG_Cart {
 				WCS_Gifting::validate_recipient_emails( $recipients );
 				foreach ( WC()->cart->cart_contents as $key => $item ) {
 					if ( isset( $_POST['recipient_email'][ $key ] ) ) {
-						WCS_Gifting::update_cart_item_recipient( $item, $key, $_POST['recipient_email'][ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+						$recipient_email = $_POST['recipient_email'][ $key ]; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+						WCS_Gifting::update_cart_item_recipient( $item, $key, $recipient_email );
+
+						// Propagate recipient to bundle/composite child items.
+						self::propagate_recipient_to_children( $key, $recipient_email );
 					}
 				}
 			} else {
@@ -167,9 +174,26 @@ class WCSG_Cart {
 	/**
 	 * Prevent products being added to the cart if the cart contains a gifted subscription renewal.
 	 *
-	 * @param bool $passed Whether adding to cart is valid.
+	 * Line items that are themselves part of a subscription renewal are exempt: Subscriptions
+	 * loads each line item of the renewal order into the cart individually, and this guard must
+	 * not block the renewal's own subsequent items (WOOSUBS-1680).
+	 *
+	 * @param bool  $passed         Whether adding to cart is valid.
+	 * @param int   $product_id     The product being added to the cart. Optional.
+	 * @param int   $quantity       The quantity being added. Optional.
+	 * @param int   $variation_id   The variation being added. Optional.
+	 * @param array $variations     The variation attributes. Optional.
+	 * @param array $cart_item_data Additional cart item data for the product being added. Optional.
 	 */
-	public static function prevent_products_in_gifted_renewal_orders( $passed ) {
+	public static function prevent_products_in_gifted_renewal_orders( $passed, $product_id = 0, $quantity = 1, $variation_id = 0, $variations = array(), $cart_item_data = array() ) {
+		// $cart_item_data describes the *incoming* item — validation runs before the item is
+		// added to the cart. A renewal's own line items carry this key, so let them through.
+		if ( isset( $cart_item_data['subscription_renewal'] ) ) {
+			return $passed;
+		}
+
+		// Otherwise the incoming item is a foreign product. Scan the items already in the cart
+		// (the incoming one is not among them yet) and block it if any is a gifted renewal.
 		if ( $passed ) {
 			foreach ( WC()->cart->cart_contents as $key => $item ) {
 				if ( isset( $item['subscription_renewal'] ) ) {
@@ -187,13 +211,40 @@ class WCSG_Cart {
 
 	/**
 	 * Determines if a cart item is able to be gifted.
-	 * Only subscriptions that are not a renewal or switch subscription are giftable.
+	 * Only subscriptions that are not a renewal, switch, or bundle/composite child are giftable.
 	 *
 	 * @param array $cart_item Cart item.
 	 * @return bool Whether the cart item is giftable.
 	 */
 	public static function is_giftable_item( $cart_item ) {
-		return WCSG_Product::is_giftable( $cart_item['data'] ) && ! isset( $cart_item['subscription_renewal'] ) && ! isset( $cart_item['subscription_switch'] );
+		return WCSG_Product::is_giftable( $cart_item['data'] )
+			&& ! isset( $cart_item['subscription_renewal'] )
+			&& ! isset( $cart_item['subscription_switch'] )
+			&& ! WCS_ATT_Integration_PB_CP::is_bundle_type_cart_item( $cart_item );
+	}
+
+	/**
+	 * Propagates a recipient email from a bundle/composite container cart item to all its child items.
+	 *
+	 * When a recipient is set on a parent container, the same email must be applied to all children
+	 * so they stay in the same recurring cart group and inherit the gifting state.
+	 *
+	 * @param string $cart_item_key The cart item key of the container.
+	 * @param string $recipient     The recipient email to propagate.
+	 */
+	public static function propagate_recipient_to_children( $cart_item_key, $recipient ) {
+		if ( ! isset( WC()->cart->cart_contents[ $cart_item_key ] ) ) {
+			return;
+		}
+
+		$cart_item  = WC()->cart->cart_contents[ $cart_item_key ];
+		$child_keys = WCS_ATT_Integration_PB_CP::get_bundle_type_cart_items( $cart_item, false, true );
+
+		foreach ( $child_keys as $child_key ) {
+			if ( isset( WC()->cart->cart_contents[ $child_key ] ) ) {
+				WC()->cart->cart_contents[ $child_key ]['wcsg_gift_recipients_email'] = $recipient;
+			}
+		}
 	}
 
 	/**
@@ -208,9 +259,24 @@ class WCSG_Cart {
 	public static function maybe_display_gifting_information( $cart_item, $cart_item_key, $print_or_return = 'return' ) {
 		$output = '';
 
+		// On checkout (not cart), skip gifting entirely for one-time items without subscription plans.
+		// The checkout has no plan-switching radio buttons, so the scheme is
+		// already determined from the cart. No reason to render a hidden container.
+		if ( is_checkout()
+			&& WCSG_Product::product_has_subscription_plans( $cart_item['data'] )
+			&& ! WC_Subscriptions_Product::is_subscription( $cart_item['data'] ) ) {
+			return $output; // empty string
+		}
+
 		if ( self::is_giftable_item( $cart_item ) ) {
-			$email  = ( empty( $cart_item['wcsg_gift_recipients_email'] ) ) ? '' : $cart_item['wcsg_gift_recipients_email'];
-			$output = WCS_Gifting::render_add_recipient_fields( $email, $cart_item_key, 'return' );
+			$email = empty( $cart_item['wcsg_gift_recipients_email'] ) ? '' : $cart_item['wcsg_gift_recipients_email'];
+
+			// For products supporting subscription plans, but with one-time purchase active, render the container
+			// hidden. JS will show it when the user selects a subscription plan.
+			$should_hide = WCSG_Product::product_has_subscription_plans( $cart_item['data'] )
+				&& ! WC_Subscriptions_Product::is_subscription( $cart_item['data'] );
+
+			$output = WCS_Gifting::render_add_recipient_fields( $email, $cart_item_key, 'return', $should_hide );
 		} elseif ( self::contains_gifted_renewal() ) {
 			$recipient_user_id = self::get_recipient_from_cart_item( wcs_cart_contains_renewal() );
 			$recipient_user    = get_userdata( $recipient_user_id );

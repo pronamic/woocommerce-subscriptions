@@ -58,6 +58,9 @@ class WC_Subscriptions_Admin {
 		// Add subscriptions to the product select box
 		add_filter( 'product_type_selector', __CLASS__ . '::add_subscription_products_to_select' );
 
+		// Prepend "Subscription product creation" section (runs before Subscription Plans at 1000, so appears after it on page).
+		add_filter( 'woocommerce_subscription_settings', __CLASS__ . '::add_subscription_product_creation_settings', 999 );
+
 		// Special handling of downloadable and virtual products on the WooCommerce > Products screen.
 		add_filter( 'product_type_selector', array( __CLASS__, 'add_downloadable_and_virtual_filters' ) );
 		add_filter( 'request', array( __CLASS__, 'modify_downloadable_and_virtual_product_queries' ), 11 );
@@ -110,6 +113,9 @@ class WC_Subscriptions_Admin {
 		add_action( 'admin_enqueue_scripts', __CLASS__ . '::enqueue_styles_scripts' );
 
 		add_action( 'woocommerce_admin_field_informational', __CLASS__ . '::add_informational_admin_field' );
+
+		add_action( 'woocommerce_admin_field_woocommerce_subscriptions_dismissible_notice', __CLASS__ . '::render_dismissible_notice_field' );
+		add_action( 'wp_ajax_woocommerce_subscriptions_dismiss_notice', __CLASS__ . '::ajax_dismiss_notice' );
 
 		// Filter Orders list table.
 		add_filter( 'posts_where', array( __CLASS__, 'filter_orders' ) );
@@ -206,10 +212,136 @@ class WC_Subscriptions_Admin {
 	 */
 	public static function add_subscription_products_to_select( $product_types ) {
 
-		$product_types['subscription']          = __( 'Simple subscription', 'woocommerce-subscriptions' );
-		$product_types['variable-subscription'] = __( 'Variable subscription', 'woocommerce-subscriptions' );
+		$simple_enabled   = 'yes' === get_option( self::$option_prefix . '_enable_simple_subscription', 'no' );
+		$variable_enabled = 'yes' === get_option( self::$option_prefix . '_enable_variable_subscription', 'no' );
+
+		if ( ! $simple_enabled || ! $variable_enabled ) {
+			if ( doing_action( 'restrict_manage_posts' ) ) {
+				// On the products list screen, show subscription types in the filter if products of that type exist.
+				$terms = get_terms(
+					array(
+						'taxonomy'   => 'product_type',
+						'slug'       => array( 'subscription', 'variable-subscription' ),
+						'hide_empty' => false,
+					)
+				);
+
+				if ( ! is_wp_error( $terms ) ) {
+					foreach ( $terms as $term ) {
+						if ( ! $simple_enabled && 'subscription' === $term->slug && $term->count > 0 ) {
+							$simple_enabled = true;
+						}
+						if ( ! $variable_enabled && 'variable-subscription' === $term->slug && $term->count > 0 ) {
+							$variable_enabled = true;
+						}
+					}
+				}
+			} else {
+				// When editing an existing subscription product, show its current type so merchants can change away from it.
+				$current_type = self::get_current_product_type();
+
+				if ( $current_type ) {
+					if ( ! $simple_enabled && 'subscription' === $current_type ) {
+						$simple_enabled = true;
+					}
+
+					if ( ! $variable_enabled && 'variable-subscription' === $current_type ) {
+						$variable_enabled = true;
+					}
+				}
+			}
+		}
+
+		if ( $simple_enabled ) {
+			$product_types['subscription'] = __( 'Simple subscription', 'woocommerce-subscriptions' );
+		}
+
+		if ( $variable_enabled ) {
+			$product_types['variable-subscription'] = __( 'Variable subscription', 'woocommerce-subscriptions' );
+		}
 
 		return $product_types;
+	}
+
+	/**
+	 * Add the "Subscription product creation" settings section.
+	 *
+	 * @param array $settings Existing subscription settings.
+	 * @return array
+	 */
+	public static function add_subscription_product_creation_settings( $settings ) {
+
+		$learn_more_url = 'https://woocommerce.com/document/subscriptions/creating-subscription-products/';
+
+		$section_desc = sprintf(
+			/* translators: %1$s: opening anchor tag, %2$s: closing anchor tag */
+			__( 'Create subscription products using dedicated subscription product types. %1$sLearn more%2$s', 'woocommerce-subscriptions' ),
+			'<a href="' . esc_url( $learn_more_url ) . '" target="_blank">',
+			'</a>'
+		);
+
+		$product_creation_settings = array(
+			array(
+				'name' => __( 'Subscription product creation', 'woocommerce-subscriptions' ),
+				'type' => 'title',
+				'desc' => $section_desc,
+				'id'   => self::$option_prefix . '_product_creation',
+			),
+			array(
+				'name'          => __( 'Enable subscription product types', 'woocommerce-subscriptions' ),
+				'desc'          => __( 'Simple subscription', 'woocommerce-subscriptions' ),
+				'id'            => self::$option_prefix . '_enable_simple_subscription',
+				'default'       => 'no',
+				'type'          => 'checkbox',
+				'checkboxgroup' => 'start',
+			),
+			array(
+				'desc'          => __( 'Variable subscription', 'woocommerce-subscriptions' ),
+				'id'            => self::$option_prefix . '_enable_variable_subscription',
+				'default'       => 'no',
+				'type'          => 'checkbox',
+				'checkboxgroup' => 'end',
+			),
+			array(
+				'type'        => 'woocommerce_subscriptions_dismissible_notice',
+				'id'          => 'woocommerce_subscriptions_product_type_deprecation_notice',
+				'notice_type' => 'warning',
+				'desc'        => __( 'Subscription product types will be deprecated in a future release. Moving forward, we recommend adding subscription plans to your simple and variable products.', 'woocommerce-subscriptions' ),
+			),
+			array(
+				'type' => 'sectionend',
+				'id'   => self::$option_prefix . '_product_creation',
+			),
+		);
+
+		return array_merge( $settings, $product_creation_settings );
+	}
+
+	/**
+	 * Get the product type of the product currently being edited, if any.
+	 *
+	 * @return string|false The product type slug, or false if not on a product edit screen.
+	 */
+	private static function get_current_product_type() {
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+
+		if ( ! $screen || 'product' !== $screen->id || 'post' !== $screen->base ) {
+			return false;
+		}
+
+		global $post;
+
+		if ( ! $post ) {
+			return false;
+		}
+
+		$product = wc_get_product( $post->ID );
+
+		return $product ? $product->get_type() : false;
 	}
 
 	/**
@@ -1190,8 +1322,10 @@ class WC_Subscriptions_Admin {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function subscription_settings_page() {
+		echo '<div class="woocommerce-subscriptions-settings-tab">';
 		woocommerce_admin_fields( self::get_settings() );
 		wp_nonce_field( 'wcs_subscription_settings', '_wcsnonce', false );
+		echo '</div>';
 	}
 
 	/**
@@ -1292,6 +1426,90 @@ class WC_Subscriptions_Admin {
 		if ( isset( $field_details['desc'] ) && $field_details['desc'] ) {
 			echo wp_kses_post( wpautop( wptexturize( $field_details['desc'] ) ) );
 		}
+	}
+
+	/**
+	 * Renders a dismissible notice within a WooCommerce settings section.
+	 *
+	 * @since 7.5.0
+	 * @param array $field_details Field configuration array with 'id', 'notice_type', and 'desc' keys.
+	 */
+	public static function render_dismissible_notice_field( $field_details ) {
+		$notice_id   = isset( $field_details['id'] ) ? $field_details['id'] : '';
+		$notice_type = isset( $field_details['notice_type'] ) ? $field_details['notice_type'] : 'info';
+		$description = isset( $field_details['desc'] ) ? $field_details['desc'] : '';
+
+		if ( empty( $notice_id ) || empty( $description ) ) {
+			return;
+		}
+
+		if ( 'yes' === get_user_meta( get_current_user_id(), '_woocommerce_subscriptions_dismissed_' . $notice_id, true ) ) {
+			return;
+		}
+
+		$nonce = wp_create_nonce( 'woocommerce_subscriptions_dismiss_notice' );
+		?>
+		<tr>
+			<td colspan="2" style="padding-left: 0; padding-top: 0;">
+				<div class="components-notice is-<?php echo esc_attr( $notice_type ); ?> is-dismissible wcs-settings-notice" data-notice-id="<?php echo esc_attr( $notice_id ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" style="border: 1px solid #dfb085; border-radius: 8px; gap: 4px; color: rgb(46, 25, 0);">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false" style="fill: #926300; flex-shrink: 0;">
+						<path d="M12 3.2c-4.8 0-8.8 3.9-8.8 8.8 0 4.8 3.9 8.8 8.8 8.8 4.8 0 8.8-3.9 8.8-8.8 0-4.8-4-8.8-8.8-8.8zm0 16c-4 0-7.2-3.2-7.2-7.2C4.8 8 8 4.8 12 4.8s7.2 3.2 7.2 7.2c0 4-3.2 7.2-7.2 7.2zM11 7h2v6h-2V7zm0 8h2v2h-2v-2z"></path>
+					</svg>
+					<div class="components-notice__content">
+						<p style="margin: 0;"><?php echo wp_kses_post( $description ); ?></p>
+					</div>
+					<button type="button" class="components-button components-notice__dismiss has-icon" aria-label="<?php esc_attr_e( 'Dismiss this notice.', 'woocommerce-subscriptions' ); ?>">
+						<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+							<path d="M12 13.06l3.712 3.713 1.061-1.06L13.061 12l3.712-3.712-1.06-1.06L12 10.938 8.288 7.227l-1.061 1.06L10.939 12l-3.712 3.712 1.06 1.061L12 13.061z"></path>
+						</svg>
+					</button>
+				</div>
+			</td>
+		</tr>
+		<?php
+
+		$handle = 'wcs-settings-notice-dismiss';
+		if ( ! wp_script_is( $handle, 'registered' ) ) {
+			wp_register_script( $handle, '', array( 'jquery' ), false, true ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NoExplicitVersion
+			wp_enqueue_script( $handle );
+			wp_add_inline_script(
+				$handle,
+				"jQuery( function( $ ) {
+					$( document ).on( 'click', '.wcs-settings-notice .components-notice__dismiss', function() {
+						var \$notice = $( this ).closest( '.wcs-settings-notice' );
+						\$notice.fadeOut( 200, function() {
+							$( this ).remove();
+						} );
+						$.post( ajaxurl, {
+							action: 'woocommerce_subscriptions_dismiss_notice',
+							notice_id: \$notice.data( 'notice-id' ),
+							security: \$notice.data( 'nonce' )
+						} );
+					} );
+				} );"
+			);
+		}
+	}
+
+	/**
+	 * AJAX handler for dismissing a settings notice.
+	 *
+	 * @since 7.5.0
+	 */
+	public static function ajax_dismiss_notice() {
+		check_ajax_referer( 'woocommerce_subscriptions_dismiss_notice', 'security' );
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_die( -1 );
+		}
+
+		$notice_id = isset( $_POST['notice_id'] ) ? sanitize_key( $_POST['notice_id'] ) : '';
+
+		if ( $notice_id ) {
+			update_user_meta( get_current_user_id(), '_woocommerce_subscriptions_dismissed_' . $notice_id, 'yes' );
+		}
+
+		wp_die();
 	}
 
 	/**

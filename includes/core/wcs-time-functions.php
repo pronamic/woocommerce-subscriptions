@@ -40,7 +40,7 @@ function wcs_get_subscription_period_strings( $number = 1, $period = '' ) {
 	);
 	// phpcs:enable
 
-	return ( ! empty( $period ) ) ? $translated_periods[ $period ] : $translated_periods;
+	return ( ! empty( $period ) ) ? ( isset( $translated_periods[ $period ] ) ? $translated_periods[ $period ] : '' ) : $translated_periods;
 }
 
 /**
@@ -66,7 +66,42 @@ function wcs_get_subscription_trial_period_strings( $number = 1, $period = '' ) 
 		$number
 	);
 
-	return ( ! empty( $period ) ) ? $translated_periods[ $period ] : $translated_periods;
+	return ( ! empty( $period ) ) ? ( isset( $translated_periods[ $period ] ) ? $translated_periods[ $period ] : '' ) : $translated_periods;
+}
+
+/**
+ * Returns the human-readable trial length label used in "Free trial:" detail lines, e.g. "1 week" or "30 days".
+ *
+ * wcs_get_subscription_period_strings() returns only the singular period name (e.g. "week") for a length of 1,
+ * so the count is prepended in that case to avoid a label that reads "week" with no number.
+ *
+ * @param  int    $trial_length Trial length.
+ * @param  string $trial_period Trial period (day, week, month, year).
+ * @return string Empty string when there is no trial.
+ * @since 9.0.0
+ */
+function wcs_get_subscription_trial_length_label( $trial_length, $trial_period ) {
+
+	$trial_length = (int) $trial_length;
+
+	if ( $trial_length <= 0 ) {
+		return '';
+	}
+
+	$period_string = wcs_get_subscription_period_strings( $trial_length, $trial_period );
+
+	// wcs_get_subscription_period_strings() returns '' when the period key has been removed via the
+	// 'woocommerce_subscription_periods' filter. Bail rather than render a bare count (e.g. "1 ").
+	if ( '' === $period_string ) {
+		return '';
+	}
+
+	if ( 1 === $trial_length ) {
+		/* translators: 1: trial length (always 1), 2: singular period name, e.g. "1 week". */
+		$period_string = sprintf( _x( '%1$d %2$s', 'single-period trial length label', 'woocommerce-subscriptions' ), $trial_length, $period_string );
+	}
+
+	return $period_string;
 }
 
 /**
@@ -153,7 +188,7 @@ function wcs_get_subscription_ranges( $subscription_period = null ) {
  *
  * @param int|null $interval (optional) An interval in the range 1-6
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
- * @version x.x.x
+ * @version 9.0.0
  */
 function wcs_get_subscription_period_interval_strings( $interval = null ) {
 

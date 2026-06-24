@@ -2406,6 +2406,11 @@ class WC_Subscriptions_Cart {
 			return $other_data;
 		}
 
+		// Skip subscription meta for child items of bundle/composite products — the container item displays this info.
+		if ( class_exists( 'WCS_ATT_Integration_PB_CP' ) && WCS_ATT_Integration_PB_CP::is_bundle_type_cart_item( $cart_item ) ) {
+			return $other_data;
+		}
+
 		$trial_length = WC_Subscriptions_Product::get_trial_length( $product );
 		if ( $trial_length ) {
 			$other_data[] = array(
@@ -2413,16 +2418,26 @@ class WC_Subscriptions_Cart {
 				'value'                                    => self::format_free_trial_period( $trial_length, WC_Subscriptions_Product::get_trial_period( $product ) ),
 				'hidden'                                   => true,
 				'__experimental_woocommerce_blocks_hidden' => false,
+				'wcs_subscription_detail'                  => true,
 			);
 		}
 
 		$sign_up_fee = WC_Subscriptions_Product::get_sign_up_fee( $product );
 		if ( $sign_up_fee ) {
+			$sign_up_fee_for_display = wc_get_price_to_display(
+				$product,
+				array(
+					'qty'   => 1,
+					'price' => $sign_up_fee,
+				)
+			);
+
 			$other_data[] = array(
-				'name'                                     => __( 'Sign up fee', 'woocommerce-subscriptions' ),
-				'value'                                    => wc_price( $sign_up_fee ),
+				'name'                                     => __( 'Sign-up fee', 'woocommerce-subscriptions' ),
+				'value'                                    => wc_price( $sign_up_fee_for_display ),
 				'hidden'                                   => true,
 				'__experimental_woocommerce_blocks_hidden' => false,
+				'wcs_subscription_detail'                  => true,
 			);
 		}
 
@@ -2433,6 +2448,7 @@ class WC_Subscriptions_Cart {
 				'value'                                    => self::format_sync_period( $product, WC_Subscriptions_Product::get_period( $product ), WC_Subscriptions_Product::get_interval( $product ) ),
 				'hidden'                                   => true,
 				'__experimental_woocommerce_blocks_hidden' => false,
+				'wcs_subscription_detail'                  => true,
 			);
 		}
 

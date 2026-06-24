@@ -460,9 +460,11 @@ class WC_Subscriptions_Extend_Store_Endpoint {
 			)
 		);
 
+		$display_fees = 'incl' === get_option( 'woocommerce_tax_display_shop' ) ? $fees_including_tax : $fees_excluding_tax;
+
 		return array(
 			'sign_up_fees'     => self::$money_formatter->format(
-				$fees_excluding_tax
+				$display_fees
 			),
 			'sign_up_fees_tax' => self::$money_formatter->format(
 				$fees_including_tax

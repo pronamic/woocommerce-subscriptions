@@ -3,7 +3,9 @@
  * Customer Notification: Free trial of an automatically renewed subscription is about to expire email.
  *
  * @package WooCommerce_Subscriptions/Templates/Emails
- * @version 7.3.0 - Updated for WC core email improvements.
+ * @version 7.3.0
+ *
+ * Updated for WC core email improvements.
  */
 defined( 'ABSPATH' ) || exit;
 

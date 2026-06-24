@@ -60,10 +60,12 @@ add_action( 'woocommerce_subscription_status_expired', 'wcs_maybe_make_user_inac
 /**
  * Update a user's role to a special subscription's role
  *
- * @param int $user_id The ID of a user
+ * @since 2.0.0
+ *
+ * @param int    $user_id The ID of a user
  * @param string $role_new The special name assigned to the role by Subscriptions, one of 'default_subscriber_role', 'default_inactive_role' or 'default_cancelled_role'
- * @return WP_User The user with the new role.
- * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
+ *
+ * @return WP_User|void The user with the new role.
  */
 function wcs_update_users_role( $user_id, $role_new ) {
 
@@ -85,13 +87,56 @@ function wcs_update_users_role( $user_id, $role_new ) {
 	$role_old = $roles['old'];
 
 	if ( ! empty( $role_old ) ) {
-		$user->remove_role( $role_old );
+		// For a recognised active/inactive transition, clear any other subscription-managed roles the
+		// user currently holds before assigning the new one. Relying on $role_old alone leaves stale
+		// roles behind when the role settings have changed since the user's role was last set, or when
+		// WooCommerce core assigned a baseline 'customer' role at registration that the configured
+		// inactive role no longer matches. Clearing the full managed set keeps a single subscription
+		// role on the user at any time, regardless of setting changes. See WOOSUBS-378.
+		foreach ( wcs_get_managed_user_roles() as $managed_role ) {
+			if ( $managed_role !== $role_new && in_array( $managed_role, (array) $user->roles, true ) ) {
+				$user->remove_role( $managed_role );
+			}
+		}
 	}
 
 	$user->add_role( $role_new );
 
 	do_action( 'woocommerce_subscriptions_updated_users_role', $role_new, $user, $role_old );
 	return $user;
+}
+
+/**
+ * Gets the set of user roles that Subscriptions manages when activating or deactivating a subscriber.
+ *
+ * These roles are treated as mutually exclusive: when a user transitions into one of them, any others
+ * they hold are removed so that only a single subscription role remains on the user at a time. The set
+ * comprises the configured active and inactive subscriber roles, plus the 'customer' role WooCommerce
+ * core assigns at registration (which the inactive subscriber role is intended to supersede).
+ *
+ * @since 8.9.0
+ *
+ * @return string[] Unique role keys managed by Subscriptions.
+ */
+function wcs_get_managed_user_roles() {
+	$roles = array(
+		wcs_get_subscriber_role(),
+		wcs_get_inactive_subscriber_role(),
+		'customer',
+	);
+
+	/**
+	 * Filters the set of user roles Subscriptions treats as mutually exclusive when changing a
+	 * subscriber's role. Any role in this set is removed from the user when they transition into a
+	 * different managed role.
+	 *
+	 * @since 8.9.0
+	 *
+	 * @param string[] $roles The role keys managed by Subscriptions.
+	 */
+	$roles = apply_filters( 'woocommerce_subscriptions_managed_user_roles', $roles );
+
+	return array_values( array_unique( $roles ) );
 }
 
 /**
@@ -126,11 +171,12 @@ function wcs_get_new_user_role_names( $role_new ) {
  * @param int $user_id (optional) The ID of a user in the store. If left empty, the current user's ID will be used.
  * @param int $product_id (optional) The ID of a product in the store. If left empty, the function will see if the user has any subscription.
  * @param mixed $status (optional) A valid subscription status string or array. If left empty, the function will see if the user has a subscription of any status.
+ * @param int[] $excluded_subscription_ids (optional) Subscription IDs to ignore when checking. Useful for disregarding a subscription the customer is currently paying for.
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  *
  * @return bool
  */
-function wcs_user_has_subscription( $user_id = 0, $product_id = 0, $status = 'any' ) {
+function wcs_user_has_subscription( $user_id = 0, $product_id = 0, $status = 'any', $excluded_subscription_ids = array() ) {
 
 	$subscriptions = wcs_get_users_subscriptions( $user_id );
 
@@ -140,17 +186,23 @@ function wcs_user_has_subscription( $user_id = 0, $product_id = 0, $status = 'an
 
 		if ( ! empty( $status ) && 'any' != $status ) { // We need to check for a specific status
 			foreach ( $subscriptions as $subscription ) {
+				if ( in_array( $subscription->get_id(), $excluded_subscription_ids, true ) ) {
+					continue;
+				}
 				if ( $subscription->has_status( $status ) ) {
 					$has_subscription = true;
 					break;
 				}
 			}
-		} elseif ( ! empty( $subscriptions ) ) {
-			$has_subscription = true;
+		} else {
+			$has_subscription = ! empty( array_diff( array_keys( $subscriptions ), $excluded_subscription_ids ) );
 		}
 	} else {
 
 		foreach ( $subscriptions as $subscription ) {
+			if ( in_array( $subscription->get_id(), $excluded_subscription_ids, true ) ) {
+				continue;
+			}
 			if ( $subscription->has_product( $product_id ) && ( empty( $status ) || 'any' == $status || $subscription->has_status( $status ) ) ) {
 				$has_subscription = true;
 				break;

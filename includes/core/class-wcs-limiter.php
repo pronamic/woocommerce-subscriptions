@@ -11,7 +11,7 @@ class WCS_Limiter {
 	/* cache whether a given product is purchasable or not to save running lots of queries for the same product in the same request */
 	protected static $is_purchasable_cache = array();
 
-	/* cache the check on whether the session has an order awaiting payment for a given product */
+	/* cache the IDs of subscriptions awaiting payment for a given product in the current session */
 	protected static $order_awaiting_payment_for_product = array();
 
 	public static function init() {
@@ -200,7 +200,14 @@ class WCS_Limiter {
 
 			if ( WC_Subscriptions_Product::is_subscription( $product->get_id() ) && 'no' != wcs_get_product_limitation( $product ) && ! wcs_is_order_received_page() && ! wcs_is_paypal_api_page() ) {
 
-				if ( wcs_is_product_limited_for_user( $product ) && ! self::order_awaiting_payment_for_product( $product->get_id() ) ) {
+				// Subscriptions tied to an order the customer is currently paying for (e.g. their own
+				// pending or failed order) must be set aside when evaluating the limit, otherwise they
+				// could never pay that order. The limit must still account for any OTHER subscriptions
+				// they hold, so a separate active subscription cannot be bypassed by paying an old
+				// failed order. See WOOSUBS-1716.
+				$paying_for_subscription_ids = self::get_subscriptions_awaiting_payment_for_product( $product->get_id() );
+
+				if ( wcs_is_product_limited_for_user( $product, 0, $paying_for_subscription_ids ) ) {
 					self::$is_purchasable_cache[ $product->get_id() ]['standard'] = false;
 				}
 			}
@@ -286,13 +293,18 @@ class WCS_Limiter {
 	}
 
 	/**
-	 * Check if the current session has an order awaiting payment for a subscription to a specific product line item.
+	 * Get the IDs of subscriptions awaiting payment for a specific product in the current session.
 	 *
-	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.0
-	 * @param int $product_id The product to look for a subscription awaiting payment.
-	 * @return bool
+	 * Covers the "pay for order" flow, where a customer pays for their own pending or failed order
+	 * from the My Account area or the cart. The subscriptions tied to such an order should be set
+	 * aside when determining whether the product's limit has been reached, so the customer can pay
+	 * that order without being blocked by the very subscription they're paying for.
+	 *
+	 * @since 8.9.0
+	 * @param int $product_id The product to look for subscriptions awaiting payment.
+	 * @return int[] The IDs of subscriptions awaiting payment for the product.
 	 **/
-	protected static function order_awaiting_payment_for_product( $product_id ) {
+	protected static function get_subscriptions_awaiting_payment_for_product( $product_id ) {
 		global $wp;
 
 		if ( isset( self::$order_awaiting_payment_for_product[ $product_id ] ) ) {
@@ -300,7 +312,7 @@ class WCS_Limiter {
 		}
 
 		// Set up the cache with a default value.
-		self::$order_awaiting_payment_for_product[ $product_id ] = false;
+		self::$order_awaiting_payment_for_product[ $product_id ] = array();
 
 		// If there's no order waiting payment, exit early.
 		if ( empty( WC()->session->order_awaiting_payment ) && ! isset( $_GET['pay_for_order'] ) ) {
@@ -324,9 +336,8 @@ class WCS_Limiter {
 
 					foreach ( $subscriptions as $subscription ) {
 						// Check that the subscription has the product we're interested in.
-						if ( $subscription->has_product( $product_id ) && $subscription->needs_payment() ) {
-							self::$order_awaiting_payment_for_product[ $product_id ] = true;
-							break 2; // break out of the $subscriptions and order line item loops - we've found at least 1 subscription pending payment for the product.
+						if ( $subscription->has_product( $product_id ) && $subscription->needs_payment() && ! in_array( $subscription->get_id(), self::$order_awaiting_payment_for_product[ $product_id ], true ) ) {
+							self::$order_awaiting_payment_for_product[ $product_id ][] = $subscription->get_id();
 						}
 					}
 				}
@@ -334,6 +345,17 @@ class WCS_Limiter {
 		}
 
 		return self::$order_awaiting_payment_for_product[ $product_id ];
+	}
+
+	/**
+	 * Check if the current session has an order awaiting payment for a subscription to a specific product line item.
+	 *
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.0
+	 * @param int $product_id The product to look for a subscription awaiting payment.
+	 * @return bool
+	 **/
+	protected static function order_awaiting_payment_for_product( $product_id ) {
+		return ! empty( self::get_subscriptions_awaiting_payment_for_product( $product_id ) );
 	}
 
 	/**

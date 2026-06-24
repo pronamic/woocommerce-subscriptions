@@ -545,8 +545,8 @@ class WCSG_Admin {
 	 */
 	public static function get_gifting_option_text() {
 		return self::is_gifting_enabled_for_all_products()
-			? __( 'Follow global setting (enabled)', 'woocommerce-subscriptions' )
-			: __( 'Follow global setting (disabled)', 'woocommerce-subscriptions' );
+			? __( 'Use global setting (enabled)', 'woocommerce-subscriptions' )
+			: __( 'Use global setting (disabled)', 'woocommerce-subscriptions' );
 	}
 
 	/**

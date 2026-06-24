@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 ?>
-<div class="wcsg_add_recipient_fields_container">
+<div class="wcsg_add_recipient_fields_container<?php if ( ! empty( $hidden ) ) echo ' hidden'; ?>">
 	<input type="checkbox" id="gifting_<?php echo esc_attr( $id ); ?>_option" class="woocommerce_subscription_gifting_checkbox <?php echo esc_attr( implode( ' ', $checkbox_field_args['class'] ) ); ?>" style="<?php echo esc_attr( implode( '; ', $checkbox_field_args['style_attributes'] ) ); ?>" value="gift" <?php checked( $checkbox_field_args['checked'] ); ?> <?php disabled( $checkbox_field_args['disabled'] ); ?> />
 	<label for="gifting_<?php echo esc_attr( $id ); ?>_option">
 		<?php echo esc_html( apply_filters( 'wcsg_enable_gifting_checkbox_label', get_option( WCSG_Admin::$option_prefix . '_gifting_checkbox_text', __( 'This is a gift', 'woocommerce-subscriptions' ) ) ) ); ?>

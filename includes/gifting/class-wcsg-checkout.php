@@ -95,7 +95,11 @@ class WCSG_Checkout {
 				}
 				foreach ( WC()->cart->cart_contents as $key => $item ) {
 					if ( isset( $_POST['recipient_email'][ $key ] ) ) {
-						WCS_Gifting::update_cart_item_recipient( $item, $key, $_POST['recipient_email'][ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+						$recipient_email = $_POST['recipient_email'][ $key ]; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+						WCS_Gifting::update_cart_item_recipient( $item, $key, $recipient_email );
+
+						// Propagate recipient to bundle/composite child items.
+						WCSG_Cart::propagate_recipient_to_children( $key, $recipient_email );
 					}
 				}
 			} else {
@@ -152,7 +156,11 @@ class WCSG_Checkout {
 			// Store recipient emails on the cart items so they can be repopulated after checkout update.
 			foreach ( WC()->cart->cart_contents as $key => $item ) {
 				if ( isset( $checkout_data['recipient_email'][ $key ] ) ) {
-					WCS_Gifting::update_cart_item_recipient( $item, $key, $checkout_data['recipient_email'][ $key ] );
+					$recipient_email = $checkout_data['recipient_email'][ $key ];
+					WCS_Gifting::update_cart_item_recipient( $item, $key, $recipient_email );
+
+					// Propagate recipient to bundle/composite child items.
+					WCSG_Cart::propagate_recipient_to_children( $key, $recipient_email );
 				}
 			}
 		}
@@ -179,6 +187,11 @@ class WCSG_Checkout {
 		$product = $cart_item['data'];
 
 		if ( ! WC_Subscriptions_Product::is_subscription( $product ) || ! WCSG_Product::is_giftable( $product ) ) {
+			return $other_data;
+		}
+
+		// Don't add gifting data for bundle/composite child items.
+		if ( WCS_ATT_Integration_PB_CP::is_bundle_type_cart_item( $cart_item ) ) {
 			return $other_data;
 		}
 

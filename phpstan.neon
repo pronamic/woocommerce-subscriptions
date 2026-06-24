@@ -23,7 +23,7 @@ parameters:
 
 		-
 			message: "#^Access to an undefined property WP_User\\:\\:\\$customer_id\\.$#"
-			count: 4
+			count: 1
 			path: includes/admin/reports/class-wcs-report-subscription-by-customer.php
 
 		-
@@ -57,9 +57,949 @@ parameters:
 			path: includes/admin/views/html-report-by-period.php
 
 		-
+			message: "#^Constant WCS_ATT_ABSPATH not found\\.$#"
+			count: 5
+			path: includes/apfs/admin/class-wcs-att-admin.php
+
+		-
+			message: "#^Expected 1 @param tags, found 2\\.$#"
+			count: 1
+			path: includes/apfs/admin/class-wcs-att-admin.php
+
+		-
+			message: "#^Variable \\$settings_to_add in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: includes/apfs/admin/class-wcs-att-admin.php
+
+		-
+			message: "#^Access to an undefined property WC_Meta_Data\\:\\:\\$key\\.$#"
+			count: 1
+			path: includes/apfs/admin/export/class-wcs-att-product-export.php
+
+		-
+			message: "#^Constant WCS_ATT_ABSPATH not found\\.$#"
+			count: 1
+			path: includes/apfs/admin/meta-boxes/class-wcs-att-meta-box-product-data.php
+
+		-
+			message: "#^Variable \\$index might not be defined\\.$#"
+			count: 4
+			path: includes/apfs/admin/meta-boxes/views/subscription-scheme.php
+
+		-
+			message: "#^Variable \\$post_id might not be defined\\.$#"
+			count: 1
+			path: includes/apfs/admin/meta-boxes/views/subscription-scheme.php
+
+		-
+			message: "#^Variable \\$scheme_data might not be defined\\.$#"
+			count: 1
+			path: includes/apfs/admin/meta-boxes/views/subscription-scheme.php
+
+		-
+			message: "#^is_wp_error\\(array\\) will always evaluate to false\\.$#"
+			count: 1
+			path: includes/apfs/api/class-wcs-att-store-api.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$product$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-cart.php
+
+		-
+			message: "#^is_wp_error\\(array\\) will always evaluate to false\\.$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-cart.php
+
+		-
+			message: "#^Call to an undefined static method WCS_ATT_Core_Compatibility\\:\\:is_rest_api_request\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-core-compatibility.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$handler$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-core-compatibility.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$key$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-core-compatibility.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$request$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-core-compatibility.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$key$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-helpers.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$value$#"
+			count: 2
+			path: includes/apfs/class-wcs-att-helpers.php
+
+		-
+			message: "#^Constant WCS_ATT_ABSPATH not found\\.$#"
+			count: 10
+			path: includes/apfs/class-wcs-att-integrations.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$route$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-integrations.php
+
+		-
+			message: "#^@param WC_Order_Item \\$order_item does not accept actual type of parameter\\: array\\.$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-order.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-order.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:set_subtotal\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-order.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:set_total\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-order.php
+
+		-
+			message: "#^Cannot call method get_meta\\(\\) on array\\.$#"
+			count: 2
+			path: includes/apfs/class-wcs-att-order.php
+
+		-
+			message: "#^Cannot call method get_order_id\\(\\) on array\\.$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-order.php
+
+		-
+			message: "#^Cannot call method get_product\\(\\) on array\\.$#"
+			count: 2
+			path: includes/apfs/class-wcs-att-order.php
+
+		-
+			message: "#^Cannot call method meta_exists\\(\\) on array\\.$#"
+			count: 2
+			path: includes/apfs/class-wcs-att-order.php
+
+		-
+			message: "#^Constant WCS_ATT_ABSPATH not found\\.$#"
+			count: 2
+			path: includes/apfs/class-wcs-att-product.php
+
+		-
+			message: "#^Variable \\$product in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-product.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$discount$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-scheme.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 2
+			path: includes/apfs/class-wcs-att-sync.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$scheme$#"
+			count: 1
+			path: includes/apfs/class-wcs-att-sync.php
+
+		-
+			message: "#^Function remove_filter invoked with 4 parameters, 2\\-3 required\\.$#"
+			count: 2
+			path: includes/apfs/display/class-wcs-att-display-cart.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:add_to_cart_form_settings\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/display/class-wcs-att-display-product.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:requires_input\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/display/class-wcs-att-display-product.php
+
+		-
+			message: "#^Cannot call method get_key\\(\\) on string\\.$#"
+			count: 1
+			path: includes/apfs/display/class-wcs-att-display-product.php
+
+		-
+			message: "#^Method WCS_ATT_Display_Product\\:\\:get_subscription_options_button_text\\(\\) should return string\\|null but return statement is missing\\.$#"
+			count: 1
+			path: includes/apfs/display/class-wcs-att-display-product.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$product$#"
+			count: 1
+			path: includes/apfs/display/class-wcs-att-display-product.php
+
+		-
+			message: "#^Result of static method WCS_ATT_Display_Product\\:\\:get_subscription_options_content\\(\\) \\(void\\) is used\\.$#"
+			count: 2
+			path: includes/apfs/display/class-wcs-att-display-product.php
+
+		-
+			message: "#^Variable \\$dropdown_option_price_html_args might not be defined\\.$#"
+			count: 1
+			path: includes/apfs/display/class-wcs-att-display-product.php
+
+		-
+			message: "#^Call to static method getInstance\\(\\) on an unknown class WC_Gateway_Afterpay\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-afterpay.php
+
+		-
+			message: "#^Property WCS_ATT_Integration_AfterPay\\:\\:\\$gateway has unknown class WC_Gateway_Afterpay as its type\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-afterpay.php
+
+		-
+			message: "#^Constant WCS_ATT_ABSPATH not found\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-blocks.php
+
+		-
+			message: "#^Action callback returns array but should not return anything\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-fs.php
+
+		-
+			message: "#^Method WCS_ATT_Integration_FS\\:\\:add_quickview_integration\\(\\) should return array but return statement is missing\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-fs.php
+
+		-
+			message: "#^Call to static method has_nyp\\(\\) on an unknown class WC_Name_Your_Price_Helpers\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-nyp.php
+
+		-
+			message: "#^Call to static method is_nyp\\(\\) on an unknown class WC_Name_Your_Price_Helpers\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-nyp.php
+
+		-
+			message: "#^Call to static method is_nyp_gte\\(\\) on an unknown class WC_Name_Your_Price_Compatibility\\.$#"
+			count: 2
+			path: includes/apfs/integrations/class-wcs-att-integration-nyp.php
+
+		-
+			message: "#^Callback expects 2 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 2
+			path: includes/apfs/integrations/class-wcs-att-integration-nyp.php
+
+		-
+			message: "#^Action callback returns array but should not return anything\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pao.php
+
+		-
+			message: "#^Call to static method get_product_addons\\(\\) on an unknown class WC_Product_Addons_Helper\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pao.php
+
+		-
+			message: "#^Callback expects 2 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pao.php
+
+		-
+			message: "#^Method WCS_ATT_Integration_PAO\\:\\:add_discount_addons_data\\(\\) should return array but return statement is missing\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pao.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:contains\\(\\)\\.$#"
+			count: 2
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:get_components\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:is_priced_per_product\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to method contains\\(\\) on an unknown class WC_Product_Bundle\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to method contains_sub\\(\\) on an unknown class WC_Product_Bundle\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to method get_product\\(\\) on an unknown class WC_Bundled_Item\\.$#"
+			count: 3
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to method get_product\\(\\) on an unknown class WC_CP_Product\\.$#"
+			count: 2
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to method is_synced\\(\\) on an unknown class WC_Product_Bundle\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to static method get_current_bundle_configuration\\(\\) on an unknown class WC_PB_Order\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to static method get_current_composite_configuration\\(\\) on an unknown class WC_CP_Order\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to static method group_mode_has\\(\\) on an unknown class WC_Product_Bundle\\.$#"
+			count: 2
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Call to static method urlencode_recursive\\(\\) on an unknown class WC_CP_Helpers\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Default value of the parameter \\#2 \\$cart_contents \\(false\\) of method WCS_ATT_Integration_PB_CP\\:\\:get_bundle_type_cart_item_container\\(\\) is incompatible with type array\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Default value of the parameter \\#2 \\$cart_contents \\(false\\) of method WCS_ATT_Integration_PB_CP\\:\\:get_bundle_type_cart_items\\(\\) is incompatible with type array\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Default value of the parameter \\#2 \\$cart_contents \\(false\\) of method WCS_ATT_Integration_PB_CP\\:\\:is_bundle_type_cart_item\\(\\) is incompatible with type array\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Default value of the parameter \\#2 \\$order \\(false\\) of method WCS_ATT_Integration_PB_CP\\:\\:get_bundle_type_order_item_container\\(\\) is incompatible with type WC_Order\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Default value of the parameter \\#2 \\$order \\(false\\) of method WCS_ATT_Integration_PB_CP\\:\\:get_bundle_type_order_items\\(\\) is incompatible with type WC_Order\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Default value of the parameter \\#2 \\$order \\(false\\) of method WCS_ATT_Integration_PB_CP\\:\\:is_bundle_type_container_order_item\\(\\) is incompatible with type WC_Order\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Default value of the parameter \\#2 \\$order \\(false\\) of method WCS_ATT_Integration_PB_CP\\:\\:is_bundle_type_order_item\\(\\) is incompatible with type WC_Order\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Function WC_CP not found\\.$#"
+			count: 4
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Function WC_PB not found\\.$#"
+			count: 5
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Function has_filter invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Function wc_cp_get_composited_cart_items not found\\.$#"
+			count: 3
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Function wc_cp_get_composited_order_items not found\\.$#"
+			count: 2
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Function wc_pb_get_bundled_cart_items not found\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Function wc_pb_get_bundled_order_items not found\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Method WCS_ATT_Integration_PB_CP\\:\\:has_individually_priced_bundled_contents\\(\\) should return bool but return statement is missing\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$bundle$#"
+			count: 2
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$cart_item$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$bundle of method WCS_ATT_Integration_PB_CP\\:\\:build_bundle_fingerprint\\(\\) has invalid type WC_Product_Bundle\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$bundle of method WCS_ATT_Integration_PB_CP\\:\\:bundle_changed\\(\\) has invalid type WC_Product_Bundle\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$bundle of method WCS_ATT_Integration_PB_CP\\:\\:bundle_contains_subscription\\(\\) has invalid type WC_Product_Bundle\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$bundle of method WCS_ATT_Integration_PB_CP\\:\\:bundle_prices_hash\\(\\) has invalid type WC_Product_Bundle\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$bundle of method WCS_ATT_Integration_PB_CP\\:\\:set_bundled_item_scheme\\(\\) has invalid type WC_Product_Bundle\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$bundle of method WCS_ATT_Integration_PB_CP\\:\\:set_bundled_items_scheme\\(\\) has invalid type WC_Product_Bundle\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$bundled_item of method WCS_ATT_Integration_PB_CP\\:\\:reset_bundled_item_scheme\\(\\) has invalid type WC_Bundled_Item\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$bundled_item of method WCS_ATT_Integration_PB_CP\\:\\:set_bundled_item_scheme\\(\\) has invalid type WC_Bundled_Item\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$component_option of method WCS_ATT_Integration_PB_CP\\:\\:set_component_option_scheme\\(\\) has invalid type WC_CP_Product\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$composite of method WCS_ATT_Integration_PB_CP\\:\\:component_hash\\(\\) has invalid type WC_Product_Composite\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$composite of method WCS_ATT_Integration_PB_CP\\:\\:composite_prices_hash\\(\\) has invalid type WC_Product_Composite\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$composite of method WCS_ATT_Integration_PB_CP\\:\\:set_component_option_scheme\\(\\) has invalid type WC_Product_Composite\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$composite of method WCS_ATT_Integration_PB_CP\\:\\:set_single_composite_subscription_scheme\\(\\) has invalid type WC_Product_Composite\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Static method WCS_ATT_Integration_PB_CP\\:\\:is_bundle_type_container_cart_item\\(\\) invoked with 2 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Variable \\$product in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
+
+		-
+			message: "#^Parameter \\$wallet of method WCS_ATT_Integration_Square\\:\\:hide_square_digital_wallet_buttons\\(\\) has invalid type WooCommerce\\\\Square\\\\Gateway\\\\Digital_Wallet\\.$#"
+			count: 1
+			path: includes/apfs/integrations/class-wcs-att-integration-square.php
+
+		-
+			message: "#^Constant WCS_ATT_ABSPATH not found\\.$#"
+			count: 2
+			path: includes/apfs/modules/class-wcs-att-management.php
+
+		-
+			message: "#^@param WCS_ATT_Scheme\\|null \\$scheme does not accept actual type of parameter\\: array\\|null\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/add/class-wcs-att-manage-add-cart.php
+
+		-
+			message: "#^@param WC_Order_Item_Product \\$existing_item does not accept actual type of parameter\\: WC_Order_Item\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^@param WC_Order_Item_Product \\$found_item does not accept actual type of parameter\\: WC_Order_Item\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^@param WC_Order_Item_Product \\$found_item does not accept actual type of parameter\\: array\\|WC_Order_Item\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Action callback returns bool but should not return anything\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product_id\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_subtotal\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_variation_id\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:set_quantity\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:set_subtotal\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:set_total\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Constant WCS_ATT_ABSPATH not found\\.$#"
+			count: 2
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Default value of the parameter \\#2 \\$args \\(array\\) of method WCS_ATT_Manage_Add\\:\\:add_cart_to_subscription\\(\\) is incompatible with type bool\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Method WCS_ATT_Manage_Add\\:\\:add_product_to_subscription\\(\\) should return bool but return statement is missing\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-add.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-switch.php
+
+		-
+			message: "#^Function remove_filter invoked with 4 parameters, 2\\-3 required\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-switch.php
+
+		-
+			message: "#^Method WC_Product\\:\\:is_type\\(\\) invoked with 2 parameters, 1 required\\.$#"
+			count: 2
+			path: includes/apfs/modules/management/class-wcs-att-manage-switch.php
+
+		-
+			message: "#^Variable \\$product in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: includes/apfs/modules/management/class-wcs-att-manage-switch.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:contains\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-price-filters.php
+
+		-
+			message: "#^Function remove_filter invoked with 4 parameters, 2\\-3 required\\.$#"
+			count: 20
+			path: includes/apfs/product/class-wcs-att-product-price-filters.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$price$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-price-filters.php
+
+		-
+			message: "#^@param WC_Product \\$product does not accept actual type of parameter\\: array\\.$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^@param array \\$args does not accept actual type of parameter\\: int\\.$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^@param int \\$scheme_key does not accept actual type of parameter\\: WC_Product\\.$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:contains\\(\\)\\.$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:get_bundle_price\\(\\)\\.$#"
+			count: 2
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:get_composite_price\\(\\)\\.$#"
+			count: 2
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:get_variation_price\\(\\)\\.$#"
+			count: 2
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^Cannot call method get_discount\\(\\) on string\\.$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^Cannot call method get_key\\(\\) on string\\.$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^Cannot call method is_synced\\(\\) on string\\.$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^Constant WCS_ATT_ABSPATH not found\\.$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^Default value of the parameter \\#2 \\$scheme_key \\(string\\) of method WCS_ATT_Product_Prices\\:\\:get_price_html\\(\\) is incompatible with type int\\.$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$args$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$include$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-prices.php
+
+		-
+			message: "#^Variable \\$return_value might not be defined\\.$#"
+			count: 1
+			path: includes/apfs/product/class-wcs-att-product-schemes.php
+
+		-
+			message: "#^Callback expects 2 parameters, \\$accepted_args is set to 4\\.$#"
+			count: 1
+			path: includes/apfs/woocommerce-all-products-for-subscriptions.php
+
+		-
+			message: "#^Constant WCPAY_VERSION_NUMBER not found\\.$#"
+			count: 1
+			path: includes/apfs/woocommerce-all-products-for-subscriptions.php
+
+		-
+			message: "#^Constant WCS_ATT_ABSPATH not found\\.$#"
+			count: 9
+			path: includes/apfs/woocommerce-all-products-for-subscriptions.php
+
+		-
+			message: "#^Method WCS_ATT\\:\\:maybe_define_constant\\(\\) should return bool but return statement is missing\\.$#"
+			count: 1
+			path: includes/apfs/woocommerce-all-products-for-subscriptions.php
+
+		-
 			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
 			count: 3
 			path: includes/api/class-wc-rest-subscriptions-controller.php
+
+		-
+			message: "#^Access to an undefined property WC_API_Subscriptions_Customers\\:\\:\\$base\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Access to an undefined property WC_API_Subscriptions_Customers\\:\\:\\$server\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Access to constant READABLE on an unknown class WC_API_SERVER\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Access to private property WooCommerce\\:\\:\\$api\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Access to property \\$WC_API_Subscriptions on an unknown class WC_API\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions_Customers\\:\\:validate_request\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Parameter \\$server of method WC_API_Subscriptions_Customers\\:\\:__construct\\(\\) has invalid type WC_API_Server\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^WC_API_Subscriptions_Customers\\:\\:__construct\\(\\) calls parent\\:\\:__construct\\(\\) but WC_API_Subscriptions_Customers does not extend any class\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions-customers.php
+
+		-
+			message: "#^Access to an undefined property WC_API_Subscriptions\\:\\:\\$post_type\\.$#"
+			count: 7
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to an undefined property WC_API_Subscriptions\\:\\:\\$server\\.$#"
+			count: 5
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant ACCEPT_DATA on an unknown class WC_API_Server\\.$#"
+			count: 4
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant CREATABLE on an unknown class WC_API_Server\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant DELETABLE on an unknown class WC_API_SERVER\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant DELETABLE on an unknown class WC_API_Server\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant EDITABLE on an unknown class WC_API_SERVER\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant EDITABLE on an unknown class WC_API_Server\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to constant READABLE on an unknown class WC_API_Server\\.$#"
+			count: 7
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to private property WooCommerce\\:\\:\\$api\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to property \\$WC_API_Customers on an unknown class WC_API\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:create_order\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:create_order_note\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:delete\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:delete_order_note\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:edit_order\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:edit_order_note\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:get_order\\(\\)\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:get_order_note\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:get_order_notes\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:get_orders_count\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:is_readable\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:merge_query_args\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to an undefined method WC_API_Subscriptions\\:\\:validate_request\\(\\)\\.$#"
+			count: 4
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to method getCode\\(\\) on an unknown class WC_API_Exception\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to method getErrorCode\\(\\) on an unknown class WC_API_Exception\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Call to method getMessage\\(\\) on an unknown class WC_API_Exception\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Caught class WC_API_Exception not found\\.$#"
+			count: 2
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Default value of the parameter \\#4 \\$page \\(int\\) of method WC_API_Subscriptions\\:\\:get_subscriptions\\(\\) is incompatible with type null\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Instantiated class WC_API_Exception not found\\.$#"
+			count: 6
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^PHPDoc tag @param has invalid value \\(array data raw order data\\)\\: Unexpected token \"data\", expected variable at offset 67$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$fields$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$id$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^is_wp_error\\(WC_Subscription\\) will always evaluate to false\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-api-subscriptions.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-rest-subscriptions-controller.php
+
+		-
+			message: "#^Call to an undefined static method WC_REST_Orders_Controller\\:\\:create_order\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-rest-subscriptions-controller.php
+
+		-
+			message: "#^Call to an undefined static method WC_REST_Orders_Controller\\:\\:update_order\\(\\)\\.$#"
+			count: 1
+			path: includes/api/legacy/class-wc-rest-subscriptions-controller.php
 
 		-
 			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
@@ -80,11 +1020,6 @@ parameters:
 			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
 			count: 3
 			path: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php
-
-		-
-			message: "#^Call to static method is_true\\(\\) on an unknown class Automattic\\\\Jetpack\\\\Constants\\.$#"
-			count: 1
-			path: includes/class-wcs-api.php
 
 		-
 			message: "#^Access to private property WooCommerce\\:\\:\\$api\\.$#"
@@ -619,11 +1554,6 @@ parameters:
 		-
 			message: "#^Call to an undefined static method WCS_Orders_Table_Subscription_Data_Store\\:\\:get_orders_table_name\\(\\)\\.$#"
 			count: 4
-			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
-
-		-
-			message: "#^Call to static method get_constant\\(\\) on an unknown class Automattic\\\\Jetpack\\\\Constants\\.$#"
-			count: 1
 			path: includes/core/data-stores/class-wcs-orders-table-subscription-data-store.php
 
 		-
@@ -1207,6 +2137,11 @@ parameters:
 			path: includes/core/upgrades/class-wcs-upgrade-2-2-9.php
 
 		-
+			message: "#^Function as_schedule_single_action not found\\.$#"
+			count: 2
+			path: includes/core/upgrades/class-wcs-upgrade-9-0-0.php
+
+		-
 			message: "#^Call to an undefined method WC_Logger_Interface\\:\\:clear\\(\\)\\.$#"
 			count: 1
 			path: includes/core/upgrades/class-wcs-upgrade-logger.php
@@ -1328,7 +2263,7 @@ parameters:
 
 		-
 			message: "#^Access to an undefined property WC_Subscription\\:\\:\\$recipient_user\\.$#"
-			count: 2
+			count: 1
 			path: includes/gifting/class-wcs-gifting.php
 
 		-
@@ -1425,11 +2360,6 @@ parameters:
 			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_carts\\.$#"
 			count: 1
 			path: includes/switching/class-wcs-cart-switch.php
-
-		-
-			message: "#^Call to static method is_true\\(\\) on an unknown class Automattic\\\\Jetpack\\\\Constants\\.$#"
-			count: 1
-			path: src/Internal/Telemetry/Collector.php
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$count\\.$#"
@@ -1540,6 +2470,156 @@ parameters:
 			message: "#^Variable \\$section_tooltip might not be defined\\.$#"
 			count: 1
 			path: templates/admin/status.php
+
+		-
+			message: "#^Variable \\$context might not be defined\\.$#"
+			count: 2
+			path: templates/apfs/cart/cart-add-to-subscription-list.php
+
+		-
+			message: "#^Variable \\$subscriptions in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: templates/apfs/cart/cart-add-to-subscription-list.php
+
+		-
+			message: "#^Variable \\$force_responsive might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/cart/cart-add-to-subscription.php
+
+		-
+			message: "#^Variable \\$is_checked might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/cart/cart-add-to-subscription.php
+
+		-
+			message: "#^Variable \\$is_visible might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/cart/cart-add-to-subscription.php
+
+		-
+			message: "#^Variable \\$cart_item_key might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/cart/cart-item-subscription-options.php
+
+		-
+			message: "#^Variable \\$classes might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/cart/cart-item-subscription-options.php
+
+		-
+			message: "#^Variable \\$options might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/cart/cart-item-subscription-options.php
+
+		-
+			message: "#^Variable \\$force_responsive might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/checkout/cart-add-to-subscription.php
+
+		-
+			message: "#^Variable \\$is_checked might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/checkout/cart-add-to-subscription.php
+
+		-
+			message: "#^Variable \\$is_visible might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/checkout/cart-add-to-subscription.php
+
+		-
+			message: "#^Variable \\$subscriptions might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-add-to-subscription-list.php
+
+		-
+			message: "#^Variable \\$force_responsive might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-add-to-subscription.php
+
+		-
+			message: "#^Variable \\$is_visible might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-add-to-subscription.php
+
+		-
+			message: "#^Variable \\$product_id might not be defined\\.$#"
+			count: 2
+			path: templates/apfs/single-product/product-add-to-subscription.php
+
+		-
+			message: "#^Variable \\$cta might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-subscription-options-prompt-checkbox.php
+
+		-
+			message: "#^Variable \\$one_time_cta might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-subscription-options-prompt-radio.php
+
+		-
+			message: "#^Variable \\$subscription_cta might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-subscription-options-prompt-radio.php
+
+		-
+			message: "#^Variable \\$text might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-subscription-options-prompt-text.php
+
+		-
+			message: "#^Variable \\$display_dropdown might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-subscription-options.php
+
+		-
+			message: "#^Variable \\$dropdown_label might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-subscription-options.php
+
+		-
+			message: "#^Variable \\$hide_wrapper might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-subscription-options.php
+
+		-
+			message: "#^Variable \\$options might not be defined\\.$#"
+			count: 2
+			path: templates/apfs/single-product/product-subscription-options.php
+
+		-
+			message: "#^Variable \\$product_id might not be defined\\.$#"
+			count: 3
+			path: templates/apfs/single-product/product-subscription-options.php
+
+		-
+			message: "#^Variable \\$prompt might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-subscription-options.php
+
+		-
+			message: "#^Variable \\$prompt_classes might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-subscription-options.php
+
+		-
+			message: "#^Variable \\$prompt_type might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-subscription-options.php
+
+		-
+			message: "#^Variable \\$sign_up_text might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/product-subscription-options.php
+
+		-
+			message: "#^Variable \\$wrapper_classes might not be defined\\.$#"
+			count: 2
+			path: templates/apfs/single-product/product-subscription-options.php
+
+		-
+			message: "#^Variable \\$layout might not be defined\\.$#"
+			count: 1
+			path: templates/apfs/single-product/variation-subscription-options.php
 
 		-
 			message: "#^Variable \\$available_methods might not be defined\\.$#"

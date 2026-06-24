@@ -104,7 +104,18 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 		$price = 'incl' == $tax_display_mode ? wcs_get_price_including_tax( $this, array( 'price' => $price ) ) : wcs_get_price_excluding_tax( $this, array( 'price' => $price ) );
 		$price = $this->get_price_prefix( $prices ) . wc_price( $price ) . $this->get_price_suffix();
 		$price = apply_filters( 'woocommerce_variable_price_html', $price, $this );
-		$price = WC_Subscriptions_Product::get_price_string( $this, array( 'price' => $price ) );
+
+		$price_args = array( 'price' => $price );
+
+		// On the single product page and in catalog/shop loops the trial and sign-up fee are surfaced separately
+		// (as detail lines) or deliberately hidden, so omit them from the inline price string in those contexts.
+		// Every other context (REST API, widgets, mini-cart, page builders, ...) keeps the suffix.
+		if ( WC_Subscriptions_Product::should_omit_inline_trial_and_fee() ) {
+			$price_args['sign_up_fee']  = false;
+			$price_args['trial_length'] = false;
+		}
+
+		$price = WC_Subscriptions_Product::get_price_string( $this, $price_args );
 
 		return apply_filters( 'woocommerce_variable_subscription_price_html', apply_filters( 'woocommerce_get_price_html', $price, $this ), $this );
 	}
@@ -350,7 +361,10 @@ class WC_Product_Variable_Subscription extends WC_Product_Variable {
 
 				// Add the product's synced first payment date to the variation data if applicable.
 				if ( isset( $variation_data['variation_id'] ) ) {
-					$available_variations[ $index ]['first_payment_html'] = WC_Subscriptions_Synchroniser::get_products_first_payment_date( wc_get_product( $variation_data['variation_id'] ) );
+					$variation_product = wc_get_product( $variation_data['variation_id'] );
+
+					$available_variations[ $index ]['first_payment_html']        = WC_Subscriptions_Synchroniser::get_products_first_payment_date( $variation_product );
+					$available_variations[ $index ]['subscription_details_html'] = WC_Subscriptions_Product::get_subscription_price_details_html( $variation_product );
 				}
 			}
 		}
