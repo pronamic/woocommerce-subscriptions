@@ -1673,7 +1673,8 @@ class WCS_Cart_Renewal {
 		// If the order being validated is the renewal order in the cart, report it as having 'checkout-draft' status so
 		// is_valid_draft_order() accepts it. We intentionally avoid modifying the cart hash here — leaving it as-is ensures
 		// update_line_items_from_cart() detects a hash mismatch and refreshes line items (including any applied discounts).
-		if ( $order && $order->get_id() === (int) WC()->session->get( 'store_api_draft_order', 0 ) ) {
+		// Check WC()->session before accessing get method to avoid fatal error.
+		if ( $order && WC()->session && $order->get_id() === (int) WC()->session->get( 'store_api_draft_order', 0 ) ) {
 			$cart_order = $this->get_order();
 
 			if ( $cart_order && $cart_order->get_id() === $order->get_id() ) {
