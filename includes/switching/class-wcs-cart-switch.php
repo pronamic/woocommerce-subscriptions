@@ -71,7 +71,8 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal {
 	/**
 	 * Check if a payment is being made on a switch order from 'My Account'. If so,
 	 * reconstruct the cart with the order contents. If the order item is part of a switch, load the necessary data
-	 * into $_GET and $_POST to ensure the switch validation occurs and the switch cart item meta is correctly loaded.
+	 * into $_GET and $_POST, and into WC_Subscriptions_Switcher's switch request context, to ensure the switch
+	 * validation occurs and the switch cart item meta is correctly loaded.
 	 *
 	 * @since 2.1
 	 */
@@ -102,51 +103,105 @@ class WCS_Cart_Switch extends WCS_Cart_Renewal {
 
 			WC()->cart->empty_cart( true );
 
-			foreach ( $order->get_items() as $item_id => $line_item ) {
+			$clear_switch_request_context = function () {
+				WC_Subscriptions_Switcher::clear_switch_request_context();
+			};
 
-				// clear the GET args so we can add non-switch items to the cart cleanly
-				unset( $_GET['switch-subscription'] );
-				unset( $_GET['item'] );
+			try {
+				foreach ( $order->get_items() as $item_id => $line_item ) {
 
-				// check if this order item is for a switch
-				foreach ( $switch_order_data as $subscription_id => $switch_data ) {
+					// clear the GET args so we can add non-switch items to the cart cleanly
+					unset( $_GET['switch-subscription'] );
+					unset( $_GET['item'] );
+					WC_Subscriptions_Switcher::clear_switch_request_context();
 
-					if ( isset( $switch_data['switches'] ) && in_array( $item_id, array_keys( $switch_data['switches'] ) ) ) {
+					$switch_subscription_id = 0;
+					$switch_item_id         = 0;
 
-						$_GET['switch-subscription'] = $subscription_id;
+					// check if this order item is for a switch
+					foreach ( $switch_order_data as $subscription_id => $switch_data ) {
 
-						// Backwards compatibility (2.1 -> 2.1.2)
-						$subscription_item_id_key = ( isset( $switch_data['switches'][ $item_id ]['subscription_item_id'] ) ) ? 'subscription_item_id' : 'remove_line_item';
-						$_GET['item']             = $switch_data['switches'][ $item_id ][ $subscription_item_id_key ];
-						break;
+						if ( isset( $switch_data['switches'] ) && in_array( $item_id, array_keys( $switch_data['switches'] ) ) ) {
+
+							$_GET['switch-subscription'] = $subscription_id;
+
+							// Backwards compatibility (2.1 -> 2.1.2)
+							$subscription_item_id_key = ( isset( $switch_data['switches'][ $item_id ]['subscription_item_id'] ) ) ? 'subscription_item_id' : 'remove_line_item';
+							$switch_item_id           = $switch_data['switches'][ $item_id ][ $subscription_item_id_key ] ?? null;
+							$_GET['item']             = $switch_item_id;
+
+							$switch_subscription_id = $subscription_id;
+							break;
+						}
+					}
+
+					$order_item = wcs_get_order_item( $item_id, $order );
+					$product    = wc_get_product( wcs_get_canonical_product_id( $order_item ) );
+					$product_id = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
+
+					$order_product_data = array(
+						'_qty'          => (int) $line_item['qty'],
+						'_variation_id' => (int) $line_item['variation_id'],
+					);
+
+					$variations = array();
+
+					foreach ( $order_item['item_meta'] as $meta_key => $meta_value ) {
+						$meta_value = is_array( $meta_value ) ? $meta_value[0] : $meta_value; // In WC 3.0 the meta values are no longer arrays
+
+						if ( taxonomy_is_product_attribute( $meta_key ) || meta_is_product_attribute( $meta_key, $meta_value, $product_id ) ) {
+							$variations[ $meta_key ]           = $meta_value;
+							$_POST[ 'attribute_' . $meta_key ] = $meta_value;
+						}
+					}
+
+					/*
+					 * The $_GET writes above remain for the consumers which still read the superglobal directly,
+					 * but the switch validation and cart item data callbacks read the original request input,
+					 * which never sees them. Hand the switch to them directly instead, naming the product it
+					 * applies to so that nothing else added along the way picks it up.
+					 *
+					 * The order, its key, its status and the customer's permission for every subscription in
+					 * $switch_order_data have all been checked above, so this is not settable by request. Stored
+					 * switch data naming no line item is not a switch we can make: leave the context unset and
+					 * let this item be added as the ordinary purchase the rest of this loop treats it as.
+					 */
+					if ( $switch_subscription_id && absint( $switch_item_id ) ) {
+						// A product sold through subscription plans carries the plan switched to on the order item, not in its type.
+						$switch_scheme_key = class_exists( 'WCS_ATT_Order' ) ? WCS_ATT_Order::get_subscription_scheme( $order_item, array( 'product' => $product ) ) : '';
+
+						WC_Subscriptions_Switcher::set_switch_request_context( $switch_subscription_id, $switch_item_id, $product_id, $order_product_data['_variation_id'], $switch_scheme_key );
+					}
+
+					$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $product_id, $order_product_data['_qty'], $order_product_data['_variation_id'] );
+
+					if ( $passed_validation ) {
+						/*
+						 * Once WC_Cart::add_to_cart() has stored the item, nothing else it does needs the switch
+						 * — but it is not finished: it fires 'woocommerce_add_to_cart' before returning, which is
+						 * where companion product plugins (force sells, chained products, free gifts) add items of
+						 * their own. Drop the switch as that action opens, so those additions are treated as the
+						 * ordinary purchases they are, and again once add_to_cart() returns for the items which
+						 * never got that far. This catches a companion of the same product, which the context's
+						 * own product scoping cannot.
+						 *
+						 * Registered here rather than around the validation filter above on purpose: this clears
+						 * unconditionally, so an add_to_cart() made from another plugin's validation callback
+						 * would wipe the switch before the real add below could use it.
+						 */
+						add_action( 'woocommerce_add_to_cart', $clear_switch_request_context, PHP_INT_MIN );
+
+						try {
+							$cart_item_key = WC()->cart->add_to_cart( $product_id, $order_product_data['_qty'], $order_product_data['_variation_id'], $variations, array() );
+						} finally {
+							remove_action( 'woocommerce_add_to_cart', $clear_switch_request_context, PHP_INT_MIN );
+							WC_Subscriptions_Switcher::clear_switch_request_context();
+						}
 					}
 				}
-
-				$order_item = wcs_get_order_item( $item_id, $order );
-				$product    = wc_get_product( wcs_get_canonical_product_id( $order_item ) );
-				$product_id = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
-
-				$order_product_data = array(
-					'_qty'          => (int) $line_item['qty'],
-					'_variation_id' => (int) $line_item['variation_id'],
-				);
-
-				$variations = array();
-
-				foreach ( $order_item['item_meta'] as $meta_key => $meta_value ) {
-					$meta_value = is_array( $meta_value ) ? $meta_value[0] : $meta_value; // In WC 3.0 the meta values are no longer arrays
-
-					if ( taxonomy_is_product_attribute( $meta_key ) || meta_is_product_attribute( $meta_key, $meta_value, $product_id ) ) {
-						$variations[ $meta_key ]           = $meta_value;
-						$_POST[ 'attribute_' . $meta_key ] = $meta_value;
-					}
-				}
-
-				$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $product_id, $order_product_data['_qty'], $order_product_data['_variation_id'] );
-
-				if ( $passed_validation ) {
-					$cart_item_key = WC()->cart->add_to_cart( $product_id, $order_product_data['_qty'], $order_product_data['_variation_id'], $variations, array() );
-				}
+			} finally {
+				// Never let this order's switch leak into an unrelated add to cart later in the same request.
+				WC_Subscriptions_Switcher::clear_switch_request_context();
 			}
 
 			$this->set_order_awaiting_payment( $order_id );

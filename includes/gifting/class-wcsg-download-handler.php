@@ -140,12 +140,13 @@ class WCSG_Download_Handler {
 			array(
 				array(
 					'name'      => __( 'Downloadable Products', 'woocommerce-subscriptions' ),
-					'desc'      => __( 'Allow both purchaser and recipient to download subscription products.', 'woocommerce-subscriptions' ),
+					'desc'      => __( 'Allow gift purchasers to download files', 'woocommerce-subscriptions' ),
 					'id'        => WCSG_Admin::$option_prefix . '_downloadable_products',
 					'default'   => 'no',
 					'type'      => 'checkbox',
+					'class'     => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
 					'row_class' => 'gifting-downloadable-products',
-					'desc_tip'  => __( 'If you want both the recipient and purchaser of a subscription to have access to downloadable products.', 'woocommerce-subscriptions' ),
+					'desc_tip'  => __( 'Both the purchaser and the recipient will be able to access downloadable files from the subscription.', 'woocommerce-subscriptions' ),
 				),
 			)
 		);

@@ -43,12 +43,14 @@ class WCS_Cart_Initial_Payment extends WCS_Cart_Renewal {
 			return;
 		}
 
-		// Pay for existing order
-		$order_key = wc_clean( wp_unslash( $_GET['key'] ) );
+		// Pay for existing order.
+		// sanitize_text_field() returns '' for array input, which hash_equals() would otherwise reject.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The order key checked below is this flow's authorization control.
+		$order_key = sanitize_text_field( wp_unslash( $_GET['key'] ) );
 		$order_id  = absint( $wp->query_vars['order-pay'] );
 		$order     = wc_get_order( $order_id );
 
-		if ( wcs_get_objects_property( $order, 'order_key' ) !== $order_key || ! $order->has_status( array( 'pending', 'failed' ) ) || ! wcs_order_contains_subscription( $order, 'parent' ) || wcs_order_contains_subscription( $order, 'resubscribe' ) ) {
+		if ( ! $order instanceof WC_Order || ! hash_equals( $order->get_order_key(), $order_key ) || ! $order->has_status( array( 'pending', 'failed' ) ) || ! wcs_order_contains_subscription( $order, 'parent' ) || wcs_order_contains_subscription( $order, 'resubscribe' ) ) {
 			return;
 		}
 

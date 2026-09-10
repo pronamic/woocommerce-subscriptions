@@ -117,20 +117,7 @@ class WCSG_Product {
 				if ( WC_Subscriptions_Product::is_variable_subscription( $product ) || ( $has_subscription_plans && $product->is_type( 'variable' ) ) ) {
 					$is_giftable = true;
 				} else {
-					// "Allow gifting" is set to "Enabled for all products".
-					$is_giftable     = WCSG_Admin::is_gifting_enabled_for_all_products();
-					$product_gifting = WC_Subscriptions_Product::get_gifting( $product );
-
-					// For products with subscription plans but without an active scheme, get_gifting() returns ''
-					// because get_meta_data() gates on is_subscription(). Read the meta directly as fallback.
-					if ( '' === $product_gifting && $has_subscription_plans ) {
-						$product_gifting = $product->get_meta( '_subscription_gifting', true );
-					}
-
-					// Apply product-level override if it's set.
-					if ( '' !== $product_gifting ) {
-						$is_giftable = 'enabled' === $product_gifting;
-					}
+					$is_giftable = WC_Subscriptions_Product::is_gifting_enabled_for_product( $product );
 				}
 			}
 		}

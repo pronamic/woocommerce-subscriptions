@@ -38,15 +38,18 @@ class WCS_Subscriber_Role_Manager {
 
 		$role_settings = array(
 			array(
-				'name' => __( 'Roles', 'woocommerce-subscriptions' ),
+				'name' => __( 'Subscriber roles', 'woocommerce-subscriptions' ),
 				'type' => 'title',
-				// translators: placeholders are <em> tags
-				'desc' => sprintf( __( 'Choose the default roles to assign to active and inactive subscribers. For record keeping purposes, a user account must be created for subscribers. Users with the %1$sadministrator%2$s role, such as yourself, will never be allocated these roles to prevent locking out administrators.', 'woocommerce-subscriptions' ), '<em>', '</em>' ),
+				'desc' => sprintf(
+					/* translators: %1$s: a "Learn more" documentation link. */
+					__( 'Choose the default roles to assign to active and inactive subscribers. %1$s', 'woocommerce-subscriptions' ),
+					\Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Settings_Layout::learn_more_link( 'https://woocommerce.com/document/subscriptions/store-manager-guide/#subscriber-roles' )
+				),
 				'id'   => WC_Subscriptions_Admin::$option_prefix . '_role_options',
 			),
 			array(
-				'name'     => __( 'Subscriber Default Role', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'When a subscription is activated, either manually or after a successful purchase, new users will be assigned this role.', 'woocommerce-subscriptions' ),
+				'name'     => __( 'Subscriber default role', 'woocommerce-subscriptions' ),
+				'desc'     => __( 'If a customer has one or more active subscriptions, they will be assigned to this role.', 'woocommerce-subscriptions' ),
 				'tip'      => '',
 				'id'       => WC_Subscriptions_Admin::$option_prefix . '_subscriber_role',
 				'css'      => 'min-width:150px;',
@@ -57,8 +60,8 @@ class WCS_Subscriber_Role_Manager {
 				'desc_tip' => true,
 			),
 			array(
-				'name'     => __( 'Inactive Subscriber Role', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'If a subscriber\'s subscription is manually cancelled or expires, they will be assigned this role.', 'woocommerce-subscriptions' ),
+				'name'     => __( 'Inactive subscriber role', 'woocommerce-subscriptions' ),
+				'desc'     => __( 'If a customer has no active subscriptions, they will be assigned this role.', 'woocommerce-subscriptions' ),
 				'tip'      => '',
 				'id'       => WC_Subscriptions_Admin::$option_prefix . '_cancelled_role',
 				'css'      => 'min-width:150px;',

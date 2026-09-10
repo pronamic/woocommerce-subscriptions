@@ -2,6 +2,7 @@
 
 namespace Automattic\WooCommerce_Subscriptions\Internal\Telemetry;
 
+use WCS_Plugin_Upgrade_9_2_0;
 use WCSG_Admin;
 use WP_Query;
 use WP_Term;
@@ -18,9 +19,12 @@ class Products {
 	 *
 	 * If the gifting feature is disabled, this will be zero.
 	 *
-	 * Otherwise, if gifting is enabled for all products, we exclude any products that have individually been set to
-	 * disabled. Similarly, if gifting is disabled for all products by default, we only count those products that have
-	 * been individually set to enabled.
+	 * Otherwise a product counts when it carries an explicit `enabled` value. Until the store is settled - the 9.2.0
+	 * gifting migration has not finished materializing the legacy storewide default onto every product, or has not
+	 * run yet - products without a usable value still follow that default, so they count too on an "enabled for all
+	 * products" store. This mirrors
+	 * {@see \WC_Subscriptions_Product::is_gifting_enabled_for_product()}: the two must agree, or telemetry reports a
+	 * catalog the storefront does not have.
 	 *
 	 * @return int
 	 */
@@ -38,9 +42,20 @@ class Products {
 			return 0;
 		}
 
-		$atomic_gifting_condition = WCSG_Admin::is_gifting_enabled_for_all_products()
-			? "( gifting_setting.meta_value <> 'disabled' OR gifting_setting.meta_key IS NULL )"
-			: "gifting_setting.meta_value = 'enabled'";
+		$follows_storewide_default = ! WCS_Plugin_Upgrade_9_2_0::has_gifting_migration_settled() && WCSG_Admin::is_gifting_enabled_for_all_products();
+
+		if ( $follows_storewide_default ) {
+			// Only 'enabled' and 'disabled' are a per-product choice. Everything else - no row at all, an empty
+			// string from the legacy "use global setting" option, or a stray value - is not one, so it follows
+			// the storewide default. NULL is spelled out because SQL's NOT IN never matches it.
+			$atomic_gifting_condition = "(
+				gifting_setting.meta_value = 'enabled'
+				OR gifting_setting.meta_value IS NULL
+				OR gifting_setting.meta_value NOT IN ( 'enabled', 'disabled' )
+			)";
+		} else {
+			$atomic_gifting_condition = "gifting_setting.meta_value = 'enabled'";
+		}
 
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		return (int) $wpdb->get_var(
@@ -63,7 +78,7 @@ class Products {
 						( product.ID = p.ID AND p.term_taxonomy_id = %d )
 						OR ( product.post_parent = p.ID AND p.term_taxonomy_id = %d )
 					)
-					-- Get the gifting mode (explicitly enabled, disabled, or following the global default).
+					-- Get the product's own gifting value, if it has one.
 					LEFT JOIN %i AS gifting_setting ON (
 						gifting_setting.post_id = product.ID
 						AND gifting_setting.meta_key = '_subscription_gifting'

@@ -110,12 +110,16 @@ class External_Trigger_Settings {
 				'desc'    => __( 'Allow a web cron service to run pending subscription events.', 'woocommerce-subscriptions' ),
 				'default' => 'no',
 				'type'    => 'checkbox',
+				'class'   => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
 			),
 			array(
-				'name' => __( 'Web cron URL', 'woocommerce-subscriptions' ),
-				'desc' => __( 'Add this URL to your web cron service. Treat it like a password — keep it private and don\'t share it publicly.', 'woocommerce-subscriptions' ),
-				'type' => self::FIELD_TYPE_URL,
-				'id'   => self::SECTION_ID . '_url_display',
+				'name'      => __( 'Web cron URL', 'woocommerce-subscriptions' ),
+				'desc'      => __( 'Add this URL to your web cron service. Treat it like a password — keep it private and don\'t share it publicly.', 'woocommerce-subscriptions' ),
+				'type'      => self::FIELD_TYPE_URL,
+				'id'        => self::SECTION_ID . '_url_display',
+				// Display-only: the row renders a derived URL, no option persists under this id. The flag keeps
+				// the generic save from writing a junk row and keeps the field out of the REST settings group.
+				'is_option' => false,
 			),
 			array(
 				'type' => 'sectionend',
@@ -165,7 +169,7 @@ class External_Trigger_Settings {
 			self::REGENERATE_ACTION
 		);
 		?>
-		<tr valign="top">
+		<tr valign="top" class="wc-settings-row-external-trigger-url">
 			<th scope="row" class="titledesc">
 				<label <?php echo '' !== $field_id ? 'for="' . esc_attr( $field_id ) . '"' : ''; ?>><?php echo esc_html( $field['name'] ?? '' ); ?></label>
 			</th>
@@ -179,15 +183,16 @@ class External_Trigger_Settings {
 					style="width: 100%; max-width: 600px;"
 					onfocus="this.select();"
 				/>
+				<?php // Per the design (Figma 4398-27072), the guidance sits between the URL and the regenerate button. ?>
+				<?php if ( ! empty( $field['desc'] ) ) : ?>
+					<p class="description"><?php echo wp_kses_post( $field['desc'] ); ?></p>
+				<?php endif; ?>
 				<p>
 					<a
 						href="<?php echo esc_url( $regenerate_url ); ?>"
 						class="button"
 					><?php esc_html_e( 'Generate a new URL', 'woocommerce-subscriptions' ); ?></a>
 				</p>
-				<?php if ( ! empty( $field['desc'] ) ) : ?>
-					<p class="description"><?php echo wp_kses_post( $field['desc'] ); ?></p>
-				<?php endif; ?>
 			</td>
 		</tr>
 		<?php

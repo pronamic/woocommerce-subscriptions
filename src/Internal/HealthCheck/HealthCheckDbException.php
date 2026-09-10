@@ -5,9 +5,10 @@ namespace Automattic\WooCommerce_Subscriptions\Internal\HealthCheck;
 use RuntimeException;
 
 /**
- * Thrown by the Health Check pipeline when a database write fails in a
- * way that prevents the caller from making progress (e.g. the INSERT
- * for a new scan-run row fails at the SQL layer).
+ * Thrown by the Health Check pipeline when a database query fails in a
+ * way that prevents the caller from making progress - the INSERT for a
+ * new scan-run row failing at the SQL layer, or a candidate shortlist
+ * whose empty result would otherwise be read as "nothing left to scan".
  *
  * Having a dedicated type lets callers discriminate DB-insert failures
  * from other `RuntimeException` sources without matching on the

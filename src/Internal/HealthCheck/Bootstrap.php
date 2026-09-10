@@ -191,14 +191,14 @@ class Bootstrap {
 	 * itself stays visible regardless — only the AS-driven nightly
 	 * scan is gated by this option.
 	 *
-	 * The checkbox's `desc_tip` embeds an anchor that deep-links into
+	 * The section description embeds an anchor that deep-links into
 	 * the Health Check Status tab so merchants who keep nightly scans
 	 * off still see an obvious path to running an ad-hoc scan. WC core
-	 * renders `desc_tip` for checkbox fields as
-	 * `<p class="description">{desc_tip}</p>` without additional
-	 * escaping (see `WC_Admin_Settings::get_field_description()`), so
-	 * the anchor passes through cleanly; the URL is `esc_url()`-d and
-	 * the link text is escaped via `esc_html__()`.
+	 * renders a title's `desc` through
+	 * `wp_kses_post( wpautop( wptexturize( $desc ) ) )` (see
+	 * `WC_Admin_Settings::output_fields()`), so post-safe markup such
+	 * as this anchor passes through while scripts and event handlers
+	 * are stripped; the URL is `esc_url()`-d.
 	 *
 	 * @param array<int, array<string, mixed>> $settings Existing settings array.
 	 *
@@ -218,19 +218,20 @@ class Bootstrap {
 				'name' => __( 'Subscriptions health check', 'woocommerce-subscriptions' ),
 				'type' => 'title',
 				'id'   => $section_id,
-			),
-			array(
-				'id'       => CircuitBreaker::OPTION_SCHEDULE_ENABLED,
-				'name'     => __( 'Enable nightly scans', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'Allow nightly health check scans on your subscriptions', 'woocommerce-subscriptions' ),
-				'desc_tip' => sprintf(
+				'desc' => sprintf(
 					/* translators: %1$s and %2$s wrap the link text "Subscriptions health check" in an <a> element pointing at the Health Check Status tab. */
-					__( 'When enabled, a health check scan will run on your store each night to identify subscriptions that may need your attention. To view results or run a manual scan, go to %1$sSubscriptions health check%2$s.', 'woocommerce-subscriptions' ),
+					__( 'Run a nightly scan to catch subscriptions that may need attention. To view results or run a scan manually, go to %1$sSubscriptions health check%2$s.', 'woocommerce-subscriptions' ),
 					'<a href="' . $tool_url . '">',
 					'</a>'
 				),
-				'default'  => 'no',
-				'type'     => 'checkbox',
+			),
+			array(
+				'id'      => CircuitBreaker::OPTION_SCHEDULE_ENABLED,
+				'name'    => __( 'Enable nightly scans', 'woocommerce-subscriptions' ),
+				'desc'    => __( 'Enable nightly health check scans on your subscriptions', 'woocommerce-subscriptions' ),
+				'default' => 'no',
+				'type'    => 'checkbox',
+				'class'   => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
 			),
 			array(
 				'type' => 'sectionend',

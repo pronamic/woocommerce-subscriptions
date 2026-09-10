@@ -14,6 +14,14 @@ parameters:
 			# phpstan-development.neon's `analyse!` override + the abilities stub in scanFiles.
 			# @todo Remove when QIT's pinned WC version is ≥ 10.9.
 			- src/Internal/Abilities/Domain/*
+			# Settings_Page and its adapter opt the Subscriptions tab into WooCommerce's
+			# modern settings UI, referencing SettingsUIPageInterface / LegacySettingsPageAdapter,
+			# which ship in WooCommerce 10.9. QIT pins a WC version that may predate 10.9, so those
+			# symbols are unresolvable on its include path. Local PHPStan re-includes these files via
+			# phpstan-development.neon's `analyse!` override + the settings-ui stub in scanFiles.
+			# @todo Remove when QIT's pinned WC version is ≥ 10.9.
+			- src/Internal/Admin/Settings/Settings_Page.php
+			- src/Internal/Admin/Settings/Settings_Page_Adapter.php
 	ignoreErrors:
 		- '#Constant WC_VERSION not found#'
 		-

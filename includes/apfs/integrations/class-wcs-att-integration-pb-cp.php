@@ -1606,7 +1606,7 @@ class WCS_ATT_Integration_PB_CP {
 
 			$data[] = array(
 				'id'    => 'product_bundle_contents',
-				'label' => __( 'Between Product Bundle Configurations', 'woocommerce-subscriptions' ),
+				'label' => __( 'Product Bundle Configurations', 'woocommerce-subscriptions' ),
 			);
 		}
 
@@ -1620,7 +1620,7 @@ class WCS_ATT_Integration_PB_CP {
 
 			$data[] = array(
 				'id'    => 'composite_product_contents',
-				'label' => __( 'Between Composite Product Configurations', 'woocommerce-subscriptions' ),
+				'label' => __( 'Composite Product Configurations', 'woocommerce-subscriptions' ),
 			);
 		}
 
@@ -1684,8 +1684,15 @@ class WCS_ATT_Integration_PB_CP {
 			if ( version_compare( WC_Subscriptions::$version, '2.6.0' ) >= 0 ) {
 
 				$subscription_has_fixed_length = isset( $args['subscription'] ) ? $args['subscription']->get_time( 'end', '' ) : false;
-				// Length Proration must be enabled for switching to be possible when the current subscription/plan has a fixed length.
-				if ( $subscription_has_fixed_length && 'yes' !== get_option( WC_Subscriptions_Admin::$option_prefix . '_apportion_length', 'no' ) ) {
+				// Length proration must apply to this product for switching to be possible when the current
+				// subscription/plan has a fixed length. Mirror WCS_Switch_Totals_Calculator::should_apportion_length()
+				// so the product-type-scoped values ('virtual'/'physical') are honoured, not just 'yes' (all products) —
+				// otherwise a physical bundle whose length is prorated under the 'physical' setting is wrongly blocked.
+				$apportion_length = get_option( WC_Subscriptions_Admin::$option_prefix . '_apportion_length', 'no' );
+				$length_prorated  = 'yes' === $apportion_length
+					|| ( 'virtual' === $apportion_length && $product->is_virtual() )
+					|| ( 'physical' === $apportion_length && ! $product->is_virtual() );
+				if ( $subscription_has_fixed_length && ! $length_prorated ) {
 
 					$is_feature_supported = false;
 

@@ -4,6 +4,8 @@ namespace Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\Admin;
 
 use Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\CandidateStore;
 use Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\Detector;
+use Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\HealthCheckDbException;
+use Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\SubscriptionCounts;
 use Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\RunStore;
 use WC_Payment_Token_CC;
 use WCS_Payment_Tokens;
@@ -341,42 +343,30 @@ class CandidatesListTable extends WP_List_Table {
 	}
 
 	/**
-	 * Total subscription count across the whole store. Direct SQL
-	 * count rather than `wcs_get_subscriptions(['subscriptions_per_page' => -1])`
-	 * because the latter would hydrate every WC_Subscription object
-	 * just to count them — unbounded memory on big stores.
+	 * Total subscription count across the whole store.
 	 *
-	 * Matches the status filter `wcs_get_subscriptions( [ 'subscription_status'
-	 * => [ 'any' ] ] )` actually applies — `trash` and `auto-draft` are excluded
-	 * by the paginated fetch, so including them here would make the `All (N)`
-	 * tab count drift higher than the rows a merchant can browse to.
+	 * Thin delegate to {@see SubscriptionCounts::all()}, which owns the query and
+	 * the status universe it shares with the scan-progress numerator. The count
+	 * lives outside this class because the scan reads it from the Action
+	 * Scheduler worker, where `WP_List_Table` - and so this class - cannot load.
 	 *
-	 * HPOS-aware: queries `wc_orders` when HPOS is enabled, falls
-	 * back to `posts` otherwise.
+	 * @param string $status_filter Optional status filter; defaults to
+	 *                              "all statuses" (trash/auto-draft excluded).
+	 *                              Values are allowlisted by `current_filters()`
+	 *                              before reaching here.
 	 *
 	 * @return int
 	 */
 	public static function count_all_subscriptions( string $status_filter = '' ): int {
-		global $wpdb;
-
-		// When a status filter is active, narrow the count so pagination
-		// matches the `wcs_get_subscriptions` result set. Values are
-		// allowlisted by `current_filters()` before reaching here.
-		$status_where_hpos    = "status NOT IN ('trash', 'auto-draft')";
-		$status_where_classic = "post_status NOT IN ('trash', 'auto-draft')";
-
-		if ( '' !== $status_filter ) {
-			$hpos_status          = 'wc-' === substr( $status_filter, 0, 3 ) ? $status_filter : 'wc-' . $status_filter;
-			$status_where_hpos    = $wpdb->prepare( 'status = %s', $hpos_status );
-			$status_where_classic = $wpdb->prepare( 'post_status = %s', $hpos_status );
+		try {
+			return SubscriptionCounts::all( $status_filter );
+		} catch ( HealthCheckDbException $e ) {
+			// The list table renders with a zero badge rather than taking
+			// the screen down - the pre-existing behaviour of this method,
+			// which read a failed aggregate as 0 silently. The count guard
+			// has already logged the driver's error.
+			return 0;
 		}
-
-		if ( wcs_is_custom_order_tables_usage_enabled() ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- read-only count, status clause is either a static allowlist or a prepared fragment.
-			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}wc_orders WHERE type = 'shop_subscription' AND {$status_where_hpos}" );
-		}
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- read-only count, status clause is either a static allowlist or a prepared fragment.
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'shop_subscription' AND {$status_where_classic}" );
 	}
 
 	/**

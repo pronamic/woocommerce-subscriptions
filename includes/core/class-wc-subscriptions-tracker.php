@@ -82,7 +82,9 @@ class WC_Subscriptions_Tracker {
 
 			// Early renewal
 			// Accept Early Renewal Payments
-			'enable_early_renewal'                 => get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal' ),
+			// Defaulted to match WCS_Early_Renewal_Manager::is_early_renewal_enabled(): the option row only
+			// exists once the settings have been saved, and an absent row resolves to enabled at runtime.
+			'enable_early_renewal'                 => get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal', 'yes' ),
 			// Accept Early Renewal Payments via a Modal
 			'enable_early_renewal_via_modal'       => 'no' === get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal' ) ? 'none' : get_option( WC_Subscriptions_Admin::$option_prefix . '_enable_early_renewal_via_modal', 'none' ),
 

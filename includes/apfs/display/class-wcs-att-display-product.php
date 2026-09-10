@@ -60,7 +60,7 @@ class WCS_ATT_Display_Product {
 	 *
 	 * @param  WC_Product      $product
 	 * @param  WC_Product|null $parent_product
-	 * @return void
+	 * @return string
 	 */
 	public static function get_subscription_options_content( $product, $parent_product = null ) {
 
@@ -676,7 +676,9 @@ class WCS_ATT_Display_Product {
 			return $variation_data;
 		}
 
-		if ( $subscription_options_content = self::get_subscription_options_content( $variation_product, $variable_product ) ) {
+		$subscription_options_content = self::get_subscription_options_content( $variation_product, $variable_product );
+
+		if ( $subscription_options_content ) {
 
 			$modify_variation_data_price_html     = self::modify_variation_data_price_html( $variable_product );
 			$subscription_schemes                 = WCS_ATT_Product_Schemes::get_subscription_schemes( $variation_product );
@@ -742,8 +744,13 @@ class WCS_ATT_Display_Product {
 
 		global $product;
 
-		// Include the SATT script in footer.
-		wp_enqueue_script( 'wcsatt-single-product' );
+		// Variable products render their options through the 'woocommerce_available_variation' filter rather than the
+		// content below, so the script follows plan support rather than the content string.
+		$has_plan_options = WCS_ATT_Product::supports_feature( $product, 'subscription_scheme_options_product_single' );
+
+		if ( $has_plan_options ) {
+			WCS_ATT_Display::enqueue_frontend_script();
+		}
 
 		// At this point, we're echoing template parts that can be overriden by themes.
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

@@ -20,6 +20,20 @@ class WCS_Remove_Item {
 	}
 
 	/**
+	 * Returns the nonce action protecting line item removal requests for a subscription.
+	 *
+	 * The action names the operation as well as the subscription, so a token minted here cannot be replayed
+	 * against an unrelated operation on the same subscription, such as resubscribing to it.
+	 *
+	 * @param int $subscription_id The ID of the subscription the item belongs to.
+	 * @return string
+	 * @since 9.2.0
+	 */
+	private static function get_nonce_action( int $subscription_id ): string {
+		return 'woocommerce_subscriptions_remove_item_' . absint( $subscription_id );
+	}
+
+	/**
 	 * Returns the link used to remove an item from a subscription
 	 *
 	 * @param int $subscription_id
@@ -34,7 +48,7 @@ class WCS_Remove_Item {
 				'remove_item'     => $order_item_id,
 			)
 		);
-		$remove_link = wp_nonce_url( $remove_link, $subscription_id );
+		$remove_link = wp_nonce_url( $remove_link, self::get_nonce_action( absint( $subscription_id ) ) );
 
 		return $remove_link;
 	}
@@ -56,7 +70,7 @@ class WCS_Remove_Item {
 			),
 			$base_url
 		);
-		$undo_link = wp_nonce_url( $undo_link, $subscription_id );
+		$undo_link = wp_nonce_url( $undo_link, self::get_nonce_action( absint( $subscription_id ) ) );
 
 		return $undo_link;
 	}
@@ -69,10 +83,19 @@ class WCS_Remove_Item {
 	public static function maybe_remove_or_add_item_to_subscription() {
 
 		if ( isset( $_GET['subscription_id'] ) && ( isset( $_GET['remove_item'] ) || isset( $_GET['undo_remove_item'] ) ) && isset( $_GET['_wpnonce'] ) ) {
-			$subscription_id = wc_clean( wp_unslash( $_GET['subscription_id'] ) );
-			$subscription    = wcs_get_subscription( $subscription_id );
+			$subscription_id = absint( wp_unslash( $_GET['subscription_id'] ) );
 			$undo_request    = isset( $_GET['undo_remove_item'] );
 			$item_id         = wc_clean( wp_unslash( $undo_request ? $_GET['undo_remove_item'] : $_GET['remove_item'] ) );
+
+			// Verify the nonce before the subscription is looked up, so the "does not exist" notice below can't be
+			// used to tell an existing subscription ID apart from one that isn't there.
+			if ( ! wp_verify_nonce( wc_clean( wp_unslash( $_GET['_wpnonce'] ) ), self::get_nonce_action( $subscription_id ) ) ) {
+				wc_add_notice( __( 'Security error. Please contact us if you need assistance.', 'woocommerce-subscriptions' ), 'error' );
+				wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) );
+				exit;
+			}
+
+			$subscription = wcs_get_subscription( $subscription_id );
 
 			if ( false === $subscription ) {
 				// translators: %d: subscription ID.
@@ -168,6 +191,9 @@ class WCS_Remove_Item {
 	 * Validate the incoming request to either remove an item or add and item back to a subscription that was previously removed.
 	 * Add an descriptive notice to the page whether or not the request was validated or not.
 	 *
+	 * The request's nonce is verified by maybe_remove_or_add_item_to_subscription() before the subscription is
+	 * loaded, so this method only covers the checks that need the subscription itself.
+	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 * @param WC_Subscription $subscription
 	 * @param int $order_item_id
@@ -179,11 +205,7 @@ class WCS_Remove_Item {
 		$subscription_items = $subscription->get_items();
 		$response           = false;
 
-		if ( ! wp_verify_nonce( wc_clean( wp_unslash( $_GET['_wpnonce'] ) ), wc_clean( wp_unslash( $_GET['subscription_id'] ) ) ) ) {
-
-			wc_add_notice( __( 'Security error. Please contact us if you need assistance.', 'woocommerce-subscriptions' ), 'error' );
-
-		} elseif ( ! current_user_can( 'edit_shop_subscription_line_items', $subscription->get_id() ) ) {
+		if ( ! current_user_can( 'edit_shop_subscription_line_items', $subscription->get_id() ) ) {
 
 			wc_add_notice( __( 'You cannot modify a subscription that does not belong to you.', 'woocommerce-subscriptions' ), 'error' );
 

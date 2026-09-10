@@ -103,6 +103,7 @@ class WC_Subscriptions_Upgrader {
 		add_action( 'init', [ __CLASS__, 'initialise_background_updaters' ], 0 );
 
 		WCS_Upgrade_9_0_0::init();
+		WCS_Plugin_Upgrade_9_2_0::init();
 	}
 
 	/**
@@ -245,6 +246,24 @@ class WC_Subscriptions_Upgrader {
 			WCS_Upgrade_9_0_0::maybe_migrate_proration_option();
 			WCS_Upgrade_9_0_0::maybe_enable_subscription_product_types();
 			WCS_Upgrade_9_0_0::log_apfs_products_migration_status();
+		}
+
+		if ( version_compare( self::$stored_plugin_version, '9.2.0', '<' ) ) {
+			// The renewal-option normalization runs first: the 9.2.0 read path enforces the
+			// manual/automatic pairing from the moment the new files are live, so this cheap
+			// option write must not wait behind the slower steps (table creation, migration
+			// scheduling) - or be lost entirely if one of them fatals mid-request.
+			WCS_Plugin_Upgrade_9_2_0::maybe_normalize_manual_renewal_options();
+
+			// A first install (no stored core library version, as in legacy_core_library_upgrades()) starts
+			// on the new switch button default; only a store updating from an earlier version was showing
+			// the old one.
+			if ( '0' !== self::$stored_core_library_version ) {
+				WCS_Plugin_Upgrade_9_2_0::maybe_preserve_switch_button_text();
+			}
+
+			WCS_Plugin_Upgrade_9_2_0::maybe_create_subscription_downloads_table();
+			WCS_Plugin_Upgrade_9_2_0::maybe_schedule_gifting_migration();
 		}
 	}
 

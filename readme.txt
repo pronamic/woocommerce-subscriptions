@@ -1,8 +1,8 @@
 === WooCommerce Subscriptions ===
 Contributors: woocommerce, automattic
 Tags: woocommerce, subscription, recurring payments, subscription management, subscription products
-Requires at least: 6.9
-Tested up to: 7.0
+Requires at least: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: 5.8.0
 
@@ -45,8 +45,8 @@ Our global support team is available to answer questions you may have about WooC
 
 = Requirements =
 
-* WordPress 6.9 or newer
-* WooCommerce 10.9 or newer
+* WordPress 7.0 or newer
+* WooCommerce 11.0 or newer
 * PHP 7.4 or newer
 
 = Try it now =

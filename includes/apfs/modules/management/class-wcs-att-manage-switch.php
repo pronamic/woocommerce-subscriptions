@@ -6,6 +6,8 @@
  * @since    APFS 2.1.0
  */
 
+use Automattic\WooCommerce_Subscriptions\Internal\Products\Plan_Utils;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -371,8 +373,23 @@ class WCS_ATT_Manage_Switch extends WCS_ATT_Abstract_Module {
 
 		if ( null !== $posted_subscription_scheme_key ) {
 
-			$new_subscription_scheme_key = $posted_subscription_scheme_key;
-			$old_subscription_scheme_key = WCS_ATT_Order::get_subscription_scheme( $item );
+			/*
+			 * Compare the canonical form of each key rather than the keys as written. An item bought under
+			 * the standalone plugin can hold a different spelling of the same plan key than the one posted
+			 * today - @see Plan_Utils::canonicalize_key() - and comparing the
+			 * spellings reports a plan change that did not happen, letting a customer switch to the plan
+			 * they are already on.
+			 *
+			 * Canonicalizing rather than resolving against a product is deliberate: this method also runs
+			 * from @see WCS_ATT_Manage_Switch::is_variation_switch_valid, where the posted key describes the
+			 * product being switched TO and the item belongs to the one being switched FROM. Resolving each
+			 * against its own product would compare two products' spellings of one plan and call them
+			 * different; resolving both against the item's product would read the posted key against a
+			 * product it does not describe. The canonical form is a property of the key alone, so it is
+			 * correct from either caller.
+			 */
+			$new_subscription_scheme_key = Plan_Utils::canonicalize_key( $posted_subscription_scheme_key );
+			$old_subscription_scheme_key = Plan_Utils::canonicalize_key( WCS_ATT_Order::get_subscription_scheme( $item ) );
 
 			// Only identical if schemes match
 			if ( $new_subscription_scheme_key && $new_subscription_scheme_key === $old_subscription_scheme_key ) {

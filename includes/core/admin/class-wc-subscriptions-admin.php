@@ -98,12 +98,14 @@ class WC_Subscriptions_Admin {
 
 		add_action( 'woocommerce_subscription_pre_update_status', __CLASS__ . '::check_customer_is_set', 10, 3 );
 
+		add_action( 'woocommerce_before_subscription_object_save', __CLASS__ . '::set_prices_include_tax_on_new_admin_subscription' );
+
 		add_action( 'product_variation_linked', __CLASS__ . '::set_variation_meta_defaults_on_bulk_add' );
 
-		add_filter( 'woocommerce_settings_tabs_array', __CLASS__ . '::add_subscription_settings_tab', 50 );
+		add_filter( 'woocommerce_get_settings_pages', __CLASS__ . '::register_settings_page' );
 
-		add_action( 'woocommerce_settings_subscriptions', __CLASS__ . '::subscription_settings_page' );
-
+		// Saving continues to run through ::update_subscription_settings() on this hook; the WC_Settings_Page
+		// wrapper's own save() is intentionally a no-op to avoid double-processing the submitted values.
 		add_action( 'woocommerce_update_options_' . self::$tab_name, __CLASS__ . '::update_subscription_settings' );
 
 		add_filter( 'manage_users_columns', __CLASS__ . '::add_user_columns', 11, 1 );
@@ -268,13 +270,10 @@ class WC_Subscriptions_Admin {
 	 */
 	public static function add_subscription_product_creation_settings( $settings ) {
 
-		$learn_more_url = 'https://woocommerce.com/document/subscriptions/creating-subscription-products/#dedicated-subscription-product-types';
-
 		$section_desc = sprintf(
-			/* translators: %1$s: opening anchor tag, %2$s: closing anchor tag */
-			__( 'Enable these product types only if you have existing subscription products that rely on them. The recommended approach is to use Subscription plans for Simple and Variable products. Disabling these legacy options won\'t affect your existing products. %1$sLearn more%2$s', 'woocommerce-subscriptions' ),
-			'<a href="' . esc_url( $learn_more_url ) . '" target="_blank">',
-			'</a>'
+			/* translators: %1$s: a "Learn more" documentation link. */
+			__( 'Enable these product types only if you have existing subscription products that rely on them. The recommended approach is to use Subscription plans for Simple and Variable products. Disabling these legacy options won\'t affect your existing products. %1$s', 'woocommerce-subscriptions' ),
+			\Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Settings_Layout::learn_more_link( 'https://woocommerce.com/document/subscriptions/store-manager-guide/#subscription-product-creation' )
 		);
 
 		$product_creation_settings = array(
@@ -290,6 +289,7 @@ class WC_Subscriptions_Admin {
 				'id'            => self::$option_prefix . '_enable_simple_subscription',
 				'default'       => 'no',
 				'type'          => 'checkbox',
+				'class'         => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
 				'checkboxgroup' => 'start',
 			),
 			array(
@@ -515,29 +515,22 @@ class WC_Subscriptions_Admin {
 		// Maybe show gifting options. The method_exists check is required for cases where the standalone Gifting
 		// extension is active (in which case, a different version of WCSG_Admin will be loaded).
 		if ( method_exists( WCSG_Admin::class, 'is_gifting_enabled' ) && WCSG_Admin::is_gifting_enabled() ) {
-			$product_gifting                     = WC_Subscriptions_Product::get_gifting( $post->ID );
-			$is_following_gifting_global_setting = empty( $product_gifting );
+			// A single checkbox whose initial state reflects the product's resolved giftability. Saving
+			// materializes this into explicit product meta (see save_subscription_meta).
+			$is_giftable = WC_Subscriptions_Product::is_gifting_enabled_for_product( $post->ID );
 
-			woocommerce_wp_select(
-				array(
-					'id'            => '_subscription_gifting',
-					'class'         => 'select short wc-enhanced-select',
-					'wrapper_class' => '_subscription_gifting_field' . ( ! $is_following_gifting_global_setting ? ' overriding-store-settings' : '' ),
-					'label'         => __( 'Gifting', 'woocommerce-subscriptions' ),
-					'value'         => $product_gifting,
-					'options'       => array(
-						''         => WCSG_Admin::get_gifting_option_text(),
-						'enabled'  => __( 'Enabled', 'woocommerce-subscriptions' ),
-						'disabled' => __( 'Disabled', 'woocommerce-subscriptions' ),
-					),
-					'desc_tip'      => true,
-					'description'   => __( 'Allow shoppers to purchase a subscription as a gift.', 'woocommerce-subscriptions' ),
-				)
-			);
-
-			if ( ! $is_following_gifting_global_setting ) {
-				WCSG_Admin::get_gifting_global_override_text();
-			}
+			// No header and no help tip: the descriptive sentence is the checkbox's own label (its accessible
+			// name). Custom markup matching the variation control (templates/admin/html-variation-price.php):
+			// the checkbox sits before its label, so it renders box-first inline from the DOM order alone,
+			// without CSS having to reorder woocommerce_wp_checkbox()'s label-before-input output.
+			?>
+			<p class="form-field _subscription_gifting_field">
+				<label for="_subscription_gifting">
+					<input type="checkbox" class="checkbox" name="_subscription_gifting" id="_subscription_gifting" value="enabled" <?php checked( $is_giftable, true ); ?> />
+					<?php esc_html_e( 'Allow shoppers to purchase subscriptions as gifts for others.', 'woocommerce-subscriptions' ); ?>
+				</label>
+			</p>
+			<?php
 		}
 
 		do_action( 'woocommerce_subscriptions_product_options_pricing' );
@@ -614,6 +607,19 @@ class WC_Subscriptions_Admin {
 		if ( empty( $billing_period ) ) {
 			$billing_period = 'month';
 		}
+
+		// Whether the parent is a Variable subscription (vs a variable product sold via APFS subscription
+		// plans), which the gifting template uses to decide whether to render the per-variation checkbox.
+		// This hook fires once per variation, so resolve the shared parent's type once per request rather
+		// than rebuilding the parent product object on every row.
+		static $parent_is_variable_subscription = array();
+
+		$variation_parent_id = $variation_product ? $variation_product->get_parent_id() : 0;
+		if ( ! isset( $parent_is_variable_subscription[ $variation_parent_id ] ) ) {
+			$parent_product = wc_get_product( $variation_parent_id );
+			$parent_is_variable_subscription[ $variation_parent_id ] = $parent_product && $parent_product->is_type( 'variable-subscription' );
+		}
+		$is_variable_subscription_parent = $parent_is_variable_subscription[ $variation_parent_id ];
 
 		include WC_Subscriptions_Plugin::instance()->get_plugin_directory( 'templates/admin/html-variation-price.php' );
 
@@ -710,13 +716,18 @@ class WC_Subscriptions_Admin {
 			'_subscription_trial_period',
 			'_subscription_limit',
 			'_subscription_one_time_shipping',
-			'_subscription_gifting',
 		);
 
 		foreach ( $subscription_fields as $field_name ) {
 			if ( isset( $_REQUEST[ $field_name ] ) ) {
 				update_post_meta( $post_id, $field_name, stripslashes( $_REQUEST[ $field_name ] ) );
 			}
+		}
+
+		// Gifting is a checkbox: materialise it into explicit product meta (checked → enabled, unchecked → disabled)
+		// whenever the field was rendered (i.e. gifting is enabled storewide).
+		if ( method_exists( WCSG_Admin::class, 'is_gifting_enabled' ) && WCSG_Admin::is_gifting_enabled() ) {
+			update_post_meta( $post_id, '_subscription_gifting', isset( $_REQUEST['_subscription_gifting'] ) ? 'enabled' : 'disabled' );
 		}
 
 		// To prevent running this function on multiple save_post triggered events per update. Similar to WC_Admin_Meta_Boxes:$saved_meta_boxes implementation.
@@ -923,13 +934,18 @@ class WC_Subscriptions_Admin {
 			'_subscription_length',
 			'_subscription_trial_period',
 			'_subscription_trial_length',
-			'_subscription_gifting',
 		);
 
 		foreach ( $subscription_fields as $field_name ) {
 			if ( isset( $_POST[ 'variable' . $field_name ][ $index ] ) ) {
 				update_post_meta( $variation_id, $field_name, wc_clean( $_POST[ 'variable' . $field_name ][ $index ] ) );
 			}
+		}
+
+		// Gifting is a checkbox: materialise it into explicit variation meta (checked → enabled, unchecked → disabled)
+		// whenever the field was rendered (i.e. gifting is enabled storewide).
+		if ( method_exists( WCSG_Admin::class, 'is_gifting_enabled' ) && WCSG_Admin::is_gifting_enabled() ) {
+			update_post_meta( $variation_id, '_subscription_gifting', isset( $_POST['variable_subscription_gifting'][ $index ] ) ? 'enabled' : 'disabled' );
 		}
 	}
 
@@ -960,6 +976,35 @@ class WC_Subscriptions_Admin {
 				throw new Exception( sprintf( __( 'Unable to change subscription status to "%s". Please assign a customer to the subscription to activate it.', 'woocommerce-subscriptions' ), $new_status ) );
 			}
 		}
+	}
+
+	/**
+	 * Records the store's tax-entry mode on subscriptions created from the admin screen.
+	 *
+	 * WooCommerce sets prices_include_tax from the woocommerce_prices_include_tax option at every
+	 * other creation entry point (wc_create_order(), WC_Checkout::create_order(), the REST order
+	 * controllers, the Store API), but the admin new-order screen builds the record directly
+	 * (WC core's Automattic\WooCommerce\Internal\Admin\Orders\PageController::setup_action_new_order())
+	 * and never sets it, so it persists WC_Abstract_Order's `false` default.
+	 *
+	 * On a tax-inclusive store that false is wrong, and it propagates: wcs_create_order_from_subscription()
+	 * copies it to the parent and every renewal order, where anything keying off the flag (for
+	 * instance the renewal cart's discount tax basis) then reads the wrong value.
+	 *
+	 * Only brand new admin-created subscriptions are touched. Subscriptions built by
+	 * wcs_create_subscription() already set the flag - and deliberately inherit it from the parent
+	 * order when copying one - so overwriting an existing value would break subscriptions whose
+	 * historical tax-entry mode differs from the store's current setting.
+	 *
+	 * @param WC_Subscription $subscription The subscription about to be saved.
+	 */
+	public static function set_prices_include_tax_on_new_admin_subscription( $subscription ) {
+		if ( $subscription->get_id() || 'admin' !== $subscription->get_created_via() ) {
+			return;
+		}
+
+		// Matches how WooCommerce reads this option at its own order creation entry points.
+		$subscription->set_prices_include_tax( 'yes' === get_option( 'woocommerce_prices_include_tax' ) );
 	}
 
 	/**
@@ -999,6 +1044,7 @@ class WC_Subscriptions_Admin {
 				'users',
 				'woocommerce_page_wc-settings',
 				'woocommerce_page_wc-orders',
+				'admin_page_wc-orders',
 				wcs_get_page_screen_id( 'shop_subscription' ),
 			],
 			true
@@ -1034,7 +1080,7 @@ class WC_Subscriptions_Admin {
 					'variationDeleteFailMessage'  => __( 'That variation can not be removed because it is associated with active subscriptions. To remove this variation, please cancel and delete the subscriptions for it.', 'woocommerce-subscriptions' ),
 
 				);
-			} elseif ( 'edit-shop_order' == $screen->id ) {
+			} elseif ( in_array( $screen->id, [ 'edit-shop_order', 'woocommerce_page_wc-orders', 'admin_page_wc-orders' ], true ) ) {
 				$script_params = array(
 					'bulkTrashWarning' => __( "You are about to trash one or more orders which contain a subscription.\n\nTrashing the orders will also trash the subscriptions purchased with these orders.", 'woocommerce-subscriptions' ),
 					'trashWarning'     => $trashing_subscription_order_warning,
@@ -1055,8 +1101,18 @@ class WC_Subscriptions_Admin {
 					'deleteUserWarning' => __( "Warning: Deleting a user will also delete the user's subscriptions. The user's orders will remain but be reassigned to the 'Guest' user.\n\nDo you want to continue to delete this user and any associated subscriptions?", 'woocommerce-subscriptions' ),
 				);
 			} elseif ( 'woocommerce_page_wc-settings' === $screen->id ) {
+				// wp.a11y.speak() announces a blocked settings save to screen readers (see the save gate
+				// in admin.js).
+				$dependencies[] = 'wp-a11y';
+
 				$script_params = array(
-					'enablePayPalWarning' => __( 'PayPal Standard has a number of limitations and does not support all subscription features.', 'woocommerce-subscriptions' ) . "\n\n" . __( 'Because of this, it is not recommended as a payment method for Subscriptions unless it is the only available option for your country.', 'woocommerce-subscriptions' ),
+					'enablePayPalWarning'                => __( 'PayPal Standard has a number of limitations and does not support all subscription features.', 'woocommerce-subscriptions' ) . "\n\n" . __( 'Because of this, it is not recommended as a payment method for Subscriptions unless it is the only available option for your country.', 'woocommerce-subscriptions' ),
+					// Inline guidance for the settings-page Virtual/Physical product-type pairs; shown while a
+					// prorating behavior is selected but neither product type is checked (see admin.js), which
+					// also blocks the save while showing. The save-time validation in PHP remains the
+					// enforcement for submits that never reach that script.
+					'selectProductTypesMessage'          => __( 'Select at least one subscription product type.', 'woocommerce-subscriptions' ),
+					'selectProrationProductTypesMessage' => __( 'Select at least one subscription product type to apply proration.', 'woocommerce-subscriptions' ),
 				);
 			} elseif ( in_array( $screen->id, [ wcs_get_page_screen_id( 'shop_subscription' ), 'edit-shop_subscription' ], true ) ) {
 				$script_params['i18n_remove_personal_data_notice'] = __( 'This action cannot be reversed. Are you sure you wish to erase personal data from the selected subscriptions?', 'woocommerce-subscriptions' );
@@ -1236,8 +1292,21 @@ class WC_Subscriptions_Admin {
 			return;
 		}
 
-		// Make sure automatic payments are on when manual renewals are switched off
-		if ( ! isset( $_POST[ self::$option_prefix . '_accept_manual_renewals' ] ) && isset( $_POST[ self::$option_prefix . '_turn_off_automatic_payments' ] ) ) {
+		/*
+		 * A save landing in the plugin-file-swap window would run against the degraded, empty settings
+		 * (see are_settings_classes_loadable()): nothing would persist while WooCommerce still reports
+		 * success. Fail visibly instead, and bail before mutating $_POST.
+		 */
+		if ( ! self::are_settings_classes_loadable() ) {
+			WC_Admin_Settings::add_error( __( 'Subscriptions settings could not be saved because the plugin\'s files were being updated during the request. Please save again.', 'woocommerce-subscriptions' ) );
+			wc_get_logger()->error( 'Subscriptions settings save skipped: the settings renderer classes could not be loaded (plugin files replaced mid-request, or missing from the installation).', array( 'source' => 'woocommerce-subscriptions' ) );
+			return;
+		}
+
+		// Make sure automatic payments are on when manual renewals are switched off. Read the parent
+		// through wcs_is_setting_checked() so the modern renderer's explicit `'no'` for an unchecked
+		// checkbox resolves as off, exactly like the classic tab's omitted checkbox.
+		if ( ! wcs_is_setting_checked( self::$option_prefix . '_accept_manual_renewals' ) && isset( $_POST[ self::$option_prefix . '_turn_off_automatic_payments' ] ) ) {
 			unset( $_POST[ self::$option_prefix . '_turn_off_automatic_payments' ] );
 		}
 
@@ -1252,15 +1321,17 @@ class WC_Subscriptions_Admin {
 
 			$value = array();
 
-			if ( ! empty( $_POST[ self::$option_prefix . '_allow_switching_variable' ] ) ) {
+			// Read through wcs_is_setting_checked() so the modern renderer's explicit `'no'` for an unchecked box
+			// resolves as off (the classic tab simply omits it, which also resolves as off).
+			if ( wcs_is_setting_checked( self::$option_prefix . '_allow_switching_variable' ) ) {
 				$value[] = 'variable';
-				unset( $_POST[ self::$option_prefix . '_allow_switching_variable' ] );
 			}
+			unset( $_POST[ self::$option_prefix . '_allow_switching_variable' ] );
 
-			if ( ! empty( $_POST[ self::$option_prefix . '_allow_switching_grouped' ] ) ) {
+			if ( wcs_is_setting_checked( self::$option_prefix . '_allow_switching_grouped' ) ) {
 				$value[] = 'grouped';
-				unset( $_POST[ self::$option_prefix . '_allow_switching_grouped' ] );
 			}
+			unset( $_POST[ self::$option_prefix . '_allow_switching_grouped' ] );
 
 			$_POST[ self::$option_prefix . '_allow_switching' ] = implode( '_', $value );
 
@@ -1286,8 +1357,14 @@ class WC_Subscriptions_Admin {
 			}
 		}
 
-		// Add extra switching options, if any.
-		$extra_switching_options = (array) apply_filters( 'woocommerce_subscriptions_allow_switching_options', array() );
+		// Add extra switching options, if any. Non-array entries are dropped: an object in the filter
+		// output would fatal on the offset reads - even inside empty(), which throws on object offsets.
+		/**
+		 * This filter is documented in includes/switching/class-wc-subscriptions-switcher.php
+		 *
+		 * @since 2.6.0
+		 */
+		$extra_switching_options = array_filter( (array) apply_filters( 'woocommerce_subscriptions_allow_switching_options', array() ), 'is_array' );
 
 		foreach ( $extra_switching_options as $option ) {
 
@@ -1303,6 +1380,33 @@ class WC_Subscriptions_Admin {
 		}
 
 		woocommerce_update_options( $settings );
+	}
+
+	/**
+	 * Register the Subscriptions settings tab as a WC_Settings_Page object.
+	 *
+	 * Hooked onto 'woocommerce_get_settings_pages'. Wrapping the tab in a WC_Settings_Page is what allows it
+	 * to participate in WooCommerce's modern "settings-ui" renderer; the wrapper delegates rendering and
+	 * saving back to this class so the established behaviour is preserved.
+	 *
+	 * @param array $settings_pages Array of WC_Settings_Page objects, excluding the Subscriptions page.
+	 * @return array $settings_pages Array of WC_Settings_Page objects, including the Subscriptions page.
+	 */
+	public static function register_settings_page( $settings_pages ) {
+		/**
+		 * Updating or rolling back the plugin swaps the files on disk underneath requests that are already
+		 * running, so a request that loaded this class can reach this point after the wrapper's file has gone
+		 * (the autoloader's in-memory class map still points at it). This hook is a wide surface for that -
+		 * WooCommerce fires it for the admin menu and again on every 'rest_api_init' - so skip the tab for the
+		 * remainder of the request rather than fatal. The next request sees a consistent set of files.
+		 */
+		if ( ! class_exists( \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Settings_Page::class ) ) {
+			return $settings_pages;
+		}
+
+		$settings_pages[] = new \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Settings_Page();
+
+		return $settings_pages;
 	}
 
 	/**
@@ -1322,11 +1426,20 @@ class WC_Subscriptions_Admin {
 	/**
 	 * Add the Subscriptions settings tab to the WooCommerce settings tabs array.
 	 *
+	 * Retained for back-compat only. As of 9.2.0 this plugin no longer hooks it: the tab is
+	 * registered as a WC_Settings_Page by {@see self::register_settings_page()} on
+	 * `woocommerce_get_settings_pages`. The method still adds the tab and returns it, so
+	 * third-party code that hooks it to `woocommerce_settings_tabs_array` keeps working -
+	 * only a deprecation notice is new. Do not remove it.
+	 *
 	 * @param array $settings_tabs Array of WooCommerce setting tabs & their labels, excluding the Subscription tab.
 	 * @return array $settings_tabs Array of WooCommerce setting tabs & their labels, including the Subscription tab.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
+	 * @deprecated 9.2.0 No longer hooked by this plugin. See the note above.
 	 */
 	public static function add_subscription_settings_tab( $settings_tabs ) {
+
+		wcs_deprecated_function( __METHOD__, '9.2.0' );
 
 		$settings_tabs[ self::$tab_name ] = __( 'Subscriptions', 'woocommerce-subscriptions' );
 
@@ -1364,12 +1477,47 @@ class WC_Subscriptions_Admin {
 	}
 
 	/**
+	 * Whether the src/ settings classes the Subscriptions settings surface depends on can be loaded.
+	 *
+	 * Updating or rolling back the plugin swaps the files on disk underneath requests that are already
+	 * running, so a request that loaded this class can reach a settings code path after the renderer
+	 * classes' files have gone: the autoloader's in-memory class map still points at them, Composer's
+	 * class loader include()s the missing file with only a warning, and the next static reference
+	 * fatals with "Class not found" (the WOOSUBS-1842 failure, first guarded in register_settings_page()).
+	 * Callers use this predicate to degrade for the remainder of the request - render nothing, return
+	 * no settings, skip the save - rather than fatal; the next request sees a consistent set of files.
+	 *
+	 * Checking Classic_Renderer matters even though init() normally loads it while the plugin file
+	 * loads: the guard around that init() call skips it mid-swap, so filter callbacks that read its
+	 * constants would otherwise fatal later in the same request.
+	 *
+	 * @internal Not part of the public API; public only so the includes/ save handlers and the src/
+	 * settings classes can share this one canonical check.
+	 *
+	 * @return bool
+	 */
+	public static function are_settings_classes_loadable() {
+		return class_exists( \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::class )
+			&& class_exists( \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Settings_Layout::class )
+			&& class_exists( \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Modern_Field_Adaptations::class );
+	}
+
+	/**
 	 * Get all the settings for the Subscriptions extension in the format required by the @see woocommerce_admin_fields() function.
 	 *
 	 * @return array Array of settings in the format required by the @see woocommerce_admin_fields() function.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.0
 	 */
 	public static function get_settings() {
+		/*
+		 * Every includes/ reference to the renderer classes executes inside this method's filter run
+		 * (the base array below plus the 'woocommerce_subscription_settings' callbacks), so this one
+		 * guard covers that whole surface; Settings_Page carries its own guards for its direct
+		 * references. See are_settings_classes_loadable() for the plugin-file-swap window this defends.
+		 */
+		if ( ! self::are_settings_classes_loadable() ) {
+			return array();
+		}
 
 		/**
 		 * Filter the settings for the Subscriptions extension.
@@ -1388,11 +1536,12 @@ class WC_Subscriptions_Admin {
 
 				array(
 					'name'     => __( 'Mixed Checkout', 'woocommerce-subscriptions' ),
-					'desc'     => __( 'Allow multiple subscriptions and products to be purchased simultaneously.', 'woocommerce-subscriptions' ),
+					'desc'     => __( 'Allow mixed cart checkouts', 'woocommerce-subscriptions' ),
 					'id'       => self::$option_prefix . '_multiple_purchase',
 					'default'  => 'no',
 					'type'     => 'checkbox',
-					'desc_tip' => __( 'Allow a subscription product to be purchased with other products and subscriptions in the same transaction.', 'woocommerce-subscriptions' ),
+					'class'    => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
+					'desc_tip' => __( 'Customers can purchase subscription products and one-time products in the same transaction.', 'woocommerce-subscriptions' ),
 				),
 
 				array(

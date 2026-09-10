@@ -73,7 +73,7 @@ function wcs_get_users_resubscribe_link( $subscription ) {
 	$subscription_id  = ( is_object( $subscription ) ) ? $subscription->get_id() : $subscription;
 
 	$resubscribe_link = add_query_arg( array( 'resubscribe' => $subscription_id ), get_permalink( wc_get_page_id( 'myaccount' ) ) );
-	$resubscribe_link = wp_nonce_url( $resubscribe_link, $subscription_id );
+	$resubscribe_link = wp_nonce_url( $resubscribe_link, WCS_Cart_Resubscribe::get_nonce_action( absint( $subscription_id ) ) );
 
 	return apply_filters( 'wcs_users_resubscribe_link', $resubscribe_link, $subscription_id );
 }

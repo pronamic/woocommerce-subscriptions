@@ -295,17 +295,29 @@ class WC_Subscriptions_Coupon {
 
 		} elseif ( $apply_renewal_cart_coupon ) {
 
-			/**
-			 * See WC Core fixed_cart coupons - we need to divide the discount between rows based on their price in proportion to the subtotal.
-			 * This is so rows with different tax rates get a fair discount, and so rows with no price (free) don't get discounted.
-			 *
-			 * BUT... we also need the subtotal to exclude non renewal products, so user the renewal subtotal
-			 *
-			 * @phpstan-ignore binaryOp.invalid
-			 */
-			$discount_percent = ( $discounting_amount * $cart_item['quantity'] ) / self::get_renewal_subtotal( wcs_get_coupon_property( $coupon, 'code' ) );
+			$coupon_code      = wcs_get_coupon_property( $coupon, 'code' );
+			$renewal_subtotal = self::get_renewal_subtotal( $coupon_code );
 
-			$discount_amount = ( wcs_get_coupon_property( $coupon, 'coupon_amount' ) * $discount_percent ) / $cart_item_qty;
+			if ( is_numeric( $renewal_subtotal ) && $renewal_subtotal > 0 ) {
+				/**
+				 * See WC Core fixed_cart coupons - we need to divide the discount between rows based on their price in proportion to the subtotal.
+				 * This is so rows with different tax rates get a fair discount, and so rows with no price (free) don't get discounted.
+				 *
+				 * BUT... we also need the subtotal to exclude non renewal products, so use the renewal subtotal
+				 */
+				$discount_percent = ( $discounting_amount * $cart_item['quantity'] ) / $renewal_subtotal;
+
+				$discount_amount = ( wcs_get_coupon_property( $coupon, 'coupon_amount' ) * $discount_percent ) / $cart_item_qty;
+			} elseif ( false !== $renewal_subtotal ) {
+				// Without a positive renewal subtotal there is no basis to prorate the discount
+				// against, so the coupon applies no discount. get_renewal_subtotal() has already
+				// logged the cause when it returned false; the remaining degraded case - a loaded
+				// renewal order whose computed subtotal is not positive - is only known here.
+				self::log_renewal_coupon_zero_discount(
+					$coupon_code,
+					sprintf( 'the renewal order subtotal to prorate against (%s) is not a positive amount', $renewal_subtotal )
+				);
+			}
 		}
 
 		// Round - consistent with WC approach
@@ -602,19 +614,31 @@ class WC_Subscriptions_Coupon {
 	/**
 	 * Get subtotals for a renewal subscription so that our pseudo renewal_cart discounts can be applied correctly even if other items have been added to the cart
 	 *
+	 * The subtotal is returned in the same tax basis as the renewal cart item prices primed by
+	 * WCS_Cart_Renewal::get_cart_item_from_session(): tax inclusive when the renewal order's prices
+	 * include tax, tax exclusive otherwise. Keeping both sides on the same basis means the per-item
+	 * discount shares calculated against this subtotal sum to exactly 1.
+	 *
 	 * @param  string $code coupon code
-	 * @return array subtotal
+	 * @return float|false The renewal order subtotal, or false when it cannot be determined: the
+	 *                     session has no renewal coupons, the code is not among them, or the
+	 *                     matched renewal order could not be loaded.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0.10
+	 * @since 9.2.0 Returns the subtotal in the renewal order's price basis instead of always tax
+	 *              exclusive, and false (instead of 0) when the subtotal cannot be determined.
 	 */
 	private static function get_renewal_subtotal( $code ) {
 
 		$renewal_coupons = WC()->session->get( 'wcs_renewal_coupons' );
 
 		if ( empty( $renewal_coupons ) ) {
+			self::log_renewal_coupon_zero_discount( $code, 'there are no renewal coupons in the session' );
 			return false;
 		}
 
-		$subtotal = 0;
+		$subtotal         = 0;
+		$matched_order_id = null;
+		$order_loaded     = false;
 
 		foreach ( $renewal_coupons as $order_id => $coupons ) {
 
@@ -622,15 +646,95 @@ class WC_Subscriptions_Coupon {
 
 				if ( $coupon_code == $code ) {
 
-					if ( $order = wc_get_order( $order_id ) ) {
-						$subtotal = $order->get_subtotal();
+					$matched_order_id = $order_id;
+					$order            = wc_get_order( $order_id );
+
+					if ( $order ) {
+						$order_loaded = true;
+						$subtotal     = $order->get_prices_include_tax() ? self::get_tax_inclusive_subtotal( $order ) : $order->get_subtotal();
 					}
 					break;
 				}
 			}
 		}
 
+		if ( null === $matched_order_id ) {
+			self::log_renewal_coupon_zero_discount( $code, 'the coupon is not among the renewal coupons in the session' );
+			return false;
+		}
+
+		if ( ! $order_loaded ) {
+			self::log_renewal_coupon_zero_discount( $code, sprintf( 'its renewal order (ID %s) could not be loaded', $matched_order_id ) );
+			return false;
+		}
+
 		return $subtotal;
+	}
+
+	/**
+	 * Get an order's subtotal with each taxable line item's subtotal tax included.
+	 *
+	 * Mirrors the price priming in WCS_Cart_Renewal::get_cart_item_from_session(), which builds
+	 * tax-inclusive renewal cart item prices from the same line items: tax is added only when the
+	 * item's product exists and is taxable, reading the same tax sources in the same order of
+	 * precedence, so the result equals the sum of the primed cart item prices.
+	 *
+	 * Unrepaired '_subtracted_base_location_tax' meta does not need repairing here: the price
+	 * priming has already run for these items during cart load, before coupon totals are
+	 * calculated, and repaired them. This method only reads.
+	 *
+	 * @param WC_Order $order The renewal order.
+	 * @return float The order subtotal including each taxable item's subtotal tax.
+	 * @since 9.2.0
+	 */
+	private static function get_tax_inclusive_subtotal( $order ) {
+		$subtotal = 0.0;
+
+		/** @var WC_Order_Item_Product $item */
+		foreach ( $order->get_items() as $item ) {
+			$item_subtotal = (float) $item->get_subtotal();
+			$product       = $item->get_product();
+
+			if ( $product && $product->is_taxable() ) {
+				if ( isset( $item['_subtracted_base_location_taxes'] ) ) {
+					$item_subtotal += array_sum( $item['_subtracted_base_location_taxes'] ) * $item['qty'];
+				} elseif ( isset( $item['taxes']['subtotal'] ) ) {
+					$item_subtotal += array_sum( $item['taxes']['subtotal'] );
+				}
+			}
+
+			$subtotal += $item_subtotal;
+		}
+
+		return $subtotal;
+	}
+
+	/**
+	 * Log a warning that a renewal cart coupon applied no discount, once per coupon code per request.
+	 *
+	 * The renewal cart discount degrades to a zero discount rather than fataling when there is no
+	 * positive renewal subtotal to prorate against; the warning lets a disappearing renewal
+	 * discount be diagnosed from the store's logs. Deduplicated per coupon code because cart
+	 * totals are recalculated multiple times per request and the discount callback runs per
+	 * cart item.
+	 *
+	 * @param string $coupon_code The renewal cart coupon code being applied.
+	 * @param string $cause       Why no discount was applied.
+	 * @since 9.2.0
+	 */
+	private static function log_renewal_coupon_zero_discount( $coupon_code, $cause ) {
+		static $logged_codes = array();
+
+		if ( isset( $logged_codes[ $coupon_code ] ) ) {
+			return;
+		}
+
+		$logged_codes[ $coupon_code ] = true;
+
+		wc_get_logger()->warning(
+			sprintf( 'Renewal cart coupon "%s" applied no discount: %s.', $coupon_code, $cause ),
+			array( 'source' => 'woocommerce-subscriptions' )
+		);
 	}
 
 	/**

@@ -182,35 +182,29 @@ class WCSG_Admin {
 				'name' => __( 'Gifting', 'woocommerce-subscriptions' ),
 				'type' => 'title',
 				'id'   => self::$option_prefix,
-			),
-			array(
-				'name'      => __( 'Enable gifting', 'woocommerce-subscriptions' ),
-				'desc'      => __( 'Allow shoppers to gift a subscription', 'woocommerce-subscriptions' ),
-				'id'        => self::$option_prefix . '_enable_gifting',
-				'default'   => 'no',
-				'type'      => 'checkbox',
-				'row_class' => 'enable-gifting',
-			),
-			array(
-				'name'        => '',
-				'desc'        => __( 'You can override this global setting on each product.', 'woocommerce-subscriptions' ),
-				'id'          => self::$option_prefix . '_default_option',
-				'default'     => 'disabled',
-				'type'        => 'radio',
-				'desc_at_end' => true,
-				'row_class'   => 'gifting-radios',
-				'options'     => array(
-					'enabled'  => __( 'Enabled for all products', 'woocommerce-subscriptions' ),
-					'disabled' => __( 'Disabled for all products', 'woocommerce-subscriptions' ),
+				'desc' => sprintf(
+					/* translators: %1$s: a "Learn more" documentation link. */
+					__( 'Allow shoppers to purchase subscriptions as gifts for others. %1$s', 'woocommerce-subscriptions' ),
+					\Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Settings_Layout::learn_more_link( 'https://woocommerce.com/document/subscriptions/store-manager-guide/#gifting' )
 				),
 			),
 			array(
-				'name'      => __( 'Gifting Checkbox Text', 'woocommerce-subscriptions' ),
-				'desc'      => __( 'This is what shoppers will see in the product page and cart.', 'woocommerce-subscriptions' ),
-				'id'        => self::$option_prefix . '_gifting_checkbox_text',
-				'default'   => __( 'This is a gift', 'woocommerce-subscriptions' ),
-				'type'      => 'text',
-				'row_class' => 'gifting-checkbox-text',
+				'name'      => __( 'Enable gifting', 'woocommerce-subscriptions' ),
+				'desc'      => __( 'Enable gifting for subscriptions', 'woocommerce-subscriptions' ),
+				'id'        => self::$option_prefix . '_enable_gifting',
+				'default'   => 'no',
+				'type'      => 'checkbox',
+				'class'     => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
+				'row_class' => 'enable-gifting',
+			),
+			array(
+				'name'        => __( 'Gift option text', 'woocommerce-subscriptions' ),
+				'desc'        => __( 'Displayed on the product and cart pages.', 'woocommerce-subscriptions' ),
+				'id'          => self::$option_prefix . '_gifting_checkbox_text',
+				'default'     => __( 'This is a gift', 'woocommerce-subscriptions' ),
+				'placeholder' => __( 'This is a gift', 'woocommerce-subscriptions' ),
+				'type'        => 'text',
+				'row_class'   => 'gifting-checkbox-text',
 			),
 			array(
 				'type' => 'sectionend',
@@ -541,9 +535,15 @@ class WCSG_Admin {
 	/**
 	 * Get the text for the gifting option.
 	 *
+	 * @deprecated 9.2.0 The "Use global setting (enabled/disabled)" select option this text labelled was
+	 * removed along with the storewide gifting default: the per-product field is now a plain checkbox and
+	 * nothing in the plugin renders this text.
+	 *
 	 * @return string
 	 */
 	public static function get_gifting_option_text() {
+		wcs_deprecated_function( __METHOD__, '9.2.0' );
+
 		return self::is_gifting_enabled_for_all_products()
 			? __( 'Use global setting (enabled)', 'woocommerce-subscriptions' )
 			: __( 'Use global setting (disabled)', 'woocommerce-subscriptions' );
@@ -551,8 +551,13 @@ class WCSG_Admin {
 
 	/**
 	 * Get the text for the gifting option.
+	 *
+	 * @deprecated 9.2.0 The "Overriding your store's settings" notice this printed described the removed
+	 * storewide gifting default; the per-product checkbox no longer overrides anything and nothing in the
+	 * plugin renders this notice.
 	 */
 	public static function get_gifting_global_override_text() {
+		wcs_deprecated_function( __METHOD__, '9.2.0' );
 		?>
 		<p class="_subscription_gifting_field_description form-field">
 			<span class="description">

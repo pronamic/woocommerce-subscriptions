@@ -135,9 +135,12 @@ class WC_Subscriptions_Change_Payment_Gateway {
 
 		// If the request to pay for the order belongs to a subscription but there's no GET params for changing payment method, show receipt page.
 		if ( ! self::$is_request_to_change_payment ) {
-			$valid_request    = true;
-			$subscription     = wcs_get_subscription( absint( $wp->query_vars['order-pay'] ) );
-			$subscription_key = isset( $_GET['key'] ) ? wc_clean( $_GET['key'] ) : '';
+			$valid_request = true;
+			$subscription  = wcs_get_subscription( absint( $wp->query_vars['order-pay'] ) );
+
+			// sanitize_text_field() returns '' for array input, which hash_equals() would otherwise reject.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The order key checked below is this flow's authorization control.
+			$subscription_key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : '';
 
 			if ( ! $subscription ) {
 				wc_print_notice( __( 'There was an unexpected problem with your request. Please try again.', 'woocommerce-subscriptions' ), 'error' );
@@ -158,7 +161,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			 */
 			do_action( 'wcs_before_replace_pay_shortcode', $subscription );
 
-			if ( $subscription && $subscription->get_id() === absint( $wp->query_vars['order-pay'] ) && $subscription->get_order_key() === $subscription_key ) {
+			if ( $subscription instanceof WC_Subscription && $subscription->get_id() === absint( $wp->query_vars['order-pay'] ) && hash_equals( $subscription->get_order_key(), $subscription_key ) ) {
 				WCS_Template_Loader::get_subscription_receipt_template( $subscription );
 			} else {
 				// The before_woocommerce_pay action would have printed all the notices so we need to print the notice directly.
@@ -226,7 +229,13 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	private static function validate_change_payment_request( $subscription = null ) {
 		$is_valid = true;
 
-		if ( wp_verify_nonce( wc_clean( wp_unslash( $_GET['_wpnonce'] ) ) ) === false ) {
+		// Both values are read defensively: this runs on any ?change_payment_method= request, including one
+		// that omits them entirely. sanitize_text_field() is used rather than wc_clean() because wc_clean()
+		// maps over arrays and returns an array, which hash_equals() rejects with a TypeError.
+		$nonce     = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+		$order_key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : '';
+
+		if ( wp_verify_nonce( $nonce ) === false ) {
 			$is_valid = false;
 			wc_add_notice( __( 'There was an error with your request. Please try again.', 'woocommerce-subscriptions' ), 'error' );
 		} elseif ( empty( $subscription ) ) {
@@ -238,7 +247,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 		} elseif ( ! $subscription->can_be_updated_to( 'new-payment-method' ) ) {
 			$is_valid = false;
 			wc_add_notice( __( 'The payment method can not be changed for that subscription.', 'woocommerce-subscriptions' ), 'error' );
-		} elseif ( $subscription->get_order_key() !== $_GET['key'] ) {
+		} elseif ( ! hash_equals( $subscription->get_order_key(), $order_key ) ) {
 			$is_valid = false;
 			wc_add_notice( __( 'Invalid order.', 'woocommerce-subscriptions' ), 'error' );
 		}
@@ -295,7 +304,10 @@ class WC_Subscriptions_Change_Payment_Gateway {
 
 		// The order key is this flow's authorization control (order-pay must keep working for guests). Verify it
 		// before firing the hook, so listeners never receive an unverified subscription.
-		if ( ! $subscription instanceof WC_Subscription || $subscription->get_order_key() !== wc_clean( wp_unslash( $_GET['key'] ?? '' ) ) ) {
+		// sanitize_text_field() returns '' for array input, which hash_equals() would otherwise reject.
+		$order_key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : '';
+
+		if ( ! $subscription instanceof WC_Subscription || ! hash_equals( $subscription->get_order_key(), $order_key ) ) {
 			return;
 		}
 
@@ -662,7 +674,10 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	public static function maybe_zero_total( $total, $subscription ) {
 		global $wp;
 
-		if ( ! empty( $_POST['_wcsnonce'] ) && wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_change_payment_method' ) && isset( $_POST['woocommerce_change_payment'] ) && wcs_is_subscription( $subscription ) && $subscription->get_order_key() == $_GET['key'] && $subscription->get_id() == absint( $_POST['woocommerce_change_payment'] ) ) {
+		// sanitize_text_field() returns '' for array input, which hash_equals() would otherwise reject.
+		$order_key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : '';
+
+		if ( ! empty( $_POST['_wcsnonce'] ) && wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_change_payment_method' ) && isset( $_POST['woocommerce_change_payment'] ) && wcs_is_subscription( $subscription ) && hash_equals( $subscription->get_order_key(), $order_key ) && $subscription->get_id() === absint( wp_unslash( $_POST['woocommerce_change_payment'] ) ) ) {
 			$total = 0;
 		} elseif ( ! self::$is_request_to_change_payment && isset( $wp->query_vars['order-pay'] ) && wcs_is_subscription( absint( $wp->query_vars['order-pay'] ) ) ) {
 			// if the request to pay for the order belongs to a subscription but there's no GET params for changing payment method, the receipt page is being used to collect credit card details so we still need to $0 the total

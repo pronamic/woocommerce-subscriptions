@@ -745,17 +745,47 @@ function wcs_get_line_items_with_a_trial( $subscription_id ) {
 /**
  * Checks if the user can be granted the permission to remove a line item from the subscription.
  *
+ * The 'edit_shop_subscription_line_items' capability applied here is the same one
+ * WCS_Remove_Item::validate_remove_items_request() enforces when the resulting request is processed, so a removal
+ * link is only ever displayed to someone who can actually use it.
+ *
+ * The capability is applied after the 'wcs_can_items_be_removed' filter, so the filter can still narrow the result
+ * but cannot widen it past the capability. To allow someone other than the subscription's owner to remove line
+ * items, grant them the capability via the 'user_has_cap' filter (@see wcs_user_has_capability()) instead.
+ *
  * @param WC_Subscription $subscription An instance of a WC_Subscription object
+ * @param int             $user_id      Optional. The user to check. Defaults to the current user, which is 0
+ *                                      outside of a request context, such as cron or WP-CLI. User 0 is denied
+ *                                      unless the subscription has no customer either, since the owner comparison
+ *                                      in wcs_user_has_capability() then matches 0 against 0.
+ * @return bool
  * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
+ * @since 9.2.0 Requires the 'edit_shop_subscription_line_items' capability and accepts an optional $user_id.
  */
-function wcs_can_items_be_removed( $subscription ) {
+function wcs_can_items_be_removed( $subscription, $user_id = 0 ) {
 	$allow_remove = false;
+
+	// Guard against a WP_User being passed by mistake, which absint() would otherwise reduce to 1 - usually an administrator.
+	$user_id = is_object( $user_id ) ? $user_id->ID : $user_id;
+	$user_id = $user_id ? absint( $user_id ) : get_current_user_id();
 
 	if ( sizeof( $subscription->get_items() ) > 1 && $subscription->payment_method_supports( 'subscription_amount_changes' ) && $subscription->has_status( array( 'active', 'on-hold', 'pending' ) ) ) {
 		$allow_remove = true;
 	}
 
-	return apply_filters( 'wcs_can_items_be_removed', $allow_remove, $subscription );
+	/**
+	 * Filters whether line items can be removed from a subscription.
+	 *
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
+	 * @since 9.2.0 Added the $user_id parameter.
+	 *
+	 * @param bool            $allow_remove Whether line items can be removed.
+	 * @param WC_Subscription $subscription The subscription the line items belong to.
+	 * @param int             $user_id      The user the check is being made for.
+	 */
+	$allow_remove = apply_filters( 'wcs_can_items_be_removed', $allow_remove, $subscription, $user_id );
+
+	return $allow_remove && user_can( $user_id, 'edit_shop_subscription_line_items', $subscription->get_id() );
 }
 
 /**
@@ -1048,4 +1078,66 @@ function wcs_is_large_site() {
 	}
 
 	return apply_filters( 'wcs_is_large_site', $is_large_site );
+}
+
+/**
+ * Whether a posted checkbox-style setting is "on", resolving both submission conventions.
+ *
+ * The classic settings form omits an unchecked checkbox entirely (absent means off), whereas the modern
+ * ("settings-ui") renderer posts an explicit value for every field (e.g. `false`/`'no'`). Reading `$_POST`
+ * through {@see wc_string_to_bool()} — after treating an absent key as off — resolves a checkbox correctly under
+ * either. Callers must verify the relevant settings nonce before relying on this.
+ *
+ * @param string $key The posted field id.
+ * @return bool Whether the setting is checked/on.
+ */
+function wcs_is_setting_checked( $key ) {
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- callers verify the settings nonce before reading.
+	if ( ! isset( $_POST[ $key ] ) || is_array( $_POST[ $key ] ) ) {
+		// A checkbox never legitimately posts an array; treat non-scalar input as off rather than passing it to
+		// wc_string_to_bool() (which would fatal on strtolower() under PHP 8).
+		return false;
+	}
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- callers verify the settings nonce before reading.
+	return wc_string_to_bool( wc_clean( wp_unslash( $_POST[ $key ] ) ) );
+}
+
+/**
+ * Whether the current request is a Subscriptions settings-form submission a display-control save
+ * handler should act on.
+ *
+ * The single home for the preamble every `woocommerce_update_options_subscriptions` display-control
+ * callback (switch proration, customer suspensions, APFS add-to-subscription) needs, in order:
+ *
+ * 1. The settings classes are loadable - the main settings save bails during the plugin-file-swap
+ *    window ({@see WC_Subscriptions_Admin::are_settings_classes_loadable()}), so these handlers bail
+ *    too and a mid-swap save is uniformly a no-op rather than half-applied.
+ * 2. Every given marker field posted. A marker is a field the caller knows always posts on a
+ *    submission that includes its controls (a `<select>` or number input, which post on both the
+ *    classic tab and the modern renderer's form_post save); its absence marks a submission that did
+ *    not include those controls, whose stored options must be left untouched.
+ * 3. The Subscriptions settings nonce verifies.
+ *
+ * A global function rather than a method deliberately: it is registered as a custom nonce-verification
+ * function in phpcs.xml so callers' subsequent `$_POST` reads pass the
+ * WordPress.Security.NonceVerification sniff, and the sniff only recognizes plain function calls.
+ *
+ * @since 9.2.0
+ *
+ * @param string|string[] $marker_field_keys `$_POST` key(s) that must all be present.
+ * @return bool
+ */
+function wcs_is_verified_settings_form_submission( $marker_field_keys ) {
+	if ( ! WC_Subscriptions_Admin::are_settings_classes_loadable() ) {
+		return false;
+	}
+
+	foreach ( (array) $marker_field_keys as $marker_field_key ) {
+		if ( ! isset( $_POST[ $marker_field_key ] ) ) {
+			return false;
+		}
+	}
+
+	return ! empty( $_POST['_wcsnonce'] ) && wp_verify_nonce( wc_clean( wp_unslash( $_POST['_wcsnonce'] ) ), 'wcs_subscription_settings' );
 }

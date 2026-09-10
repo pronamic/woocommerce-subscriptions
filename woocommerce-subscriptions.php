@@ -5,25 +5,25 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
- * Version: 9.1.0
+ * Version: 9.2.0
  * Requires Plugins: woocommerce
  *
- * Requires at least: 6.9
- * Tested up to: 7.0
+ * Requires at least: 7.0
+ * Tested up to: 7.1
  * Requires PHP: 7.4
  *
- * WC requires at least: 10.9
- * WC tested up to: 11.0
+ * WC requires at least: 11.0
+ * WC tested up to: 11.1
  *
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  * Copyright: © 2025 WooCommerce
  *
- * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
- *
  * @package WooCommerce Subscriptions
  * @author  WooCommerce.
  * @since   1.0
+ * Woo: 27147:6115e6d7e297b623a169fdcf5728b224
+
  */
 
 require_once __DIR__ . '/vendor/autoload.php';
@@ -92,8 +92,23 @@ class WC_Subscriptions {
 	/** @var string */
 	public static $plugin_file = __FILE__;
 
-	/** @var string */
-	public static $version = '9.1.0'; // WRCS: DEFINED_VERSION.
+	/**
+	 * The version this install reports and stores.
+	 *
+	 * During a release candidate this deliberately differs from the `Version:` plugin header
+	 * above: the header carries the `-rcN` suffix, this does not. The header is what WordPress
+	 * and the WooCommerce.com updater compare, so it has to sort below the final release or a
+	 * tester is never offered the update. This value is what
+	 * {@see WC_Subscriptions_Upgrader::upgrade_complete()} writes into the `wcs_plugin_version`
+	 * option, and every upgrade routine gates on that option - carrying `-rcN` here would make
+	 * `version_compare( '9.2.0-rc2', '9.2.0', '<' )` true and re-run the whole 9.2.0 upgrade
+	 * block when a tester updates to the release, on a store that has been in use for a week.
+	 *
+	 * Do not "fix" the mismatch. See `.ai/commands/release-candidate.md`.
+	 *
+	 * @var string
+	 */
+	public static $version = '9.2.0'; // WRCS: DEFINED_VERSION.
 
 	/** @var string */
 	public static $wc_minimum_supported_version = '7.7';
@@ -158,7 +173,7 @@ class WC_Subscriptions {
 		} else {
 			// Trigger an error consistant with PHP if the function called doesn't exist.
 			$class = __CLASS__;
-			$trace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 );
+			$trace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace, QITStandard.PHP.DebugCode.DebugFunctionFound -- Reports the caller in the error below, mirroring PHP's native undefined-method message. Not leftover debug output.
 			$file  = $trace[0]['file'];
 			$line  = $trace[0]['line'];
 			throw new Error( "Call to undefined method $class::$method() in $file on line $line" ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

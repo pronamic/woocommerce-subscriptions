@@ -41,7 +41,9 @@ class WCS_ATT_Integration_FS {
 	 */
 	public static function add_quickview_integration() {
 
-		wp_enqueue_script( 'wcsatt-single-product' );
+		// A quick view can open from any page, so this deliberately loads the bundle store-wide on themes with the
+		// integration.
+		WCS_ATT_Display::enqueue_frontend_script();
 
 		wp_register_script( 'wcsatt-flatsome-quickview', WCS_ATT()->plugin_url() . '/assets/js/apfs/integrations/flatsome-quickview.js', array( 'jquery', 'wc-country-select', 'wc-address-i18n' ), WC_Subscriptions::$version, true );
 		wp_script_add_data( 'wcsatt-flatsome-quickview', 'strategy', 'defer' );

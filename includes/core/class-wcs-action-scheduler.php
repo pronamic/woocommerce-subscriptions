@@ -60,11 +60,19 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 
 					// Only reschedule if it's in the future
 					if ( $timestamp <= current_time( 'timestamp', true ) ) {
+						// A zero timestamp means the date is being deleted (see delete_date()), which is deliberate.
+						// Any other past date means we have just cleared this subscription's action and will not
+						// replace it, leaving the same end state as a failed schedule: a date on the subscription
+						// with nothing behind it. Record it so that state is never mistaken for a healthy one.
+						if ( $timestamp > 0 && $this->is_schedulable_for_status( $subscription, $date_type ) ) {
+							$this->log_unscheduled_subscription_event( self::REASON_DATE_IN_PAST, $action_hook, $action_args, $timestamp );
+						}
+
 						return;
 					}
 
 					// Only schedule it if it's valid. It's active, it's a payment retry or it's pending cancelled and the end date being updated.
-					if ( 'payment_retry' === $date_type || $subscription->has_status( 'active' ) || ( $subscription->has_status( 'pending-cancel' ) && 'end' === $date_type ) ) {
+					if ( $this->is_schedulable_for_status( $subscription, $date_type ) ) {
 						$this->schedule_action( $timestamp, $action_hook, $action_args );
 					}
 				}
@@ -174,6 +182,24 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 	}
 
 	/**
+	 * Whether a subscription's status permits scheduling the given date type.
+	 *
+	 * Extracted so that update_date() can apply the same rule when deciding whether skipping the schedule is worth
+	 * recording. Deliberately private: the rule is specific to this class, and a private method cannot clash with
+	 * the access level of anything a third party has already declared on a subclass.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param WC_Subscription $subscription An instance of WC_Subscription the date belongs to.
+	 * @param string          $date_type    Can be 'trial_end', 'next_payment', 'payment_retry', 'end' or a custom date type.
+	 * @return bool
+	 */
+	private function is_schedulable_for_status( $subscription, $date_type ) {
+		// It's active, it's a payment retry or it's pending cancelled and the end date being updated.
+		return 'payment_retry' === $date_type || $subscription->has_status( 'active' ) || ( $subscription->has_status( 'pending-cancel' ) && 'end' === $date_type );
+	}
+
+	/**
 	 * Get the hook to use in the action scheduler for the date type
 	 *
 	 * @param object $subscription An instance of WC_Subscription to get the hook for
@@ -256,16 +282,24 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 	 * @param string $action_hook Name of event used as the hook for the scheduled action.
 	 * @param array  $action_args Array of name => value pairs stored against the scheduled action.
 	 *
-	 * @return int The action ID.
+	 * @return int The action ID. Zero if the action could not be scheduled.
 	 */
 	protected function schedule_action( $timestamp, $action_hook, $action_args ) {
 		$as_version = ActionScheduler_Versions::instance()->latest_version();
 
 		// On older versions of Action Scheduler, we cannot specify a priority.
 		if ( version_compare( $as_version, '3.6.0', '<' ) ) {
-			return as_schedule_single_action( $timestamp, $action_hook, $action_args, self::ACTION_GROUP );
+			$action_id = as_schedule_single_action( $timestamp, $action_hook, $action_args, self::ACTION_GROUP );
+		} else {
+			$action_id = as_schedule_single_action( $timestamp, $action_hook, $action_args, self::ACTION_GROUP, false, $this->get_action_priority( $action_hook ) );
 		}
 
-		return as_schedule_single_action( $timestamp, $action_hook, $action_args, self::ACTION_GROUP, false, $this->get_action_priority( $action_hook ) );
+		// A zero action ID means Action Scheduler could not store the action. Any previously scheduled action was
+		// unscheduled before we got here, so nothing will run for this event until it is scheduled again.
+		if ( empty( $action_id ) ) {
+			$this->log_unscheduled_subscription_event( self::REASON_NO_ACTION_ID, $action_hook, $action_args, $timestamp );
+		}
+
+		return $action_id;
 	}
 }

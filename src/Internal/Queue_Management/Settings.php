@@ -120,6 +120,7 @@ class Settings {
 				'desc_tip' => __( 'When enabled, subscription renewals and other events (retries, trial ends, expirations) are run in a dedicated batch, reducing delays caused by other scheduled actions on your site.', 'woocommerce-subscriptions' ),
 				'default'  => 'no',
 				'type'     => 'checkbox',
+				'class'    => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
 			),
 		);
 

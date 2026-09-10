@@ -52,6 +52,17 @@ class WCS_Upgrade_9_0_0 {
 	private static $migrated_count_option = 'woocommerce_subscriptions_9_0_0_migrated_count';
 
 	/**
+	 * The option name used to tally the products a run could not migrate.
+	 *
+	 * Written as each failure happens and cleared when a run starts. Unlike the other progress
+	 * options it deliberately survives completion: the completion notice reads it to report how many
+	 * products the run could not migrate, and dismissing that notice is what clears it.
+	 *
+	 * @var string
+	 */
+	private static $failure_count_option = 'woocommerce_subscriptions_9_0_0_migration_failures';
+
+	/**
 	 * The option name used to flag that the migration has finished.
 	 *
 	 * Set when the final batch completes and drives the dismissible completion notice.
@@ -285,6 +296,16 @@ class WCS_Upgrade_9_0_0 {
 	 * APFS configuration and assigns the appropriate subscription scheme mode based on
 	 * category membership.
 	 *
+	 * A product that raises an error is logged, counted as a failure and skipped — one bad product
+	 * must not stall the whole run. The run still completes when it reaches the end of the catalog:
+	 * a product that failed before its mode was written is left at the default (sell one-time only),
+	 * and the merchant is told how many failed through the completion notice, with a link to the log
+	 * that names them.
+	 *
+	 * Although this class belongs to a shipped release, this method is a persisted Action Scheduler
+	 * callback that keeps running on any store whose migration has not finished yet, so it is
+	 * maintained in place rather than frozen like a one-shot upgrade routine.
+	 *
 	 * @since 9.0.0
 	 */
 	public static function migrate_apfs_products_batch() {
@@ -296,6 +317,12 @@ class WCS_Upgrade_9_0_0 {
 
 		if ( ! is_array( $categories ) ) {
 			$categories = array();
+		}
+
+		// A cursor of zero means this is the first batch of a run, so the failure tally belongs to
+		// the run about to start rather than to whatever ran before it.
+		if ( 0 === $last_product_id ) {
+			delete_option( self::$failure_count_option );
 		}
 
 		// Capture the fixed denominator for the progress notice on the first batch. Deferred to here
@@ -310,8 +337,11 @@ class WCS_Upgrade_9_0_0 {
 
 		$processed_count = 0;
 		$migrated_count  = (int) get_option( self::$migrated_count_option, 0 );
+		$failure_count   = (int) get_option( self::$failure_count_option, 0 );
 
 		foreach ( $products as $product_id ) {
+			$failed = false;
+
 			try {
 				$product = wc_get_product( $product_id );
 
@@ -328,12 +358,35 @@ class WCS_Upgrade_9_0_0 {
 					$product->save();
 					WCS_Upgrade_Logger::add( sprintf( 'Product %d migrated to mode: %s.', $product_id, WCS_ATT_Scheme::MODE_INHERIT ) );
 				}
-			} catch ( Exception $e ) {
-				WCS_Upgrade_Logger::add( sprintf( 'Error migrating product %d: %s. Continuing with next product.', $product_id, $e->getMessage() ) );
+			} catch ( Throwable $e ) {
+				// Catch Throwable, not Exception: a PHP Error raised by one product (an incompatible
+				// class, a bad callback on save) is not an Exception, so it used to escape the loop
+				// before the cursor was written — Action Scheduler marked the action failed, no
+				// further batch was scheduled, and the migration stopped dead on that product.
+				$failed = true;
+
+				WCS_Upgrade_Logger::add(
+					sprintf(
+						'Error migrating product %1$d: %2$s: %3$s in %4$s on line %5$d. Skipping this product and continuing with the next.',
+						$product_id,
+						get_class( $e ),
+						$e->getMessage(),
+						$e->getFile(),
+						$e->getLine()
+					)
+				);
 			}
 
+			// The cursor always advances, including past a product that failed, so the batch cannot
+			// stall on it. Failures are counted separately so they are never mistaken for progress.
 			update_option( self::$tracking_option, $product_id, 'no' );
-			update_option( self::$migrated_count_option, ++$migrated_count, 'no' );
+
+			if ( $failed ) {
+				update_option( self::$failure_count_option, ++$failure_count, 'no' );
+			} else {
+				update_option( self::$migrated_count_option, ++$migrated_count, 'no' );
+			}
+
 			++$processed_count;
 		}
 
@@ -341,19 +394,40 @@ class WCS_Upgrade_9_0_0 {
 		if ( count( $products ) === self::$batch_size ) {
 			WCS_Upgrade_Logger::add( sprintf( 'Batch complete. Processed %d products. Scheduling next batch.', $processed_count ) );
 			self::schedule_apfs_migration();
-		} else {
-			WCS_Upgrade_Logger::add( sprintf( 'APFS product migration complete. Processed %d products in final batch.', $processed_count ) );
+			return;
+		}
 
-			// Migration finished — clear the tracking and progress options so the notice stops showing.
-			delete_option( self::$tracking_option );
-			delete_option( self::$total_option );
-			delete_option( self::$migrated_count_option );
+		WCS_Upgrade_Logger::add( sprintf( 'APFS product migration complete. Processed %d products in final batch.', $processed_count ) );
 
-			// Flag completion so the dismissible "finished" notice is shown, but only if we
-			// actually processed products (avoids a "finished" notice when there was nothing to do).
-			if ( $migrated_count > 0 ) {
-				update_option( self::$complete_option, 'yes', 'no' );
-			}
+		if ( $failure_count > 0 ) {
+			// The run still completes. Holding it open would keep the standalone emulation answering for
+			// every product on the store, overriding the mode the product edit screen writes catalog-wide
+			// for as long as one product stays broken; the merchant is told the count instead so the
+			// affected products can be set up by hand.
+			WCS_Upgrade_Logger::add(
+				sprintf(
+					'APFS product migration finished with %1$d failure(s) (%2$d migrated). Each is logged above with its product ID. Check each one: a product that failed before its mode was written sells one-time only until it is set up by hand.',
+					$failure_count,
+					$migrated_count
+				)
+			);
+		}
+
+		// Migration finished — clear the tracking and progress options so the notice stops showing.
+		// Deleting the total is also what retires the pre-resolution filter, so every product resolves
+		// from its own meta from here on.
+		delete_option( self::$tracking_option );
+		delete_option( self::$total_option );
+		delete_option( self::$migrated_count_option );
+
+		// The failure tally deliberately survives: the completion notice reports it, and dismissing
+		// that notice is what clears it.
+
+		// Flag completion so the dismissible "finished" notice is shown, but only if the run actually
+		// processed products (avoids a "finished" notice when there was nothing to do). A run in which
+		// everything failed has migrated nothing, and the merchant needs to hear about that too.
+		if ( $migrated_count > 0 || $failure_count > 0 ) {
+			update_option( self::$complete_option, 'yes', 'no' );
 		}
 	}
 
@@ -573,8 +647,9 @@ class WCS_Upgrade_9_0_0 {
 	 * Display an admin notice reporting the product migration status.
 	 *
 	 * While the migration is running (the total option is set) it shows a progress notice.
-	 * Once the final batch completes it shows a dismissible "finished" notice, which is
-	 * cleared when the merchant dismisses it.
+	 * Once the final batch completes it shows a dismissible "finished" notice, which reports the
+	 * failure count with a link to the log when the run recorded any. Dismissing clears the
+	 * completion flag and the tally.
 	 *
 	 * @since 9.0.1
 	 */
@@ -587,6 +662,7 @@ class WCS_Upgrade_9_0_0 {
 		if ( isset( $_GET['_wcsnonce'], $_GET['woocommerce_subscriptions_dismiss_apfs_migration_notice'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			&& wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wcsnonce'] ) ), 'woocommerce_subscriptions_dismiss_apfs_migration_notice' ) ) {
 			delete_option( self::$complete_option );
+			delete_option( self::$failure_count_option );
 			return;
 		}
 
@@ -612,13 +688,42 @@ class WCS_Upgrade_9_0_0 {
 		}
 
 		// Migration finished — show a dismissible completion notice.
-		if ( 'yes' === get_option( self::$complete_option ) ) {
-			$dismiss_url = wp_nonce_url( add_query_arg( 'woocommerce_subscriptions_dismiss_apfs_migration_notice', '1' ), 'woocommerce_subscriptions_dismiss_apfs_migration_notice', '_wcsnonce' );
-
-			$notice = new WCS_Admin_Notice( 'notice notice-success', array(), $dismiss_url );
-			$notice->set_simple_content( __( 'WooCommerce Subscriptions has finished migrating your existing product data.', 'woocommerce-subscriptions' ) );
-			$notice->display();
+		if ( 'yes' !== get_option( self::$complete_option ) ) {
+			return;
 		}
+
+		$dismiss_url   = wp_nonce_url( add_query_arg( 'woocommerce_subscriptions_dismiss_apfs_migration_notice', '1' ), 'woocommerce_subscriptions_dismiss_apfs_migration_notice', '_wcsnonce' );
+		$failure_count = (int) get_option( self::$failure_count_option, 0 );
+
+		if ( $failure_count > 0 ) {
+			// A product that failed before its mode was written now sells one-time only; one that failed
+			// after (a callback throwing on save) is migrated but tallied all the same. Naming the count
+			// and linking the log is what lets the merchant check them, since the per-product detail only
+			// exists there.
+			$log_url = admin_url( 'admin.php?page=wc-status&tab=logs&source=' . WCS_Upgrade_Logger::$handle );
+
+			$notice = new WCS_Admin_Notice( 'notice notice-warning', array(), $dismiss_url );
+			$notice->set_simple_content(
+				sprintf(
+					/* translators: 1: number of products that could not be migrated, 2: opening link tag to the migration logs, 3: closing link tag. */
+					_n(
+						'WooCommerce Subscriptions has finished migrating your existing product data. %1$s product could not be migrated. Please update this product manually. %2$sReview logs%3$s',
+						'WooCommerce Subscriptions has finished migrating your existing product data. %1$s products could not be migrated. Please update these products manually. %2$sReview logs%3$s',
+						$failure_count,
+						'woocommerce-subscriptions'
+					),
+					number_format_i18n( $failure_count ),
+					'<a href="' . esc_url( $log_url ) . '">',
+					'</a>'
+				)
+			);
+			$notice->display();
+			return;
+		}
+
+		$notice = new WCS_Admin_Notice( 'notice notice-success', array(), $dismiss_url );
+		$notice->set_simple_content( __( 'WooCommerce Subscriptions has finished migrating your existing product data.', 'woocommerce-subscriptions' ) );
+		$notice->display();
 	}
 
 	/**

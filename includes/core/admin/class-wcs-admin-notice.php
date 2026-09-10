@@ -176,6 +176,15 @@ class WCS_Admin_Notice {
 
 		if ( $this->is_dismissible() ) {
 			$attributes['style'][] = 'position: relative;';
+
+			// Reserve room for the absolutely-positioned dismiss control, or content long enough to wrap runs
+			// underneath it. Core already does this via `.wp-core-ui .notice.is-dismissible { padding-right:
+			// 48px }`, and on an ordinary admin screen that is enough on its own. It is not enough on
+			// WooCommerce's embedded pages: `.wc-wp-version-gte-70.woocommerce-embed-page .notice` resets the
+			// padding shorthand at the same specificity, and WooCommerce's stylesheet loads later, so it wins.
+			// Since these notices render on `admin_notices` anywhere in wp-admin, and we enqueue no stylesheet
+			// of our own there, set it inline beside the positioning it depends on. 48px matches core's value.
+			$attributes['style'][] = 'padding-right: 48px;';
 		}
 
 		foreach ( $attributes as $attribute => $values ) {

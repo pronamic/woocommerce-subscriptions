@@ -495,14 +495,14 @@ class WCS_ATT_Product {
 	 * @return string
 	 */
 	public static function get_instance_id( $product ) {
-		WCS_ATT()->includes();
-		$instance_id = WCS_ATT()->product_data->get( $product, 'wcsatt_instance' );
+		$product_data = WCS_ATT_Product_Data::instance();
+		$instance_id  = $product_data->get( $product, 'wcsatt_instance' );
 
 		if ( ! is_null( $instance_id ) ) {
 			$instance_id = absint( $instance_id );
 		} else {
 			++self::$object_instance_count;
-			WCS_ATT()->product_data->set( $product, 'wcsatt_instance', self::$object_instance_count );
+			$product_data->set( $product, 'wcsatt_instance', self::$object_instance_count );
 			$instance_id = self::$object_instance_count;
 		}
 

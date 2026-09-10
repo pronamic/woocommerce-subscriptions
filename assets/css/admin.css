@@ -93,8 +93,7 @@ a.close-subscriptions-search {
 	float: right;
 }
 #woocommerce-product-data .variable_subscription_pricing ._subscription_length_field .wc_input_subscription_length + .select2,
-#woocommerce-product-data .variable_subscription_sync .subscription_sync_week_month .wc_input_subscription_payment_sync + .select2,
-#woocommerce-product-data .variable_subscription_gifting ._subscription_gifting_field .wc_input_subscription_gifting + .select2 {
+#woocommerce-product-data .variable_subscription_sync .subscription_sync_week_month .wc_input_subscription_payment_sync + .select2 {
 	width: 100% !important;
 }
 /* Simple Subscription Product Sync Settings */
@@ -107,9 +106,28 @@ a.close-subscriptions-search {
 #general_product_data .subscription_sync_annual .select2-container:not( :last-child ) {
 	width: 50% !important;
 }
-/* Simple Subscription Product Gifting Settings */
-._subscription_gifting_field .select2-container {
-	width: 50% !important;
+/* Gifting checkbox on variations: keep the row full width, as the select2 that previously filled it did. */
+fieldset.variable_subscription_gifting {
+	width: 100%;
+}
+/*
+ * Gifting checkbox — the simple-subscription pricing panel and the variation rows share the same markup
+ * (label wrapping the checkbox then its descriptive text), so it renders box-first inline from the DOM
+ * order alone. Flex just supplies the gap and vertical alignment (a margin would be reset by WooCommerce's
+ * `.checkbox` rules in both contexts).
+ */
+._subscription_gifting_field label {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+/*
+ * In the options panel (simple subscription) labels are floated into a narrow left column; undo that so the
+ * full sentence sits inline beside the checkbox rather than being squeezed.
+ */
+.woocommerce_options_panel p._subscription_gifting_field label {
+	float: none;
+	width: auto;
 }
 p.show_if_variable-subscription._subscription_gifting_field {
 	margin-top: 0;
@@ -140,9 +158,6 @@ p._subscription_gifting_field_description.form-field .description {
 		._subscription_payment_sync_date_day_field
 		.wrap {
 		width: 80%;
-	}
-	._subscription_gifting_field .select2-container {
-		width: 80% !important;
 	}
 }
 .woocommerce_options_panel ._subscription_price_fields .wrap input,
@@ -399,10 +414,14 @@ p._subscription_gifting_field_description.form-field .description {
 	font-size: 14px;
 }
 
-/* Variation Pricing Fields with WooCommerce 3.0+ */
+/*
+ * Variation Pricing Fields with WooCommerce 3.0+.
+ * The variation gifting label was also block-level here while its control was a select2 dropdown (label above
+ * a full-width select). Since the control became a checkbox, its label must stay inline so the checkbox sits
+ * beside it, matching WooCommerce's native variation checkboxes — so it is deliberately absent from this list.
+ */
 .wc-metaboxes-wrapper .variable_subscription_trial label,
 .wc-metaboxes-wrapper .variable_subscription_pricing label,
-.wc-metaboxes-wrapper .variable_subscription_gifting label,
 .wc-metaboxes-wrapper .variable_subscription_sync label {
 	display: block;
 }
@@ -939,10 +958,19 @@ span.product-type.variable-subscription::before {
 .wcs_setting_proration_options {
 	margin-top: 6px;
 }
+/* The switching options render in a fieldset (its screen-reader-only legend carries the
+   group name). wp-admin's base styles already zero the fieldset border/padding/margin, but
+   WooCommerce's `.woocommerce table.form-table fieldset:first-child` also zeroes the top
+   margin the shared rule above sets - restore it at higher specificity so the layout
+   matches the plain container the fieldset replaced. */
+.woocommerce table.form-table td fieldset.wcs_setting_switching_options {
+	margin: 6px 0 0;
+}
 .wcs_setting_switching_options label,
 .wcs_setting_proration_options label {
 	display: block;
 	width: 400px;
+	max-width: 100%;
 	margin-bottom: 1em;
 }
 table.form-table input#woocommerce_subscriptions_customer_notifications_offset {
@@ -999,19 +1027,6 @@ table.form-table input#woocommerce_subscriptions_customer_notifications_offset {
 .wc-settings-row-enable-gifting.checked .forminp-checkbox {
 	padding-bottom: 0;
 	margin-bottom: 0;
-}
-.wc-settings-row-gifting-radios td {
-	padding-top: 0;
-}
-.wc-settings-row-gifting-radios th {
-	padding-top: 0;
-}
-.wc-settings-row-gifting-radios li:nth-child(2) label {
-	margin-bottom: 0 !important;
-}
-.wc-settings-row-gifting-radios p {
-	margin: 2px 0 5px;
-	color: #646970;
 }
 
 .woocommerce-subscriptions-deprecation-notice {

@@ -295,6 +295,14 @@ class WC_Subscriptions_Synchroniser {
 	public static function proration_options_field_html() {
 		$prorate_virtual  = self::should_prorate_virtual_products() ? 'yes' : 'no';
 		$prorate_physical = self::should_prorate_physical_products() ? 'yes' : 'no';
+
+		// Bespoke field type, so the shared disclosure attribute is set here rather than via `custom_attributes`.
+		$show_if_value = wp_json_encode(
+			array(
+				'id'     => self::$setting_id_first_billing_behavior,
+				'values' => array( self::FIRST_BILLING_BEHAVIOR_PRORATE ),
+			)
+		);
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
@@ -303,13 +311,14 @@ class WC_Subscriptions_Synchroniser {
 				</label>
 			</th>
 			<td class="forminp forminp-woocommerce_subscriptions_proration_options">
-				<div class="wcs_setting_proration_options">
+				<div class="wcs_setting_proration_options" data-show-if-value="<?php echo esc_attr( $show_if_value ); ?>">
+					<?php // `value="1"` matches WC_Admin_Settings' checkbox markup: without it these post "on", which wcs_is_setting_checked() reads as unchecked. ?>
 					<label>
-						<input <?php checked( 'yes', $prorate_virtual ); ?> type="checkbox" id="<?php echo esc_attr( self::$setting_id_prorate_virtual ); ?>" name="<?php echo esc_attr( self::$setting_id_prorate_virtual ); ?>"/>
+						<input <?php checked( 'yes', $prorate_virtual ); ?> type="checkbox" value="1" id="<?php echo esc_attr( self::$setting_id_prorate_virtual ); ?>" name="<?php echo esc_attr( self::$setting_id_prorate_virtual ); ?>"/>
 						<?php esc_html_e( 'Virtual subscription products', 'woocommerce-subscriptions' ); ?>
 					</label>
 					<label>
-						<input <?php checked( 'yes', $prorate_physical ); ?> type="checkbox" id="<?php echo esc_attr( self::$setting_id_prorate_physical ); ?>" name="<?php echo esc_attr( self::$setting_id_prorate_physical ); ?>"/>
+						<input <?php checked( 'yes', $prorate_physical ); ?> type="checkbox" value="1" id="<?php echo esc_attr( self::$setting_id_prorate_physical ); ?>" name="<?php echo esc_attr( self::$setting_id_prorate_physical ); ?>"/>
 						<?php esc_html_e( 'Physical subscription products', 'woocommerce-subscriptions' ); ?>
 					</label>
 					<p class="description"><?php esc_html_e( 'Product types not selected will be charged on the next billing date.', 'woocommerce-subscriptions' ); ?></p>
@@ -328,15 +337,21 @@ class WC_Subscriptions_Synchroniser {
 	 * @since 9.0.0
 	 */
 	public static function save_proration_checkboxes() {
+		// The main settings save bails during the plugin-file-swap window; bail here too so a mid-swap
+		// save is uniformly a no-op rather than half-applied. See WC_Subscriptions_Admin::are_settings_classes_loadable().
+		if ( ! WC_Subscriptions_Admin::are_settings_classes_loadable() ) {
+			return;
+		}
+
 		if ( self::$proration_validation_failed ) {
 			self::$proration_validation_failed = false;
 			return;
 		}
 
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification is handled by WooCommerce before this hook fires.
-		$virtual  = isset( $_POST[ self::$setting_id_prorate_virtual ] ) ? 'yes' : 'no';
-		$physical = isset( $_POST[ self::$setting_id_prorate_physical ] ) ? 'yes' : 'no';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		// Nonce verification is handled by WooCommerce before this hook fires.
+		$virtual  = wcs_is_setting_checked( self::$setting_id_prorate_virtual ) ? 'yes' : 'no';
+		$physical = wcs_is_setting_checked( self::$setting_id_prorate_physical ) ? 'yes' : 'no';
+
 		update_option( self::$setting_id_prorate_virtual, $virtual );
 		update_option( self::$setting_id_prorate_physical, $physical );
 	}
@@ -350,16 +365,21 @@ class WC_Subscriptions_Synchroniser {
 	 * @since 8.6.0
 	 */
 	public static function validate_proration_checkboxes() {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification is handled by WooCommerce before this hook fires.
+		// The main settings save bails during the plugin-file-swap window; bail here too so a mid-swap
+		// save is uniformly a no-op rather than half-applied. See WC_Subscriptions_Admin::are_settings_classes_loadable().
+		if ( ! WC_Subscriptions_Admin::are_settings_classes_loadable() ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification is handled by WooCommerce before this hook fires.
 		$behavior = isset( $_POST[ self::$setting_id_first_billing_behavior ] ) ? wc_clean( wp_unslash( $_POST[ self::$setting_id_first_billing_behavior ] ) ) : self::FIRST_BILLING_BEHAVIOR_FULL;
 
 		if ( self::FIRST_BILLING_BEHAVIOR_PRORATE !== $behavior ) {
 			return;
 		}
 
-		$virtual  = isset( $_POST[ self::$setting_id_prorate_virtual ] ) ? 'yes' : 'no';
-		$physical = isset( $_POST[ self::$setting_id_prorate_physical ] ) ? 'yes' : 'no';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$virtual  = wcs_is_setting_checked( self::$setting_id_prorate_virtual ) ? 'yes' : 'no';
+		$physical = wcs_is_setting_checked( self::$setting_id_prorate_physical ) ? 'yes' : 'no';
 
 		if ( 'no' === $virtual && 'no' === $physical ) {
 			// Signal save_proration_checkboxes() (which runs after this at priority 10) to skip writing the invalid values.
@@ -390,7 +410,7 @@ class WC_Subscriptions_Synchroniser {
 	public static function add_settings( $settings ) {
 		$first_billing_behavior_descriptions = array(
 			self::FIRST_BILLING_BEHAVIOR_FULL              => __( 'Customers are charged the full recurring amount when they subscribe.', 'woocommerce-subscriptions' ),
-			self::FIRST_BILLING_BEHAVIOR_NEXT_BILLING_DATE => __( 'Customers are not charged when they subscribe. Their first recurring charge occurs on the next billing date.', 'woocommerce-subscriptions' ),
+			self::FIRST_BILLING_BEHAVIOR_NEXT_BILLING_DATE => __( 'Customers are charged the full recurring amount on their next billing date.', 'woocommerce-subscriptions' ),
 			self::FIRST_BILLING_BEHAVIOR_PRORATE           => __( 'Customers are charged a prorated amount when they subscribe based on the days remaining until the next billing date. The full recurring amount is charged on the next billing date.', 'woocommerce-subscriptions' ),
 		);
 		$current_first_billing_behavior      = self::get_first_billing_behavior();
@@ -399,8 +419,11 @@ class WC_Subscriptions_Synchroniser {
 			array(
 				'name' => __( 'Billing date alignment', 'woocommerce-subscriptions' ),
 				'type' => 'title',
-				// translators: placeholders are opening and closing link tags
-				'desc' => sprintf( _x( 'Choose how the first charge is handled for subscription products with aligned billing dates. %1$sLearn more%2$s.', 'used in the general subscription options page', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'https://woocommerce.com/?post_type=documentation&p=18734006496935' ) . '">', '</a>' ),
+				'desc' => sprintf(
+					/* translators: %1$s: a "Learn more" documentation link. */
+					_x( 'Choose how the first charge is handled for subscription products with aligned billing dates. %1$s.', 'used in the general subscription options page', 'woocommerce-subscriptions' ),
+					\Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Settings_Layout::learn_more_link( 'https://woocommerce.com/document/subscriptions/store-manager-guide/#billing-date-alignment' )
+				),
 				'id'   => self::$setting_id_section_title,
 			),
 
@@ -428,12 +451,24 @@ class WC_Subscriptions_Synchroniser {
 			),
 
 			array(
-				'name'    => __( 'Sign-up cutoff window', 'woocommerce-subscriptions' ),
-				'desc'    => __( 'Customers who subscribe within this many days of the next billing date will not be charged until the next billing date.', 'woocommerce-subscriptions' ),
-				'id'      => self::$setting_id_days_no_fee,
-				'default' => 0,
-				'type'    => 'number',
-				'class'   => 'show_if_woocommerce_subscriptions_first_billing_behavior_full',
+				'name'              => __( 'Sign-up cutoff window', 'woocommerce-subscriptions' ),
+				'desc'              => __( 'Customers who subscribe within this many days of the next billing date will not be charged until the next billing date.', 'woocommerce-subscriptions' ),
+				'id'                => self::$setting_id_days_no_fee,
+				'default'           => 0,
+				'type'              => 'number',
+				// Retained: no in-tree consumer, but the class has been in released markup since 9.0.0 and
+				// out-of-tree CSS/JS cannot be grepped for.
+				'class'             => 'show_if_woocommerce_subscriptions_first_billing_behavior_full',
+				// Show the cutoff window only when the full amount is charged at sign-up (reusable behaviour, see
+				// assets/js/admin/admin.js).
+				'custom_attributes' => array(
+					'data-show-if-value' => wp_json_encode(
+						array(
+							'id'     => self::$setting_id_first_billing_behavior,
+							'values' => array( self::FIRST_BILLING_BEHAVIOR_FULL ),
+						)
+					),
+				),
 			),
 
 			array(

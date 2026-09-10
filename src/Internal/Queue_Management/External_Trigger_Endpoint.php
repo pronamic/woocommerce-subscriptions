@@ -84,7 +84,7 @@ class External_Trigger_Endpoint {
 		register_rest_route(
 			self::REST_NAMESPACE,
 			self::REST_ROUTE,
-			array(
+			array( // nosemgrep: audit.php.wp.security.rest-route.permission-callback.return-true -- Auth runs in handle_request(); see the permission_callback note below.
 				'methods'             => array( 'GET', 'POST', 'PUT' ),
 				'callback'            => array( $this, 'handle_request' ),
 				// Auth is handled in the callback (token + rate limit) so we can return our own response

@@ -6,6 +6,8 @@
  * @since    9.0.0
  */
 
+use Automattic\WooCommerce_Subscriptions\Internal\Products\Plan_Utils;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -27,9 +29,11 @@ class WCS_ATT_Validation {
 	/**
 	 * Valid trial period values.
 	 *
+	 * Shared with the plan key canonicaliser, which must not depend on admin-only code.
+	 *
 	 * @var array
 	 */
-	const VALID_PERIODS = array( 'day', 'week', 'month', 'year' );
+	const VALID_PERIODS = Plan_Utils::PERIODS;
 
 	/**
 	 * Validate trial length based on period.

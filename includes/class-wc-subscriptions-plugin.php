@@ -44,6 +44,15 @@ class WC_Subscriptions_Plugin extends WC_Subscriptions_Core_Plugin {
 		WCS_Admin_Assets::init();
 		BulkActions::init();
 
+		/*
+		 * Skip the classic renderer when a plugin update or rollback replaced the files on disk after
+		 * this request registered its class map - see WC_Subscriptions_Admin::are_settings_classes_loadable()
+		 * for the window. The settings surface degrades for this request instead of fataling the plugin load.
+		 */
+		if ( WC_Subscriptions_Admin::are_settings_classes_loadable() ) {
+			\Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::init();
+		}
+
 		$tracks_events = new WC_Tracks_Events();
 		$tracks_events->setup();
 

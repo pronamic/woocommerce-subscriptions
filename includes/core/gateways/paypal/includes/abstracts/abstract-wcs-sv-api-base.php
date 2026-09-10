@@ -188,9 +188,10 @@ abstract class WCS_SV_API_Base {
 	 * processing should continue, or throw a \SV_WC_API_Exception with a
 	 * relevant error message & code to stop processing.
 	 *
-	 * Note: Child classes *must* sanitize the raw response body before throwing
-	 * an exception, as it will be included in the broadcast_request() method
-	 * which is typically used to log requests.
+	 * Note: throwing here stops the response object from being built, so
+	 * broadcast_request() — typically used to log requests — has nothing to
+	 * sanitize the raw response body with and broadcasts a placeholder in
+	 * its place.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.0
 	 */
@@ -249,11 +250,15 @@ abstract class WCS_SV_API_Base {
 			'duration'   => $this->get_request_duration() . 's', // seconds
 		);
 
+		// The raw response body is never a fallback here: without a response object to sanitize it, it stays out
+		// of the broadcast (and therefore out of the logs) altogether.
+		$sanitized_response_body = $this->get_sanitized_response_body();
+
 		$response_data = array(
 			'code'    => $this->get_response_code(),
 			'message' => $this->get_response_message(),
 			'headers' => $this->get_response_headers(),
-			'body'    => $this->get_sanitized_response_body() ? $this->get_sanitized_response_body() : $this->get_raw_response_body(),
+			'body'    => $sanitized_response_body ? $sanitized_response_body : '[response body omitted to avoid exposing PII]',
 		);
 
 		do_action( 'wc_' . $this->get_api_id() . '_api_request_performed', $request_data, $response_data, $this );

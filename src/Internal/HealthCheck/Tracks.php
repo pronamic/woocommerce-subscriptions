@@ -94,9 +94,9 @@ class Tracks {
 
 	/**
 	 * Fire the scan-completed event. Expected payload keys:
-	 *   run_id, total_scanned, candidates_found,
-	 *   duration_seconds, batches_processed, triggered_by,
-	 *   plus one `candidates_<signal>` key per entry in
+	 *   run_id, total_scanned, total_subscriptions, stats_version,
+	 *   candidates_found, duration_seconds, batches_processed,
+	 *   triggered_by, plus one `candidates_<signal>` key per entry in
 	 *   `CandidateStore::all_signal_types()` (currently
 	 *   `candidates_supports_auto_renewal` and
 	 *   `candidates_missing_renewal`). The per-signal keys

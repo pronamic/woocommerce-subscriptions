@@ -51,6 +51,8 @@ class WCS_ATT_Admin {
 		// Prepend "Add to Subscription" section (runs before Subscription Plans, so appears after it on page).
 		add_filter( 'woocommerce_subscription_settings', array( __CLASS__, 'add_subscription_management_settings' ), 998 );
 
+		add_action( 'woocommerce_update_options_subscriptions', array( __CLASS__, 'save_add_to_subscription_settings' ) );
+
 		// Display subscription scheme admin metaboxes in the "Subscribe to Cart/Order" section.
 		add_action( 'woocommerce_admin_field_subscription_schemes', array( __CLASS__, 'subscription_schemes_content' ) );
 
@@ -191,11 +193,11 @@ class WCS_ATT_Admin {
 			),
 			array(
 				'name'        => __( 'Purchase option text', 'woocommerce-subscriptions' ),
-				'desc'        => __( 'Optionally display custom text above the purchase options on the product page. Supports HTML and shortcodes.', 'woocommerce-subscriptions' ),
+				'desc'        => __( 'Customize the purchase options text on the product page.', 'woocommerce-subscriptions' ),
 				'desc_at_end' => true,
 				'id'          => 'wcsatt_subscribe_to_cart_prompt',
 				'type'        => 'textarea',
-				'placeholder' => __( 'e.g. "Choose a purchase plan:"', 'woocommerce-subscriptions' ),
+				'placeholder' => __( 'Choose a subscription plan:', 'woocommerce-subscriptions' ),
 			),
 			array(
 				'type' => 'sectionend',
@@ -222,39 +224,66 @@ class WCS_ATT_Admin {
 			return $settings;
 		}
 
+		$defaults = self::get_add_to_subscription_defaults();
+
+		// `is_option => false` keeps these display controls out of the classic save; the explicit `save` adapter still
+		// opts them into the modern form POST, so save_add_to_subscription_settings() folds them back into the two
+		// legacy channel options on a modern save just as it does on a classic one.
+		$form_post = array( 'adapter' => 'form_post' );
+
 		$settings_to_add = array(
 			array(
 				'name' => __( 'Add to Subscription', 'woocommerce-subscriptions' ),
 				'type' => 'title',
-				'desc' => WCS_ATT_Integrations::is_block_based_cart() ? __( 'Allow customers to add products to their existing subscriptions.', 'woocommerce-subscriptions' ) : __( 'Allow customers to add individual products and/or entire carts to their existing subscriptions.', 'woocommerce-subscriptions' ),
+				'desc' => __( 'Allow subscribers to add products to their existing subscription.', 'woocommerce-subscriptions' ),
 				'id'   => 'wcsatt_add_to_subscription_options',
 			),
 			array(
-				'name'     => __( 'Products', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'Allow customers to add individual products to existing subscriptions.', 'woocommerce-subscriptions' ),
-				'id'       => 'wcsatt_add_product_to_subscription',
-				'type'     => 'select',
-				'options'  => array(
-					'off'              => _x( 'Disabled', 'adding a product to an existing subscription', 'woocommerce-subscriptions' ),
-					'matching_schemes' => _x( 'Enabled for products with Subscription Plans', 'adding a product to an existing subscription', 'woocommerce-subscriptions' ),
-					'on'               => _x( 'Enabled', 'adding a product to an existing subscription', 'woocommerce-subscriptions' ),
-				),
-				'desc_tip' => true,
+				'name'      => __( 'Allow adding products', 'woocommerce-subscriptions' ),
+				'desc'      => __( 'Add individual products from the product page', 'woocommerce-subscriptions' ),
+				'id'        => 'wcsatt_add_product_to_subscription_enabled',
+				'default'   => $defaults['products'],
+				// The explicit `value` makes the derived state authoritative: without it the renderer falls back to
+				// get_option( id, default ), and a stray option row stored under this display-only id would mask it.
+				'value'     => $defaults['products'],
+				'type'      => 'checkbox',
+				'class'     => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
+				'is_option' => false,
+				'save'      => $form_post,
 			),
 		);
 
+		$settings_to_add[] = self::get_eligibility_setting(
+			'wcsatt_add_product_to_subscription_eligible',
+			'wcsatt_add_product_to_subscription_enabled',
+			$defaults['products_eligible'],
+			array(
+				'subscription_products' => __( 'Only products with subscription plans can be added to existing subscriptions.', 'woocommerce-subscriptions' ),
+				'any_product'           => __( 'Any product can be added to an existing subscription, including products without subscription plans. These products will inherit the subscription\'s billing schedule.', 'woocommerce-subscriptions' ),
+			)
+		);
+
+		// The cart channel is only offered when the store is not using the block-based cart, which the
+		// add-cart-to-subscription flow does not support (§2e). Its stored value is left untouched there.
 		if ( ! WCS_ATT_Integrations::is_block_based_cart() ) {
 			$settings_to_add[] = array(
-				'name'     => __( 'Cart Contents', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'Allow customers to add their cart contents to an existing subscription.', 'woocommerce-subscriptions' ),
-				'id'       => 'wcsatt_add_cart_to_subscription',
-				'type'     => 'select',
-				'options'  => array(
-					'off'        => _x( 'Disabled', 'adding a cart to an existing subscription', 'woocommerce-subscriptions' ),
-					'plans_only' => _x( 'Enabled when cart contents have Subscription Plans', 'adding a cart to an existing subscription', 'woocommerce-subscriptions' ),
-					'on'         => _x( 'Enabled', 'adding a cart to an existing subscription', 'woocommerce-subscriptions' ),
-				),
-				'desc_tip' => true,
+				'desc'      => __( 'Add cart contents from the cart page', 'woocommerce-subscriptions' ),
+				'id'        => 'wcsatt_add_cart_to_subscription_enabled',
+				'default'   => $defaults['cart'],
+				'value'     => $defaults['cart'],
+				'type'      => 'checkbox',
+				'is_option' => false,
+				'save'      => $form_post,
+			);
+
+			$settings_to_add[] = self::get_eligibility_setting(
+				'wcsatt_add_cart_to_subscription_eligible',
+				'wcsatt_add_cart_to_subscription_enabled',
+				$defaults['cart_eligible'],
+				array(
+					'subscription_products' => __( 'The cart can only be added to an existing subscription when every product in it has subscription plans.', 'woocommerce-subscriptions' ),
+					'any_product'           => __( 'The cart can be added to an existing subscription even when it holds products without subscription plans. These products will inherit the subscription\'s billing schedule.', 'woocommerce-subscriptions' ),
+				)
 			);
 		}
 
@@ -264,6 +293,155 @@ class WCS_ATT_Admin {
 		);
 
 		return array_merge( $settings_to_add, $settings );
+	}
+
+	/**
+	 * Builds one channel's "Eligible products" select, revealed by that channel's own checkbox.
+	 *
+	 * @param string $id            The select's field id.
+	 * @param string $controller_id The channel checkbox that reveals it.
+	 * @param string $value         The channel's derived eligibility.
+	 * @param array  $descriptions  Help copy for this channel, keyed by option value.
+	 * @return array
+	 */
+	private static function get_eligibility_setting( $id, $controller_id, $value, $descriptions ) {
+		return array(
+			'name'              => __( 'Eligible products', 'woocommerce-subscriptions' ),
+			// Seed the description with the copy for the stored value, so the server-rendered row already matches
+			// the selection the JS would otherwise have to correct on load.
+			'desc'              => isset( $descriptions[ $value ] ) ? $descriptions[ $value ] : reset( $descriptions ),
+			'id'                => $id,
+			'default'           => $value,
+			// The explicit `value` makes the derived state authoritative: without it the renderer falls back to
+			// get_option( id, default ), and a stray option row stored under this display-only id would mask it.
+			'value'             => $value,
+			'type'              => 'select',
+			'is_option'         => false,
+			'save'              => array( 'adapter' => 'form_post' ),
+			'options'           => array(
+				'subscription_products' => __( 'Only subscription products', 'woocommerce-subscriptions' ),
+				'any_product'           => __( 'Any product', 'woocommerce-subscriptions' ),
+			),
+			'custom_attributes' => array(
+				// Show this row while its own channel is enabled, and swap its description to match the selected
+				// option (both reusable behaviours, see assets/js/admin/admin.js).
+				'data-show-if-checked' => $controller_id,
+				'data-descriptions'    => wp_json_encode( $descriptions ),
+			),
+		);
+	}
+
+	/**
+	 * Derives the display state of each channel's controls from that channel's own stored option.
+	 *
+	 * The channels are independent: nothing is merged, so neither can influence the other's checkbox or
+	 * eligibility (§2a–§2b, §2e → sdd/settings-ui-refresh/context/migration.md).
+	 *
+	 * @return array{products:string, products_eligible:string, cart:string, cart_eligible:string}
+	 */
+	private static function get_add_to_subscription_defaults() {
+		$products = (string) get_option( 'wcsatt_add_product_to_subscription', 'off' );
+		$cart     = (string) get_option( 'wcsatt_add_cart_to_subscription', 'off' );
+
+		// Each eligibility is derived from its channel's stored value regardless of the checkbox, so a disabled
+		// channel still presents the eligibility it holds rather than an emptied control (§2b, dormant values).
+		return array(
+			'products'          => 'off' !== $products ? 'yes' : 'no',
+			'products_eligible' => self::derive_channel_eligibility( $products ),
+			'cart'              => 'off' !== $cart ? 'yes' : 'no',
+			'cart_eligible'     => self::derive_channel_eligibility( $cart ),
+		);
+	}
+
+	/**
+	 * Translates a channel's stored legacy value into the redesigned eligibility vocabulary.
+	 *
+	 * Anything but the unrestricted 'on' resolves to the restrictive option, so out-of-vocabulary rows (legacy,
+	 * corrupt, or third-party) present as the safer of the two.
+	 *
+	 * @param string $value The channel's stored legacy value.
+	 * @return string 'any_product' or 'subscription_products'.
+	 */
+	private static function derive_channel_eligibility( $value ) {
+		return 'on' === $value ? 'any_product' : 'subscription_products';
+	}
+
+	/**
+	 * Folds each channel's redesigned controls back into that channel's own legacy option on save.
+	 *
+	 * The product channel's eligibility select always posts on a submit that includes these controls — on both the
+	 * classic tab and (via its `form_post` save adapter) the modern renderer — so its absence marks a submission that
+	 * did not include them, in which case the stored values are left untouched. The channel checkboxes are read
+	 * through {@see wcs_is_setting_checked()} so both the classic (absent-is-off) and modern (explicit `false`/`'no'`)
+	 * submission conventions resolve correctly.
+	 *
+	 * @return void
+	 */
+	public static function save_add_to_subscription_settings() {
+		if ( ! WCS_ATT()->is_module_registered( 'manage' ) ) {
+			return;
+		}
+
+		if ( ! wcs_is_verified_settings_form_submission( 'wcsatt_add_product_to_subscription_eligible' ) ) {
+			return;
+		}
+
+		update_option(
+			'wcsatt_add_product_to_subscription',
+			self::pack_channel_value(
+				wcs_is_setting_checked( 'wcsatt_add_product_to_subscription_enabled' ),
+				self::get_posted_eligibility( 'wcsatt_add_product_to_subscription_eligible', 'wcsatt_add_product_to_subscription' ),
+				'matching_schemes'
+			)
+		);
+
+		// Only touch the cart channel when it is offered (see the block-cart note above); otherwise leave it as-is.
+		if ( ! WCS_ATT_Integrations::is_block_based_cart() ) {
+			update_option(
+				'wcsatt_add_cart_to_subscription',
+				self::pack_channel_value(
+					wcs_is_setting_checked( 'wcsatt_add_cart_to_subscription_enabled' ),
+					self::get_posted_eligibility( 'wcsatt_add_cart_to_subscription_eligible', 'wcsatt_add_cart_to_subscription' ),
+					'plans_only'
+				)
+			);
+		}
+	}
+
+	/**
+	 * Reads a channel's posted eligibility, falling back to the level already stored for that channel.
+	 *
+	 * A submission carrying a channel's checkbox but not its select (an extension unset the field) must not narrow
+	 * the channel, so the stored level stands in rather than the restrictive default.
+	 *
+	 * @param string $post_key   The select's field id.
+	 * @param string $option_key The channel's legacy option.
+	 * @return string 'any_product' or 'subscription_products'.
+	 */
+	private static function get_posted_eligibility( $post_key, $option_key ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- the caller verifies the settings nonce before reading.
+		if ( ! isset( $_POST[ $post_key ] ) ) {
+			return self::derive_channel_eligibility( (string) get_option( $option_key, 'off' ) );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- the caller verifies the settings nonce before reading.
+		return 'any_product' === wc_clean( wp_unslash( $_POST[ $post_key ] ) ) ? 'any_product' : 'subscription_products';
+	}
+
+	/**
+	 * Packs a channel checkbox + that channel's eligibility into its legacy value.
+	 *
+	 * @param bool   $enabled          Whether the channel is enabled.
+	 * @param string $eligibility      'any_product' or 'subscription_products'.
+	 * @param string $restricted_value The channel's "subscription products only" value ('matching_schemes' or 'plans_only').
+	 * @return string 'off', 'on', or the restricted value.
+	 */
+	public static function pack_channel_value( $enabled, $eligibility, $restricted_value ) {
+		if ( ! $enabled ) {
+			return 'off';
+		}
+
+		return 'any_product' === $eligibility ? 'on' : $restricted_value;
 	}
 
 	/**

@@ -31,6 +31,11 @@ class WC_Subscription_Downloads {
 			if ( is_admin() ) {
 				new WC_Subscription_Downloads_Products();
 				new WC_Subscription_Downloads_Ajax();
+			} else {
+				// Outside admin (WP Cron, REST, WP-CLI) no save handlers are registered, so listen
+				// for product status transitions to keep download permissions in sync, e.g. when
+				// a scheduled downloadable product is published by cron.
+				add_action( 'transition_post_status', array( WC_Subscription_Downloads_Products::class, 'maybe_sync_on_status_transition' ), 10, 3 );
 			}
 		}
 

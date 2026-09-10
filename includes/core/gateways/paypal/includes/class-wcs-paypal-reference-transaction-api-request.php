@@ -16,6 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+use Automattic\WooCommerce_Subscriptions\Internal\PayPal\Log_Sanitizer;
+
 class WCS_PayPal_Reference_Transaction_API_Request {
 
 	/** auth/capture transaction type */
@@ -555,25 +557,16 @@ class WCS_PayPal_Reference_Transaction_API_Request {
 	 * Returns the string representation of this request with any and all
 	 * sensitive elements masked or removed
 	 *
+	 * The API credentials are dropped along with everything else that is not on the internal log sanitizer's
+	 * allowlist, which also covers the buyer's details, the cancel URL and the 'custom' payload the store sends
+	 * with the order and subscription keys in it.
+	 *
 	 * @see SV_WC_Payment_Gateway_API_Request::to_string_safe()
-	 * @return string the pretty-printed request array string representation, safe for logging
+	 * @return string the request parameters as JSON, safe for logging
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function to_string_safe() {
-
-		$request = $this->get_parameters();
-
-		$sensitive_fields = array( 'USER', 'PWD', 'SIGNATURE' );
-
-		foreach ( $sensitive_fields as $field ) {
-
-			if ( isset( $request[ $field ] ) ) {
-
-				$request[ $field ] = str_repeat( '*', strlen( $request[ $field ] ) );
-			}
-		}
-
-		return print_r( $request, true );
+		return Log_Sanitizer::to_json( Log_Sanitizer::sanitize_api_parameters( $this->get_parameters() ) );
 	}
 
 	/**

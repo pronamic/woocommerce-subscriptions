@@ -177,12 +177,14 @@ class WCS_Cart_Renewal {
 
 		if ( isset( $_GET['pay_for_order'] ) && isset( $_GET['key'] ) && isset( $wp->query_vars['order-pay'] ) ) {
 
-			// Pay for existing order
-			$order_key = isset( $_GET['key'] ) ? wc_clean( wp_unslash( $_GET['key'] ) ) : '';
+			// Pay for existing order.
+			// sanitize_text_field() returns '' for array input, which hash_equals() would otherwise reject.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The order key checked below is this flow's authorization control.
+			$order_key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : '';
 			$order_id  = isset( $wp->query_vars['order-pay'] ) ? $wp->query_vars['order-pay'] : absint( $_GET['order_id'] );
 			$order     = wc_get_order( $order_id );
 
-			if ( wcs_get_objects_property( $order, 'order_key' ) === $order_key && $order->has_status( array( 'pending', 'failed' ) ) && wcs_order_contains_renewal( $order ) ) {
+			if ( $order instanceof WC_Order && hash_equals( $order->get_order_key(), $order_key ) && $order->has_status( array( 'pending', 'failed' ) ) && wcs_order_contains_renewal( $order ) ) {
 
 				// If a user isn't logged in, allow them to login first and then redirect back
 				if ( ! is_user_logged_in() ) {
@@ -1461,7 +1463,17 @@ class WCS_Cart_Renewal {
 					continue;
 				}
 
-				$coupon = $this->get_pseudo_coupon( $coupon_item->get_discount() );
+				$order    = $coupon_item->get_order();
+				$discount = (float) $coupon_item->get_discount();
+
+				// Pseudo coupon amounts are applied to the cart in the order's price-entry basis,
+				// so when the order's prices include tax, the stored tax-exclusive discount needs
+				// its tax added back. Mirrors the basis handling in setup_discounts().
+				if ( $order && $order->get_prices_include_tax() ) {
+					$discount += (float) $coupon_item->get_discount_tax();
+				}
+
+				$coupon = $this->get_pseudo_coupon( $discount );
 				$coupon->set_code( $coupon_item->get_code() );
 			} elseif ( 'subscription_renewal' === $this->cart_item_key ) {
 				$coupon_type = $coupon->get_discount_type();
@@ -1592,6 +1604,11 @@ class WCS_Cart_Renewal {
 	 * @since 1.6.3
 	 */
 	public function verify_session_belongs_to_customer() {
+		// The session is not initialized in some contexts (eg cron or CLI requests) where third-party code can still trigger this callback.
+		if ( ! WC()->session ) {
+			return;
+		}
+
 		$cart     = WC()->session->get( 'cart', null );
 		$customer = WC()->session->get( 'customer', null );
 
@@ -1665,8 +1682,12 @@ class WCS_Cart_Renewal {
 		 * We only need to intervene when the has_status() check is for 'checkout-draft' (indicating
 		 * this is the status check in DraftOrderTrait::is_valid_draft_order()) and the order doesn't have that status. Orders
 		 * which already have the checkout-draft status don't need to be updated to bypass the checkout block logic.
+		 *
+		 * The session check enforces this function's documented precondition (it only applies during Store API checkout
+		 * requests): third-party code can call has_status( 'checkout-draft' ) in contexts where the session is not
+		 * initialized (eg while a renewal order is created during a scheduled payment), which would otherwise fatal.
 		 */
-		if ( $has_status || 'checkout-draft' !== $status ) {
+		if ( $has_status || 'checkout-draft' !== $status || ! WC()->session ) {
 			return $has_status;
 		}
 

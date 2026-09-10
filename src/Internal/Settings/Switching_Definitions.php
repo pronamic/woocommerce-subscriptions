@@ -5,17 +5,17 @@ namespace Automattic\WooCommerce_Subscriptions\Internal\Settings;
 /**
  * Registry definitions for the redesigned Switching section.
  *
- * Translates the legacy Switching options into the modern (decomposed) keys, and provides the
- * legacy → modern derivation used by derive-on-read while a modern value is not yet stored. The
- * behavioural mapping follows the redesign's migration plan; the modern value vocabulary is defined
- * here (it is what the modern settings UI reads and writes).
+ * Translates the legacy Switching options into the redesigned (decomposed) keys via the
+ * derivations used by derive-on-read. The behavioural mapping follows the redesign's migration
+ * plan; the decomposed value vocabulary is defined here (it is what the experimental settings-ui
+ * renderer reads; saves are packed back into the legacy options by the classic save-packers).
  *
- * Legacy → modern at a glance:
+ * Legacy → decomposed at a glance:
  *  - `_allow_switching` (composite no|variable|grouped|variable_grouped) → three checkboxes.
  *  - `_allow_switching_product_plans` (yes/no, default yes) → the plans checkbox.
- *  - `_apportion_recurring_price` (5 values) → first-billing behaviour + Virtual/Physical pair.
+ *  - `_apportion_recurring_price` (7 values, incl. the physical-only pair) → first-billing behaviour + Virtual/Physical pair.
  *  - `_apportion_sign_up_fee` (3 values) → sign-up fee behaviour.
- *  - `_apportion_length` (3 values) → fixed-term behaviour + Virtual/Physical pair.
+ *  - `_apportion_length` (4 values, incl. physical-only) → fixed-term behaviour + Virtual/Physical pair.
  *  - `_switch_button_text` → button text (label preserved; see note below).
  *
  * @internal
@@ -58,12 +58,16 @@ class Switching_Definitions {
 		$registry->register(
 			'switch_first_billing_behavior',
 			static function () {
-				switch ( get_option( self::LEGACY_APPORTION_RECURRING, 'no' ) ) {
+				// Cast before the loose `switch`: a non-string stored value (e.g. int 0 from a filter) would
+				// otherwise match the first string case under PHP 7.x comparison rules.
+				switch ( (string) get_option( self::LEGACY_APPORTION_RECURRING, 'no' ) ) {
 					case 'virtual-upgrade':
 					case 'yes-upgrade':
+					case 'physical-upgrade':
 						return 'upgrades';
 					case 'virtual':
 					case 'yes':
+					case 'physical':
 						return 'upgrades_and_downgrades';
 					default:
 						return 'full';
@@ -73,15 +77,15 @@ class Switching_Definitions {
 		$registry->register(
 			'switch_first_billing_virtual',
 			static function () {
-				// Virtual applies to every prorating value; the "Never" value shows no product types.
-				return 'no' === get_option( self::LEGACY_APPORTION_RECURRING, 'no' ) ? 'no' : 'yes';
+				// Virtual applies to the Virtual-only and All values; the physical-only and "Never" values do not.
+				return in_array( get_option( self::LEGACY_APPORTION_RECURRING, 'no' ), array( 'virtual-upgrade', 'virtual', 'yes-upgrade', 'yes' ), true ) ? 'yes' : 'no';
 			}
 		);
 		$registry->register(
 			'switch_first_billing_physical',
 			static function () {
-				// Physical applies only to the "All Subscription Products" values.
-				return in_array( get_option( self::LEGACY_APPORTION_RECURRING, 'no' ), array( 'yes-upgrade', 'yes' ), true ) ? 'yes' : 'no';
+				// Physical applies to the Physical-only and All values.
+				return in_array( get_option( self::LEGACY_APPORTION_RECURRING, 'no' ), array( 'physical-upgrade', 'physical', 'yes-upgrade', 'yes' ), true ) ? 'yes' : 'no';
 			}
 		);
 
@@ -89,7 +93,8 @@ class Switching_Definitions {
 		$registry->register(
 			'switch_signup_fee_behavior',
 			static function () {
-				switch ( get_option( self::LEGACY_APPORTION_SIGN_UP_FEE, 'no' ) ) {
+				// Cast for the same reason as the first-billing switch above.
+				switch ( (string) get_option( self::LEGACY_APPORTION_SIGN_UP_FEE, 'no' ) ) {
 					case 'full':
 						return 'full';
 					case 'yes':
@@ -104,31 +109,35 @@ class Switching_Definitions {
 		$registry->register(
 			'switch_fixed_term_behavior',
 			static function () {
-				return 'no' === get_option( self::LEGACY_APPORTION_LENGTH, 'no' ) ? 'none' : 'prorate';
+				// Only the known prorating values map to 'prorate'; unrecognized/empty stored values behave as
+				// no-proration at runtime and must derive the same way (mirrors the first-billing default branch).
+				return in_array( get_option( self::LEGACY_APPORTION_LENGTH, 'no' ), array( 'virtual', 'yes', 'physical' ), true ) ? 'prorate' : 'none';
 			}
 		);
 		$registry->register(
 			'switch_fixed_term_virtual',
 			static function () {
-				return 'no' === get_option( self::LEGACY_APPORTION_LENGTH, 'no' ) ? 'no' : 'yes';
+				// Virtual applies to the Virtual-only and All values; the physical-only value does not.
+				return in_array( get_option( self::LEGACY_APPORTION_LENGTH, 'no' ), array( 'virtual', 'yes' ), true ) ? 'yes' : 'no';
 			}
 		);
 		$registry->register(
 			'switch_fixed_term_physical',
 			static function () {
-				return 'yes' === get_option( self::LEGACY_APPORTION_LENGTH, 'no' ) ? 'yes' : 'no';
+				// Physical applies to the Physical-only and All values.
+				return in_array( get_option( self::LEGACY_APPORTION_LENGTH, 'no' ), array( 'physical', 'yes' ), true ) ? 'yes' : 'no';
 			}
 		);
 
-		// Switch button text — preserve the current visible label. The unset default is wrapped in
-		// __() to mirror the legacy read (class-wc-subscriptions-switcher.php), so a localized store
-		// with no stored value derives its translated label rather than the English source string.
-		// The modern "Switch" default applies to empty/new modern values via the modern field's
-		// default, not to this derivation.
+		// Switch button text. The unset default is wrapped in __() to mirror the legacy read
+		// (class-wc-subscriptions-switcher.php), so a localized store with no stored value derives its translated
+		// label rather than the English source string. A new store (option never saved) defaults to "Switch"; a
+		// store with a persisted value keeps it. This mirrors the classic runtime default in
+		// WC_Subscriptions_Switcher so both experiences resolve to the same label.
 		$registry->register(
 			'switch_button_text',
 			static function () {
-				return get_option( self::LEGACY_SWITCH_BUTTON_TEXT, __( 'Upgrade or Downgrade', 'woocommerce-subscriptions' ) );
+				return get_option( self::LEGACY_SWITCH_BUTTON_TEXT, __( 'Switch', 'woocommerce-subscriptions' ) );
 			}
 		);
 	}

@@ -55,24 +55,29 @@ class WC_Subscription_Downloads_Settings {
 	public function add_settings( array $settings ): array {
 		$download_settings = array(
 			array(
-				'name' => __( 'Downloads', 'woocommerce-subscriptions' ),
+				'name' => __( 'Downloadable content', 'woocommerce-subscriptions' ),
+				'desc' => __( 'Configure how downloadable products work with subscriptions.', 'woocommerce-subscriptions' ),
 				'type' => 'title',
 				'id'   => WC_Subscriptions_Admin::$option_prefix . '_downloads_settings',
 			),
 			array(
-				'name'      => __( 'Enable downloadable file sharing', 'woocommerce-subscriptions' ),
-				'desc'      => __( 'Allow downloadable files from simple and variable products to be shared with subscription products so they are available to active subscribers.', 'woocommerce-subscriptions' ),
+				'name'      => __( 'Downloadable product sharing', 'woocommerce-subscriptions' ),
+				'desc'      => __( 'Enable downloadable product sharing', 'woocommerce-subscriptions' ),
+				'desc_tip'  => __( 'Allow downloadable products to be linked to subscription products so subscribers can access them.', 'woocommerce-subscriptions' ),
 				'id'        => WC_Subscriptions_Admin::$option_prefix . '_enable_downloadable_file_linking',
 				'default'   => 'no',
 				'type'      => 'checkbox',
+				'class'     => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
 				'row_class' => 'enable-downloadable-file-linking',
 			),
 			array(
-				'name'      => __( 'Show shared downloadable products in subscription details', 'woocommerce-subscriptions' ),
-				'desc'      => __( 'When enabled, shared downloadable products appear as free items to you and the subscriber on a subscription. Disable to improve performance of subscription-related processes and pages.', 'woocommerce-subscriptions' ),
+				'name'      => __( 'Shared products visibility', 'woocommerce-subscriptions' ),
+				'desc'      => __( 'Show shared downloadable products in subscription details', 'woocommerce-subscriptions' ),
+				'desc_tip'  => __( 'Displays shared downloadable products as free items on a subscription. Disable to improve performance of subscription-related processes and pages.', 'woocommerce-subscriptions' ),
 				'id'        => WC_Subscriptions_Admin::$option_prefix . '_downloads_add_line_items',
 				'default'   => 'no',
 				'type'      => 'checkbox',
+				'class'     => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
 				'row_class' => 'downloads-add-line-items',
 			),
 			array(

@@ -401,9 +401,18 @@ class WC_Subscriptions_Order {
 		global $post;
 
 		if ( 'order_status' == $column ) {
-			$contains_subscription = wcs_order_contains_subscription( $post->ID, 'parent' ) ? 'true' : 'false';
-			printf( '<span class="contains_subscription" data-contains_subscription="%s" style="display: none;"></span>', esc_attr( $contains_subscription ) );
+			self::render_contains_subscription_hidden_field( wcs_order_contains_subscription( $post->ID, 'parent' ) );
 		}
+	}
+
+	/**
+	 * Output the hidden parent-order marker used by the order trash warnings.
+	 *
+	 * @param bool $contains_subscription Whether the order is a subscription parent.
+	 */
+	private static function render_contains_subscription_hidden_field( $contains_subscription ) {
+		$contains_subscription = $contains_subscription ? 'true' : 'false';
+		printf( '<span class="contains_subscription" data-contains_subscription="%s" style="display: none;"></span>', esc_attr( $contains_subscription ) );
 	}
 
 	/**
@@ -459,6 +468,10 @@ class WC_Subscriptions_Order {
 	 *
 	 * @see add_contains_subscription_column_content For when HPOS is disabled.
 	 *
+	 * The hidden marker used by the order trash warnings is rendered from this callback.
+	 * Removing the subscription relationship column through
+	 * `woocommerce_shop_order_list_table_columns` also disables those warnings.
+	 *
 	 * @since 6.3.0
 	 *
 	 * @param string   $column_name Identifier for the custom column.
@@ -466,7 +479,10 @@ class WC_Subscriptions_Order {
 	 */
 	public static function add_contains_subscription_column_content_orders_table( string $column_name, WC_Order $order ) {
 		if ( 'subscription_relationship' === $column_name ) {
-			self::render_contains_subscription_column_content( $order );
+			$is_parent_order = wcs_order_contains_parent( $order );
+
+			self::render_contains_subscription_column_content( $order, $is_parent_order );
+			self::render_contains_subscription_hidden_field( $is_parent_order );
 		}
 	}
 
@@ -2754,9 +2770,10 @@ f	 *
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param WC_Order $order The order in the current row.
+	 * @param WC_Order $order           The order in the current row.
+	 * @param bool|null $is_parent_order Whether the order is a subscription parent, or null to determine it.
 	 */
-	private static function render_contains_subscription_column_content( $order ) {
+	private static function render_contains_subscription_column_content( $order, $is_parent_order = null ) {
 		$order = ! is_object( $order ) ? wc_get_order( $order ) : $order;
 
 		if ( ! $order ) {
@@ -2767,10 +2784,18 @@ f	 *
 			echo '<span class="subscription_renewal_order tips" data-tip="' . esc_attr__( 'Renewal Order', 'woocommerce-subscriptions' ) . '"></span>';
 		} elseif ( wcs_order_contains_resubscribe( $order ) ) {
 			echo '<span class="subscription_resubscribe_order tips" data-tip="' . esc_attr__( 'Resubscribe Order', 'woocommerce-subscriptions' ) . '"></span>';
-		} elseif ( apply_filters( 'woocommerce_subscriptions_orders_list_render_parent_order_relation', true, $order ) && wcs_order_contains_parent( $order ) ) {
-			echo '<span class="subscription_parent_order tips" data-tip="' . esc_attr__( 'Parent Order', 'woocommerce-subscriptions' ) . '"></span>';
 		} else {
-			echo '<span class="normal_order">&ndash;</span>';
+			$render_parent_order_relation = apply_filters( 'woocommerce_subscriptions_orders_list_render_parent_order_relation', true, $order );
+
+			if ( $render_parent_order_relation && null === $is_parent_order ) {
+				$is_parent_order = wcs_order_contains_parent( $order );
+			}
+
+			if ( $render_parent_order_relation && $is_parent_order ) {
+				echo '<span class="subscription_parent_order tips" data-tip="' . esc_attr__( 'Parent Order', 'woocommerce-subscriptions' ) . '"></span>';
+			} else {
+				echo '<span class="normal_order">&ndash;</span>';
+			}
 		}
 	}
 }

@@ -7,6 +7,8 @@
  * @since    9.0.0
  */
 
+use Automattic\WooCommerce_Subscriptions\Internal\Products\Plan_Utils;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -109,7 +111,9 @@ class WCS_ATT_Plans_Manager {
 	 * @since 9.0.0
 	 *
 	 * @param  string   $plan_id    Plan ID.
-	 * @param  array    $plan_data  New plan data. The 'id' key will be set to $plan_id.
+	 * @param  array    $plan_data  New plan data. The 'id' key is kept from storage when the plan already
+	 *                             has one, and is otherwise set to $plan_id, so updating a plan never
+	 *                             renames it.
 	 * @param  int|null $product_id Product ID for 'product' plans; null for 'storewide' plans.
 	 * @return array Updated plan data.
 	 * @throws WCS_ATT_Plan_Exception If not found or invalid.
@@ -136,8 +140,15 @@ class WCS_ATT_Plans_Manager {
 			);
 		}
 
-		$plan_data            = $this->apply_plan_filters( $plan_data, $product_id );
-		$plan_data['id']      = $plan_id;
+		$plan_data = $this->apply_plan_filters( $plan_data, $product_id );
+
+		/*
+		 * Keep the id already in storage rather than the one the plan was looked up by: a legacy plan can be
+		 * addressed by either spelling of its key, and updating it must not silently rename it. Plans stored
+		 * without an id - which the standalone plugin's product-level save produced - adopt the key they
+		 * were found by.
+		 */
+		$plan_data['id']      = ! empty( $plans[ $plan_index ]['id'] ) ? $plans[ $plan_index ]['id'] : $plan_id;
 		$plans[ $plan_index ] = $plan_data;
 		$this->save( $plans, $product_id );
 
@@ -311,9 +322,11 @@ class WCS_ATT_Plans_Manager {
 	/**
 	 * Find the index of a plan in an array by its ID or scheme key.
 	 *
-	 * Tries to match by 'id' first. Falls back to matching by scheme key
-	 * ('{interval}_{period}', e.g. '1_month') for legacy plans created by the
-	 * standalone APFS plugin that do not have an 'id' field.
+	 * Tries to match by 'id' first. Falls back to matching legacy plans created by the standalone APFS
+	 * plugin, whose key may be spelled either "{interval}_{period}_{length}" or with a zero length
+	 * dropped - @see Plan_Utils::canonicalize_key(). Plans with no 'id'
+	 * at all, which the standalone plugin's product-level save produced, are keyed by that same derived
+	 * key, so they are matched here too.
 	 *
 	 * @since 9.0.0
 	 *
@@ -328,19 +341,20 @@ class WCS_ATT_Plans_Manager {
 			}
 		}
 
-		// Fallback: match by scheme key for legacy plans without an 'id'.
-		// Key format mirrors WCS_ATT_Scheme::__construct()
-		//   implode( '_', array_filter( [ interval, period, length ] ) )
-		// length is omitted when 0/empty (array_filter strips falsy values).
+		$canonical_id = Plan_Utils::canonicalize_key( $plan_id );
+
+		/*
+		 * First match wins here, unlike WCS_ATT_Product_Schemes::resolve_subscription_scheme_key(), which
+		 * refuses to choose. The stakes differ: resolving an order item to the wrong plan misprices
+		 * something a customer already bought, while this backs the admin CRUD path, where the merchant is
+		 * acting on a plan in front of them and can see and redo the result. Refusing here would leave a
+		 * store that has two id-less legacy plans sharing a schedule unable to edit or delete either one,
+		 * since both localize to the same key and there is no other way to address them.
+		 */
 		foreach ( $plans as $index => $plan ) {
-			$parts = array_filter(
-				array(
-					isset( $plan['subscription_period_interval'] ) ? $plan['subscription_period_interval'] : '',
-					isset( $plan['subscription_period'] ) ? $plan['subscription_period'] : '',
-					isset( $plan['subscription_length'] ) ? $plan['subscription_length'] : '',
-				)
-			);
-			if ( ! empty( $parts ) && implode( '_', $parts ) === $plan_id ) {
+			$scheme = new WCS_ATT_Scheme( array( 'data' => $plan ) );
+
+			if ( Plan_Utils::canonicalize_key( $scheme->get_key() ) === $canonical_id ) {
 				return $index;
 			}
 		}

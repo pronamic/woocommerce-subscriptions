@@ -50,10 +50,14 @@ use DateTimeImmutable;
  *    because of the single-writer regime above. If that assumption
  *    ever changes (parallel SCAN_BATCH workers, multi-run execution)
  *    it must move to `atomic_increment_option()`.
- *  - `record_scanned()` is the per-run inspected-id accumulator. It
- *    delegates to `atomic_increment_transient()`, which is SQL-atomic
- *    via `INSERT … ON DUPLICATE KEY UPDATE` — safe regardless of the
+ *  - `record_batch_processed()` is a per-run accumulator. It delegates
+ *    to `atomic_increment_transient()`, which is SQL-atomic via
+ *    `INSERT ... ON DUPLICATE KEY UPDATE` - safe regardless of the
  *    single-writer invariant.
+ *  - `record_scan_position()` is not a counter at all: it overwrites
+ *    the run's absolute position with `set_transient()`. A batch that
+ *    throws after the write and is retried rewrites the same position
+ *    instead of advancing past it.
  *
  * The environmental probes used by `should_back_off()` are delegated to
  * small protected helpers (`is_wp_importing()` etc.) so tests can override
@@ -120,13 +124,19 @@ class CircuitBreaker {
 	private const DEFAULT_SCAN_WINDOW = array( 2, 5 );
 
 	/**
-	 * Transient key prefix for the per-run "total subs inspected"
-	 * accumulator. Scoped per-run-id so concurrent scans do not share
-	 * counters, and stored as a transient (rather than an option) so
-	 * the keys expire on their own if a run dies between start and
-	 * finalisation.
+	 * Transient key prefix for the per-run scan position. Scoped
+	 * per-run-id so concurrent scans do not share state, and stored as a
+	 * transient (rather than an option) so the keys expire on their own
+	 * if a run dies between start and finalisation.
+	 *
+	 * Deliberately a different key from the `wcs_health_check_scanned_`
+	 * counter this replaced: that key held a shortlist tally, not a
+	 * position, so reading it would report a wrong number rather than a
+	 * stale one. A scan already in flight when the plugin updates reads a
+	 * missing position and shows "0 of N" until its next batch lands
+	 * (~30s), and the old rows expire on their own TTL.
 	 */
-	private const SCANNED_TRANSIENT_PREFIX = 'wcs_health_check_scanned_';
+	private const POSITION_TRANSIENT_PREFIX = 'wcs_health_check_scan_position_';
 
 	/**
 	 * Transient key prefix for the per-run "batches processed"
@@ -136,11 +146,11 @@ class CircuitBreaker {
 	public const BATCHES_TRANSIENT_PREFIX = 'wcs_health_check_batches_';
 
 	/**
-	 * TTL for the per-run scanned counter. One day is generous — a
-	 * typical scan finishes in minutes, but a stuck run shouldn't
-	 * wedge the counter forever.
+	 * TTL for the per-run counters and position record. One day is
+	 * generous - a typical scan finishes in minutes, but a stuck run
+	 * shouldn't wedge them forever.
 	 */
-	private const SCANNED_TRANSIENT_TTL = DAY_IN_SECONDS;
+	private const RUN_STATE_TRANSIENT_TTL = DAY_IN_SECONDS;
 
 	/**
 	 * Whether the **scheduled** nightly scan may run right now.
@@ -490,46 +500,64 @@ class CircuitBreaker {
 	}
 
 	/**
-	 * Accumulate inspected subscription ids against a specific scan run.
+	 * Record how far through the store a scan run has reached.
 	 *
-	 * Distinct from `record_processed()` which tracks a rolling 24h
-	 * ceiling across all runs — this accumulator is scoped to a single
-	 * run and surfaced in the Status tab header ("Scanned N
-	 * subscriptions") so merchants can see that a scan ran even when
-	 * the candidate count is zero.
+	 * The scan runs each check as its own keyset walk over the whole id
+	 * space (`id > after_id ORDER BY id LIMIT N`), one check after another,
+	 * so a run's position is two numbers: how many checks have drained, and
+	 * how far the check now running has moved its cursor. Together they say
+	 * which subscriptions the run has been through -- everything at or below
+	 * the cursor has been evaluated by the running check, matched or ruled
+	 * out, and every subscription has been evaluated by each drained check.
+	 * `ScanProgress` turns that into the "N of M subscriptions scanned"
+	 * reading on the Status tab.
 	 *
-	 * "Inspected" covers everything returned by
-	 * `Detector::candidate_ids()` — subs the SQL-side filter matched —
-	 * not just the subset that survived classification. The header line
-	 * reads "Scanned N, M at risk"; if we counted classified ids we'd
-	 * double-count the same number as the candidate total.
+	 * Deliberately an absolute write rather than an accumulator: a batch that
+	 * throws after this call is retried with the same arguments, which
+	 * rewrites the same position. The scanned counter this replaced was a
+	 * delta and inflated on every such retry.
 	 *
-	 * @param int $run_id The scan run id.
-	 * @param int $count  Number of subs inspected in the current batch.
-	 *                    Negative values are clamped to zero.
+	 * @param int $run_id           The scan run id.
+	 * @param int $checks_completed Checks whose keyset walk has drained.
+	 * @param int $cursor           Highest subscription id the running check
+	 *                              has passed. Zero when it has not started.
 	 *
 	 * @return void
 	 */
-	public function record_scanned( int $run_id, int $count ): void {
-		if ( $count <= 0 ) {
-			return;
-		}
-
-		$this->atomic_increment_transient( self::SCANNED_TRANSIENT_PREFIX . $run_id, $count );
+	public function record_scan_position( int $run_id, int $checks_completed, int $cursor ): void {
+		set_transient(
+			self::POSITION_TRANSIENT_PREFIX . $run_id,
+			array(
+				'checks_completed' => max( $checks_completed, 0 ),
+				'cursor'           => max( $cursor, 0 ),
+			),
+			self::RUN_STATE_TRANSIENT_TTL
+		);
 	}
 
 	/**
-	 * Total inspected-subscription count for a specific run, or 0 when
-	 * the run never received a `record_scanned()` increment (unstarted
-	 * or expired).
+	 * The position recorded for a run, or a zeroed position when the run has
+	 * not recorded one yet (unstarted, or the transient expired under a
+	 * stuck run).
 	 *
 	 * @param int $run_id The scan run id.
 	 *
-	 * @return int
+	 * @return array{checks_completed: int, cursor: int}
 	 */
-	public function get_total_scanned( int $run_id ): int {
-		$stored = get_transient( self::SCANNED_TRANSIENT_PREFIX . $run_id );
-		return false === $stored ? 0 : (int) $stored;
+	public function get_scan_position( int $run_id ): array {
+		$stored = get_transient( self::POSITION_TRANSIENT_PREFIX . $run_id );
+
+		if ( ! is_array( $stored ) ) {
+			return array(
+				'checks_completed' => 0,
+				'cursor'           => 0,
+			);
+		}
+
+		return array(
+			'checks_completed' => max( (int) ( $stored['checks_completed'] ?? 0 ), 0 ),
+			'cursor'           => max( (int) ( $stored['cursor'] ?? 0 ), 0 ),
+		);
 	}
 
 	/**
@@ -676,7 +704,7 @@ class CircuitBreaker {
 				return;
 			}
 
-			if ( wp_cache_add( $transient, $increment, 'transient', self::SCANNED_TRANSIENT_TTL ) ) {
+			if ( wp_cache_add( $transient, $increment, 'transient', self::RUN_STATE_TRANSIENT_TTL ) ) {
 				return;
 			}
 
@@ -687,7 +715,7 @@ class CircuitBreaker {
 		$timeout_option = '_transient_timeout_' . $transient;
 		$value_option   = '_transient_' . $transient;
 
-		$this->set_option_direct( $timeout_option, time() + self::SCANNED_TRANSIENT_TTL );
+		$this->set_option_direct( $timeout_option, time() + self::RUN_STATE_TRANSIENT_TTL );
 		$this->atomic_increment_option( $value_option, $increment );
 		$this->invalidate_transient_cache( $transient );
 	}

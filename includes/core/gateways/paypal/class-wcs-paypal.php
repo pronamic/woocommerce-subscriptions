@@ -16,6 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+use Automattic\WooCommerce_Subscriptions\Internal\PayPal\Log_Sanitizer;
+
 class WCS_PayPal {
 
 	/** @var WCS_PayPal_Express_API for communicating with PayPal */
@@ -131,6 +133,21 @@ class WCS_PayPal {
 		}
 
 		return ( isset( self::$paypal_settings[ $setting_key ] ) ) ? self::$paypal_settings[ $setting_key ] : '';
+	}
+
+	/**
+	 * Get the PayPal account that IPN messages are expected to have been paid to.
+	 *
+	 * The receiver email is an optional setting, only needed when it differs from the account's primary email, so
+	 * fall back to that primary email the way WC_Gateway_Paypal does when the setting is left empty.
+	 *
+	 * @since 9.2.0
+	 * @return string
+	 */
+	protected static function get_receiver_email() {
+		$receiver_email = self::get_option( 'receiver_email' );
+
+		return empty( $receiver_email ) ? self::get_option( 'email' ) : $receiver_email;
 	}
 
 	/**
@@ -326,12 +343,12 @@ class WCS_PayPal {
 	public static function process_ipn_request( $transaction_details ) {
 
 		try {
-			if ( ! isset( $transaction_details['txn_type'] ) || ! in_array( $transaction_details['txn_type'], array_merge( self::get_ipn_handler( 'standard' )->get_transaction_types(), self::get_ipn_handler( 'reference' )->get_transaction_types() ) ) ) {
+			if ( ! isset( $transaction_details['txn_type'] ) || ! in_array( $transaction_details['txn_type'], self::get_handled_ipn_transaction_types(), true ) ) {
 				return;
 			}
 
 			WC_Gateway_Paypal::log( 'Subscription Transaction Type: ' . $transaction_details['txn_type'] );
-			WC_Gateway_Paypal::log( 'Subscription Transaction Details: ' . print_r( $transaction_details, true ) );
+			WC_Gateway_Paypal::log( 'Subscription Transaction Details: ' . Log_Sanitizer::to_json( Log_Sanitizer::sanitize_ipn_message( $transaction_details ) ) );
 
 			if ( in_array( $transaction_details['txn_type'], self::get_ipn_handler( 'standard' )->get_transaction_types() ) ) {
 				self::get_ipn_handler( 'standard' )->valid_response( $transaction_details );
@@ -434,8 +451,17 @@ class WCS_PayPal {
 			'Payment type',
 		);
 
+		$has_deleted_meta = false;
+
 		foreach ( $post_meta_keys as $post_meta_key ) {
-			delete_post_meta( wcs_get_objects_property( $resubscribe_order, 'id' ), $post_meta_key );
+			if ( $resubscribe_order->meta_exists( $post_meta_key ) ) {
+				$resubscribe_order->delete_meta_data( $post_meta_key );
+				$has_deleted_meta = true;
+			}
+		}
+
+		if ( $has_deleted_meta ) {
+			$resubscribe_order->save();
 		}
 
 		return $resubscribe_order;
@@ -571,7 +597,7 @@ class WCS_PayPal {
 		if ( 'reference' === $ipn_type ) {
 
 			if ( ! isset( self::$ipn_handlers['reference'] ) ) {
-				self::$ipn_handlers['reference'] = new WCS_PayPal_Reference_Transaction_IPN_Handler( $use_sandbox, self::get_option( 'receiver_email' ) );
+				self::$ipn_handlers['reference'] = new WCS_PayPal_Reference_Transaction_IPN_Handler( $use_sandbox, self::get_receiver_email() );
 			}
 
 			$ipn_handler = self::$ipn_handlers['reference'];
@@ -579,7 +605,7 @@ class WCS_PayPal {
 		} else {
 
 			if ( ! isset( self::$ipn_handlers['standard'] ) ) {
-				self::$ipn_handlers['standard'] = new WCS_PayPal_Standard_IPN_Handler( $use_sandbox, self::get_option( 'receiver_email' ) );
+				self::$ipn_handlers['standard'] = new WCS_PayPal_Standard_IPN_Handler( $use_sandbox, self::get_receiver_email() );
 			}
 
 			$ipn_handler = self::$ipn_handlers['standard'];
@@ -587,6 +613,19 @@ class WCS_PayPal {
 		}
 
 		return $ipn_handler;
+	}
+
+	/**
+	 * Get the IPN transaction types this plugin's own handlers process.
+	 *
+	 * Messages with any other transaction type are left to WooCommerce's own IPN handling.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @return string[]
+	 */
+	public static function get_handled_ipn_transaction_types() {
+		return array_merge( self::get_ipn_handler( 'standard' )->get_transaction_types(), self::get_ipn_handler( 'reference' )->get_transaction_types() );
 	}
 
 	/**
@@ -639,6 +678,8 @@ class WCS_PayPal {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function log_api_requests( $request_data, $response_data ) {
+		// The request and response bodies reaching here have already been reduced to their safe-to-log fields by
+		// the to_string_safe() methods WCS_SV_API_Base::broadcast_request() calls.
 		WC_Gateway_Paypal::log( 'Subscription Request Parameters: ' . print_r( $request_data, true ) );
 		WC_Gateway_Paypal::log( 'Subscription Request Response: ' . print_r( $response_data, true ) );
 	}

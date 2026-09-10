@@ -62,12 +62,12 @@ class WCS_Drip_Downloads_Manager {
 	public static function add_setting( $settings ) {
 		$setting = array(
 			'name'     => __( 'Drip Downloadable Content', 'woocommerce-subscriptions' ),
-			'desc'     => __( 'Enable dripping for downloadable content on subscription products.', 'woocommerce-subscriptions' ),
+			'desc'     => __( 'Release new downloadable files after each renewal', 'woocommerce-subscriptions' ),
 			'id'       => WC_Subscriptions_Admin::$option_prefix . '_drip_downloadable_content_on_renewal',
 			'default'  => 'no',
 			'type'     => 'checkbox',
-			// translators: %s is a line break.
-			'desc_tip' => sprintf( __( 'Enabling this grants access to new downloadable files added to a product only after the next renewal is processed.%sBy default, access to new downloadable files added to a product is granted immediately to any customer that has an active subscription with that product.', 'woocommerce-subscriptions' ), '<br />' ),
+			'class'    => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
+			'desc_tip' => __( 'When you add the new downloadable files to a product, subscribers will only get access to them after their next renewal is processed.', 'woocommerce-subscriptions' ),
 		);
 
 		WC_Subscriptions_Admin::insert_setting_after( $settings, WC_Subscriptions_Admin::$option_prefix . '_miscellaneous', $setting );

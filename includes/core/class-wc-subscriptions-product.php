@@ -684,6 +684,96 @@ class WC_Subscriptions_Product {
 	}
 
 	/**
+	 * Resolves whether gifting is enabled for a product: its own setting when it has one, otherwise the
+	 * storewide default. Variations resolve through their parent, except variable subscription variations,
+	 * which carry their own per-variation setting.
+	 *
+	 * The single home for that resolution, shared by the runtime check and every admin control that renders the
+	 * per-product checkbox. Keeping it in one place is what stops those surfaces disagreeing - a product showing
+	 * an unchecked box while the storefront treats it as giftable materializes the wrong value on the next save.
+	 *
+	 * Only 'enabled' and 'disabled' count as a per-product choice. Meta can hold anything - an empty string from
+	 * the legacy "use global setting" option, or a stray value written by other code - and an unrecognized value
+	 * is not a choice, so it resolves like an unset one. Comparisons are strict throughout: a `switch` would
+	 * compare loosely and match non-string values against these labels.
+	 *
+	 * A product without a usable value falls back to the legacy storewide default only while the 9.2.0 gifting
+	 * migration is materializing that default onto every product. That fallback is a shim with a fixed lifetime,
+	 * not a permanent layer: once the migration finishes, every product that had an effective value carries it
+	 * explicitly, so "no value" can only mean a product created after the redesign, which is not giftable until
+	 * the merchant says so.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param mixed $product A WC_Product object or product ID.
+	 * @return bool
+	 */
+	public static function is_gifting_enabled_for_product( $product ) {
+		$product = self::maybe_get_product_instance( $product );
+
+		if ( ! $product ) {
+			return false;
+		}
+
+		// A variation only carries its own gifting choice when it belongs to a variable subscription, whose
+		// admin UI manages gifting per variation (product type 'subscription_variation'). A plain variation
+		// - e.g. of a variable product sold through subscription plans - has no per-variation control, so
+		// the parent's product-level setting is authoritative. Resolving through the parent also neutralizes
+		// any stray variation meta, such as the rows a pre-release version of the 9.2.0 migration wrote.
+		//
+		// The exact-type comparison is deliberate; the obvious alternatives all misfire: is_subscription()
+		// is filterable and APFS answers true for any object carrying an active plan scheme (cart items,
+		// forced-plan variation data), is_type( 'variation' ) is aliased by
+		// WC_Product_Subscription_Variation to also answer true, and get_parent_id() alone is not a
+		// variation test because core stores post_parent for every product type. Mirrored by
+		// WCS_Plugin_Upgrade_9_2_0::is_product_giftable_eligible(); change both together.
+		if ( 'variation' === $product->get_type() ) {
+			$parent_id = $product->get_parent_id();
+			$parent    = $parent_id ? wc_get_product( $parent_id ) : false;
+
+			// This branch only re-enters for the 'variation' type, so refusing to delegate into a
+			// variation-typed parent makes the hop terminate unconditionally - even on data corrupt enough
+			// to chain variations together. Anything else delegates normally: in particular, a parent
+			// carrying its own stray post_parent (core stores post_parent for every product type) must not
+			// cost its variations the delegation.
+			if ( $parent && 'variation' !== $parent->get_type() ) {
+				return self::is_gifting_enabled_for_product( $parent );
+			}
+		}
+
+		$product_gifting = self::get_gifting( $product );
+
+		// get_gifting() resolves to '' for a product that is not a subscription type, so products using
+		// subscription plans need their meta read directly.
+		if ( '' === $product_gifting ) {
+			$product_gifting = $product->get_meta( '_subscription_gifting', true );
+		}
+
+		if ( 'enabled' === $product_gifting ) {
+			return true;
+		}
+
+		if ( 'disabled' === $product_gifting ) {
+			return false;
+		}
+
+		// No usable per-product value. Once the store has been settled - the migration finished, or there was
+		// nothing to migrate - there is no storewide default left to consult, so the product is not giftable.
+		// Until then it still inherits, which is what keeps giftability unchanged before the 9.2.0 upgrade has
+		// run and while the migration is in flight.
+		if ( WCS_Plugin_Upgrade_9_2_0::has_gifting_migration_settled() ) {
+			return false;
+		}
+
+		// The standalone Gifting extension ships its own WCSG_Admin, which may not carry this check.
+		if ( method_exists( 'WCSG_Admin', 'is_gifting_enabled_for_all_products' ) ) {
+			return WCSG_Admin::is_gifting_enabled_for_all_products();
+		}
+
+		return false;
+	}
+
+	/**
 	 * Takes a subscription product's ID and returns the date on which the first renewal payment will be processed
 	 * based on the subscription's length and calculated from either the $from_date if specified, or the current date/time.
 	 *
@@ -999,6 +1089,25 @@ class WC_Subscriptions_Product {
 			check_ajax_referer( 'delete-variations', 'security' );
 			$variation_ids = (array) wc_clean( wp_unslash( $_POST['variation_ids'] ) );
 
+		}
+
+		/*
+		 * WooCommerce's handler runs after this one and gates deletion on 'edit_products'. Because this
+		 * callback trashes the variation before handing control back, it needs the same gate: the shared
+		 * 'delete-variations' nonce is not an authorization check.
+		 *
+		 * This deliberately mirrors WC_AJAX::remove_variations() rather than authorizing against the
+		 * individual variation. Because we return on failure and let WooCommerce handle the request, a
+		 * check stricter than WooCommerce's would hand the variation over for permanent deletion instead
+		 * of trashing it.
+		 *
+		 * Note also that current_user_can( 'edit_product', $variation_id ) would not add object scoping
+		 * here. 'product_variation' is registered with map_meta_cap => false, so the meta cap collapses to
+		 * the primitive 'edit_product' (via capability_type => 'product') and the variation ID is never
+		 * consulted - it reads as an object-scoped check while behaving like a role check.
+		 */
+		if ( ! current_user_can( 'edit_products' ) ) {
+			return;
 		}
 
 		foreach ( $variation_ids as $index => $variation_id ) {

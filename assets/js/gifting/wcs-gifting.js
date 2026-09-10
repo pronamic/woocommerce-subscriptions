@@ -62,55 +62,108 @@ jQuery( document ).ready( function ( $ ) {
 	);
 
 	/**
+	 * The gifting container(s) to operate on: the given form's own container, or every container on the
+	 * page when no form is given. Scoping matters on pages with more than one product form (quickview
+	 * modals, multiple [product_page] shortcodes) - one form's state must not toggle another's checkbox.
+	 */
+	function getGiftingContainer( $form ) {
+		return $form && $form.length
+			? $form.find( '.wcsg_add_recipient_fields_container' )
+			: $( '.wcsg_add_recipient_fields_container' );
+	}
+
+	/**
 	 * Hide the gifting container.
 	 */
-	function hideGiftingCheckbox() {
-		$( '.wcsg_add_recipient_fields_container' ).addClass( 'hidden' );
+	function hideGiftingCheckbox( $form ) {
+		getGiftingContainer( $form ).addClass( 'hidden' );
 	}
 
 	/**
 	 * Show the gifting container.
 	 */
-	function showGiftingCheckbox() {
-		$( '.wcsg_add_recipient_fields_container' ).removeClass( 'hidden' );
+	function showGiftingCheckbox( $form ) {
+		getGiftingContainer( $form ).removeClass( 'hidden' );
 	}
 
 	/**
 	 * Reset gifting fields: uncheck the checkbox and clear the email.
 	 */
-	function resetGiftingFields() {
-		$( '.woocommerce_subscription_gifting_checkbox[type="checkbox"]' )
+	function resetGiftingFields( $form ) {
+		getGiftingContainer( $form )
+			.find( '.woocommerce_subscription_gifting_checkbox[type="checkbox"]' )
 			.prop( 'checked', false )
 			.trigger( 'change' );
+	}
+
+	/**
+	 * Whether the form's current selection allows gifting. Products without variations never fire
+	 * found_variation, so they are always allowed and the other gates alone govern visibility; a
+	 * variations form is allowed only after found_variation recorded a giftable variation. Tracked
+	 * per form so co-located forms cannot cross-talk.
+	 */
+	function formAllowsGifting( $form ) {
+		return (
+			! $form.hasClass( 'variations_form' ) ||
+			true === $form.data( 'wcsg_variation_allows_gifting' )
+		);
+	}
+
+	/**
+	 * The active subscription plans scheme key for a form ('0' means one-time purchase), or null when
+	 * the form has no subscription plans model.
+	 */
+	function getActiveSchemeKey( $form ) {
+		const sattScript = $form.data( 'satt_script' );
+
+		return sattScript && sattScript.schemes_model
+			? sattScript.schemes_model.get( 'active_scheme_key' )
+			: null;
 	}
 
 	// When a variation is found, show the gifting checkbox if it's enabled for the variation, otherwise hide it.
 	// For products with subscription plans, defer visibility to the plan selection listener.
 	$( document ).on( 'found_variation', function ( event, variationData ) {
-		if ( variationData.gifting ) {
-			const $container = $( '.wcsg_add_recipient_fields_container' );
+		const $form = $( event.target ).closest( 'form.cart' );
 
+		$form.data( 'wcsg_variation_allows_gifting', !! variationData.gifting );
+
+		if ( variationData.gifting ) {
 			// If subscription plans control visibility (non-subscription products with subscription plans),
 			// defer to the change:active_scheme_key listener which shows the
 			// container only when a subscription plan is actually selected.
 			// We use the flag captured at page load because subscription plans JS may not have
 			// added its DOM elements yet when found_variation fires.
-			if ( $container.data( 'wcsg_plans_controls_visibility' ) ) {
+			if (
+				getGiftingContainer( $form ).data(
+					'wcsg_plans_controls_visibility'
+				)
+			) {
+				// The scheme listener only fires on changes, so when a subscription plan is already
+				// active - selected before the variation change, or forced by the product - show here.
+				const schemeKey = getActiveSchemeKey( $form );
+
+				if ( schemeKey && schemeKey !== '0' ) {
+					showGiftingCheckbox( $form );
+				}
 				return;
 			}
 
-			showGiftingCheckbox();
+			showGiftingCheckbox( $form );
 			return;
 		}
 
-		resetGiftingFields();
-		hideGiftingCheckbox();
+		resetGiftingFields( $form );
+		hideGiftingCheckbox( $form );
 	} );
 
 	// When the data is reset, reset and hide the gifting checkbox.
-	$( document ).on( 'reset_data', function () {
-		resetGiftingFields();
-		hideGiftingCheckbox();
+	$( document ).on( 'reset_data', function ( event ) {
+		const $form = $( event.target ).closest( 'form.cart' );
+
+		$form.data( 'wcsg_variation_allows_gifting', false );
+		resetGiftingFields( $form );
+		hideGiftingCheckbox( $form );
 	} );
 
 	/**
@@ -141,9 +194,10 @@ jQuery( document ).ready( function ( $ ) {
 			sattScript.schemes_model.on(
 				'change:active_scheme_key',
 				function ( model, value ) {
-					// '0' is the one-time purchase key - only show for actual subscription plans.
-					if ( value && value !== '0' ) {
-						showGiftingCheckbox();
+					// '0' is the one-time purchase key - show only for an actual subscription plan
+					// on a form whose selected variation (if any) allows gifting.
+					if ( value && value !== '0' && formAllowsGifting( $form ) ) {
+						showGiftingCheckbox( $form );
 					} else if (
 						$form.find( '.wcsatt-options-wrapper' ).length
 					) {
@@ -152,16 +206,21 @@ jQuery( document ).ready( function ( $ ) {
 						// products without plans, the scheme key may reset when a
 						// variation changes - the found_variation handler manages
 						// gifting visibility in that case.
-						hideGiftingCheckbox();
+						hideGiftingCheckbox( $form );
 					}
 				}
 			);
 
-			// If a subscription plan is already active on page load (subscription-only product), show immediately.
-			const initialSchemeKey =
-				sattScript.schemes_model.get( 'active_scheme_key' );
-			if ( initialSchemeKey && initialSchemeKey !== '0' ) {
-				showGiftingCheckbox();
+			// If a subscription plan is already active on page load (subscription-only product), show
+			// immediately. On a variable product the variation decides: found_variation performs this
+			// check itself once a variation with gifting enabled is selected.
+			const initialSchemeKey = getActiveSchemeKey( $form );
+			if (
+				initialSchemeKey &&
+				initialSchemeKey !== '0' &&
+				formAllowsGifting( $form )
+			) {
+				showGiftingCheckbox( $form );
 			}
 		} );
 	}

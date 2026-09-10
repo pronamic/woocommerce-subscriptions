@@ -51,22 +51,18 @@ class WCS_Early_Renewal_Manager {
 			array(
 				'id'              => self::$setting_id,
 				'name'            => __( 'Early Renewal', 'woocommerce-subscriptions' ),
-				'desc'            => __( 'Accept Early Renewal Payments', 'woocommerce-subscriptions' ),
-				'desc_tip'        => __( 'With early renewals enabled, customers can renew their subscriptions before the next payment date.', 'woocommerce-subscriptions' ),
-				'default'         => 'no',
+				'desc'            => __( 'Allow early renewal payments', 'woocommerce-subscriptions' ),
+				'desc_tip'        => __( 'Allow subscribers to renew their subscriptions before their next scheduled renewal.', 'woocommerce-subscriptions' ),
+				'default'         => 'yes',
 				'type'            => 'checkbox',
+				'class'           => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
 				'checkboxgroup'   => 'start',
 				'show_if_checked' => 'option',
 			),
 			array(
 				'id'              => self::$via_modal_setting_id,
-				'desc'            => __( 'Accept Early Renewal Payments via a Modal', 'woocommerce-subscriptions' ),
-				'desc_tip'        => sprintf(
-					/* translators: 1-2: opening/closing <strong> tags , 2-3: opening/closing tags for a link to docs on early renewal. */
-					__( 'Allow customers to bypass the checkout and renew their subscription early from their %1$sMy Account > View Subscription%2$s page. %3$sLearn more.%4$s', 'woocommerce-subscriptions' ),
-					'<strong>', '</strong>',
-					'<a href="https://woocommerce.com/document/subscriptions/early-renewal/">', '</a>'
-				),
+				'desc'            => __( 'Allow early renewal payments via My Account', 'woocommerce-subscriptions' ),
+				'desc_tip'        => __( 'Allow customers to bypass the checkout and renew their subscriptions early from the My Account page.', 'woocommerce-subscriptions' ),
 				'default'         => 'no',
 				'type'            => 'checkbox',
 				'checkboxgroup'   => 'end',
@@ -74,7 +70,9 @@ class WCS_Early_Renewal_Manager {
 			),
 		);
 
-		WC_Subscriptions_Admin::insert_setting_after( $settings, 'woocommerce_subscriptions_turn_off_automatic_payments', $early_renewal_settings, 'multiple_settings' );
+		// Lead the Renewals section with Early Renewal: insert directly after the section title, ahead of the manual
+		// and auto-renewal-toggle controls (which anchor off `_turn_off_automatic_payments`).
+		WC_Subscriptions_Admin::insert_setting_after( $settings, 'woocommerce_subscriptions_renewal_options', $early_renewal_settings, 'multiple_settings', 'title' );
 
 		return $settings;
 	}
@@ -82,18 +80,13 @@ class WCS_Early_Renewal_Manager {
 	/**
 	 * A helper function to check if the early renewal feature is enabled or not.
 	 *
-	 * If the setting hasn't been set yet, by default it is off for existing stores and on for new stores.
+	 * If the setting hasn't been set yet, it defaults to on.
 	 *
 	 * @since 2.3.0
 	 * @return bool
 	 */
 	public static function is_early_renewal_enabled() {
-		$enabled = get_option( self::$setting_id );
-
-		if ( false === $enabled ) {
-			$enabled = wcs_do_subscriptions_exist() ? 'no' : 'yes';
-			update_option( self::$setting_id, $enabled );
-		}
+		$enabled = get_option( self::$setting_id, 'yes' );
 
 		return apply_filters( 'wcs_is_early_renewal_enabled', 'yes' === $enabled );
 	}

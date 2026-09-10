@@ -389,12 +389,13 @@ class WCS_Limiter {
 			return false;
 		}
 
+		// sanitize_text_field() returns '' for array input, which hash_equals() would otherwise reject.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$order_key = isset( $_GET['key'] ) ? wc_clean( wp_unslash( $_GET['key'] ) ) : '';
+		$order_key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : '';
 		$order_id  = isset( $wp->query_vars['order-pay'] ) ? $wp->query_vars['order-pay'] : 0;
 		$order     = wc_get_order( absint( $order_id ) );
 
-		if ( ! $order || $order->get_order_key() !== $order_key ) {
+		if ( ! $order instanceof WC_Order || ! hash_equals( $order->get_order_key(), $order_key ) ) {
 			return false;
 		}
 

@@ -194,7 +194,13 @@ class WCS_Action_Scheduler_Customer_Notifications extends WCS_Scheduler {
 			return;
 		}
 
-		as_schedule_single_action( $timestamp, $action, $action_args, self::$notifications_as_group );
+		$action_id = as_schedule_single_action( $timestamp, $action, $action_args, self::$notifications_as_group );
+
+		// A zero action ID means Action Scheduler could not store the action. The previous notification was
+		// unscheduled before we got here, so the customer will not be notified unless it is scheduled again.
+		if ( empty( $action_id ) ) {
+			$this->log_unscheduled_subscription_event( self::REASON_NO_ACTION_ID, $action, $action_args, $timestamp );
+		}
 	}
 
 	/**

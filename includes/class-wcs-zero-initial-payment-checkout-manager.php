@@ -28,11 +28,12 @@ class WCS_Zero_Initial_Payment_Checkout_Manager {
 	public static function add_settings( $settings ) {
 		$setting = array(
 			'name'     => __( '$0 Initial Checkout', 'woocommerce-subscriptions' ),
-			'desc'     => __( 'Allow $0 initial checkout without a payment method.', 'woocommerce-subscriptions' ),
+			'desc'     => __( 'Allow $0 initial checkout without a payment method', 'woocommerce-subscriptions' ),
 			'id'       => WC_Subscriptions_Admin::$option_prefix . '_zero_initial_payment_requires_payment',
 			'default'  => 'no',
 			'type'     => 'checkbox',
-			'desc_tip' => __( 'Allow a subscription product with a $0 initial payment to be purchased without providing a payment method. The customer will be required to provide a payment method at the end of the initial period to keep the subscription active.', 'woocommerce-subscriptions' ),
+			'class'    => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
+			'desc_tip' => __( 'Customers won\'t need to provide a payment method for $0 initial payments. A payment method will be required at the end of the initial period to keep the subscription active.', 'woocommerce-subscriptions' ),
 		);
 
 		WC_Subscriptions_Admin::insert_setting_after( $settings, WC_Subscriptions_Admin::$option_prefix . '_miscellaneous', $setting );

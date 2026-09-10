@@ -24,6 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php endif; ?>
 
 	<?php if ( $notice->is_dismissible() ) : ?>
-		<a href="<?php $notice->print_dismiss_url(); ?>" type="button" class="notice-dismiss" style="text-decoration: none;"></a>
+		<?php // The visible glyph is CSS `:before` content, so the link needs text of its own or it is announced as its raw URL. ?>
+		<a href="<?php $notice->print_dismiss_url(); ?>" type="button" class="notice-dismiss" style="text-decoration: none;"><span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'woocommerce-subscriptions' ); ?></span></a>
 	<?php endif; ?>
 </div>

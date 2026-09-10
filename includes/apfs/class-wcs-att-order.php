@@ -67,7 +67,12 @@ class WCS_ATT_Order {
 	*/
 
 	/**
-	 * Returns the key of the subscription scheme applied on the product when it was purchased.
+	 * Returns the key of the subscription plan the product was purchased on.
+	 *
+	 * When the caller supplies a product, the stored key is mapped onto the plans that product defines
+	 * now - @see WCS_ATT_Product_Schemes::resolve_subscription_scheme_key - so the returned key can be a
+	 * different spelling of the same plan than the one recorded on the item. The item's own meta is left
+	 * as it was; callers that need the value exactly as stored should read the meta directly.
 	 *
 	 * @param  array $order_item
 	 * @param  array $args
@@ -81,12 +86,14 @@ class WCS_ATT_Order {
 
 			$scheme_key = $order_item->get_meta( '_wcsatt_scheme', true );
 			$scheme_key = WCS_ATT_Product_Schemes::parse_subscription_scheme_key( $scheme_key );
+			$scheme_key = self::resolve_stored_scheme_key( $scheme_key, $args );
 
 			// Backwards compatibility with v1.
 		} elseif ( $order_item->meta_exists( '_wcsatt_scheme_id' ) ) {
 
 			$scheme_key = $order_item->get_meta( '_wcsatt_scheme_id', true );
 			$scheme_key = WCS_ATT_Product_Schemes::parse_subscription_scheme_key( $scheme_key );
+			$scheme_key = self::resolve_stored_scheme_key( $scheme_key, $args );
 
 		} else {
 
@@ -165,6 +172,39 @@ class WCS_ATT_Order {
 		}
 
 		return $scheme_key;
+	}
+
+	/**
+	 * Maps a scheme key stored on an order item onto the plans currently defined on a product.
+	 *
+	 * Order items purchased under the standalone All Products for Subscriptions plugin can hold a
+	 * different spelling of the same plan key than the one that plan resolves to today -
+	 * @see \Automattic\WooCommerce_Subscriptions\Internal\Products\Plan_Utils::canonicalize_key() for why. Without this, such an
+	 * item never activates its plan, and the product it is rebuilt from is not recognized as a
+	 * subscription at all.
+	 *
+	 * Resolution needs the product's plans, so it only runs when the caller has supplied a product.
+	 * Reading one from the order item here would re-enter this method through the
+	 * 'woocommerce_order_item_product' filter.
+	 *
+	 * The stored key is returned unchanged when it cannot be resolved, leaving the caller to handle a
+	 * missing plan exactly as it did before.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param  string|false $scheme_key Scheme key read from the order item.
+	 * @param  array        $args       Args passed to @see WCS_ATT_Order::get_subscription_scheme.
+	 * @return string|false
+	 */
+	private static function resolve_stored_scheme_key( $scheme_key, $args ) {
+
+		if ( false === $scheme_key || empty( $args['product'] ) || ! is_object( $args['product'] ) ) {
+			return $scheme_key;
+		}
+
+		$resolved_key = WCS_ATT_Product_Schemes::resolve_subscription_scheme_key( $args['product'], $scheme_key );
+
+		return false === $resolved_key ? $scheme_key : $resolved_key;
 	}
 
 	/**

@@ -69,7 +69,12 @@ class Detector {
 	 *                            hitting the original path after a deploy.
 	 *
 	 * @return int[] Subscription ids, ascending. May be shorter than
-	 *               `$limit` when the tail of the table is reached.
+	 *               `$limit` when the tail of the table is reached, and
+	 *               empty once it is exhausted.
+	 *
+	 * @throws HealthCheckDbException When the shortlist query itself fails,
+	 *                                so the caller cannot mistake it for an
+	 *                                exhausted walk.
 	 */
 	public function candidate_ids( int $after_id, int $limit, string $signal_type = CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL ): array {
 		if ( CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL === $signal_type ) {
@@ -138,9 +143,61 @@ class Detector {
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql was built via $wpdb->prepare() in the branch above.
-		$ids = array_map( 'intval', (array) $wpdb->get_col( $sql ) );
+		$rows = $wpdb->get_col( $sql );
 
-		return empty( $ids ) ? array() : $ids;
+		$this->assert_shortlist_query_succeeded( 'supports-auto-renewal shortlist' );
+
+		return array_map( 'intval', (array) $rows );
+	}
+
+	/**
+	 * Raise when the shortlist query the caller just ran failed at the SQL layer.
+	 *
+	 * An exhausted shortlist and a failed shortlist query both come back with no
+	 * rows, and `ScheduleManager::handle_scan_batch()` reads no rows as "this
+	 * check has been through the whole store": it banks full coverage, hands off
+	 * to the next check or finalises the run, and reports every subscription as
+	 * scanned. A failed query therefore has to be distinguishable from a drained
+	 * one, so it raises - the batch handler retries the same page and trips the
+	 * circuit breaker if it keeps failing, rather than declaring a truncated walk
+	 * complete.
+	 *
+	 * Must be called immediately after the query, with nothing in between.
+	 * `wpdb::query()` flushes `last_error` before every query it executes, so a
+	 * non-empty value here belongs to the query just run - never to a stale
+	 * earlier failure. The one gap: a query blocked before execution (the
+	 * `'query'` filter returning falsy, an unready connection) leaves
+	 * `last_error` untouched and is not detected - accepted, because both
+	 * conditions fail every query on the site, which stops the Action Scheduler
+	 * worker from reaching this code at all.
+	 *
+	 * The driver message goes to the WC log rather than into the exception,
+	 * whose text `handle_scan_batch()` stores as the run's `error_message` and
+	 * the breaker's trip reason.
+	 *
+	 * @param string $description Which check's shortlist the caller just ran -
+	 *                            names the failing query in the log line and
+	 *                            the exception (and so in the run's
+	 *                            `error_message` and the breaker's trip
+	 *                            reason), since both checks share this guard.
+	 *
+	 * @return void
+	 *
+	 * @throws HealthCheckDbException When the shortlist query the caller just ran failed.
+	 */
+	private function assert_shortlist_query_succeeded( string $description ): void {
+		global $wpdb;
+
+		if ( empty( $wpdb->last_error ) ) {
+			return;
+		}
+
+		wc_get_logger()->error(
+			"Health Check: {$description} query failed - " . $wpdb->last_error,
+			array( 'source' => 'wcs-health-check' )
+		);
+
+		throw new HealthCheckDbException( esc_html( "Health Check: {$description} query failed." ) );
 	}
 
 	/**
@@ -906,9 +963,11 @@ class Detector {
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql was built via $wpdb->prepare() in the branch above.
-		$ids = array_map( 'intval', (array) $wpdb->get_col( $sql ) );
+		$rows = $wpdb->get_col( $sql );
 
-		return empty( $ids ) ? array() : $ids;
+		$this->assert_shortlist_query_succeeded( 'missing-renewal shortlist' );
+
+		return array_map( 'intval', (array) $rows );
 	}
 
 	/**

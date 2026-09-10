@@ -3,10 +3,13 @@
 namespace Automattic\WooCommerce_Subscriptions\Internal\Settings;
 
 /**
- * Describes whether the modern (settings-ui) experience is active.
+ * Describes whether the experimental React (settings-ui) settings renderer is active.
  *
- * Injected into {@see \Automattic\WooCommerce_Subscriptions\Settings} so the namespace-resolution
- * branch can be exercised in tests without bootstrapping WooCommerce's feature system.
+ * The seam fulfilled by {@see Settings_Ui_Feature_Flag}, the production gate. Kept as an interface
+ * for future-proofing: call sites currently instantiate the concrete flag inline (there is no
+ * injection point today - tests exercise flag-dependent behaviour via the constant + feature-config
+ * filter), but the interface preserves the option of substituting an alternative gate without
+ * changing consumers.
  *
  * @internal
  */

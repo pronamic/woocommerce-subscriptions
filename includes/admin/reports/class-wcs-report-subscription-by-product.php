@@ -66,9 +66,9 @@ class WCS_Report_Subscription_By_Product extends WP_List_Table {
 			case 'product_name':
 				// If the product is a subscription variation, use the parent product's edit post link
 				if ( $report_item->parent_product_id > 0 ) {
-					edit_post_link( $report_item->product_name, ' - ', null, $report_item->parent_product_id );
+					edit_post_link( esc_html( $report_item->product_name ), ' - ', null, $report_item->parent_product_id );
 				} else {
-					edit_post_link( $report_item->product_name, null, null, $report_item->product_id );
+					edit_post_link( esc_html( $report_item->product_name ), null, null, $report_item->product_id );
 				}
 				break;
 			case 'subscription_count':

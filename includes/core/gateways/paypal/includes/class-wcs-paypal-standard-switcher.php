@@ -174,7 +174,8 @@ class WCS_PayPal_Standard_Switcher {
 					$order->update_meta_data( '_old_paypal_subscription_id', $paypal_id );
 					$order->save();
 
-					update_post_meta( $subscription->get_id(), '_switched_paypal_subscription_id', $paypal_id );
+					$subscription->update_meta_data( '_switched_paypal_subscription_id', $paypal_id );
+					$subscription->save();
 				}
 			}
 		}

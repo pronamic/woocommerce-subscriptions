@@ -99,31 +99,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</p>
 </div>
 <?php
-if ( WCSG_Admin::is_gifting_enabled() ) {
-	$variation_product_gifting           = WC_Subscriptions_Product::get_gifting( $variation_product );
-	$is_following_gifting_global_setting = empty( $variation_product_gifting );
+// Per-variation gifting is only for Variable subscription products. Variable products sold via subscription
+// plans (APFS) manage gifting once at the product level (Subscriptions panel), so their variations omit it —
+// and save_product_variation() ignores their (non-subscription) variations anyway. The parent-type flag is
+// resolved once per request by the calling method (variable_subscription_pricing_fields).
+if ( WCSG_Admin::is_gifting_enabled() && ! empty( $is_variable_subscription_parent ) ) {
+	// A single checkbox whose initial state reflects the variation's resolved giftability, keyed to the
+	// variation's own creation date rather than the parent's - the resolver is passed the variation object, the
+	// same one runtime is_giftable() resolves with. Saving materializes this into explicit variation meta.
+	$variation_is_giftable = WC_Subscriptions_Product::is_gifting_enabled_for_product( $variation_product );
 	?>
 <fieldset class="variable_subscription_gifting show_if_variable-subscription">
 	<p class="form-row form-field show_if_variable-subscription _subscription_gifting_field">
 		<label for="variable_subscription_gifting[<?php echo esc_attr( $loop ); ?>]">
-			<?php esc_html_e( 'Gifting', 'woocommerce-subscriptions' ); ?>
-			<?php
-				// @phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-				echo wcs_help_tip( __( 'Allow shoppers to purchase a subscription as a gift.', 'woocommerce-subscriptions' ) );
-			?>
+			<input type="checkbox" class="checkbox wc_input_subscription_gifting" id="variable_subscription_gifting[<?php echo esc_attr( $loop ); ?>]" name="variable_subscription_gifting[<?php echo esc_attr( $loop ); ?>]" value="enabled" <?php checked( $variation_is_giftable ); ?> />
+			<?php esc_html_e( 'Allow shoppers to purchase subscriptions as gifts for others.', 'woocommerce-subscriptions' ); ?>
 		</label>
-		<select id="variable_subscription_gifting[<?php echo esc_attr( $loop ); ?>]" name="variable_subscription_gifting[<?php echo esc_attr( $loop ); ?>]" class="wc_input_subscription_gifting wc-enhanced-select">
-			<option value="" <?php selected( '', WC_Subscriptions_Product::get_gifting( $variation_product ) ); ?>>
-				<?php echo esc_html( WCSG_Admin::get_gifting_option_text() ); ?>
-			</option>
-			<option value="enabled" <?php selected( 'enabled', $variation_product_gifting ); ?>><?php esc_html_e( 'Enabled', 'woocommerce-subscriptions' ); ?></option>
-			<option value="disabled" <?php selected( 'disabled', $variation_product_gifting ); ?>><?php esc_html_e( 'Disabled', 'woocommerce-subscriptions' ); ?></option>
-		</select>
 	</p>
-	<?php
-	if ( ! $is_following_gifting_global_setting ) {
-		WCSG_Admin::get_gifting_global_override_text();
-	}
-	?>
 </fieldset>
 <?php } ?>

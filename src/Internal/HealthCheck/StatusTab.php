@@ -61,7 +61,7 @@ class StatusTab {
 	 * `wp_kses` allowlist used when echoing the F4-D inline progress fragment ("Scanning now…
 	 * - N of M subscriptions scanned") and the screen-reader live region. Permits `<span class>`
 	 * (with the `role` + `aria-live` attributes the live region carries) plus the `<strong>` tags
-	 * that wrap the count numerators inside `try_get_live_progress_label()`.
+	 * that wrap the count numerators inside `ScanProgress::format_label()`.
 	 *
 	 * @var array<string, array<string, array<string, mixed>>>
 	 */
@@ -525,7 +525,7 @@ class StatusTab {
 	 *                                                       outcome (completed / failed / cancelled), or null
 	 *                                                       when none exists yet.
 	 * @param array<string, mixed>|null $in_flight_run       The currently running scan row, or null when idle.
-	 *                                                       Used to look up the live `record_scanned` counter
+	 *                                                       Used to look up the run's recorded scan position
 	 *                                                       for the inline progress span.
 	 *
 	 * @return void
@@ -535,8 +535,28 @@ class StatusTab {
 		// cron fired; both signal the previous terminal headline should yield to "Scanning now…" with the
 		// live progress reading inline. The terminal-state branches below are unreachable while busy.
 		if ( null !== $in_flight_run ) {
-			$store_total    = CandidatesListTable::count_all_subscriptions();
-			$progress_label = $this->try_get_live_progress_label( $in_flight_run, $store_total );
+			// One reading feeds both the visible label and the live region below, so the
+			// screen-reader announcement can never diverge from the on-screen "N of M".
+			// `ScanProgress::read()` takes both figures off one query, so an in-flight
+			// render costs what the store total alone cost before the progress reading
+			// existed.
+			try {
+				$reading = ScanProgress::read( $this->circuit_breaker->get_scan_position( (int) $in_flight_run['id'] ) );
+			} catch ( HealthCheckDbException $e ) {
+				// A store that cannot be counted still renders the tab: a
+				// zeroed reading nulls the progress label below, leaving the
+				// "Scanning now..." headline standing alone - the same
+				// fallback an empty store takes. The count guard has already
+				// logged the driver's error.
+				$reading = array(
+					'scanned' => 0,
+					'total'   => 0,
+				);
+			}
+
+			$store_total      = $reading['total'];
+			$progress_scanned = $reading['scanned'];
+			$progress_label   = ScanProgress::format_label( $progress_scanned, $store_total );
 
 			if ( null !== $progress_label ) {
 				// The `&middot;` separator stays OUTSIDE the inner `-progress-label` span so the JS
@@ -550,14 +570,9 @@ class StatusTab {
 
 				// Visually-hidden polite live region carrying the plain-text reading (no markup, no
 				// bullet) so assistive tech announces the updated count each poll without flooding
-				// the user with the surrounding chrome. Clamp identically to the visible label so the
-				// SR announcement never diverges from the on-screen "N of M".
-				$progress_scanned = min(
-					max( $this->circuit_breaker->get_total_scanned( (int) $in_flight_run['id'] ), 0 ),
-					$store_total
-				);
-				$progress_text    = ScanProgress::format_text( $progress_scanned, $store_total );
-				$live_region      = null === $progress_text
+				// the user with the surrounding chrome.
+				$progress_text = ScanProgress::format_text( $progress_scanned, $store_total );
+				$live_region   = null === $progress_text
 					? ''
 					: sprintf(
 						'<span class="screen-reader-text woocommerce-subscriptions-health-check-progress-live" role="status" aria-live="polite">%s</span>',
@@ -676,6 +691,11 @@ class StatusTab {
 	 * `ScheduleManager::cancel_scan()` and parity-friendly with the Tracks event payload), falls
 	 * back to `total_scanned` (written by `collect_run_stats()` on completed/failed runs).
 	 *
+	 * Renders only rows stamped `stats_version` >= `ScheduleManager::STATS_VERSION`. Rows written
+	 * before WOOSUBS-1908 carry the shortlist tally under `total_scanned` - the number this
+	 * sentence was mis-reporting - and, with nightly scans off by default, may never be replaced
+	 * by a newer run, so an unversioned row shows the headline alone rather than the old figure.
+	 *
 	 * Returns the empty string when no usable count exists on the row - the headline alone
 	 * communicates the state. The output already has the leading separator " &middot; " baked in
 	 * (rendered as a centred dot) so the caller can concatenate without worrying about spacing.
@@ -685,6 +705,10 @@ class StatusTab {
 	 * @return string Pre-escaped HTML fragment ready to concatenate after the headline.
 	 */
 	private function build_inline_scope_html( array $stats ): string {
+		if ( (int) ( $stats['stats_version'] ?? 1 ) < ScheduleManager::STATS_VERSION ) {
+			return '';
+		}
+
 		$scanned = isset( $stats['subscriptions_scanned'] )
 			? (int) $stats['subscriptions_scanned']
 			: (int) ( $stats['total_scanned'] ?? 0 );
@@ -720,13 +744,21 @@ class StatusTab {
 	 * merchant sees how far the scan got before they aborted it.
 	 *
 	 * Renders nothing when no usable counts exist on the row - the
-	 * "Cancelled X ago" headline alone communicates the state.
+	 * "Cancelled X ago" headline alone communicates the state. Also renders
+	 * nothing for rows without a `stats_version` stamp: their
+	 * `subscriptions_scanned` is the pre-WOOSUBS-1908 shortlist tally, not
+	 * the coverage figure this sentence describes (see
+	 * `build_inline_scope_html()`).
 	 *
 	 * @param array<string, mixed> $stats Decoded `stats_json` payload.
 	 *
 	 * @return void
 	 */
 	private function render_cancelled_partial_counts( array $stats ): void {
+		if ( (int) ( $stats['stats_version'] ?? 1 ) < ScheduleManager::STATS_VERSION ) {
+			return;
+		}
+
 		$scanned = isset( $stats['subscriptions_scanned'] ) ? (int) $stats['subscriptions_scanned'] : 0;
 		$total   = isset( $stats['total_subscriptions'] ) ? (int) $stats['total_subscriptions'] : 0;
 
@@ -753,60 +785,6 @@ class StatusTab {
 			'<div class="woocommerce-subscriptions-health-check-card-secondary">%s</div>',
 			wp_kses( $label, array( 'strong' => array() ) )
 		);
-	}
-
-	/**
-	 * Build the bold-wrapped "**N** of **M** subscriptions scanned" fragment surfaced on the Scope card
-	 * during an in-flight scan, or `null` when the store is empty and the reading would be meaningless.
-	 *
-	 * Pre-first-batch (`$in_flight_scanned === 0`) still renders "0 of M" — clamping the missing reading to
-	 * 0 reads as "scan started, will progress" and gives the merchant a consistent fractional display from
-	 * click through to completion, instead of toggling between "Scan in progress…" copy and a numeric
-	 * reading once the first batch lands.
-	 *
-	 * `$store_total` is passed in by the caller rather than fetched here so the re-run path (which already
-	 * computed it for the prior-scan primary line) does not issue a second `SELECT COUNT(*)` per render.
-	 * The public `count_all_subscriptions()` is intentionally uncached for the StatusTab caller; honouring
-	 * the "once per render" contract from commit d6f629fc0 keeps page renders cheap during the 8 s reload
-	 * cycle on large stores.
-	 *
-	 * `$in_flight_scanned` is capped at `$store_total` so a delete-during-scan race never produces a "210 of
-	 * 200" reading. Returns raw HTML — caller is responsible for `wp_kses`-ing it with the `strong`
-	 * allowlist.
-	 *
-	 * @param array<string, mixed> $in_flight_run The currently-running scan row.
-	 * @param int                  $store_total   Current store-wide subscription total. Pass <= 0 to signal
-	 *                                            an empty store; the helper returns null in that case.
-	 *
-	 * @return string|null Translated label with `<strong>` tags around the two counts, or null when the
-	 *                     store has no subscriptions to scan at all (the "0 of 0" reading would be broken,
-	 *                     so the caller falls back to a static "Scan in progress…" copy).
-	 */
-	private function try_get_live_progress_label( array $in_flight_run, int $store_total ): ?string {
-		if ( $store_total <= 0 ) {
-			return null;
-		}
-
-		// `get_total_scanned()` returns the running tally of subscriptions surfaced
-		// by the per-signal SQL shortlists (Detector::candidate_ids()), not every
-		// active subscription the scan walked past. The value therefore underreports
-		// the inspected-subs count - on a typical store the SQL filters narrow
-		// aggressively, so the denominator climbs faster than the numerator. Read
-		// the rendered "X of Y subscriptions scanned" copy as a coarse progress
-		// indicator, not an exact sub-count.
-		//
-		// If we want a more representative ratio later, the cleanest option is to
-		// swap the denominator from "all subscriptions in the store" to a snapshot
-		// of the SQL-shortlist totals (one COUNT(*) per signal at run start,
-		// persisted in stats_json). Out of scope for now - keeping the simpler
-		// store-total denominator until there is a concrete ask.
-		$in_flight_scanned = $this->circuit_breaker->get_total_scanned( (int) $in_flight_run['id'] );
-		$in_flight_scanned = min( max( $in_flight_scanned, 0 ), $store_total );
-
-		// The "N of M subscriptions scanned" copy + clamp now live in ScanProgress, the
-		// single source of truth shared with the wcs_health_check_scan_status AJAX poll, so
-		// the format string is not duplicated between the server render and the JS response.
-		return ScanProgress::format_label( $in_flight_scanned, $store_total );
 	}
 
 	/**

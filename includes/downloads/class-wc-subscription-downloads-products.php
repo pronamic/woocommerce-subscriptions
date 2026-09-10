@@ -17,24 +17,88 @@ class WC_Subscription_Downloads_Products {
 
 	/**
 	 * Products actions.
+	 *
+	 * @since 9.2.0 Added the `$register_hooks` parameter.
+	 *
+	 * @param bool $register_hooks Whether to register the product save and editor hooks. Pass false when the caller
+	 *                             invokes the handler methods directly, e.g. from the non-admin status transition
+	 *                             listener, to avoid the save hooks running the sync a second time in the same request.
 	 */
-	public function __construct() {
-		add_action( 'woocommerce_product_options_downloads', array( $this, 'simple_write_panel_options' ) );
-		add_action( 'woocommerce_variation_options_download', array( $this, 'variable_write_panel_options' ), 10, 3 );
-		add_action( 'woocommerce_product_options_pricing', array( $this, 'subscription_product_editor_ui' ) );
-		add_action( 'woocommerce_variable_subscription_pricing', array( $this, 'variable_subscription_product_editor_ui' ), 10, 3 );
+	public function __construct( bool $register_hooks = true ) {
+		if ( $register_hooks ) {
+			add_action( 'woocommerce_product_options_downloads', array( $this, 'simple_write_panel_options' ) );
+			add_action( 'woocommerce_variation_options_download', array( $this, 'variable_write_panel_options' ), 10, 3 );
+			add_action( 'woocommerce_product_options_pricing', array( $this, 'subscription_product_editor_ui' ) );
+			add_action( 'woocommerce_variable_subscription_pricing', array( $this, 'variable_subscription_product_editor_ui' ), 10, 3 );
 
-		add_action( 'save_post_product', array( $this, 'handle_product_save' ) );
-		add_action( 'save_post_product_variation', array( $this, 'handle_product_variation_save' ) );
-		add_action( 'woocommerce_save_product_variation', array( $this, 'handle_product_variation_save' ) );
-		add_action( 'woocommerce_update_product', array( $this, 'handle_product_save' ) );
-		add_action( 'woocommerce_update_product_variation', array( $this, 'handle_product_variation_save' ) );
+			add_action( 'save_post_product', array( $this, 'handle_product_save' ) );
+			add_action( 'save_post_product_variation', array( $this, 'handle_product_variation_save' ) );
+			add_action( 'woocommerce_save_product_variation', array( $this, 'handle_product_variation_save' ) );
+			add_action( 'woocommerce_update_product', array( $this, 'handle_product_save' ) );
+			add_action( 'woocommerce_update_product_variation', array( $this, 'handle_product_variation_save' ) );
 
-		add_action( 'init', array( $this, 'init' ) );
+			add_action( 'init', array( $this, 'init' ) );
+		}
 	}
 
 	public function init() {
 		add_action( 'woocommerce_product_duplicate', array( $this, 'save_subscriptions_when_duplicating_product' ), 10, 2 );
+	}
+
+	/**
+	 * Sync download permissions when a product's status transitions outside of wp-admin.
+	 *
+	 * In admin requests the constructor-registered save hooks handle this. Outside admin
+	 * (WP Cron scheduled publishing, REST API, WP-CLI) no instance is created, so this
+	 * listener routes status transitions into the same sync logic. It intentionally
+	 * ignores same-status saves (e.g. wp_update_post() title edits or REST updates that
+	 * do not change the status) and transitions that do not change public visibility,
+	 * so those saves never trigger a permission revoke and re-grant, which would reset
+	 * customers' download counts.
+	 *
+	 * Only the status transition itself is synced: a combined save that changes the
+	 * status AND downloadable properties in one request fires this listener before the
+	 * product meta persists, so it may read pre-save meta.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param string  $new_status New post status.
+	 * @param string  $old_status Old post status.
+	 * @param WP_Post $post       The post object.
+	 *
+	 * @return void
+	 */
+	public static function maybe_sync_on_status_transition( $new_status, $old_status, $post ) {
+		if ( $new_status === $old_status ) {
+			return;
+		}
+
+		// A just-created post cannot have linked-subscription mapping rows yet, so there is
+		// nothing to sync; skipping keeps bulk REST/CLI imports free of per-product queries.
+		if ( 'new' === $old_status ) {
+			return;
+		}
+
+		if ( ! $post instanceof WP_Post || ! in_array( $post->post_type, array( 'product', 'product_variation' ), true ) ) {
+			return;
+		}
+
+		$new_status_object = get_post_status_object( $new_status );
+		$old_status_object = get_post_status_object( $old_status );
+		$new_is_public     = $new_status_object && $new_status_object->public;
+		$old_is_public     = $old_status_object && $old_status_object->public;
+
+		if ( $new_is_public === $old_is_public ) {
+			return;
+		}
+
+		$handler = new self( false );
+
+		if ( 'product_variation' === $post->post_type ) {
+			$handler->handle_product_variation_save( $post->ID );
+		} else {
+			$handler->handle_product_save( $post->ID );
+		}
 	}
 
 	/**
@@ -108,6 +172,20 @@ class WC_Subscription_Downloads_Products {
 	}
 
 	/**
+	 * Reduce raw POSTed ids to usable integers.
+	 *
+	 * The array_map() is load-bearing beyond the cast: it is the registered sanitizer for semgrep's
+	 * audit.php.lang.misc.array-filter-no-callback rule, so removing it reintroduces that finding.
+	 *
+	 * @param mixed $raw Raw request value, expected to be an array of ids.
+	 *
+	 * @return int[]
+	 */
+	private function sanitize_ids( $raw ) {
+		return array_filter( array_map( 'intval', (array) $raw ) );
+	}
+
+	/**
 	 * Handle save for downloadable products (simple or variation).
 	 * These products link TO subscription products.
 	 *
@@ -128,7 +206,7 @@ class WC_Subscription_Downloads_Products {
 			&& wp_verify_nonce( $_POST[ self::RELATIONSHIP_VAR_DOWNLOAD_TO_SUB . $product_id ], self::EDITOR_UPDATE )
 		) {
 			$subscription_ids = wc_clean( wp_unslash( $_POST['_variable_subscription_downloads_ids'][ $product_id ] ?? array() ) );
-			$subscription_ids = array_filter( (array) $subscription_ids );
+			$subscription_ids = $this->sanitize_ids( $subscription_ids );
 			$this->update_subscription_downloads( $product_id, $subscription_ids );
 		}
 
@@ -137,7 +215,7 @@ class WC_Subscription_Downloads_Products {
 			&& wp_verify_nonce( $_POST[ self::RELATIONSHIP_DOWNLOAD_TO_SUB ], self::EDITOR_UPDATE )
 		) {
 			$subscription_ids = wc_clean( wp_unslash( $_POST['_subscription_downloads_ids'] ?? array() ) );
-			$subscription_ids = array_filter( (array) $subscription_ids );
+			$subscription_ids = $this->sanitize_ids( $subscription_ids );
 			$this->update_subscription_downloads( $product_id, $subscription_ids );
 		}
 
@@ -162,7 +240,7 @@ class WC_Subscription_Downloads_Products {
 			&& wp_verify_nonce( $_POST[ self::RELATIONSHIP_VAR_SUB_TO_DOWNLOAD . $product_id ], self::EDITOR_UPDATE )
 		) {
 			$product_ids = wc_clean( wp_unslash( $_POST[ '_subscription_linked_downloadable_products_' . $product_id ] ?? array() ) );
-			$product_ids = array_filter( (array) $product_ids );
+			$product_ids = $this->sanitize_ids( $product_ids );
 			$this->update_subscription_products( $product_id, $product_ids );
 			return;
 		}
@@ -171,8 +249,8 @@ class WC_Subscription_Downloads_Products {
 			isset( $_POST[ self::RELATIONSHIP_SUB_TO_DOWNLOAD ] )
 			&& wp_verify_nonce( $_POST[ self::RELATIONSHIP_SUB_TO_DOWNLOAD ], self::EDITOR_UPDATE )
 		) {
-			$product_ids = wc_clean( wp_unslash( (array) $_POST['_subscription_linked_downloadable_products'] ?? array() ) );
-			$product_ids = array_filter( (array) $product_ids );
+			$product_ids = wc_clean( wp_unslash( (array) ( $_POST['_subscription_linked_downloadable_products'] ?? array() ) ) );
+			$product_ids = $this->sanitize_ids( $product_ids );
 			$this->update_subscription_products( $product_id, $product_ids );
 		}
 		// phpcs:enable
@@ -493,8 +571,8 @@ class WC_Subscription_Downloads_Products {
 	 * @return void
 	 */
 	private function update_subscription_products( int $subscription_product_id, array $new_ids ): void {
+		// $new_ids arrives normalized from sanitize_ids(); only the stored ids still need casting.
 		$existing_ids = array_map( 'intval', WC_Subscription_Downloads::get_downloadable_products( $subscription_product_id ) );
-		$new_ids      = array_map( 'intval', $new_ids );
 
 		sort( $existing_ids );
 		sort( $new_ids );
@@ -620,9 +698,38 @@ class WC_Subscription_Downloads_Products {
 				}
 
 				foreach ( array_keys( $downloads ) as $download_id ) {
-					wc_downloadable_file_permission( $download_id, $product_id, $order );
+					$this->grant_download_permission( $download_id, $product_id, $order );
 				}
 			}
+		}
+	}
+
+	/**
+	 * Grants access to a single download file, logging a warning when the permission cannot be stored.
+	 *
+	 * Shared by all linking and status sync paths, including unattended ones (e.g. WP Cron scheduled
+	 * publishing), where a silent failure would otherwise leave no trace for the merchant.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param string   $download_id  Download file ID.
+	 * @param int      $product_id   Downloadable product ID.
+	 * @param WC_Order $subscription Subscription receiving the permission.
+	 *
+	 * @return void
+	 */
+	private function grant_download_permission( $download_id, $product_id, $subscription ) {
+		$permission_id = wc_downloadable_file_permission( $download_id, $product_id, $subscription );
+
+		if ( ! $permission_id ) {
+			wc_get_logger()->warning(
+				sprintf(
+					'Failed to grant download permission for product #%1$d (download %2$s) on subscription #%3$d.',
+					$product_id,
+					$download_id,
+					$subscription->get_id()
+				)
+			);
 		}
 	}
 
@@ -684,7 +791,7 @@ class WC_Subscription_Downloads_Products {
 
 						// Adds the downloadable files to the order/subscription.
 						foreach ( array_keys( $downloads ) as $download_id ) {
-							wc_downloadable_file_permission( $download_id, $product_id, $order );
+							$this->grant_download_permission( $download_id, $product_id, $order );
 						}
 					}
 				}

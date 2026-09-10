@@ -6,6 +6,8 @@
  * @since    APFS 2.0.0
  */
 
+use Automattic\WooCommerce_Subscriptions\Internal\Products\Plan_Utils;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -591,6 +593,39 @@ class WCS_ATT_Product_Schemes {
 	 */
 	public static function stringify_subscription_scheme_key( $key ) {
 		return false === $key ? '0' : strval( $key );
+	}
+
+	/**
+	 * Resolves a scheme key against the subscription schemes currently defined on a product.
+	 *
+	 * The rules are {@see Plan_Utils::resolve_key()}'s. An exact match always wins - a scheme key identifies a
+	 * plan, and identity is never overridden. Only when there is no exact match do the legacy spellings of the
+	 * key get compared, via {@see Plan_Utils::canonicalize_key()}.
+	 *
+	 * If more than one plan canonicalizes to the same key, nothing is returned: restoring the wrong plan
+	 * would apply another plan's pricing to a purchased item, which is worse than not restoring at all.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param  WC_Product $product    Product object.
+	 * @param  string     $scheme_key Scheme key to resolve.
+	 * @return string|false The key of the matching scheme, or false if none matches.
+	 */
+	public static function resolve_subscription_scheme_key( $product, $scheme_key ) {
+
+		if ( ! is_scalar( $scheme_key ) || '' === strval( $scheme_key ) ) {
+			return false;
+		}
+
+		$schemes = self::get_subscription_schemes( $product );
+
+		if ( ! is_array( $schemes ) || empty( $schemes ) ) {
+			return false;
+		}
+
+		$resolved_key = Plan_Utils::resolve_key( $scheme_key, array_keys( $schemes ) );
+
+		return '' === $resolved_key ? false : $resolved_key;
 	}
 
 	/**

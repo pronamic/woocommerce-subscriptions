@@ -2,49 +2,36 @@
 
 namespace Automattic\WooCommerce_Subscriptions;
 
-use Automattic\WooCommerce_Subscriptions\Internal\Settings\Feature_Flag;
 use Automattic\WooCommerce_Subscriptions\Internal\Settings\Registry;
-use Automattic\WooCommerce_Subscriptions\Internal\Settings\Settings_Ui_Feature_Flag;
 
 /**
  * Public accessor for WooCommerce Subscriptions settings.
  *
- * Subscriptions settings are moving to a two-namespace† model so the modern (settings-ui) and the
- * classic experiences can coexist and a store can safely roll back: the legacy options are left
- * untouched while the modern experience reads and writes a parallel namespace. This class is the
- * single seam that resolves which namespace is active and returns the appropriate value.
+ * Subscriptions settings persist under a single namespace: the `woocommerce_subscriptions_*`
+ * options. The redesigned settings screens (the classic renderer and the experimental React
+ * renderer alike) write back to those same options, so the stored option state is always the
+ * single source of truth.
  *
- * † Namespaces here essentially meaning option prefixes.
+ * What this accessor adds is per-key read resolution for the redesigned settings vocabulary: a
+ * registered key (e.g. `switch_allow_variations`) has no stored option of its own - it derives its
+ * value from the real option(s) it decomposes ({@see Registry}) - while an unregistered key passes
+ * straight through to the option of the same name.
  *
  * It lives outside `Internal\` deliberately. Third-party developers may need to read Subscriptions
- * settings without coupling to specific option keys, so the static facade — `Settings::get( 'key' )`
- * and `Settings::prefix()` — is intended as supported API. Those statics delegate to a canonical
- * instance; the instance carries its dependencies (the feature-state seam and the settings registry)
- * so the resolution logic can be unit-tested in isolation. The constructor is internal wiring, not
- * part of the consumer API.
- *
- * D-numbered decisions cited below (e.g. D7) → sdd/settings-ui-refresh/implementation/persistence-and-rollback.md
+ * settings without coupling to specific option keys, so the static facade - `Settings::get( 'key' )`
+ * and `Settings::prefix()` - is intended as supported API. Those statics delegate to a canonical
+ * instance; the instance carries its dependency (the settings registry) so the resolution logic
+ * can be unit-tested in isolation. The constructor is internal wiring, not part of the consumer
+ * API.
  */
 class Settings {
 	/**
-	 * Option prefix for the classic (legacy) settings namespace.
-	 */
-	private const LEGACY_PREFIX = 'woocommerce_subscriptions';
-
-	/**
-	 * Option prefix for the modern (settings-ui) settings namespace.
+	 * The option prefix Subscriptions settings persist under.
 	 *
-	 * Deliberately a distinct sibling of the legacy prefix, not a sub-namespace of it: the `_modern_`
-	 * segment keeps the two stores unmistakable side by side and gives the eventual sunset a clean
-	 * prefix to target. Settling on this before any write path persists under it avoids a stored-data
-	 * migration later.
+	 * A single namespace: the earlier dual-namespace ("modern prefix") exploration was retired when
+	 * the redesigned screens were harmonized to write back to the real options.
 	 */
-	private const MODERN_PREFIX = 'woocommerce_subscriptions_modern';
-
-	/**
-	 * Sentinel used to distinguish "option not stored" from a stored falsy value.
-	 */
-	private const UNSET = '__wcs_settings_unset__';
+	private const OPTION_PREFIX = 'woocommerce_subscriptions';
 
 	/**
 	 * Canonical instance backing the static facade and the plugin accessor.
@@ -54,13 +41,6 @@ class Settings {
 	private static ?Settings $instance = null;
 
 	/**
-	 * Reports whether the modern settings experience is active.
-	 *
-	 * @var Feature_Flag
-	 */
-	private $feature_flag;
-
-	/**
 	 * The redesigned-settings registry.
 	 *
 	 * @var Registry
@@ -68,24 +48,15 @@ class Settings {
 	private $registry;
 
 	/**
-	 * Memoized active state of the modern experience for this instance (per request).
-	 *
-	 * @var bool|null
-	 */
-	private ?bool $modern_active = null;
-
-	/**
 	 * Constructor.
 	 *
 	 * @internal Constructed via {@see self::instance()} (or the plugin's `settings()` accessor). The
-	 * explicit dependencies exist for injection in tests, not as consumer API.
+	 * explicit dependency exists for injection in tests, not as consumer API.
 	 *
-	 * @param Feature_Flag $feature_flag Reports whether the modern settings experience is active.
-	 * @param Registry     $registry     The redesigned-settings registry.
+	 * @param Registry $registry The redesigned-settings registry.
 	 */
-	public function __construct( Feature_Flag $feature_flag, Registry $registry ) {
-		$this->feature_flag = $feature_flag;
-		$this->registry     = $registry;
+	public function __construct( Registry $registry ) {
+		$this->registry = $registry;
 	}
 
 	/**
@@ -95,7 +66,7 @@ class Settings {
 	 */
 	public static function instance(): Settings {
 		if ( null === self::$instance ) {
-			self::$instance = new self( new Settings_Ui_Feature_Flag(), Registry::create_default() );
+			self::$instance = new self( Registry::create_default() );
 		}
 
 		return self::$instance;
@@ -120,9 +91,9 @@ class Settings {
 	 * @param string $key           Setting key: the suffix after the prefix, with or without a leading
 	 *                              underscore (e.g. 'allow_switching' or '_allow_switching').
 	 * @param mixed  $default_value Value returned when an *unregistered* key has no stored option. It
-	 *                              does not apply to registered (redesigned) keys: those always resolve
-	 *                              to a stored modern value or a derived one, so they have no unset
-	 *                              state for a default to cover. See {@see self::get_value()}.
+	 *                              does not apply to registered (redesigned) keys: those always derive
+	 *                              from the stored options, so they have no unset state for a default
+	 *                              to cover. See {@see self::get_value()}.
 	 * @return mixed
 	 */
 	public static function get( string $key, $default_value = false ) {
@@ -130,10 +101,9 @@ class Settings {
 	}
 
 	/**
-	 * Get the active option prefix.
+	 * Get the option prefix Subscriptions settings persist under.
 	 *
-	 * Static facade over the canonical instance. This is the prefix used when persisting redesigned
-	 * settings; per-key read resolution lives in {@see self::get_value()}.
+	 * Static facade over the canonical instance.
 	 *
 	 * @return string
 	 */
@@ -146,26 +116,20 @@ class Settings {
 	 *
 	 * @param string $key           Setting key.
 	 * @param mixed  $default_value Value returned only on the unregistered pass-through path; ignored
-	 *                              for registered keys, which always derive or read a stored value.
+	 *                              for registered keys, which always derive their value.
 	 * @return mixed
 	 */
 	public function get_value( string $key, $default_value = false ) {
-		// Not a redesigned setting: pass straight through to the legacy option (D7).
+		// Not a redesigned setting: pass straight through to the option of the same name.
 		if ( ! $this->registry->has( $key ) ) {
-			return get_option( $this->option_name( self::LEGACY_PREFIX, $key ), $default_value );
+			return get_option( $this->option_name( $key ), $default_value );
 		}
 
-		// Redesigned setting, classic experience: derive the modern value from the current legacy
-		// settings. The modern key is not stored in this mode, and its name need not match a legacy
-		// option, so we never read it directly here (D3/D13).
-		if ( ! $this->is_modern_active() ) {
-			return $this->registry->derive( $key );
-		}
-
-		// Redesigned setting, modern experience: stored modern value if present, else derive-on-read.
-		$modern = get_option( $this->option_name( self::MODERN_PREFIX, $key ), self::UNSET );
-
-		return self::UNSET === $modern ? $this->registry->derive( $key ) : $modern;
+		// Redesigned setting: derive the value from the stored options. The redesigned controls write
+		// back to their real options (via the save-packers on `woocommerce_update_options_subscriptions`),
+		// so the stored state is the single source of truth and a registered key never has a stored value
+		// of its own.
+		return $this->registry->derive( $key );
 	}
 
 	/**
@@ -174,30 +138,16 @@ class Settings {
 	 * @return string
 	 */
 	public function get_prefix(): string {
-		return $this->is_modern_active() ? self::MODERN_PREFIX : self::LEGACY_PREFIX;
+		return self::OPTION_PREFIX;
 	}
 
 	/**
-	 * Whether the modern settings experience is active, memoized for this instance.
+	 * Build the fully-qualified option name for a key.
 	 *
-	 * @return bool
-	 */
-	private function is_modern_active(): bool {
-		if ( null === $this->modern_active ) {
-			$this->modern_active = $this->feature_flag->is_active();
-		}
-
-		return $this->modern_active;
-	}
-
-	/**
-	 * Build the fully-qualified option name for a key under a given prefix.
-	 *
-	 * @param string $prefix Option prefix.
-	 * @param string $key    Setting key (leading underscore optional).
+	 * @param string $key Setting key (leading underscore optional).
 	 * @return string
 	 */
-	private function option_name( string $prefix, string $key ): string {
-		return $prefix . '_' . ltrim( $key, '_' );
+	private function option_name( string $key ): string {
+		return self::OPTION_PREFIX . '_' . ltrim( $key, '_' );
 	}
 }

@@ -1,6 +1,10 @@
 <?php
 
+use Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer;
+use Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Settings_Layout;
+use Automattic\WooCommerce_Subscriptions\Internal\Products\Plan_Utils;
 use Automattic\WooCommerce_Subscriptions\Internal\Utilities\Request;
+use Automattic\WooCommerce_Subscriptions\Settings;
 
 /**
  * A class to make it possible to switch between different subscriptions (i.e. upgrade/downgrade a subscription)
@@ -22,6 +26,17 @@ class WC_Subscriptions_Switcher {
 	protected static $switch_totals_calculator;
 
 	/**
+	 * The switch currently being set up by code rather than by the switch link the customer followed.
+	 *
+	 * Keys are 'subscription_id', 'item_id', 'product_id' and 'variation_id'. Empty whenever no such switch is
+	 * in progress.
+	 *
+	 * @since 9.2.0
+	 * @var array
+	 */
+	private static $switch_request_context = array();
+
+	/**
 	 * Bootstraps the class and hooks required actions & filters.
 	 *
 	 * @since 1.4
@@ -41,6 +56,10 @@ class WC_Subscriptions_Switcher {
 		// Add the settings to control whether Switching is enabled and how it will behave
 		add_filter( 'woocommerce_subscription_settings', array( __CLASS__, 'add_settings' ), 15 );
 
+		add_action( 'woocommerce_update_options_subscriptions', array( __CLASS__, 'validate_switch_proration' ), 5 );
+
+		add_action( 'woocommerce_update_options_subscriptions', array( __CLASS__, 'save_switch_proration_settings' ) );
+
 		// Render "wcs_switching_options" field
 		add_action( 'woocommerce_admin_field_wcs_switching_options', __CLASS__ . '::switching_options_field_html' );
 
@@ -59,8 +78,8 @@ class WC_Subscriptions_Switcher {
 		// When creating an order, add meta if it's for switching a subscription
 		add_action( 'woocommerce_checkout_update_order_meta', array( __CLASS__, 'add_order_meta' ), 10, 2 );
 
-		// Same as above for WooCommerce Blocks.
-		add_action( 'woocommerce_store_api_checkout_update_order_meta', array( __CLASS__, 'add_order_meta' ), 10, 1 );
+		// Store API passes the live order object rather than an ID and posted data.
+		add_action( 'woocommerce_store_api_checkout_update_order_meta', array( __CLASS__, 'add_store_api_order_meta' ), 10, 1 );
 
 		// Don't allow switching to the same product
 		add_filter( 'woocommerce_add_to_cart_validation', array( __CLASS__, 'validate_switch_request' ), 10, 4 );
@@ -392,75 +411,200 @@ class WC_Subscriptions_Switcher {
 	 */
 	public static function add_settings( $settings ) {
 
+		$prefix   = WC_Subscriptions_Admin::$option_prefix;
+		$defaults = self::get_switch_proration_defaults();
+
+		// Behaviour selects: the value-dependent descriptions (shared with the modern card). Each select's own
+		// description is set to the stored value's copy as a no-JS fallback; the client keeps it in sync on change.
+		$first_billing_descriptions = array(
+			'full'                    => __( 'The subscriber is charged the full recurring price of the new product when they switch. No adjustment is made for the unused portion of the current billing period.', 'woocommerce-subscriptions' ),
+			'upgrades'                => __( 'When upgrading to a more expensive product, the subscriber is credited for the unused portion of the current billing period and charged the prorated price of the new product for the remaining time.', 'woocommerce-subscriptions' ),
+			'upgrades_and_downgrades' => __( 'When upgrading or downgrading, the subscriber is credited for the unused portion of the current billing period and charged the prorated price of the new product for the remaining time.', 'woocommerce-subscriptions' ),
+		);
+
+		$signup_fee_descriptions = array(
+			'no'   => __( 'The subscriber will not be charged a sign up fee when switching products.', 'woocommerce-subscriptions' ),
+			'full' => __( 'The subscriber will be charged the full sign up fee of the new product when switching.', 'woocommerce-subscriptions' ),
+			'yes'  => __( 'The subscriber is only charged the difference if the new sign up fee is higher than their current one. If the new sign up fee is lower, no credit will be applied.', 'woocommerce-subscriptions' ),
+		);
+		$signup_fee_value        = get_option( $prefix . '_apportion_sign_up_fee', 'no' );
+
+		$fixed_term_descriptions = array(
+			'none'    => __( 'When switching to a subscription that is set to expire, the subscriber completes the full number of renewals for the new subscription. Previous renewals are not counted.', 'woocommerce-subscriptions' ),
+			'prorate' => __( 'When switching to a subscription that is set to expire, the renewals the subscriber has already paid count toward the new subscription, so fewer payments remain.', 'woocommerce-subscriptions' ),
+		);
+
 		$switching_settings = array(
 			array(
 				'name' => __( 'Switching', 'woocommerce-subscriptions' ),
 				'type' => 'title',
-				// translators: placeholders are opening and closing link tags
-				'desc' => sprintf( __( 'Allow subscribers to switch (upgrade or downgrade) between different subscriptions. %1$sLearn more%2$s.', 'woocommerce-subscriptions' ), '<a href="' . esc_url( 'https://woocommerce.com/document/subscriptions/switching-guide/' ) . '">', '</a>' ),
+				'desc' => sprintf(
+					/* translators: %1$s: a "Learn more" documentation link. */
+					__( 'Allow subscribers to switch products in their subscriptions. %1$s', 'woocommerce-subscriptions' ),
+					Settings_Layout::learn_more_link( 'https://woocommerce.com/document/subscriptions/store-manager-guide/#switching' )
+				),
 				'id'   => WC_Subscriptions_Admin::$option_prefix . '_switch_settings',
 			),
 			array(
 				'type' => 'wcs_switching_options',
 				'id'   => WC_Subscriptions_Admin::$option_prefix . '_allow_switching',
 			),
+			// First billing behaviour (formerly the "Prorate Recurring Payment" dropdown), decomposed into a
+			// behaviour select plus a Virtual/Physical product-type pair to match the redesigned settings screen.
+			// All three are display-only (`is_option => false`); their state is derived from, and packed back into,
+			// the `_apportion_recurring_price` option by {@see save_switch_proration_settings}.
 			array(
-				'name'     => __( 'Prorate Recurring Payment', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'When switching to a subscription with a different recurring payment or billing period, should the price paid for the existing billing period be prorated when switching to the new subscription?', 'woocommerce-subscriptions' ),
-				'tip'      => '',
-				'id'       => WC_Subscriptions_Admin::$option_prefix . '_apportion_recurring_price',
-				'css'      => 'min-width:150px;',
-				'default'  => 'no',
-				'type'     => 'select',
-				'class'    => 'wc-enhanced-select',
-				'options'  => array(
-					'no'              => _x( 'Never', 'when to allow a setting', 'woocommerce-subscriptions' ),
-					'virtual-upgrade' => _x( 'For Upgrades of Virtual Subscription Products Only', 'when to prorate recurring fee when switching', 'woocommerce-subscriptions' ),
-					'yes-upgrade'     => _x( 'For Upgrades of All Subscription Products', 'when to prorate recurring fee when switching', 'woocommerce-subscriptions' ),
-					'virtual'         => _x( 'For Upgrades & Downgrades of Virtual Subscription Products Only', 'when to prorate recurring fee when switching', 'woocommerce-subscriptions' ),
-					'yes'             => _x( 'For Upgrades & Downgrades of All Subscription Products', 'when to prorate recurring fee when switching', 'woocommerce-subscriptions' ),
+				'name'              => __( 'First billing behavior', 'woocommerce-subscriptions' ),
+				'desc'              => isset( $first_billing_descriptions[ $defaults['first_billing_behavior'] ] ) ? $first_billing_descriptions[ $defaults['first_billing_behavior'] ] : $first_billing_descriptions['full'],
+				'id'                => $prefix . '_switch_first_billing_behavior',
+				'css'               => 'min-width:150px;',
+				'default'           => $defaults['first_billing_behavior'],
+				// The explicit `value` makes the derived state authoritative: without it the renderer falls back to
+				// get_option( id, default ), and a stray option row stored under this display-only id (e.g. residue
+				// from an environment that predates `is_option => false`) would silently mask the derive forever.
+				'value'             => $defaults['first_billing_behavior'],
+				'type'              => 'select',
+				'class'             => 'wc-enhanced-select',
+				'is_option'         => false,
+				'options'           => array(
+					'full'                    => __( 'Charge full amount at switch', 'woocommerce-subscriptions' ),
+					'upgrades'                => __( 'Prorate amount on upgrades', 'woocommerce-subscriptions' ),
+					'upgrades_and_downgrades' => __( 'Prorate amount on upgrades and downgrades', 'woocommerce-subscriptions' ),
 				),
-				'desc_tip' => true,
+				// Swap the description to match the selected option (reusable behaviour, see assets/js/admin/admin.js).
+				'custom_attributes' => array(
+					'data-descriptions' => wp_json_encode( $first_billing_descriptions ),
+				),
 			),
 			array(
-				'name'     => __( 'Prorate Sign up Fee', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'When switching to a subscription with a sign up fee, you can require the customer pay only the gap between the existing subscription\'s sign up fee and the new subscription\'s sign up fee (if any).', 'woocommerce-subscriptions' ),
-				'tip'      => '',
-				'id'       => WC_Subscriptions_Admin::$option_prefix . '_apportion_sign_up_fee',
-				'css'      => 'min-width:150px;',
-				'default'  => 'no',
-				'type'     => 'select',
-				'class'    => 'wc-enhanced-select',
-				'options'  => array(
-					'no'   => _x( 'Never (do not charge a sign up fee)', 'when to prorate signup fee when switching', 'woocommerce-subscriptions' ),
-					'full' => _x( 'Never (charge the full sign up fee)', 'when to prorate signup fee when switching', 'woocommerce-subscriptions' ),
-					'yes'  => _x( 'Always', 'when to prorate signup fee when switching', 'woocommerce-subscriptions' ),
+				'name'              => __( 'Apply proration when subscriber switches to:', 'woocommerce-subscriptions' ),
+				'desc'              => __( 'Virtual subscription products', 'woocommerce-subscriptions' ),
+				'id'                => $prefix . '_switch_first_billing_virtual',
+				'default'           => $defaults['first_billing_virtual'],
+				'value'             => $defaults['first_billing_virtual'],
+				'type'              => 'checkbox',
+				'is_option'         => false,
+				'checkboxgroup'     => 'start',
+				// Render the group heading visibly (as the card sub-heading) on the redesigned classic screen.
+				'class'             => implode(
+					' ',
+					array(
+						Classic_Renderer::CLASS_VISIBLE_LEGEND,
+						Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
+					)
 				),
-				'desc_tip' => true,
+				// Show the product-type pair only when a prorating behaviour is chosen (reusable behaviour, see
+				// assets/js/admin/admin.js). The attribute sits on the group's first checkbox, which owns the row.
+				'custom_attributes' => array(
+					'data-show-if-value' => wp_json_encode(
+						array(
+							'id'     => $prefix . '_switch_first_billing_behavior',
+							'values' => array( 'upgrades', 'upgrades_and_downgrades' ),
+						)
+					),
+				),
 			),
 			array(
-				'name'     => __( 'Prorate Subscription Length', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'When switching to a subscription with a length, you can take into account the payments already completed by the customer when determining how many payments the subscriber needs to make for the new subscription.', 'woocommerce-subscriptions' ),
-				'tip'      => '',
-				'id'       => WC_Subscriptions_Admin::$option_prefix . '_apportion_length',
-				'css'      => 'min-width:150px;',
-				'default'  => 'no',
-				'type'     => 'select',
-				'class'    => 'wc-enhanced-select',
-				'options'  => array(
-					'no'      => _x( 'Never', 'when to allow a setting', 'woocommerce-subscriptions' ),
-					'virtual' => _x( 'For Virtual Subscription Products Only', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
-					'yes'     => _x( 'For All Subscription Products', 'when to prorate first payment / subscription length', 'woocommerce-subscriptions' ),
+				'desc'          => __( 'Physical subscription products', 'woocommerce-subscriptions' ),
+				'desc_tip'      => __( 'Product types not selected will not be prorated.', 'woocommerce-subscriptions' ),
+				'id'            => $prefix . '_switch_first_billing_physical',
+				'default'       => $defaults['first_billing_physical'],
+				'value'         => $defaults['first_billing_physical'],
+				'type'          => 'checkbox',
+				'is_option'     => false,
+				'checkboxgroup' => 'end',
+				// The desc_tip copy is a caption for the whole product-type pair, not help for this checkbox;
+				// the class lets the card stylesheet cancel the checkbox-help indent (see style.scss).
+				'row_class'     => 'group-help',
+			),
+			array(
+				'name'              => __( 'Signup fee behavior', 'woocommerce-subscriptions' ),
+				'desc'              => isset( $signup_fee_descriptions[ $signup_fee_value ] ) ? $signup_fee_descriptions[ $signup_fee_value ] : $signup_fee_descriptions['no'],
+				'id'                => $prefix . '_apportion_sign_up_fee',
+				'css'               => 'min-width:150px;',
+				'default'           => 'no',
+				'type'              => 'select',
+				'class'             => 'wc-enhanced-select',
+				'options'           => array(
+					'no'   => __( 'Do not charge a sign up fee', 'woocommerce-subscriptions' ),
+					'full' => __( 'Charge the full sign up fee', 'woocommerce-subscriptions' ),
+					'yes'  => __( 'Prorate the sign up fee', 'woocommerce-subscriptions' ),
 				),
-				'desc_tip' => true,
+				// Swap the description to match the selected option (reusable behaviour, see assets/js/admin/admin.js).
+				'custom_attributes' => array(
+					'data-descriptions' => wp_json_encode( $signup_fee_descriptions ),
+				),
+			),
+			// Fixed-term behaviour (formerly the "Prorate Subscription Length" dropdown), decomposed into a
+			// behaviour select plus a Virtual/Physical product-type pair. Display-only; derived from and packed back
+			// into the `_apportion_length` option by {@see save_switch_proration_settings}.
+			array(
+				'name'              => __( 'Fixed-term behavior', 'woocommerce-subscriptions' ),
+				'desc'              => isset( $fixed_term_descriptions[ $defaults['fixed_term_behavior'] ] ) ? $fixed_term_descriptions[ $defaults['fixed_term_behavior'] ] : $fixed_term_descriptions['none'],
+				'id'                => $prefix . '_switch_fixed_term_behavior',
+				'css'               => 'min-width:150px;',
+				'default'           => $defaults['fixed_term_behavior'],
+				'value'             => $defaults['fixed_term_behavior'],
+				'type'              => 'select',
+				'class'             => 'wc-enhanced-select',
+				'is_option'         => false,
+				'options'           => array(
+					'none'    => __( 'Do not prorate the subscription renewal count', 'woocommerce-subscriptions' ),
+					'prorate' => __( 'Prorate the subscription renewal count', 'woocommerce-subscriptions' ),
+				),
+				// Swap the description to match the selected option (reusable behaviour, see assets/js/admin/admin.js).
+				'custom_attributes' => array(
+					'data-descriptions' => wp_json_encode( $fixed_term_descriptions ),
+				),
+			),
+			array(
+				'name'              => __( 'Apply renewals when subscriber switches to:', 'woocommerce-subscriptions' ),
+				'desc'              => __( 'Virtual subscription products', 'woocommerce-subscriptions' ),
+				'id'                => $prefix . '_switch_fixed_term_virtual',
+				'default'           => $defaults['fixed_term_virtual'],
+				'value'             => $defaults['fixed_term_virtual'],
+				'type'              => 'checkbox',
+				'is_option'         => false,
+				'checkboxgroup'     => 'start',
+				// Render the group heading visibly (as the card sub-heading) on the redesigned classic screen.
+				'class'             => implode(
+					' ',
+					array(
+						Classic_Renderer::CLASS_VISIBLE_LEGEND,
+						Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
+					)
+				),
+				// Show the product-type pair only when the renewal count is being prorated (reusable behaviour, see
+				// assets/js/admin/admin.js).
+				'custom_attributes' => array(
+					'data-show-if-value' => wp_json_encode(
+						array(
+							'id'     => $prefix . '_switch_fixed_term_behavior',
+							'values' => array( 'prorate' ),
+						)
+					),
+				),
+			),
+			array(
+				'desc'          => __( 'Physical subscription products', 'woocommerce-subscriptions' ),
+				'desc_tip'      => __( 'Product types not selected will not have previous renewals applied.', 'woocommerce-subscriptions' ),
+				'id'            => $prefix . '_switch_fixed_term_physical',
+				'default'       => $defaults['fixed_term_physical'],
+				'value'         => $defaults['fixed_term_physical'],
+				'type'          => 'checkbox',
+				'is_option'     => false,
+				'checkboxgroup' => 'end',
+				// The desc_tip copy is a caption for the whole product-type pair, not help for this checkbox;
+				// the class lets the card stylesheet cancel the checkbox-help indent (see style.scss).
+				'row_class'     => 'group-help',
 			),
 			array(
 				'name'     => __( 'Switch Button Text', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'Customise the text displayed on the button next to the subscription on the subscriber\'s account page. The default is "Switch Subscription", but you may wish to change this to "Upgrade" or "Change Subscription".', 'woocommerce-subscriptions' ),
+				'desc'     => __( 'Customize the switch button text that appears on the subscriber\'s My Account page.', 'woocommerce-subscriptions' ),
 				'tip'      => '',
 				'id'       => WC_Subscriptions_Admin::$option_prefix . '_switch_button_text',
 				'css'      => 'min-width:150px;',
-				'default'  => __( 'Upgrade or Downgrade', 'woocommerce-subscriptions' ),
+				'default'  => __( 'Switch', 'woocommerce-subscriptions' ),
 				'type'     => 'text',
 				'desc_tip' => true,
 			),
@@ -476,6 +620,215 @@ class WC_Subscriptions_Switcher {
 		}
 
 		return $settings;
+	}
+
+	/**
+	 * Derives the display state of the decomposed proration controls from the two legacy options.
+	 *
+	 * Shapes the registry's derivations ({@see \Automattic\WooCommerce_Subscriptions\Internal\Settings\Switching_Definitions})
+	 * into the array this screen renders from, so the rendered control and the value `Settings::get()` reports to
+	 * third parties come from one implementation. The sign-up fee select is deliberately absent: its live field still
+	 * uses the legacy `no`/`full`/`yes` vocabulary, not the registry's `none`/`full`/`prorate`.
+	 *
+	 * @return array{first_billing_behavior:string, first_billing_virtual:string, first_billing_physical:string, fixed_term_behavior:string, fixed_term_virtual:string, fixed_term_physical:string}
+	 */
+	private static function get_switch_proration_defaults() {
+		return array(
+			'first_billing_behavior' => Settings::get( 'switch_first_billing_behavior' ),
+			'first_billing_virtual'  => Settings::get( 'switch_first_billing_virtual' ),
+			'first_billing_physical' => Settings::get( 'switch_first_billing_physical' ),
+			'fixed_term_behavior'    => Settings::get( 'switch_fixed_term_behavior' ),
+			'fixed_term_virtual'     => Settings::get( 'switch_fixed_term_virtual' ),
+			'fixed_term_physical'    => Settings::get( 'switch_fixed_term_physical' ),
+		);
+	}
+
+	/**
+	 * Packs the decomposed proration controls back into the two legacy options on a classic settings save.
+	 *
+	 * Hooked on `woocommerce_update_options_subscriptions`. The behaviour `<select>` fields always post on a classic
+	 * Subscriptions settings submit but are display-only (and so do not post) under the modern renderer; their absence
+	 * therefore marks a submission that did not include these controls, in which case the options are left untouched.
+	 *
+	 * @return void
+	 */
+	public static function save_switch_proration_settings() {
+		$prefix = WC_Subscriptions_Admin::$option_prefix;
+
+		if ( ! wcs_is_verified_settings_form_submission( array( $prefix . '_switch_first_billing_behavior', $prefix . '_switch_fixed_term_behavior' ) ) ) {
+			return;
+		}
+
+		$first_billing_behavior = wc_clean( wp_unslash( $_POST[ $prefix . '_switch_first_billing_behavior' ] ?? '' ) );
+		$first_billing_virtual  = wcs_is_setting_checked( $prefix . '_switch_first_billing_virtual' );
+		$first_billing_physical = wcs_is_setting_checked( $prefix . '_switch_first_billing_physical' );
+
+		// Skip the write (preserving the prior value) when a prorating behaviour is chosen but no product type is
+		// selected, rather than silently coercing the setting to "no proration". validate_switch_proration() has
+		// already surfaced the "select at least one product type" notice for this case (migration §1g).
+		if ( ! self::is_proration_selection_incomplete( $first_billing_behavior, $first_billing_virtual, $first_billing_physical, array( 'upgrades', 'upgrades_and_downgrades' ) ) ) {
+			update_option(
+				$prefix . '_apportion_recurring_price',
+				self::pack_recurring_price_value( $first_billing_behavior, $first_billing_virtual, $first_billing_physical )
+			);
+		}
+
+		$fixed_term_behavior = wc_clean( wp_unslash( $_POST[ $prefix . '_switch_fixed_term_behavior' ] ?? '' ) );
+		$fixed_term_virtual  = wcs_is_setting_checked( $prefix . '_switch_fixed_term_virtual' );
+		$fixed_term_physical = wcs_is_setting_checked( $prefix . '_switch_fixed_term_physical' );
+
+		if ( ! self::is_proration_selection_incomplete( $fixed_term_behavior, $fixed_term_virtual, $fixed_term_physical, array( 'prorate' ) ) ) {
+			update_option(
+				$prefix . '_apportion_length',
+				self::pack_length_value( $fixed_term_behavior, $fixed_term_virtual, $fixed_term_physical )
+			);
+		}
+	}
+
+	/**
+	 * Flags an incomplete proration selection on save so the merchant is told, rather than the setting being
+	 * silently discarded.
+	 *
+	 * Hooked on `woocommerce_update_options_subscriptions` at priority 5 — before {@see save_switch_proration_settings()}
+	 * (priority 10) — mirroring the Synchronisation section's classic save-time validation. On the modern screen the
+	 * same condition is surfaced live by the SettingsFieldError component (migration §1g); this covers the classic
+	 * screen, which otherwise gives no feedback.
+	 *
+	 * @return void
+	 */
+	public static function validate_switch_proration() {
+		$prefix = WC_Subscriptions_Admin::$option_prefix;
+
+		if ( ! wcs_is_verified_settings_form_submission( array( $prefix . '_switch_first_billing_behavior', $prefix . '_switch_fixed_term_behavior' ) ) ) {
+			return;
+		}
+
+		$first_billing_incomplete = self::is_proration_selection_incomplete(
+			wc_clean( wp_unslash( $_POST[ $prefix . '_switch_first_billing_behavior' ] ?? '' ) ),
+			wcs_is_setting_checked( $prefix . '_switch_first_billing_virtual' ),
+			wcs_is_setting_checked( $prefix . '_switch_first_billing_physical' ),
+			array( 'upgrades', 'upgrades_and_downgrades' )
+		);
+
+		$fixed_term_incomplete = self::is_proration_selection_incomplete(
+			wc_clean( wp_unslash( $_POST[ $prefix . '_switch_fixed_term_behavior' ] ?? '' ) ),
+			wcs_is_setting_checked( $prefix . '_switch_fixed_term_virtual' ),
+			wcs_is_setting_checked( $prefix . '_switch_fixed_term_physical' ),
+			array( 'prorate' )
+		);
+
+		if ( $first_billing_incomplete || $fixed_term_incomplete ) {
+			add_action( 'admin_notices', array( __CLASS__, 'switch_proration_validation_error_notice' ) );
+		}
+	}
+
+	/**
+	 * Whether a proration behaviour is set to a prorating value but neither product type is selected.
+	 *
+	 * @param string   $behavior          The submitted behaviour value.
+	 * @param bool     $virtual           Whether the Virtual product type is checked.
+	 * @param bool     $physical          Whether the Physical product type is checked.
+	 * @param string[] $prorating_values  The behaviour values that require a product type.
+	 * @return bool
+	 */
+	private static function is_proration_selection_incomplete( $behavior, $virtual, $physical, array $prorating_values ) {
+		return in_array( $behavior, $prorating_values, true ) && ! $virtual && ! $physical;
+	}
+
+	/**
+	 * Render the classic "select at least one product type" notice for switching proration.
+	 *
+	 * @return void
+	 */
+	public static function switch_proration_validation_error_notice() {
+		?>
+		<div class="notice notice-error">
+			<p><?php esc_html_e( 'Select at least one subscription product type when a switching proration option is chosen. Your previous proration setting was kept.', 'woocommerce-subscriptions' ); ?></p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Packs the first-billing behaviour + product types into an `_apportion_recurring_price` value.
+	 *
+	 * When a prorating behaviour is chosen but no product type is selected, falls back to 'no' (never prorate); the
+	 * modern renderer surfaces a "select at least one product type" notice for this case (migration §1g).
+	 *
+	 * @param string $behavior 'full', 'upgrades' or 'upgrades_and_downgrades'.
+	 * @param bool   $virtual  Whether virtual products are selected.
+	 * @param bool   $physical Whether physical products are selected.
+	 * @return string One of the `_apportion_recurring_price` values.
+	 */
+	public static function pack_recurring_price_value( $behavior, $virtual, $physical ) {
+		if ( 'full' === $behavior ) {
+			return 'no';
+		}
+
+		$type = self::proration_product_type( $virtual, $physical );
+
+		if ( null === $type ) {
+			return 'no';
+		}
+
+		if ( 'upgrades' === $behavior ) {
+			$upgrade_only = array(
+				'all'      => 'yes-upgrade',
+				'virtual'  => 'virtual-upgrade',
+				'physical' => 'physical-upgrade',
+			);
+
+			return $upgrade_only[ $type ];
+		}
+
+		// upgrades_and_downgrades: the both-direction value is the plain product-type token.
+		return 'all' === $type ? 'yes' : $type;
+	}
+
+	/**
+	 * Packs the fixed-term behaviour + product types into an `_apportion_length` value.
+	 *
+	 * Falls back to 'no' when prorating is chosen but no product type is selected (migration §1g).
+	 *
+	 * @param string $behavior 'none' or 'prorate'.
+	 * @param bool   $virtual  Whether virtual products are selected.
+	 * @param bool   $physical Whether physical products are selected.
+	 * @return string One of the `_apportion_length` values.
+	 */
+	public static function pack_length_value( $behavior, $virtual, $physical ) {
+		if ( 'prorate' !== $behavior ) {
+			return 'no';
+		}
+
+		$type = self::proration_product_type( $virtual, $physical );
+
+		if ( null === $type ) {
+			return 'no';
+		}
+
+		return 'all' === $type ? 'yes' : $type;
+	}
+
+	/**
+	 * Reduces the Virtual/Physical checkbox pair to a product-type token.
+	 *
+	 * @param bool $virtual  Whether virtual products are selected.
+	 * @param bool $physical Whether physical products are selected.
+	 * @return string|null 'all', 'virtual', 'physical', or null when neither is selected.
+	 */
+	private static function proration_product_type( $virtual, $physical ) {
+		if ( $virtual && $physical ) {
+			return 'all';
+		}
+
+		if ( $virtual ) {
+			return 'virtual';
+		}
+
+		if ( $physical ) {
+			return 'physical';
+		}
+
+		return null;
 	}
 
 	/**
@@ -495,56 +848,115 @@ class WC_Subscriptions_Switcher {
 
 		$allow_switching_variable_checked = strpos( $allow_switching, 'variable' ) !== false;
 		$allow_switching_grouped_checked  = strpos( $allow_switching, 'grouped' ) !== false;
+
+		/**
+		 * 'woocommerce_subscriptions_allow_switching_options' filter.
+		 *
+		 * Used to add extra switching options. Each option must be a plain array (id, label,
+		 * optional desc_tip); entries of any other type - objects included, ArrayAccess or not -
+		 * are discarded by every consumer.
+		 *
+		 * @since  2.6.0
+		 * @param  array  $switching_options
+		 * @return array
+		 */
+		$extra_switching_options = (array) apply_filters( 'woocommerce_subscriptions_allow_switching_options', array() );
+		// Non-array entries are dropped per the contract above: an object in the filter output would
+		// fatal on the offset reads below - even inside isset()/empty(), which throw on object
+		// offsets - and the plans lift-out rewrites the entry's label, an offset WRITE that an
+		// ArrayAccess object cannot be safely admitted to either (offsetSet may throw, and objects
+		// assign by handle, mutating the callback's own value).
+		$extra_switching_options = array_filter( $extra_switching_options, 'is_array' );
+
+		// The design orders the core options with subscription plans first. That option arrives
+		// through the filter (registered by All Products for Subscriptions), so lift it out and
+		// render it ahead of the variations/grouped pair under the design's label. Other
+		// filter-registered options (e.g. Product Bundles / Composite Products) keep their own
+		// labels and render after the core three.
+		$plans_option = null;
+
+		foreach ( $extra_switching_options as $index => $option ) {
+			if ( isset( $option['id'] ) && 'product_plans' === $option['id'] ) {
+				$plans_option          = $option;
+				$plans_option['label'] = __( 'Subscription plans', 'woocommerce-subscriptions' );
+				unset( $extra_switching_options[ $index ] );
+				break;
+			}
+		}
 		?>
 		<tr valign="top">
-			<th scope="row" class="titledesc">
-				<label for="wcs_switching_options">
-					<?php esc_html_e( 'Allow Switching', 'woocommerce-subscriptions' ) ?>
-				</label>
-			</th>
 			<td class="forminp forminp-wcs_switching_options">
-				<div class="wcs_setting_switching_options" id="woocommerce_subscriptions_allow_switching">
-					<label>
-						<input <?php checked( $allow_switching_variable_checked ); ?> type="checkbox" name="<?php echo esc_attr( WC_Subscriptions_Admin::$option_prefix . '_allow_switching_variable' ) ?>"/>
-						<?php echo esc_html_x( 'Between Subscription Variations', 'when to allow switching', 'woocommerce-subscriptions' ); ?>
-					</label>
-					<label>
-						<input <?php checked( $allow_switching_grouped_checked ); ?> type="checkbox" name="<?php echo esc_attr( WC_Subscriptions_Admin::$option_prefix . '_allow_switching_grouped' ) ?>"/>
-						<?php echo esc_html_x( 'Between Grouped Subscriptions', 'when to allow switching', 'woocommerce-subscriptions' ); ?>
-					</label>
+				<fieldset class="wcs_setting_switching_options" id="woocommerce_subscriptions_allow_switching">
+					<legend class="screen-reader-text"><?php esc_html_e( 'Allow Switching', 'woocommerce-subscriptions' ); ?></legend>
 					<?php
-
-					/**
-					 * 'woocommerce_subscription_switching_options' filter.
-					 *
-					 * Used to add extra switching options.
-					 *
-					 * @since  2.6.0
-					 * @param  array  $switching_options
-					 * @return array
-					 */
-					$extra_switching_options = (array) apply_filters( 'woocommerce_subscriptions_allow_switching_options', array() );
-
-					foreach ( $extra_switching_options as $option ) {
-
-						if ( empty( $option['id'] ) || empty( $option['label'] ) ) {
-							continue;
-						}
-
-						$label = $option['label'];
-						$name  = WC_Subscriptions_Admin::$option_prefix . '_allow_switching_' . $option['id'];
-						$value = get_option( $name, 'no' );
-
-						echo '<label>';
-						echo sprintf( '<input%s type="checkbox" name="%s" value="1"/> %s', checked( $value, 'yes', false ), esc_attr( $name ), esc_html( $label ) );
-						echo isset( $option['desc_tip'] ) ? wc_help_tip( $option['desc_tip'], true ) : '';
-						echo '</label>';
+					if ( null !== $plans_option ) {
+						self::render_switching_option_checkbox( $plans_option );
 					}
 					?>
-				</div>
+					<label>
+						<input <?php checked( $allow_switching_variable_checked ); ?> type="checkbox" name="<?php echo esc_attr( WC_Subscriptions_Admin::$option_prefix . '_allow_switching_variable' ); ?>" value="1"/>
+						<?php esc_html_e( 'Subscription variations', 'woocommerce-subscriptions' ); ?>
+					</label>
+					<label>
+						<input <?php checked( $allow_switching_grouped_checked ); ?> type="checkbox" name="<?php echo esc_attr( WC_Subscriptions_Admin::$option_prefix . '_allow_switching_grouped' ); ?>" value="1"/>
+						<?php esc_html_e( 'Grouped subscriptions', 'woocommerce-subscriptions' ); ?>
+					</label>
+					<?php
+					foreach ( $extra_switching_options as $option ) {
+						self::render_switching_option_checkbox( $option );
+					}
+					?>
+				</fieldset>
 			</td>
 		</tr>
 		<?php
+	}
+
+	/**
+	 * Render one filter-registered allow-switching checkbox.
+	 *
+	 * The option's POST name is derived from its id (`{prefix}_allow_switching_{id}`) and its
+	 * checked state from the option row of the same name - both unchanged from when these rendered
+	 * inline, so save handlers and stored options are unaffected. Options without an id or label
+	 * are skipped.
+	 *
+	 * Any `desc_tip` renders as a persistent description below the checkbox - the same treatment
+	 * Classic_Renderer::normalize_field() gives top-level fields' tips, and the shape the
+	 * synchroniser's proration group already uses. A `?` help tip would be invisible here: the card
+	 * stylesheet hides `.woocommerce-help-tip` outright because the redesign folds every tip it can
+	 * reach into visible text, and this renderer is out of normalize_field()'s reach.
+	 *
+	 * @param array $option Switching option (`id`, `label`, optional `desc_tip`) from the
+	 *                      `woocommerce_subscriptions_allow_switching_options` filter.
+	 */
+	private static function render_switching_option_checkbox( $option ) {
+
+		if ( empty( $option['id'] ) || empty( $option['label'] ) ) {
+			return;
+		}
+
+		$label = $option['label'];
+		$name  = WC_Subscriptions_Admin::$option_prefix . '_allow_switching_' . $option['id'];
+		$value = get_option( $name, 'no' );
+
+		// aria-describedby ties the description to the checkbox, so assistive technology announces the
+		// copy with the control instead of only in a linear read (the paragraph follows the label).
+		$has_description = ! empty( $option['desc_tip'] ) && is_string( $option['desc_tip'] );
+		$description_id  = $name . '_description';
+
+		echo '<label>';
+		printf(
+			'<input%1$s type="checkbox" name="%2$s" value="1"%3$s/> %4$s',
+			checked( $value, 'yes', false ),
+			esc_attr( $name ),
+			$has_description ? ' aria-describedby="' . esc_attr( $description_id ) . '"' : '',
+			esc_html( $label )
+		);
+		echo '</label>';
+
+		if ( $has_description ) {
+			echo '<p id="' . esc_attr( $description_id ) . '" class="description">' . wp_kses_post( $option['desc_tip'] ) . '</p>';
+		}
 	}
 
 	/**
@@ -562,7 +974,7 @@ class WC_Subscriptions_Switcher {
 		}
 
 		$switch_url     = esc_url( self::get_switch_url( $item_id, $item, $subscription ) );
-		$switch_text    = apply_filters( 'woocommerce_subscriptions_switch_link_text', get_option( WC_Subscriptions_Admin::$option_prefix . '_switch_button_text', __( 'Upgrade or Downgrade', 'woocommerce-subscriptions' ) ), $item_id, $item, $subscription );
+		$switch_text    = apply_filters( 'woocommerce_subscriptions_switch_link_text', get_option( WC_Subscriptions_Admin::$option_prefix . '_switch_button_text', __( 'Switch', 'woocommerce-subscriptions' ) ), $item_id, $item, $subscription );
 		$switch_classes = apply_filters( 'woocommerce_subscriptions_switch_link_classes', array( 'wcs-switch-link', 'button', wc_wp_theme_get_element_class_name( 'button' ) ), $item_id, $item, $subscription );
 
 		$switch_link    = sprintf( '<a href="%s" class="%s">%s</a>', $switch_url, implode( ' ', (array) $switch_classes ), $switch_text );
@@ -814,24 +1226,40 @@ class WC_Subscriptions_Switcher {
 	 * If the order being generated is for switching a subscription, keep a record of some of the switch
 	 * routines meta against the order.
 	 *
-	 * @param int|\WC_Order $order_id The ID of a WC_Order object
-	 * @param array         $posted The data posted on checkout
+	 * @param int|\WC_Order $order_id The order ID or object.
+	 * @param array         $posted   The data posted on checkout.
 	 * @since 1.4
 	 */
 	public static function add_order_meta( $order_id, $posted = array() ) {
+		self::add_order_meta_to_order( wc_get_order( $order_id ) );
+	}
 
-		$order = wc_get_order( $order_id );
+	/**
+	 * Record switch meta on the live order object supplied by Store API checkout.
+	 *
+	 * @param \WC_Order $order The persisted Store API checkout order.
+	 * @since 9.2.0
+	 */
+	public static function add_store_api_order_meta( $order ) {
+		self::add_order_meta_to_order( $order );
+	}
 
-		if ( ! $order instanceof WC_Order ) {
+	/**
+	 * Record switch meta on an order.
+	 *
+	 * @param \WC_Order|false $order The order object.
+	 * @since 9.2.0
+	 */
+	private static function add_order_meta_to_order( $order ) {
+		if ( ! $order instanceof WC_Order || ! $order->get_id() ) {
 			return;
 		}
 
 		$switches = self::cart_contains_switches( 'any' );
 
 		// Only touch the switch relations - which triggers a full $order->save() - when there is a switch to
-		// record, or stale switch relations on the order to clear. add_order_meta() runs on every checkout
-		// (including every block/Store API checkout), so skipping this on a non-switch checkout avoids an
-		// unnecessary order save on the checkout hot path.
+		// record, or stale switch relations on the order to clear. Both checkout callbacks run on every checkout,
+		// so skipping this on a non-switch checkout avoids an unnecessary order save on the checkout hot path.
 		$has_existing_switch_relations = ! empty( WCS_Related_Order_Store::instance()->get_related_subscription_ids( $order, 'switch' ) );
 
 		if ( false === $switches && ! $has_existing_switch_relations ) {
@@ -1432,6 +1860,196 @@ class WC_Subscriptions_Switcher {
 	}
 
 	/**
+	 * Record the switch a product is about to be added to the cart for, when that switch was determined by
+	 * code rather than by the switch link the customer followed.
+	 *
+	 * The switch link flow carries 'switch-subscription' and 'item' in the request itself, so the callbacks
+	 * below can read them with {@see Request::get_var()}. Flows which rebuild a switch from stored data (see
+	 * WCS_Cart_Switch::maybe_setup_cart()) have no such request parameters: they derive the pair mid-request.
+	 * Writing them to $_GET is not enough, because Request::get_var() deliberately reads the original request
+	 * input (INPUT_GET) and so never observes runtime writes to the superglobal. This context is how those
+	 * flows hand the pair to the callbacks instead.
+	 *
+	 * A switch recorded here is treated as already authorized: the nonce which protects the switch link flow
+	 * is not required for it. Callers must therefore have established the customer's right to make this switch
+	 * before calling, and must call {@see clear_switch_request_context()} once the add to cart attempt is over,
+	 * on every path.
+	 *
+	 * The switch applies to one add to cart of one product, named by $product_id and $variation_id. Anything
+	 * else added while it is set — a companion product, a bundle re-added by another plugin's validation
+	 * callback — is somebody else's item and does not see it.
+	 *
+	 * When the product is sold through subscription plans, the switch also names the plan it is to. The switch
+	 * link flow posts the plan with the add to cart form; a rebuilt switch has no form, so the plan travels here.
+	 *
+	 * @internal Not part of the public API. There is no nesting support: a second call overwrites the first.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param int    $subscription_id The subscription being switched.
+	 * @param int    $item_id         The subscription line item being switched.
+	 * @param int    $product_id      The product being added to the cart to make the switch.
+	 * @param int    $variation_id    The variation being added to the cart to make the switch, or 0.
+	 * @param string $scheme_key      Optional. The plan the switch is to, for a product sold through subscription
+	 *                                plans. Default '', for a switch that is not to a plan.
+	 */
+	public static function set_switch_request_context( $subscription_id, $item_id, $product_id, $variation_id, $scheme_key = '' ) {
+		// A one-time purchase is stored as '0' (see WCS_ATT_Product_Schemes::stringify_subscription_scheme_key()) and is not a plan.
+		$scheme_key = is_scalar( $scheme_key ) ? strval( $scheme_key ) : '';
+
+		self::$switch_request_context = array(
+			'subscription_id'       => absint( $subscription_id ),
+			'item_id'               => absint( $item_id ),
+			'product_id'            => absint( $product_id ),
+			'variation_id'          => absint( $variation_id ),
+			'scheme_key'            => '0' === $scheme_key ? '' : $scheme_key,
+			// The keys of the plans the product offers, read once by get_switch_request_candidate_scheme_keys().
+			'candidate_scheme_keys' => null,
+		);
+	}
+
+	/**
+	 * Forget any switch recorded by {@see set_switch_request_context()}.
+	 *
+	 * @internal Not part of the public API.
+	 *
+	 * @since 9.2.0
+	 */
+	public static function clear_switch_request_context() {
+		self::$switch_request_context = array();
+	}
+
+	/**
+	 * Whether the switch recorded by {@see set_switch_request_context()} is for the product being added.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param int $product_id   The product being added to the cart.
+	 * @param int $variation_id The variation being added to the cart, or 0.
+	 * @return bool
+	 */
+	private static function switch_request_context_applies_to( $product_id, $variation_id ) {
+		if ( empty( self::$switch_request_context ) ) {
+			return false;
+		}
+
+		return absint( $product_id ) === self::$switch_request_context['product_id']
+			&& absint( $variation_id ) === self::$switch_request_context['variation_id'];
+	}
+
+	/**
+	 * The subscription being switched, preferring the context set by {@see set_switch_request_context()} and
+	 * falling back to the request parameter used by the switch link flow.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param int $product_id   The product being added to the cart.
+	 * @param int $variation_id The variation being added to the cart, or 0.
+	 * @return mixed The subscription ID, or null if there is no switch request.
+	 */
+	private static function get_switch_request_subscription_id( $product_id, $variation_id ) {
+		return self::switch_request_context_applies_to( $product_id, $variation_id )
+			? self::$switch_request_context['subscription_id']
+			: Request::get_var( 'switch-subscription' );
+	}
+
+	/**
+	 * The subscription line item being switched, preferring the context set by
+	 * {@see set_switch_request_context()} and falling back to the request parameter used by the switch link flow.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param int $product_id   The product being added to the cart.
+	 * @param int $variation_id The variation being added to the cart, or 0.
+	 * @return mixed The line item ID, or null if there is no switch request.
+	 */
+	private static function get_switch_request_item_id( $product_id, $variation_id ) {
+		return self::switch_request_context_applies_to( $product_id, $variation_id )
+			? self::$switch_request_context['item_id']
+			: Request::get_var( 'item' );
+	}
+
+	/**
+	 * The plan the switch recorded by {@see set_switch_request_context()} is to.
+	 *
+	 * There is no request fallback: in the switch link flow the plan is posted with the add to cart form and
+	 * read from there by the subscription plans code.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param int $product_id   The product being added to the cart.
+	 * @param int $variation_id The variation being added to the cart, or 0.
+	 * @return string The plan key, or '' when the context does not apply or the switch is not to a plan.
+	 */
+	private static function get_switch_request_scheme_key( $product_id, $variation_id ) {
+		return self::switch_request_context_applies_to( $product_id, $variation_id )
+			? self::$switch_request_context['scheme_key']
+			: '';
+	}
+
+	/**
+	 * The keys of the plans the product being added currently offers, or an empty array when it offers none or
+	 * the subscription plans code is not loaded. A variation is read as itself: the plans code resolves it to its
+	 * parent's plans.
+	 *
+	 * Computed once per switch context and kept in it: the product instances are fresh on each call, so the plans
+	 * code's per-object cache would not help, and one rebuilt item reads the keys up to three times.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param int $product_id   The product being added to the cart.
+	 * @param int $variation_id The variation being added to the cart, or 0.
+	 * @return array The plan keys, as the plans code keys them.
+	 */
+	private static function get_switch_request_candidate_scheme_keys( $product_id, $variation_id ) {
+		$is_context_product = self::switch_request_context_applies_to( $product_id, $variation_id );
+
+		if ( $is_context_product && isset( self::$switch_request_context['candidate_scheme_keys'] ) ) {
+			return self::$switch_request_context['candidate_scheme_keys'];
+		}
+
+		$candidate_scheme_keys = array();
+
+		if ( class_exists( 'WCS_ATT_Product_Schemes' ) ) {
+			$product = wc_get_product( absint( $variation_id ) ? absint( $variation_id ) : absint( $product_id ) );
+
+			if ( $product instanceof WC_Product ) {
+				$schemes               = WCS_ATT_Product_Schemes::get_subscription_schemes( $product );
+				$candidate_scheme_keys = is_array( $schemes ) ? array_keys( $schemes ) : array();
+			}
+		}
+
+		if ( $is_context_product ) {
+			self::$switch_request_context['candidate_scheme_keys'] = $candidate_scheme_keys;
+		}
+
+		return $candidate_scheme_keys;
+	}
+
+	/**
+	 * The plan the switch is to, spelled as the product being added spells it, or '' when the context names no
+	 * plan or the product does not offer it. Validation and application must agree on the plan, so both read it
+	 * through here: the key validate_switch_request() accepts is the key set_switch_details_in_cart() writes.
+	 *
+	 * Resolution follows {@see Plan_Utils::resolve_key()} whichever copy of the subscription plans code is loaded:
+	 * an exact key wins, a plan spelled the other legacy way is matched, and a key naming two plans is refused.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param int    $product_id   The product being added to the cart.
+	 * @param int    $variation_id The variation being added to the cart, or 0.
+	 * @param string $scheme_key   The plan key the switch request context carries.
+	 * @return string The product's key for the plan, or ''.
+	 */
+	private static function resolve_switch_request_scheme_key( $product_id, $variation_id, $scheme_key ) {
+		if ( '' === $scheme_key ) {
+			return '';
+		}
+
+		return Plan_Utils::resolve_key( $scheme_key, self::get_switch_request_candidate_scheme_keys( $product_id, $variation_id ) );
+	}
+
+	/**
 	 * When a product is added to the cart, check if it is being added to switch a subscription and if so,
 	 * make sure it's valid (i.e. not the same subscription).
 	 *
@@ -1445,16 +2063,27 @@ class WC_Subscriptions_Switcher {
 
 		try {
 
-			$switch_subscription_id = Request::get_var( 'switch-subscription' );
+			$switch_subscription_id = self::get_switch_request_subscription_id( $product_id, $variation_id );
 
 			if ( ! $switch_subscription_id ) {
 				return $is_valid;
 			}
 
-			$nonce = Request::get_var( '_wcsnonce' );
+			/*
+			 * The nonce is the only thing standing between the switch link flow and a request the customer
+			 * did not make, because there the subscription and item come from the URL. A switch recorded by
+			 * set_switch_request_context() is not from the URL: the caller established the customer's right
+			 * to make it, and read it from data that customer's own order already holds. Requiring a nonce
+			 * there would break links which are legitimately built for one user and followed by another —
+			 * most visibly the pay link in the "Email invoice / order details to customer" email, whose nonce
+			 * is created while the merchant is the current user.
+			 */
+			if ( ! self::switch_request_context_applies_to( $product_id, $variation_id ) ) {
+				$nonce = Request::get_var( '_wcsnonce' );
 
-			if ( empty( $nonce ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $nonce ) ), 'wcs_switch_request' ) ) {
-				return false;
+				if ( empty( $nonce ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $nonce ) ), 'wcs_switch_request' ) ) {
+					return false;
+				}
 			}
 
 			$subscription = wcs_get_subscription( absint( $switch_subscription_id ) );
@@ -1465,12 +2094,22 @@ class WC_Subscriptions_Switcher {
 				throw new Exception( __( 'The subscription may have been deleted.', 'woocommerce-subscriptions' ) );
 			}
 
-			$item_id = absint( Request::get_var( 'item' ) );
-			$item    = wcs_get_order_item( $item_id, $subscription );
+			$item_id             = absint( self::get_switch_request_item_id( $product_id, $variation_id ) );
+			$item                = wcs_get_order_item( $item_id, $subscription );
+			$scheme_key          = self::get_switch_request_scheme_key( $product_id, $variation_id );
+			$resolved_scheme_key = self::resolve_switch_request_scheme_key( $product_id, $variation_id, $scheme_key );
 
-			// Prevent switching to non-subscription product
+			// Prevent switching to non-subscription product. A product sold through subscription plans only
+			// becomes one once its plan is applied to the cart item, so a switch to a plan it offers is accepted here.
 			if ( ! WC_Subscriptions_Product::is_subscription( $product_id ) ) {
-				throw new Exception( __( 'You can only switch to a subscription product.', 'woocommerce-subscriptions' ) );
+				if ( '' === $scheme_key ) {
+					throw new Exception( __( 'You can only switch to a subscription product.', 'woocommerce-subscriptions' ) );
+				}
+
+				// The plan can have been removed from the product since the switch order was placed.
+				if ( '' === $resolved_scheme_key ) {
+					throw new Exception( __( 'The subscription plan for this switch is no longer available.', 'woocommerce-subscriptions' ) );
+				}
 			}
 
 			// Check if the chosen variation's attributes are different to the existing subscription's attributes (to support switching between a "catch all" variation)
@@ -1495,7 +2134,52 @@ class WC_Subscriptions_Switcher {
 					$is_identical_product = false;
 				}
 
-				$is_identical_product = apply_filters( 'woocommerce_subscriptions_switch_is_identical_product', $is_identical_product, $product_id, $quantity, $variation_id, $subscription, $item );
+				// The same product on a different plan is a switch. Both keys are resolved against the plans the product
+				// offers today, so two plans that merely spell alike stay two plans. A key the product does not resolve
+				// is compared canonically instead: an item bought under the standalone plans plugin can spell the same
+				// plan differently (see Plan_Utils::canonicalize_key()).
+				$is_same_plan = false;
+
+				if ( $is_identical_product && '' !== $scheme_key && class_exists( 'WCS_ATT_Order' ) ) {
+					$item_scheme_key          = WCS_ATT_Order::get_subscription_scheme( $item );
+					$resolved_item_scheme_key = Plan_Utils::resolve_key( $item_scheme_key, self::get_switch_request_candidate_scheme_keys( $product_id, $variation_id ) );
+
+					if ( '' !== $resolved_scheme_key && '' !== $resolved_item_scheme_key ) {
+						$is_same_plan = $resolved_scheme_key === $resolved_item_scheme_key;
+					} else {
+						$is_same_plan = Plan_Utils::keys_match( $scheme_key, $item_scheme_key );
+					}
+
+					$is_identical_product = $is_same_plan;
+				}
+
+				/**
+				 * Filters whether the product being added to the cart is the one the subscription item is already on,
+				 * which makes the switch invalid.
+				 *
+				 * When a pending or failed switch order is paid for, the switcher keeps its own same-plan verdict after
+				 * this filter runs, since nothing is posted on that path for a callback to compare against.
+				 *
+				 * @since 2.0.20
+				 * @since 9.2.0 Added the $is_same_plan argument.
+				 *
+				 * @param bool                $is_identical_product Whether the product, variation, attributes, quantity and plan match the item's.
+				 * @param int                 $product_id           The product being added to the cart.
+				 * @param int                 $quantity             The quantity being added to the cart.
+				 * @param int|string          $variation_id         The variation being added to the cart, or 0 or '' for none.
+				 * @param WC_Subscription     $subscription         The subscription being switched.
+				 * @param WC_Order_Item|array $item                 The subscription line item being switched.
+				 * @param bool                $is_same_plan         Whether the switch is to the plan the item is already on. Informational for
+				 *                                                  now: the bundled callbacks do not read it, and the switcher keeps this verdict
+				 *                                                  after the filter on the order-pay rebuild regardless of what a callback returns.
+				 */
+				$is_identical_product = apply_filters( 'woocommerce_subscriptions_switch_is_identical_product', $is_identical_product, $product_id, $quantity, $variation_id, $subscription, $item, $is_same_plan );
+
+				// A callback cannot turn a switch to the plan the item is already on into a switch: the plan comes from
+				// the context here, and nothing is posted on this path for any callback to compare against.
+				if ( $is_same_plan ) {
+					$is_identical_product = true;
+				}
 
 				if ( $is_identical_product ) {
 					throw new Exception( __( 'You can not switch to the same subscription.', 'woocommerce-subscriptions' ) );
@@ -1537,12 +2221,13 @@ class WC_Subscriptions_Switcher {
 	public static function set_switch_details_in_cart( $cart_item_data, $product_id, $variation_id ) {
 
 		try {
-			$switch_subscription_id = Request::get_var( 'switch-subscription' );
+			$switch_subscription_id = self::get_switch_request_subscription_id( $product_id, $variation_id );
 
 			if ( ! $switch_subscription_id ) {
 				return $cart_item_data;
 			}
 
+			$item_id      = absint( self::get_switch_request_item_id( $product_id, $variation_id ) );
 			$subscription = wcs_get_subscription( absint( $switch_subscription_id ) );
 
 			if ( ! $subscription ) {
@@ -1557,10 +2242,24 @@ class WC_Subscriptions_Switcher {
 				return;
 			}
 
-			$item = wcs_get_order_item( absint( Request::get_var( 'item' ) ), $subscription );
+			$item = wcs_get_order_item( $item_id, $subscription );
+
+			// The item is gone from the subscription — most often because a later switch already replaced it,
+			// which rewrites it to the 'line_item_switched' type. Everything below reads $item['product_id'].
+			if ( empty( $item ) ) {
+				throw new Exception( __( 'We can not find your old subscription item.', 'woocommerce-subscriptions' ) );
+			}
 
 			// Else it's a valid switch
-			$product         = wc_get_product( $item['product_id'] );
+			$product = wc_get_product( $item['product_id'] );
+
+			// The old product has been deleted. The switch link flow never reaches here for one — no link is
+			// rendered, see wcs_is_product_switchable_type() — but a stored switch order can still name it, and
+			// get_parent_ids() below calls a method on whatever this is.
+			if ( ! $product ) {
+				throw new Exception( __( 'We can not find your old subscription item.', 'woocommerce-subscriptions' ) );
+			}
+
 			$parent_products = WC_Subscriptions_Product::get_parent_ids( $product );
 			$child_products  = array();
 
@@ -1609,10 +2308,23 @@ class WC_Subscriptions_Switcher {
 
 			$cart_item_data['subscription_switch'] = array(
 				'subscription_id'        => $subscription->get_id(),
-				'item_id'                => absint( Request::get_var( 'item' ) ),
+				'item_id'                => $item_id,
 				'next_payment_timestamp' => $next_payment_timestamp,
 				'upgraded_or_downgraded' => '',
 			);
+
+			$scheme_key = self::resolve_switch_request_scheme_key( $product_id, $variation_id, self::get_switch_request_scheme_key( $product_id, $variation_id ) );
+
+			// Gated the way WCS_ATT_Cart::add_cart_item_data() gates its own write, so this write and the plans code
+			// agree on which cart items carry a plan, and written as the preset plan that method keeps instead of
+			// applying the product's default one.
+			if ( '' !== $scheme_key && class_exists( 'WCS_ATT_Cart' ) && WCS_ATT_Cart::is_supported( array_merge( $cart_item_data, array( 'product_id' => $product_id ) ) ) ) {
+				if ( ! isset( $cart_item_data['wcsatt_data'] ) || ! is_array( $cart_item_data['wcsatt_data'] ) ) {
+					$cart_item_data['wcsatt_data'] = array();
+				}
+
+				$cart_item_data['wcsatt_data']['active_subscription_scheme'] = $scheme_key;
+			}
 
 			return $cart_item_data;
 
@@ -1806,7 +2518,7 @@ class WC_Subscriptions_Switcher {
 			$apportion_length      = get_option( WC_Subscriptions_Admin::$option_prefix . '_apportion_length', 'no' );
 			$apportion_sign_up_fee = get_option( WC_Subscriptions_Admin::$option_prefix . '_apportion_sign_up_fee', 'no' );
 
-			if ( 'yes' == $apportion_length || ( 'virtual' == $apportion_length && $product->is_virtual() ) ) {
+			if ( 'yes' === $apportion_length || ( 'virtual' === $apportion_length && $product->is_virtual() ) || ( 'physical' === $apportion_length && ! $product->is_virtual() ) ) {
 				$inclusions['subscription_length'] = false;
 			}
 

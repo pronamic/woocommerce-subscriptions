@@ -41,7 +41,7 @@ class WCS_ATT_Product_Export {
 
 		if ( in_array( $meta->key, array( '_wcsatt_schemes', '_wcsatt_selected_storewide_plans' ), true ) ) {
 			if ( ! empty( $meta_value ) ) {
-				$meta_value = json_encode( maybe_unserialize( $meta_value ) );
+				$meta_value = wp_json_encode( $meta_value ); // Encode: the exporter skips meta values that are not scalar.
 			}
 		}
 

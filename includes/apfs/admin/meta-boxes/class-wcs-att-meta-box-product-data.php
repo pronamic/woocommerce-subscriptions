@@ -108,12 +108,11 @@ class WCS_ATT_Meta_Box_Product_Data {
 		// Always pass gifting data if the global feature is enabled — React handles
 		// product-type visibility dynamically (the user can switch product types in the editor).
 		$gifting_globally_enabled = method_exists( WCSG_Admin::class, 'is_gifting_enabled' ) && WCSG_Admin::is_gifting_enabled();
-		$product_gifting          = '';
-		$gifting_option_text      = '';
+		$gifting_is_checked       = false;
 
 		if ( $gifting_globally_enabled ) {
-			$product_gifting     = $product_object->get_meta( '_subscription_gifting', true );
-			$gifting_option_text = WCSG_Admin::get_gifting_option_text();
+			// Resolve the checkbox's initial state. Saving materializes this into an explicit per-product value.
+			$gifting_is_checked = WC_Subscriptions_Product::is_gifting_enabled_for_product( $product_object );
 		}
 
 		?><div id="wcsatt_data" class="panel wc-metaboxes-wrapper <?php echo esc_attr( $classes ); ?>" style="display:none;">
@@ -129,8 +128,7 @@ class WCS_ATT_Meta_Box_Product_Data {
 				data-selected-storewide-plans="<?php echo esc_attr( $selected_plans_json ); ?>"
 				data-settings-url="<?php echo esc_url( WCS_ATT()->get_resource_url( 'global-plan-settings' ) ); ?>"
 				data-gifting-enabled="<?php echo $gifting_globally_enabled ? 'yes' : 'no'; ?>"
-				data-gifting-value="<?php echo esc_attr( $product_gifting ); ?>"
-				data-gifting-global-text="<?php echo esc_attr( $gifting_option_text ); ?>"
+				data-gifting-checked="<?php echo $gifting_is_checked ? 'yes' : 'no'; ?>"
 			></div>
 
 			<?php // Hidden inputs — React manages these values, PHP reads them on save. ?>
@@ -139,7 +137,7 @@ class WCS_ATT_Meta_Box_Product_Data {
 <input type="hidden" id="wcsatt-storewide-selection-mode" name="_wcsatt_storewide_selection_mode" value="<?php echo esc_attr( $storewide_selection_mode ); ?>" />
 			<input type="hidden" id="wcsatt-selected-storewide-plans" name="_wcsatt_selected_storewide_plans" value="<?php echo esc_attr( $selected_plans_json ); ?>" />
 			<?php if ( $gifting_globally_enabled ) : ?>
-			<input type="hidden" id="wcsatt-subscription-gifting" name="_wcsatt_subscription_plan_gifting" value="<?php echo esc_attr( $product_gifting ); ?>" />
+			<input type="hidden" id="wcsatt-subscription-gifting" name="_wcsatt_subscription_plan_gifting" value="<?php echo $gifting_is_checked ? 'enabled' : 'disabled'; ?>" />
 			<?php endif; ?>
 
 		</div>
@@ -315,14 +313,11 @@ class WCS_ATT_Meta_Box_Product_Data {
 				$product->update_meta_data( '_wcsatt_subscription_prompt', $prompt );
 			}
 
-			// Save gifting option from APFS subscription plans panel.
+			// Save gifting option from APFS subscription plans panel. The panel posts an explicit checkbox value, so
+			// materialise it into the product's own meta (checked → enabled, otherwise disabled).
 			if ( isset( $_POST['_wcsatt_subscription_plan_gifting'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-				$gifting_value = wc_clean( wp_unslash( $_POST['_wcsatt_subscription_plan_gifting'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-				if ( '' === $gifting_value ) {
-					$product->delete_meta_data( '_subscription_gifting' );
-				} else {
-					$product->update_meta_data( '_subscription_gifting', $gifting_value );
-				}
+				$gifting_value = 'enabled' === wc_clean( wp_unslash( $_POST['_wcsatt_subscription_plan_gifting'] ) ) ? 'enabled' : 'disabled'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				$product->update_meta_data( '_subscription_gifting', $gifting_value );
 			}
 		} else {
 

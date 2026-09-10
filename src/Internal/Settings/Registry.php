@@ -5,15 +5,15 @@ namespace Automattic\WooCommerce_Subscriptions\Internal\Settings;
 use InvalidArgumentException;
 
 /**
- * Registry of redesigned settings: the keys that opt into the modern (dual-namespace) behaviour and
- * how each derives its value from the legacy options when no modern value has been stored yet.
+ * Registry of redesigned settings: the decomposed keys the redesigned settings vocabulary exposes
+ * and how each derives its value from the stored (real) option(s).
  *
- * Registration is the opt-in to dual-namespace behaviour. A key that is not registered is, by
- * definition, not a redesigned setting; callers fall through to the legacy option transparently
- * (handled in {@see \Automattic\WooCommerce_Subscriptions\Settings}). This is what keeps non-settings
- * state (version markers, install flags, …) on the legacy prefix.
- *
- * Entries for each redesigned section are added incrementally — Switching first.
+ * Only sections whose redesigned shape decomposes stored options register here - Switching and
+ * Gifting, whose experimental React cards expose per-concern controls that have no stored option
+ * of their own. Fully harmonized sections read and write their real options directly and need no
+ * derivation. A key that is not registered is, by definition, not a redesigned setting; callers
+ * fall through to the option of the same name transparently (handled in
+ * {@see \Automattic\WooCommerce_Subscriptions\Settings}).
  *
  * @internal
  */
@@ -21,8 +21,8 @@ class Registry {
 	/**
 	 * Registered settings, keyed by the bare setting key (suffix without a leading underscore).
 	 *
-	 * Each value is a derivation callable mapping the current legacy option(s) to this setting's
-	 * value, used by derive-on-read when the modern value is absent.
+	 * Each value is a derivation callable mapping the current stored option(s) to this setting's
+	 * value, used by derive-on-read.
 	 *
 	 * @var array<string, callable>
 	 */
@@ -37,11 +37,10 @@ class Registry {
 		$registry = new self();
 
 		Switching_Definitions::register( $registry );
-		Renewals_Definitions::register( $registry );
-		Suspensions_Definitions::register( $registry );
-		Add_To_Subscription_Definitions::register( $registry );
 		Gifting_Definitions::register( $registry );
-		// Future redesigned sections register their definitions here.
+		// Only sections whose redesigned controls decompose stored options register here. The
+		// Renewals, Suspensions and Add to Subscription definitions were retired when those
+		// sections were fully harmonized at source (their controls read and write real options).
 
 		return $registry;
 	}

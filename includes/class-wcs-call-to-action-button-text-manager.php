@@ -30,14 +30,14 @@ class WCS_Call_To_Action_Button_Text_Manager {
 	public static function add_settings( $settings ) {
 		$button_text_settings = array(
 			array(
-				'name' => __( 'Button text', 'woocommerce-subscriptions' ),
-				'type' => 'title',
-				'desc' => '',
-				'id'   => WC_Subscriptions_Admin::$option_prefix . '_button_text',
+				'title' => __( 'Purchase text', 'woocommerce-subscriptions' ),
+				'type'  => 'title',
+				'desc'  => __( 'Customize the text that appears on your product and checkout pages.', 'woocommerce-subscriptions' ),
+				'id'    => WC_Subscriptions_Admin::$option_prefix . '_button_text',
 			),
 			array(
-				'name'        => __( 'Add to Cart Button Text', 'woocommerce-subscriptions' ),
-				'desc'        => __( 'A product displays a button with the text "Add to cart". You can customise the button text for subscriptions here.', 'woocommerce-subscriptions' ),
+				'name'        => __( 'Add to cart button', 'woocommerce-subscriptions' ),
+				'desc'        => __( 'Customize the add to cart button text that appears on an individual product page when a subscription product is selected.', 'woocommerce-subscriptions' ),
 				'tip'         => '',
 				'id'          => WC_Subscriptions_Admin::$option_prefix . '_add_to_cart_button_text',
 				'css'         => 'min-width:150px;',
@@ -47,8 +47,8 @@ class WCS_Call_To_Action_Button_Text_Manager {
 				'placeholder' => __( 'Add to cart', 'woocommerce-subscriptions' ),
 			),
 			array(
-				'name'        => __( 'Place Order Button Text', 'woocommerce-subscriptions' ),
-				'desc'        => __( 'Use this field to customise the text displayed on the checkout button when an order contains a subscription.', 'woocommerce-subscriptions' ),
+				'name'        => __( 'Place order button', 'woocommerce-subscriptions' ),
+				'desc'        => __( 'Customize the place order button text that appears on checkout page when the order contains a subscription.', 'woocommerce-subscriptions' ),
 				'tip'         => '',
 				'id'          => WC_Subscriptions_Admin::$option_prefix . '_order_button_text',
 				'css'         => 'min-width:150px;',

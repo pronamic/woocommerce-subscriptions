@@ -2,7 +2,6 @@
 
 namespace Automattic\WooCommerce_Subscriptions\Internal\HealthCheck;
 
-use Automattic\WooCommerce_Subscriptions\Internal\HealthCheck\Admin\CandidatesListTable;
 use DateTimeImmutable;
 use Throwable;
 
@@ -64,6 +63,33 @@ class ScheduleManager {
 	 * chain empties; see `handle_scan_batch()` for the hand-off.
 	 */
 	public const CHECK_TYPE_MISSING_RENEWAL = 'missing_renewal';
+
+	/**
+	 * The checks a scan run works through, in order. Each is its own
+	 * keyset walk over the whole subscriptions store, run one after the
+	 * other, so the list is both the hand-off sequence
+	 * (`next_check_type_after()`) and the run's total work relative to the
+	 * store size (`check_count()`).
+	 *
+	 * Order is a product-surface contract: the Supports-auto-renewal tab
+	 * badge populates before the Missing-renewals badge on a slow scan.
+	 *
+	 * @var string[]
+	 */
+	private const CHECK_TYPE_CHAIN = array(
+		self::CHECK_TYPE_SUPPORTS_AUTO_RENEWAL,
+		self::CHECK_TYPE_MISSING_RENEWAL,
+	);
+
+	/**
+	 * Version stamp `collect_run_stats()` writes into `stats_json` and the
+	 * Tracks payloads. Version 2 marks rows whose `total_scanned` counts
+	 * store coverage (WOOSUBS-1908); rows without the field predate the
+	 * change and carry the shortlist tally under the same key. `StatusTab`
+	 * renders a row's scanned count only when the row is versioned, so a
+	 * pre-change figure is never presented as the new reading.
+	 */
+	public const STATS_VERSION = 2;
 
 	/**
 	 * Maximum subscriptions inspected per SCAN_BATCH. Balances keyset-
@@ -423,21 +449,34 @@ class ScheduleManager {
 		// in the group is unscheduled regardless of its args.
 		$this->unschedule_all_actions( self::SCAN_BATCH, null, self::ACTION_GROUP );
 
-		// Snapshot the partial-progress counters under the semantic keys the StatusTab
+		// Snapshot the partial progress under the semantic keys the StatusTab
 		// cancelled-state renderer (`render_cancelled_partial_counts()`) reads:
-		//   - `subscriptions_scanned`: how many subs the SQL filter has visited so far.
+		//   - `subscriptions_scanned`: how many subs the run had been through.
 		//   - `total_subscriptions`:   store-wide subscription count snapshot at cancel time.
 		//
-		// `total_subscriptions` is a fresh `COUNT(*)` against the subscriptions store rather than
-		// a derivation from `candidates_found` (which only counts classified candidates, NOT the
-		// store total). Preserves all the keys produced by `collect_run_stats()` for forward-compat
-		// (`total_scanned`, `candidates_found`, `candidates_<signal>`, `completed_at`).
-		$collected = $this->collect_run_stats( $run_id );
+		// Both come from `collect_run_stats()`, which counts against the same store-wide
+		// COUNT(*) the Status tab renders as the denominator. Preserves all the keys it
+		// produces for forward-compat (`total_scanned`, `candidates_found`,
+		// `candidates_<signal>`, `completed_at`).
+		try {
+			$reading = $this->read_scan_progress( $this->circuit_breaker->get_scan_position( $run_id ) );
+		} catch ( HealthCheckDbException $e ) {
+			// The cancel must land even when the store cannot be counted -
+			// a merchant stopping a scan should never be blocked by a
+			// failing COUNT. Persist a zeroed reading instead (the guard
+			// has already logged); the card drops the partial counts and
+			// keeps the "Cancelled X ago" headline.
+			$reading = array(
+				'scanned' => 0,
+				'total'   => 0,
+			);
+		}
+
+		$collected = $this->collect_run_stats( $run_id, $reading );
 		$stats     = array_merge(
 			$collected,
 			array(
 				'subscriptions_scanned' => (int) ( $collected['total_scanned'] ?? 0 ),
-				'total_subscriptions'   => $this->count_all_subscriptions(),
 			)
 		);
 
@@ -459,6 +498,7 @@ class ScheduleManager {
 				'triggered_by'          => $triggered_by,
 				'subscriptions_scanned' => (int) ( $stats['subscriptions_scanned'] ?? 0 ),
 				'total_subscriptions'   => (int) ( $stats['total_subscriptions'] ?? 0 ),
+				'stats_version'         => (int) ( $stats['stats_version'] ?? 1 ),
 			)
 		);
 
@@ -533,12 +573,40 @@ class ScheduleManager {
 				return;
 			}
 
+			// A SCAN_BATCH action can outlive the release that queued it,
+			// carrying a check type this release no longer recognises - and a
+			// keyset cursor from that check's own walk. Restart such an action
+			// at the head of the chain with a zeroed cursor: every helper below
+			// already reads an unknown type as chain position 0 running the
+			// first shortlist, but letting it keep a mid-store `$after_id`
+			// would, on an empty page, bank the whole first check for a walk
+			// that started at that cursor - crediting coverage over ids the
+			// check never examined. Normalising the cursor to zero makes the
+			// position it banks describe exactly the walk it does.
+			if ( ! in_array( $check_type, self::CHECK_TYPE_CHAIN, true ) ) {
+				$check_type = self::CHECK_TYPE_CHAIN[0];
+				$after_id   = 0;
+			}
+
 			$signal_type = self::signal_type_for_check( $check_type );
 			$ids         = $this->detector->candidate_ids( $after_id, self::SCAN_BATCH_SIZE, $signal_type );
 
 			if ( empty( $ids ) ) {
-				// End of this chain. If there's a subsequent chain, hand
-				// off to it; otherwise finalise the run.
+				// End of this chain: the shortlist is exhausted, so the
+				// keyset walk has been past every subscription in the store,
+				// not just the ones at or below `$after_id`. Bank the whole
+				// check before handing off or finalising - otherwise the
+				// progress reading would stall at the last matching id and a
+				// store whose tail holds no candidates would never reach the
+				// store total.
+				$this->circuit_breaker->record_scan_position(
+					$run_id,
+					self::checks_completed_before( $check_type ) + 1,
+					0
+				);
+
+				// If there's a subsequent chain, hand off to it; otherwise
+				// finalise the run.
 				$next_check_type = self::next_check_type_after( $check_type );
 				if ( null !== $next_check_type ) {
 					$this->enqueue_async_action(
@@ -549,7 +617,15 @@ class ScheduleManager {
 					return;
 				}
 
-				$stats = $this->collect_run_stats( $run_id );
+				// The reading is taken here, inside the try, so a failed
+				// count aborts the finalisation: the raise lands in the
+				// catch below and the batch retries, rather than a zeroed
+				// reading being persisted into stats_json for the life of
+				// the run row. Taken while the run's position transient is
+				// still around (it expires a day after the run).
+				$reading = $this->read_scan_progress( $this->circuit_breaker->get_scan_position( $run_id ) );
+
+				$stats = $this->collect_run_stats( $run_id, $reading );
 				$this->run_store->complete( $run_id, 'scan', $stats );
 				$this->emit_scan_completed_event( $run_id, $stats );
 				return;
@@ -560,28 +636,31 @@ class ScheduleManager {
 				$this->candidate_store->add( $run_id, (int) $sub_id, $data, $signal_type );
 			}
 
-			// Accumulate the inspected-id count (ids the SQL filter
-			// returned, BEFORE the classifier narrows them) into the
-			// per-run counter so the Status tab can render
-			// "Scanned N subscriptions" even on runs that classify
-			// zero candidates.
+			$last_id = (int) max( $ids );
+
+			// Bank the position this batch reached. Everything at or below
+			// `$last_id` has now been through this check, whether the
+			// shortlist matched it or its WHERE clause ruled it out, which
+			// is what the Status tab reports as scanned.
 			//
-			// Counters live AFTER the persist loop because a classify
-			// or persist exception lands in the Throwable catch below
-			// and retries the SAME batch 60s later. With the counters
-			// above persist, a retry double-counted rows — the
-			// merchant-visible Scope-card scanned count and
-			// batches-processed stat both inflated per retry attempt.
-			// The daily-ceiling counter (record_processed) was already
-			// positioned correctly; move its two siblings down to
-			// match.
-			$this->circuit_breaker->record_scanned( $run_id, count( $ids ) );
+			// The accumulating counters live AFTER the persist loop because
+			// a classify or persist exception lands in the Throwable catch
+			// below and retries the SAME batch 60s later. With them above
+			// persist, a retry double-counted rows - the merchant-visible
+			// scanned count and batches-processed stat both inflated per
+			// retry attempt. The scanned count is an absolute position now
+			// and so immune, but `record_batch_processed()` and
+			// `record_processed()` still add, and still belong here.
+			$this->circuit_breaker->record_scan_position(
+				$run_id,
+				self::checks_completed_before( $check_type ),
+				$last_id
+			);
 			$this->circuit_breaker->record_batch_processed( $run_id );
 			$this->circuit_breaker->record_processed( count( $ids ) );
 			$this->circuit_breaker->record_heartbeat();
 			$this->circuit_breaker->reset_consecutive_failures();
 
-			$last_id = (int) max( $ids );
 			$this->schedule_single_action(
 				time() + self::INTER_BATCH_DELAY_SECONDS,
 				self::SCAN_BATCH,
@@ -636,23 +715,51 @@ class ScheduleManager {
 	 * Returns the next check type in the serial chain, or null when
 	 * `$check_type` is the final chain in the sequence.
 	 *
-	 * Order is fixed at: Supports-auto-renewal → Missing-renewal → (end).
-	 * Changing the sequence is a deliberate act — re-ordering interacts
-	 * with the per-run rolling counters and the stats_json payload shape,
-	 * neither of which would break per se, but the ordering is a
-	 * product-surface contract (the Supports-auto-renewal tab badge
-	 * populates before the Missing-renewals badge on a slow scan).
-	 *
 	 * @param string $check_type Current chain's check type.
 	 *
 	 * @return string|null Next chain's check type, or null if none.
 	 */
 	private static function next_check_type_after( string $check_type ): ?string {
-		if ( self::CHECK_TYPE_SUPPORTS_AUTO_RENEWAL === $check_type ) {
-			return self::CHECK_TYPE_MISSING_RENEWAL;
-		}
+		$next = self::checks_completed_before( $check_type ) + 1;
 
-		return null;
+		return self::CHECK_TYPE_CHAIN[ $next ] ?? null;
+	}
+
+	/**
+	 * How many checks a run has finished by the time it is working on
+	 * `$check_type`. Also the check's own index in the chain.
+	 *
+	 * An unrecognised check type - a SCAN_BATCH action queued by a release
+	 * whose chain differed - reads as position 0, which is what the rest of
+	 * the batch handler already assumes about a type it does not know:
+	 * `signal_type_for_check()` runs the first shortlist for it, and
+	 * `next_check_type_after()` hands off to the check that follows, so the
+	 * run still reaches every check before it finalises. Position 0 credits
+	 * exactly the walk such an action does because `handle_scan_batch()`
+	 * zeroes its cursor on entry - without that, a stale mid-store cursor
+	 * from the unknown check's own walk would bank the whole first check
+	 * for a walk that skipped everything below the cursor.
+	 *
+	 * @param string $check_type Current chain's check type.
+	 *
+	 * @return int
+	 */
+	private static function checks_completed_before( string $check_type ): int {
+		$index = array_search( $check_type, self::CHECK_TYPE_CHAIN, true );
+
+		return false === $index ? 0 : (int) $index;
+	}
+
+	/**
+	 * How many checks a full scan run works through. The run's total work
+	 * is this many passes over the subscriptions store, which is what
+	 * `ScanProgress` divides by to report one 0-to-store-total progression
+	 * rather than a count that restarts with each check.
+	 *
+	 * @return int
+	 */
+	public static function check_count(): int {
+		return count( self::CHECK_TYPE_CHAIN );
 	}
 
 	/**
@@ -688,12 +795,19 @@ class ScheduleManager {
 			: 'scheduled';
 
 		$payload = array(
-			'run_id'            => $run_id,
-			'total_scanned'     => (int) ( $stats['total_scanned'] ?? 0 ),
-			'candidates_found'  => (int) ( $stats['candidates_found'] ?? 0 ),
-			'duration_seconds'  => $duration_seconds,
-			'batches_processed' => $this->circuit_breaker->get_total_batches_processed( $run_id ),
-			'triggered_by'      => $triggered_by,
+			'run_id'              => $run_id,
+			// `total_scanned` counts subscriptions the run was through, so it
+			// only reads against a store total - which is why the denominator
+			// ships alongside it, as it already does on `scan_cancelled`.
+			'total_scanned'       => (int) ( $stats['total_scanned'] ?? 0 ),
+			'total_subscriptions' => (int) ( $stats['total_subscriptions'] ?? 0 ),
+			// Which definition `total_scanned` carries - see `collect_run_stats()`.
+			// Events emitted before WOOSUBS-1908 have no `stats_version` property.
+			'stats_version'       => (int) ( $stats['stats_version'] ?? 1 ),
+			'candidates_found'    => (int) ( $stats['candidates_found'] ?? 0 ),
+			'duration_seconds'    => $duration_seconds,
+			'batches_processed'   => $this->circuit_breaker->get_total_batches_processed( $run_id ),
+			'triggered_by'        => $triggered_by,
 		);
 
 		// Per-signal counts share the `candidates_{signal}` key shape
@@ -718,11 +832,35 @@ class ScheduleManager {
 	 * ("X items are ready for review" = sum of badge counts) can
 	 * back-fill from stats_json without a live-count query.
 	 *
-	 * @param int $run_id The run id.
+	 * `total_scanned` counts subscriptions the run was through, not the
+	 * shortlist rows it matched, so it reads against `total_subscriptions`
+	 * and against the subscriptions list. Rows written before
+	 * WOOSUBS-1908 still carry the old shortlist figure under the same key;
+	 * there is no back-fill, and - because nightly scans default to off - no
+	 * guarantee a next scan ever replaces them. `stats_version` is the
+	 * discriminator: 2 marks rows whose `total_scanned` is coverage, its
+	 * absence marks shortlist-era rows, and `StatusTab` renders the count
+	 * only when it can tell the row is versioned. The same field rides on
+	 * the Tracks payloads so dashboards aggregating `total_scanned` across
+	 * the release boundary can split the two definitions.
+	 *
+	 * The `{ scanned, total }` reading is passed in rather than taken here,
+	 * because its failure policy belongs to the caller: the worker finalise
+	 * path in `handle_scan_batch()` reads inside its try block, so a failed
+	 * count aborts and retries; `cancel_scan()` catches and hands over a
+	 * zeroed reading, because a merchant stopping a scan must never be
+	 * blocked by a failing COUNT. This method itself stays a pure
+	 * aggregation with no failure policy of its own.
+	 *
+	 * @param int                              $run_id  The run id.
+	 * @param array{scanned: int, total: int}  $reading Progress reading from
+	 *                                                  `read_scan_progress()`,
+	 *                                                  produced under the
+	 *                                                  caller's failure policy.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function collect_run_stats( int $run_id ): array {
+	private function collect_run_stats( int $run_id, array $reading ): array {
 		$per_signal = array();
 		foreach ( CandidateStore::all_signal_types() as $signal_type ) {
 			$per_signal[ 'candidates_' . $signal_type ] = $this->candidate_store->count_by_run_and_signal( $run_id, $signal_type );
@@ -730,12 +868,11 @@ class ScheduleManager {
 
 		return array_merge(
 			array(
-				'candidates_found' => $this->candidate_store->count_by_run( $run_id ),
-				// Persist the per-run scanned total into stats_json so
-				// the Status tab can read it after the transient-backed
-				// counter expires.
-				'total_scanned'    => $this->circuit_breaker->get_total_scanned( $run_id ),
-				'completed_at'     => current_time( 'mysql', true ),
+				'candidates_found'    => $this->candidate_store->count_by_run( $run_id ),
+				'total_scanned'       => $reading['scanned'],
+				'total_subscriptions' => $reading['total'],
+				'stats_version'       => self::STATS_VERSION,
+				'completed_at'        => current_time( 'mysql', true ),
 			),
 			$per_signal
 		);
@@ -890,18 +1027,24 @@ class ScheduleManager {
 	}
 
 	/**
-	 * Snapshot of the store-wide subscription total at the moment the helper is called.
+	 * The run's `{ scanned, total }` progress reading at the moment the helper is called.
 	 *
-	 * Used by `cancel_scan()` to persist a `total_subscriptions` figure on the cancelled run
-	 * row so the StatusTab can render "N of ~M scanned before cancel" without enumerating the
-	 * subscriptions store on every render. Delegates to the same
-	 * `CandidatesListTable::count_all_subscriptions()` static helper the StatusTab uses for the
-	 * SCOPE card so the two surfaces agree on the denominator. Overridable for tests so the
-	 * cancel-scan suite can pin the value without seeding real subscription rows.
+	 * Persisted on the run row as `total_scanned` / `total_subscriptions`, so the StatusTab
+	 * can render "N subscriptions scanned" (or "N of ~M scanned before cancel") long after
+	 * the position transient has expired, without re-counting the store on every render.
+	 * Delegates to the same `ScanProgress::read()` the Status tab and the AJAX poll use, so
+	 * every surface agrees on both figures. Takes the position rather than a run id so the
+	 * seam is the store read alone: tests can pin the store without seeding subscription
+	 * rows, and still exercise the real arithmetic over a real position.
 	 *
-	 * @return int
+	 * @param array{checks_completed: int, cursor: int} $position Position from
+	 *                                                            `CircuitBreaker::get_scan_position()`.
+	 *
+	 * @return array{scanned: int, total: int}
+	 *
+	 * @throws HealthCheckDbException When the store count query fails or never reaches the database.
 	 */
-	protected function count_all_subscriptions(): int {
-		return CandidatesListTable::count_all_subscriptions();
+	protected function read_scan_progress( array $position ): array {
+		return ScanProgress::read( $position );
 	}
 }

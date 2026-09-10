@@ -153,10 +153,11 @@ class WCS_My_Account_Auto_Renew_Toggle {
 		WC_Subscriptions_Admin::insert_setting_after( $settings, 'woocommerce_subscriptions_turn_off_automatic_payments', array(
 			'id'       => self::$setting_id,
 			'name'     => __( 'Auto Renewal Toggle', 'woocommerce-subscriptions' ),
-			'desc'     => __( 'Display the auto renewal toggle', 'woocommerce-subscriptions' ),
-			'desc_tip' => __( 'Allow customers to turn on and off automatic renewals from their View Subscription page.', 'woocommerce-subscriptions' ),
+			'desc'     => __( 'Allow subscribers to change their renewal mode via My Account', 'woocommerce-subscriptions' ),
+			'desc_tip' => __( 'Display a toggle that allows customers to enable and disable automatic renewals from their subscription details page.', 'woocommerce-subscriptions' ),
 			'default'  => 'no',
 			'type'     => 'checkbox',
+			'class'    => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
 		) );
 
 		return $settings;

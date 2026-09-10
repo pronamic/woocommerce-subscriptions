@@ -878,25 +878,33 @@ jQuery( function ( $ ) {
 	} );
 
 	// Notify store manager that deleting an order via the Orders screen also deletes subscriptions associated with the orders
-	$( '#posts-filter' ).on( 'submit', function () {
+	$( '#posts-filter, #wc-orders-filter' ).on( 'submit', function () {
+		const $form = $( this );
+		const isOrdersScreen =
+			( $form.attr( 'id' ) === 'posts-filter' &&
+				$form.find( '[name="post_type"]' ).val() === 'shop_order' ) ||
+			( $form.attr( 'id' ) === 'wc-orders-filter' &&
+				$form.find( '[name="page"]' ).val() === 'wc-orders' );
+
 		if (
-			$( '[name="post_type"]' ).val() == 'shop_order' &&
-			( $( '[name="action"]' ).val() == 'trash' ||
-				$( '[name="action2"]' ).val() == 'trash' )
+			isOrdersScreen &&
+			( $form.find( '[name="action"]' ).val() === 'trash' ||
+				$form.find( '[name="action2"]' ).val() === 'trash' )
 		) {
-			var containsSubscription = false;
-			$( '[name="post[]"]:checked' ).each( function () {
-				if (
-					true ===
-					$(
-						'.contains_subscription',
-						$( '#post-' + $( this ).val() )
-					).data( 'contains_subscription' )
-				) {
-					containsSubscription = true;
-				}
-				return false === containsSubscription;
-			} );
+			let containsSubscription = false;
+			$form
+				.find( '[name="post[]"]:checked, [name="id[]"]:checked' )
+				.each( function () {
+					if (
+						$( this )
+							.closest( 'tr' )
+							.find( '.contains_subscription' )
+							.data( 'contains_subscription' ) === true
+					) {
+						containsSubscription = true;
+					}
+					return containsSubscription === false;
+				} );
 			if ( containsSubscription ) {
 				return confirm( WCSubscriptions.bulkTrashWarning );
 			}
@@ -1019,29 +1027,12 @@ jQuery( function ( $ ) {
 			$switchSettingsRows = $allowSwitching
 				.parents( 'tr' )
 				.siblings( 'tr' ),
-			$firstBillingBehavior = $(
-				document.getElementById(
-					'woocommerce_subscriptions_first_billing_behavior'
-				)
-			),
-			$daysNoFeeRow = $(
-				document.getElementById(
-					'woocommerce_subscriptions_days_no_fee'
-				)
-			).parents( 'tr' ),
-			$prorateOptionsRow = $(
-				document.getElementById(
-					'woocommerce_subscriptions_prorate_virtual'
-				)
-			).parents( 'tr' ),
-			$suspensionExtensionRow = $(
-				'#woocommerce_subscriptions_recoup_suspension'
-			).parents( 'tr' ),
 			$customerNotificationOffsetRow = $(
 				'#woocommerce_subscriptions_customer_notifications_offset'
 			).parents( 'tr' );
 
-		// No animation for initial hiding when switching is disabled.
+		// Hide the dependent rows when switching is disabled. Show/hide is instant (no fade/slide)
+		// across the settings tab, per the redesign.
 		if ( 0 === allowSwitchingEnabled ) {
 			$switchSettingsRows.hide();
 		}
@@ -1050,64 +1041,33 @@ jQuery( function ( $ ) {
 			var isEnabled = $allowSwitching.find( 'input:checked' ).length;
 
 			if ( 0 === isEnabled ) {
-				$switchSettingsRows.fadeOut();
+				$switchSettingsRows.hide();
 			} else if ( 0 === allowSwitchingEnabled ) {
 				// switching was previously disabled, so settings will be hidden
-				$switchSettingsRows.fadeIn();
+				$switchSettingsRows.show();
+
+				// show() reveals every row unconditionally; re-run the value-dependent disclosure so a
+				// product-type row only stays shown when its (now-visible) behavior select is set to a
+				// prorating value, rather than because it happened to hold one while hidden.
+				$( '[data-show-if-value]' ).each( function () {
+					try {
+						$( '#' + JSON.parse( $( this ).attr( 'data-show-if-value' ) ).id ).trigger( 'change' );
+					} catch ( e ) {}
+				} );
 			}
 			allowSwitchingEnabled = isEnabled;
 		} );
 
-		// Show/hide suspension extension setting
-		$( '#woocommerce_subscriptions_max_customer_suspensions' )
-			.on( 'change', function () {
-				if ( $( this ).val() > 0 ) {
-					$suspensionExtensionRow.show();
-				} else {
-					$suspensionExtensionRow.hide();
-				}
-			} )
-			.trigger( 'change' );
-
-		// Show/hide sub-fields based on the "First billing behavior" selection.
-		var $firstBillingBehaviorDesc = $firstBillingBehavior.siblings( '.description' ),
-			firstBillingBehaviorDescriptions = $firstBillingBehavior.data( 'descriptions' ) || {};
-
-		function updateFirstBillingBehaviorRows( animate ) {
-			var val = $firstBillingBehavior.val();
-
-			$firstBillingBehaviorDesc.text( firstBillingBehaviorDescriptions[ val ] || '' );
-
-			if ( 'full' === val ) {
-				animate ? $daysNoFeeRow.fadeIn() : $daysNoFeeRow.show();
-				animate ? $prorateOptionsRow.fadeOut() : $prorateOptionsRow.hide();
-			} else if ( 'prorate' === val ) {
-				animate ? $daysNoFeeRow.fadeOut() : $daysNoFeeRow.hide();
-				animate ? $prorateOptionsRow.fadeIn() : $prorateOptionsRow.show();
-			} else {
-				animate ? $daysNoFeeRow.fadeOut() : $daysNoFeeRow.hide();
-				animate ? $prorateOptionsRow.fadeOut() : $prorateOptionsRow.hide();
-			}
-		}
-
-		// No animation on initial page load.
-		updateFirstBillingBehaviorRows( false );
-
-		// Animate on change.
-		$firstBillingBehavior.on( 'change', function () {
-			updateFirstBillingBehaviorRows( true );
-		} );
-
-		// No animation when initially hiding customer notification offset row.
+		// Hide the customer notification offset row while reminders are disabled.
 		if ( ! $customerNotifications.is( ':checked' ) ) {
 			$customerNotificationOffsetRow.hide();
 		}
 		// Watch the enable/disable customer notifications checkbox for changes.
 		$customerNotifications.on( 'change', function () {
 			if ( $( this ).is( ':checked' ) ) {
-				$customerNotificationOffsetRow.fadeIn();
+				$customerNotificationOffsetRow.show();
 			} else {
-				$customerNotificationOffsetRow.fadeOut();
+				$customerNotificationOffsetRow.hide();
 			}
 		} );
 	}
@@ -1117,7 +1077,6 @@ jQuery( function ( $ ) {
 				'woocommerce_subscriptions_gifting_enable_gifting'
 			)
 		),
-		$giftingRadios = $( '.wc-settings-row-gifting-radios' ),
 		$giftingCheckboxText = $( '.wc-settings-row-gifting-checkbox-text' ),
 		$giftingDownloadableProducts = $(
 			'.wc-settings-row-gifting-downloadable-products'
@@ -1126,7 +1085,6 @@ jQuery( function ( $ ) {
 	if ( $giftingEnableCheckbox.length > 0 ) {
 		function toggleGiftingCheckbox( checked ) {
 			if ( checked ) {
-				$giftingRadios.show();
 				$giftingCheckboxText.show();
 				$giftingDownloadableProducts.show();
 				$giftingEnableCheckbox.closest( 'tr' ).addClass( 'checked' );
@@ -1134,7 +1092,6 @@ jQuery( function ( $ ) {
 				return;
 			}
 
-			$giftingRadios.hide();
 			$giftingCheckboxText.hide();
 			$giftingDownloadableProducts.hide();
 			$giftingEnableCheckbox.closest( 'tr' ).removeClass( 'checked' );
@@ -1597,6 +1554,361 @@ jQuery( function ( $ ) {
 			);
 		}
 	} );
+
+	// Reusable Subscriptions settings-row behaviours, driven by data attributes so any field can opt in:
+	//
+	//   select[data-descriptions='{"value":"text",…}']  — swap the field's description to match the selected
+	//                                                       option (the classic counterpart of the modern
+	//                                                       SelectWithDescriptions component).
+	//   [data-show-if-checked="<checkbox id>[,<id>…]"]   — show the element's settings row only while at least
+	//                                                       one of the referenced checkboxes is checked.
+	function wcsInitValueDependentDescriptions() {
+		$( 'select[data-descriptions]' ).each( function () {
+			var $select = $( this );
+			var $description = $select.closest( 'td' ).find( '.description' ).first();
+
+			if ( ! $description.length ) {
+				return;
+			}
+
+			var descriptions;
+			try {
+				descriptions = JSON.parse( $select.attr( 'data-descriptions' ) );
+			} catch ( e ) {
+				return;
+			}
+
+			// Tie the paragraph to the select so assistive technology can reach the copy from the
+			// control; WooCommerce renders the description with no id and the select with no
+			// aria-describedby of its own.
+			var descriptionId = $description.attr( 'id' );
+			if ( ! descriptionId && $select.attr( 'id' ) ) {
+				descriptionId = $select.attr( 'id' ) + '_description';
+				$description.attr( 'id', descriptionId );
+			}
+			if ( descriptionId && ! $select.attr( 'aria-describedby' ) ) {
+				$select.attr( 'aria-describedby', descriptionId );
+			}
+
+			var announceTimer;
+
+			function updateDescription( announce ) {
+				var text = descriptions[ $select.val() ];
+				if ( 'undefined' === typeof text ) {
+					return;
+				}
+				$description.html( text );
+				// Announce only user-driven swaps: the initial call just mirrors the rendered page,
+				// and announcing it would read the description twice on load. The announcement is
+				// debounced (the visual swap is not) because some browsers - Firefox notably - fire
+				// `change` per arrow-key step on a closed select, and rewriting the live region per
+				// intermediate option garbles the readout; only the value the user settles on speaks.
+				if ( true === announce && window.wp && window.wp.a11y ) {
+					window.clearTimeout( announceTimer );
+					announceTimer = window.setTimeout( function () {
+						window.wp.a11y.speak( $description.text(), 'polite' );
+					}, 500 );
+				}
+			}
+
+			$select.on( 'change', function () {
+				updateDescription( true );
+			} );
+			updateDescription( false );
+		} );
+	}
+
+	function wcsInitShowIfChecked() {
+		var $targets = $( '[data-show-if-checked]' );
+
+		if ( ! $targets.length ) {
+			return;
+		}
+
+		// A controller is "active" when it is both checked and itself visible; the visibility part propagates chained
+		// disclosure (A reveals B reveals C) since a controller always precedes its dependents in the settings table.
+		function isControllerActive( id ) {
+			var $controller = $( '#' + id );
+			return (
+				$controller.length &&
+				$controller.is( ':checked' ) &&
+				$controller.closest( 'tr' ).is( ':visible' )
+			);
+		}
+
+		function controllerIds( $target ) {
+			return $.map( $target.attr( 'data-show-if-checked' ).split( ',' ), function ( id ) {
+				return $.trim( id );
+			} );
+		}
+
+		// A dependent row shows while at least one of its controllers is active. Evaluating in document order keeps
+		// chained disclosure correct in a single pass.
+		function refresh() {
+			$targets.each( function () {
+				var show = false;
+				$.each( controllerIds( $( this ) ), function ( i, id ) {
+					if ( isControllerActive( id ) ) {
+						show = true;
+						return false; // Break: one active controller is enough.
+					}
+				} );
+
+				$( this ).closest( 'tr' ).toggle( show );
+			} );
+		}
+
+		$targets.each( function () {
+			$.each( controllerIds( $( this ) ), function ( i, id ) {
+				$( '#' + id ).on( 'change', refresh );
+			} );
+		} );
+
+		refresh();
+	}
+
+	// `[data-show-if-value='{"id":"<select id>","values":["a","b"]}']` — show the element's settings row only while
+	// the referenced select's value is one of the listed values.
+	function wcsInitShowIfValue() {
+		$( '[data-show-if-value]' ).each( function () {
+			var $row = $( this ).closest( 'tr' );
+			var config;
+
+			try {
+				config = JSON.parse( $( this ).attr( 'data-show-if-value' ) );
+			} catch ( e ) {
+				return;
+			}
+
+			var $controller = $( '#' + config.id );
+			var values = config.values || [];
+
+			if ( ! $row.length || ! $controller.length ) {
+				return;
+			}
+
+			// Cascade-aware: hide the row when the controlling select is itself hidden (e.g. the whole switching
+			// proration section is collapsed because no switching type is enabled), not just when its value
+			// doesn't match — mirroring the visibility guard in wcsInitShowIfChecked().
+			function updateVisibility() {
+				$row.toggle(
+					$controller.closest( 'tr' ).is( ':visible' ) &&
+						-1 !== $.inArray( $controller.val(), values )
+				);
+			}
+
+			$controller.on( 'change', updateVisibility );
+			updateVisibility();
+		} );
+	}
+
+	// Inline "select at least one product type" guidance for the settings-page Virtual/Physical pairs: while a
+	// prorating behavior is selected but neither product type is checked, a red notice renders below the pair
+	// (the classic counterpart of the modern SettingsFieldError - the predicates mirror
+	// client/entrypoints/settings-ui.js). While any notice is showing, wcsInitSettingsSaveGate() below also blocks
+	// the save; the PHP save-time validation remains the enforcement for submits that never reach this script.
+	function wcsInitProductTypeValidation() {
+		// The Gutenberg "error" (warning triangle) icon, matching the modern notice.
+		var errorIconSvg =
+			'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.218 5.377a.25.25 0 0 0-.436 0l-7.29 12.96a.25.25 0 0 0 .218.373h14.58a.25.25 0 0 0 .218-.372l-7.29-12.96Zm-1.743-.735c.669-1.19 2.381-1.19 3.05 0l7.29 12.96a1.75 1.75 0 0 1-1.525 2.608H4.71a1.75 1.75 0 0 1-1.525-2.608l7.29-12.96ZM12.75 17.46h-1.5v-1.5h1.5v1.5Zm-1.5-3h1.5v-5h-1.5v5Z" /></svg>';
+
+		var groups = [
+			{
+				select: 'woocommerce_subscriptions_switch_first_billing_behavior',
+				proratingValues: [ 'upgrades', 'upgrades_and_downgrades' ],
+				checkboxes: [
+					'woocommerce_subscriptions_switch_first_billing_virtual',
+					'woocommerce_subscriptions_switch_first_billing_physical',
+				],
+				message: WCSubscriptions.selectProductTypesMessage,
+			},
+			{
+				select: 'woocommerce_subscriptions_switch_fixed_term_behavior',
+				proratingValues: [ 'prorate' ],
+				checkboxes: [
+					'woocommerce_subscriptions_switch_fixed_term_virtual',
+					'woocommerce_subscriptions_switch_fixed_term_physical',
+				],
+				message: WCSubscriptions.selectProductTypesMessage,
+			},
+			{
+				// Billing date alignment (payment synchronisation) proration pair.
+				select: 'woocommerce_subscriptions_first_billing_behavior',
+				proratingValues: [ 'prorate' ],
+				checkboxes: [
+					'woocommerce_subscriptions_prorate_virtual',
+					'woocommerce_subscriptions_prorate_physical',
+				],
+				message: WCSubscriptions.selectProrationProductTypesMessage,
+			},
+		];
+
+		var wiredGroups = 0;
+
+		$.each( groups, function ( index, group ) {
+			var $select = $( '#' + group.select );
+			var $checkboxes = $( '#' + group.checkboxes.join( ', #' ) );
+
+			if (
+				! group.message ||
+				! $select.length ||
+				$checkboxes.length !== group.checkboxes.length
+			) {
+				return;
+			}
+
+			wiredGroups++;
+
+			// The message renders below the pair (after the group helper text), inside the pair's cell so the
+			// row's own show/hide disclosure also hides it. The id lets the checkboxes and the Save button
+			// reference the notice via aria-describedby while it is showing.
+			var errorId = group.select + '_product_types_error';
+			var $error = $(
+				'<p class="woocommerce-subscriptions-settings__product-type-error" role="alert" style="display: none;"></p>'
+			)
+				.attr( 'id', errorId )
+				.append( errorIconSvg )
+				.append( $( '<span></span>' ).text( group.message ) );
+
+			$checkboxes.last().closest( 'td' ).append( $error );
+
+			function refresh() {
+				var prorating =
+					-1 !== $.inArray( $select.val(), group.proratingValues );
+				var anyChecked = $checkboxes.filter( ':checked' ).length > 0;
+				var showError = prorating && ! anyChecked;
+
+				$error.toggle( showError );
+
+				// Tie the notice to the pair so assistive tech reads the reason with the control. Neither
+				// renderer emits its own aria-describedby on these inputs (WC_Admin_Settings checkboxes and
+				// the synchroniser's custom pair alike), so setting/removing wholesale is safe.
+				if ( showError ) {
+					$checkboxes.attr( 'aria-describedby', errorId );
+				} else {
+					$checkboxes.removeAttr( 'aria-describedby' );
+				}
+			}
+
+			$select.on( 'change', refresh );
+			$checkboxes.on( 'change', refresh );
+			refresh();
+		} );
+
+		if ( wiredGroups ) {
+			wcsInitSettingsSaveGate();
+		}
+	}
+
+	// Blocks a classic settings save while any of the inline notices above is showing, and reflects that on the
+	// "Save changes" button. Without this the form submits happily: every other setting on the page persists and
+	// only the offending group is skipped server-side (WC_Subscriptions_Synchroniser::validate_proration_checkboxes()
+	// and WC_Subscriptions_Switcher::validate_switch_proration()), so the merchant gets a partial save and only
+	// learns about it from a notice after a full reload. That server-side validation remains the real enforcement -
+	// it still covers non-JS, stale-page and programmatic submits. This is the client-side half.
+	function wcsInitSettingsSaveGate() {
+		var $form = $( '#mainform' );
+		var $saveButton = $form.find( '.woocommerce-save-button' );
+
+		if ( ! $form.length || ! $saveButton.length ) {
+			return;
+		}
+
+		// A notice inside a collapsed row (e.g. the whole switching proration section while no switching type is
+		// enabled) is :hidden through its ancestors, so this single check covers both the notice's own toggle and
+		// the row-level progressive disclosure - no need to re-derive either here.
+		function getVisibleErrors() {
+			return $(
+				'.woocommerce-subscriptions-settings__product-type-error:visible'
+			);
+		}
+
+		// aria-disabled rather than the disabled property: that property belongs to WooCommerce core, which clears
+		// it from several places (its dirty-tracking change handler, a #mainform MutationObserver), so setting it
+		// here would be a race we could lose. aria-disabled also keeps the button focusable, so a keyboard or
+		// screen reader user can still reach it and be taken to the cause. wp-components already styles
+		// `.components-button.is-primary[aria-disabled="true"]` exactly like `:disabled`, so this needs no CSS.
+		function syncSaveButton() {
+			var $errors = getVisibleErrors();
+
+			if ( $errors.length ) {
+				$saveButton.attr( 'aria-disabled', 'true' );
+				// Point the button at the visible notice(s) so it can explain, not just report, the block.
+				$saveButton.attr(
+					'aria-describedby',
+					$errors
+						.map( function () {
+							return this.id;
+						} )
+						.get()
+						.join( ' ' )
+				);
+			} else {
+				$saveButton
+					.removeAttr( 'aria-disabled' )
+					.removeAttr( 'aria-describedby' );
+			}
+		}
+
+		// Bound on the form rather than on the controls: `change` bubbles, so a form-level handler always runs
+		// after the element-level ones - core's dirty-tracking, our own refresh(), and the row show/hide handlers -
+		// whichever script happened to load first. By the time this runs, notice and row visibility have settled.
+		$form.on( 'change', syncSaveButton );
+		syncSaveButton();
+
+		$form.on( 'submit', function ( event ) {
+			var $errors = getVisibleErrors();
+			var $firstCheckbox;
+
+			if ( ! $errors.length ) {
+				return;
+			}
+
+			// The button is not the only way in: Enter in any text field submits the form too, so the gate has to
+			// live here rather than on the button alone.
+			event.preventDefault();
+
+			// Core has already reacted to the click by this point: it added `is-busy` to the button and cleared
+			// the unsaved-changes guard. Undo both, or the button spins forever and the merchant can navigate
+			// away from genuinely unsaved changes without being warned.
+			$saveButton.removeClass( 'is-busy' );
+
+			if (
+				'undefined' !== typeof woocommerce_settings_params &&
+				woocommerce_settings_params.i18n_nav_warning
+			) {
+				window.onbeforeunload = function () {
+					return woocommerce_settings_params.i18n_nav_warning;
+				};
+			}
+
+			syncSaveButton();
+
+			// Announce the reason at the moment of the block: the notice's role="alert" fired when it first
+			// appeared, not now, so a blocked Save would otherwise be silent to a screen reader.
+			if ( window.wp && window.wp.a11y && window.wp.a11y.speak ) {
+				window.wp.a11y.speak( $errors.first().text(), 'assertive' );
+			}
+
+			// Send the merchant to the control they have to fix rather than to the notice, which is not
+			// focusable. The aria-describedby set in refresh() ties that control to the notice, so the reason
+			// is read together with the checkbox label.
+			$firstCheckbox = $errors
+				.first()
+				.closest( 'td' )
+				.find( 'input[type="checkbox"]' )
+				.first();
+
+			if ( $firstCheckbox.length ) {
+				$firstCheckbox.trigger( 'focus' );
+			}
+		} );
+	}
+
+	wcsInitValueDependentDescriptions();
+	wcsInitShowIfChecked();
+	wcsInitShowIfValue();
+	wcsInitProductTypeValidation();
 
 	// On the subscriptions list table empty state screen, add the is-busy class to the button when clicked.
 	$( '.woo_subscriptions_empty_state__button_container a' ).on( 'click', function ( e ) {

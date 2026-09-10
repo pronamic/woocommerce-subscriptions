@@ -1,10 +1,22 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
+// Top-level deprecation notice per includes/deprecated/README.md - fires on `class_exists( ..., true )`
+// lookups via the classmap autoloader, even when the class is never instantiated.
+_deprecated_class( 'WC_REST_Subscriptions_Settings', '9.2.0' );
+
 /**
  * WC REST API Subscriptions Settings class.
  *
  * Adds subscription settings to the wc/<version>/settings and wc/<version>/settings/{group_id} endpoint.
+ *
+ * @deprecated 9.2.0 No longer constructed by the plugin. The Subscriptions settings tab is registered as a
+ * WC_Settings_Page, which WooCommerce's own REST settings registrar (WC_Register_WP_Admin_Settings) mirrors
+ * into the REST settings API on `rest_api_init`, superseding this manual mirror; the resulting surface is
+ * reconciled by {@see \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Settings_Page::filter_rest_registered_settings()}.
+ * The class deliberately deviates from the deprecated-symbol convention's "minimal shell" guidance and
+ * remains fully functional: external code constructing it must keep getting the group it registered for,
+ * and its registrations are deduplicated by that same filter.
  */
 class WC_REST_Subscriptions_Settings {
 

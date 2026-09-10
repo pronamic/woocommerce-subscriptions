@@ -3,7 +3,7 @@
  * Bulk edit fields for the Products list screen.
  *
  * @package WooCommerce Subscriptions
- * @since   8.6.0
+ * @since   9.0.0
  */
 
 namespace Automattic\WooCommerce_Subscriptions\Internal\Products;
@@ -26,6 +26,13 @@ class BulkActions {
 	 * Transient name prefix for storing bulk edit results across the POST-redirect-GET cycle.
 	 */
 	const TRANSIENT_PREFIX = 'woocommerce_subscriptions_bulk_edit_result_';
+
+	/**
+	 * Request field used to update gifting through product bulk edit.
+	 *
+	 * @since 9.2.0
+	 */
+	private const GIFTING_FIELD_NAME = '_woocommerce_subscriptions_bulk_gifting';
 
 	/**
 	 * Register hooks.
@@ -93,6 +100,24 @@ class BulkActions {
 					</select>
 				</div>
 			</div>
+
+			<?php if ( self::is_gifting_enabled() ) : ?>
+				<div class="inline-edit-group">
+					<label for="woocommerce-subscriptions-bulk-gifting">
+						<span class="title"><?php esc_html_e( 'Gifting', 'woocommerce-subscriptions' ); ?></span>
+					</label>
+					<div class="input-text-wrap">
+						<select
+							id="woocommerce-subscriptions-bulk-gifting"
+							name="<?php echo esc_attr( self::GIFTING_FIELD_NAME ); ?>"
+						>
+							<option value=""><?php esc_html_e( '&mdash; No change &mdash;', 'woocommerce-subscriptions' ); ?></option>
+							<option value="enabled"><?php esc_html_e( 'Enable gifting', 'woocommerce-subscriptions' ); ?></option>
+							<option value="disabled"><?php esc_html_e( 'Disable gifting', 'woocommerce-subscriptions' ); ?></option>
+						</select>
+					</div>
+				</div>
+			<?php endif; ?>
 		</div>
 
 		<script type="text/javascript">
@@ -119,15 +144,33 @@ class BulkActions {
 	 * @param \WC_Product $product The product being saved.
 	 */
 	public static function save_bulk_edit_fields( $product ) {
+		$purchase_options_changed = self::save_purchase_options( $product );
+		$gifting_changed          = self::save_gifting( $product );
+
+		if ( $purchase_options_changed || $gifting_changed ) {
+			// WC calls $product->save() before this hook fires, not after.
+			$product->save();
+		}
+	}
+
+	/**
+	 * Process purchase options during bulk edit save.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param \WC_Product $product The product being saved.
+	 * @return bool Whether the product has unsaved purchase option changes.
+	 */
+	private static function save_purchase_options( $product ) {
 		$mode = isset( $_REQUEST['_wcsatt_bulk_purchase_option'] ) ? wc_clean( wp_unslash( $_REQUEST['_wcsatt_bulk_purchase_option'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		if ( empty( $mode ) || ! \WCS_ATT_Scheme::is_valid_mode( $mode ) ) {
-			return;
+			return false;
 		}
 
 		if ( ! \WCS_ATT_Product::supports_feature( $product, 'subscription_schemes' ) ) {
 			++self::$skipped;
-			return;
+			return false;
 		}
 
 		// Override mode requires existing custom plans.
@@ -135,7 +178,7 @@ class BulkActions {
 			$schemes = $product->get_meta( '_wcsatt_schemes', true );
 			if ( empty( $schemes ) ) {
 				++self::$skipped;
-				return;
+				return false;
 			}
 		}
 
@@ -151,9 +194,84 @@ class BulkActions {
 			}
 		}
 
-		// WC calls $product->save() before this hook fires, not after.
-		// Verified: without this save, meta changes from set_subscription_scheme_mode() are lost.
-		$product->save();
+		return true;
+	}
+
+	/**
+	 * Get and validate the gifting value requested through bulk edit.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @return string Either "enabled", "disabled", or an empty string for no change.
+	 */
+	private static function get_requested_gifting_value() {
+		if ( ! self::is_gifting_enabled() || ! isset( $_REQUEST[ self::GIFTING_FIELD_NAME ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return '';
+		}
+
+		$value = wc_clean( wp_unslash( $_REQUEST[ self::GIFTING_FIELD_NAME ] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		return in_array( $value, array( 'enabled', 'disabled' ), true ) ? $value : '';
+	}
+
+	/**
+	 * Check whether the integrated gifting feature is available and enabled.
+	 *
+	 * The standalone Gifting extension can provide an older WCSG_Admin class
+	 * without the integrated feature API.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param string $admin_class Gifting admin class name.
+	 * @return bool
+	 */
+	private static function is_gifting_enabled( $admin_class = \WCSG_Admin::class ) {
+		return method_exists( $admin_class, 'is_gifting_enabled' ) && $admin_class::is_gifting_enabled();
+	}
+
+	/**
+	 * Process gifting during bulk edit save.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param \WC_Product $product The product being saved.
+	 * @return bool Whether the product has unsaved gifting changes.
+	 */
+	private static function save_gifting( $product ) {
+		$value = self::get_requested_gifting_value();
+
+		if ( '' === $value ) {
+			return false;
+		}
+
+		if ( $product->is_type( 'variable-subscription' ) ) {
+			self::save_variable_subscription_gifting( $product, $value );
+			return false;
+		}
+
+		$product->update_meta_data( '_subscription_gifting', $value );
+
+		return true;
+	}
+
+	/**
+	 * Apply a gifting value to every variation of a variable subscription.
+	 *
+	 * @since 9.2.0
+	 *
+	 * @param \WC_Product $product The variable subscription product.
+	 * @param string      $value   Either "enabled" or "disabled".
+	 */
+	private static function save_variable_subscription_gifting( $product, $value ) {
+		foreach ( $product->get_children() as $variation_id ) {
+			$variation_post = get_post( $variation_id );
+
+			if ( ! $variation_post || 'product_variation' !== $variation_post->post_type || $product->get_id() !== (int) $variation_post->post_parent ) {
+				continue;
+			}
+
+			update_post_meta( $variation_id, '_subscription_gifting', $value );
+		}
 	}
 
 	/**

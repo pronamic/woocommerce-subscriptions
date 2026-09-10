@@ -85,7 +85,13 @@ class WCS_API {
 		}
 
 		WC_REST_Subscription_System_Status_Manager::init();
-		new WC_REST_Subscriptions_Settings();
+
+		/*
+		 * The subscriptions settings group is no longer registered here: registering the settings tab as a
+		 * WC_Settings_Page opts it into WooCommerce's own REST settings registrar, and the surface is
+		 * reconciled by Settings_Page::filter_rest_registered_settings(). WC_REST_Subscriptions_Settings
+		 * is deprecated.
+		 */
 	}
 
 	/**

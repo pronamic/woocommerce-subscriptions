@@ -18,6 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+use Automattic\WooCommerce_Subscriptions\Internal\PayPal\Log_Sanitizer;
+
 class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Response {
 
 	/** @var array URL-decoded and parsed parameters */
@@ -212,13 +214,15 @@ class WCS_PayPal_Reference_Transaction_API_Response extends WC_Gateway_Paypal_Re
 	 * Returns the string representation of this response with any and all
 	 * sensitive elements masked or removed
 	 *
+	 * Reference transaction responses carry the buyer's name, email address, phone number and postal address, a
+	 * checkout token, and the 'custom' payload the store sent with the order and subscription keys in it. Only
+	 * the fields on the internal log sanitizer's allowlist survive.
+	 *
 	 * @return string response safe for logging/displaying
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public function to_string_safe() {
-
-		// no sensitive data to mask
-		return $this->to_string();
+		return Log_Sanitizer::to_json( Log_Sanitizer::sanitize_api_parameters( $this->parameters ) );
 	}
 
 	/**

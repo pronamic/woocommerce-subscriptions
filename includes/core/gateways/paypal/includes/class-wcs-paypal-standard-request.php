@@ -48,6 +48,11 @@ class WCS_PayPal_Standard_Request {
 			if ( $cart_item = wcs_cart_contains_failed_renewal_order_payment() || false !== WC_Subscriptions_Renewal_Order::get_failed_order_replaced_by( wcs_get_objects_property( $order, 'id' ) ) ) {
 				$subscriptions                 = wcs_get_subscriptions_for_renewal_order( $order );
 				$order_contains_failed_renewal = true;
+			} elseif ( wcs_order_contains_renewal( $order ) && 'yes' === $order->get_meta( WC_Subscription::RENEWAL_FAILED_META_KEY ) ) {
+				// A failed renewal order is still one while it is unpaid, whatever status the checkout has moved it to on
+				// the way to payment - the Store API sets it back to pending - so that it is paid through a profile of its own.
+				$subscriptions                 = wcs_get_subscriptions_for_renewal_order( $order );
+				$order_contains_failed_renewal = true;
 			} else {
 				$subscriptions                 = wcs_get_subscriptions_for_order( $order );
 			}
@@ -297,6 +302,12 @@ class WCS_PayPal_Standard_Request {
 
 			// Force return URL so that order description & instructions display
 			$paypal_args['rm'] = 2;
+
+			// Record when the second trial period, if there is one, is to end, so that the IPN handler can tell the payment
+			// of 0.01 PayPal requires for it from a payment of 0.01 it should reject. It is recorded as pending because the
+			// customer may never complete the payment at PayPal; the IPN handler adopts it once the profile's sign up arrives.
+			$subscription->update_meta_data( '_paypal_pending_second_trial_end', isset( $paypal_args['a2'] ) ? $next_payment_timestamp : 0 );
+			$subscription->save();
 
 			// Reattach the filter we removed earlier
 			if ( $is_payment_change ) {

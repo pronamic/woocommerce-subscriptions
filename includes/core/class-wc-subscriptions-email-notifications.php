@@ -278,35 +278,47 @@ class WC_Subscriptions_Email_Notifications {
 
 		$notification_settings = [
 			[
-				'name' => __( 'Customer notifications', 'woocommerce-subscriptions' ),
+				'name' => __( 'Subscription notifications', 'woocommerce-subscriptions' ),
 				'type' => 'title',
 				'id'   => WC_Subscriptions_Admin::$option_prefix . '_customer_notifications',
-				/* translators: Link to WC Settings > Email. */
-				'desc' => sprintf( __( 'To enable/disable individual notifications and customize templates, visit the <a href="%s">Email settings</a>.', 'woocommerce-subscriptions' ), admin_url( 'admin.php?page=wc-settings&tab=email' ) ),
+				'desc' => sprintf(
+					/* translators: %1$s: a "Learn more" documentation link. */
+					__( 'Notify subscribers before their subscription renews, expires, or their free trial ends. %1$s', 'woocommerce-subscriptions' ),
+					\Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Settings_Layout::learn_more_link( 'https://woocommerce.com/document/subscriptions/store-manager-guide/#subscription-notifications' )
+				),
 			],
 			[
 				'name'     => __( 'Enable Reminders', 'woocommerce-subscriptions' ),
-				'desc'     => __( 'Send notification emails to customers for subscription renewals and expirations.', 'woocommerce-subscriptions' ),
+				'desc'     => __( 'Send reminder emails to subscribers', 'woocommerce-subscriptions' ),
 				'tip'      => '',
 				'id'       => WC_Subscriptions_Admin::$option_prefix . self::$switch_setting_string,
-				'desc_tip' => false,
+				'desc_tip' => sprintf(
+					/* translators: %1$s: a link to the WooCommerce email settings. */
+					__( 'To customize individual notifications, go to %1$s.', 'woocommerce-subscriptions' ),
+					'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=email' ) ) . '">' . __( 'Email settings', 'woocommerce-subscriptions' ) . '</a>'
+				),
 				'type'     => 'checkbox',
+				'class'    => \Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer::CLASS_HIDE_CHECKBOX_TITLE,
 				'default'  => 'no',
 				'autoload' => false,
 			],
 			[
-				'name'        => __( 'Reminder Timing', 'woocommerce-subscriptions' ),
-				'desc'        => __( 'How long before the event should the notification be sent.', 'woocommerce-subscriptions' ),
+				'name'        => __( 'Reminder timing', 'woocommerce-subscriptions' ),
+				'desc'        => __( 'Set when reminders are sent before renewal.', 'woocommerce-subscriptions' ),
 				'tip'         => '',
 				'id'          => WC_Subscriptions_Admin::$option_prefix . self::$offset_setting_string,
 				'desc_tip'    => true,
 				'type'        => 'relative_date_selector',
+				// Also the empty-input fallback the unit labels pluralize against (see reminder-timing-labels.js).
 				'placeholder' => '3',
 				'default'     => [
 					'number' => '3',
 					'unit'   => 'days',
 				],
 				'autoload'    => false,
+				// Lets the card stylesheet lay the number + unit controls out side by side (see style.scss),
+				// and is the selector the live unit re-label module binds to (see reminder-timing-labels.js).
+				'row_class'   => 'reminder-timing',
 			],
 			[
 				'type' => 'sectionend',

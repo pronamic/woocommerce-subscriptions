@@ -219,10 +219,15 @@ class WCS_Switch_Totals_Calculator {
 	 * @return bool
 	 */
 	protected function should_prorate_recurring_price( $switch_item ) {
-		$prorate_all     = in_array( $this->apportion_recurring_price, array( 'yes', 'yes-upgrade' ) );
-		$prorate_virtual = in_array( $this->apportion_recurring_price, array( 'virtual', 'virtual-upgrade' ) );
+		$prorate_all      = in_array( $this->apportion_recurring_price, array( 'yes', 'yes-upgrade' ), true );
+		$prorate_virtual  = in_array( $this->apportion_recurring_price, array( 'virtual', 'virtual-upgrade' ), true );
+		$prorate_physical = in_array( $this->apportion_recurring_price, array( 'physical', 'physical-upgrade' ), true );
 
-		return apply_filters( 'wcs_switch_should_prorate_recurring_price', $prorate_all || ( $prorate_virtual && $switch_item->is_virtual_product() ), $switch_item );
+		$should_prorate = $prorate_all
+			|| ( $prorate_virtual && $switch_item->is_virtual_product() )
+			|| ( $prorate_physical && ! $switch_item->is_virtual_product() );
+
+		return apply_filters( 'wcs_switch_should_prorate_recurring_price', $should_prorate, $switch_item );
 	}
 
 	/**
@@ -273,7 +278,7 @@ class WCS_Switch_Totals_Calculator {
 	 * @return bool
 	 */
 	protected function should_extend_prepaid_term() {
-		return in_array( $this->apportion_recurring_price, array( 'virtual', 'yes' ) );
+		return in_array( $this->apportion_recurring_price, array( 'virtual', 'yes', 'physical' ), true );
 	}
 
 	/**
@@ -285,7 +290,7 @@ class WCS_Switch_Totals_Calculator {
 	 */
 	protected function should_apportion_length( $switch_item ) {
 
-		return apply_filters( 'wcs_switch_should_prorate_length', 'yes' == $this->apportion_length || ( 'virtual' == $this->apportion_length && $switch_item->is_virtual_product() ), $switch_item );
+		return apply_filters( 'wcs_switch_should_prorate_length', 'yes' === $this->apportion_length || ( 'virtual' === $this->apportion_length && $switch_item->is_virtual_product() ) || ( 'physical' === $this->apportion_length && ! $switch_item->is_virtual_product() ), $switch_item );
 	}
 
 	/** Total Calculators */

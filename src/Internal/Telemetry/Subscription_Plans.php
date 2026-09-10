@@ -18,12 +18,36 @@ class Subscription_Plans {
 	 */
 	public function get_settings(): array {
 		$cart_level_schemes = get_option( 'wcsatt_subscribe_to_cart_schemes', array() );
+		$add_products       = (string) get_option( 'wcsatt_add_product_to_subscription', 'off' );
+		$add_cart           = (string) get_option( 'wcsatt_add_cart_to_subscription', 'off' );
 
 		return array(
-			'cart_plans'                    => ! empty( $cart_level_schemes ) && is_array( $cart_level_schemes ) ? count( $cart_level_schemes ) : 0,
-			'add_products_to_subscriptions' => 'off' === get_option( 'wcsatt_add_product_to_subscription', 'off' ) ? 'off' : 'on',
-			'add_cart_to_subscriptions'     => 'off' === get_option( 'wcsatt_add_cart_to_subscription', 'off' ) ? 'off' : 'on',
+			'cart_plans'                                => ! empty( $cart_level_schemes ) && is_array( $cart_level_schemes ) ? count( $cart_level_schemes ) : 0,
+			'add_products_to_subscriptions'             => 'off' === $add_products ? 'off' : 'on',
+			'add_cart_to_subscriptions'                 => 'off' === $add_cart ? 'off' : 'on',
+			'add_products_to_subscriptions_eligibility' => self::get_channel_eligibility( $add_products ),
+			'add_cart_to_subscriptions_eligibility'     => self::get_channel_eligibility( $add_cart ),
 		);
+	}
+
+	/**
+	 * Normalizes an add-to-subscription channel's stored value into its eligibility level.
+	 *
+	 * The on/off keys above stay as they are so their history remains comparable; these carry the level the
+	 * on/off pair cannot express, which is what tells a mismatched configuration (one channel unrestricted, the
+	 * other restricted) apart from a matching one.
+	 *
+	 * @param string $value The channel's stored value.
+	 * @return string 'off', 'any_product', or 'subscription_products'.
+	 */
+	private static function get_channel_eligibility( string $value ): string {
+		if ( 'off' === $value ) {
+			return 'off';
+		}
+
+		// Anything but the unrestricted 'on' is a restricted channel, matching how the settings screen reads these
+		// values, so out-of-vocabulary rows are reported as a level rather than passed through verbatim.
+		return 'on' === $value ? 'any_product' : 'subscription_products';
 	}
 
 	/**

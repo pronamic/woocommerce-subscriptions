@@ -133,6 +133,8 @@ class WCS_ATT_Manage_Add_Cart extends WCS_ATT_Abstract_Module {
 			return;
 		}
 
+		WCS_ATT_Display::maybe_enqueue_cart_script();
+
 		$posted_data = WCS_ATT_Manage_Add::get_posted_data( 'update-cart' );
 
 		if ( is_checkout() ) {
@@ -326,14 +328,12 @@ class WCS_ATT_Manage_Add_Cart extends WCS_ATT_Abstract_Module {
 		$subscription_id = $posted_data['subscription_id'];
 		$subscription    = wcs_get_subscription( $subscription_id );
 
-		if ( ! $subscription ) {
-			wc_add_notice( sprintf( __( 'Subscription #%d cannot be edited. Please get in touch with us for assistance.', 'woocommerce-subscriptions' ), $subscription_id ), 'error' );
-			return;
-		}
-
+		// A subscription that does not exist and one that belongs to somebody else share a single notice. The nonce
+		// action here is fixed rather than per-subscription, so any logged-in customer can mint a valid one: telling
+		// the two cases apart would let them walk the ID space to learn which IDs are subscriptions.
 		if ( ! WCS_ATT_Manage_Add::current_user_can_add_to_subscription( $subscription ) ) {
 			// translators: %d: subscription ID.
-			wc_add_notice( sprintf( __( 'You do not have permission to edit subscription #%d.', 'woocommerce-subscriptions' ), $subscription_id ), 'error' );
+			wc_add_notice( sprintf( __( 'Subscription #%d cannot be edited. Please get in touch with us for assistance.', 'woocommerce-subscriptions' ), $subscription_id ), 'error' );
 			return;
 		}
 
