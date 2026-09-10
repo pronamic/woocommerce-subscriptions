@@ -1,0 +1,19 @@
+name: Keep workflows active
+
+on:
+  schedule:
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+
+jobs:
+  update-activity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Maintain repository activity
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git commit --allow-empty -m "chore: maintain workflow activity"
+          git push
