@@ -16,6 +16,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WCSG_Privacy_Exporters extends WCS_Privacy_Exporters {
 
 	/**
+	 * Whether subscription_data_exporter() is exporting the subscriptions gifted to a recipient.
+	 *
+	 * @var bool
+	 */
+	private static $exporting_for_recipient = false;
+
+	/**
 	 * Finds and exports subscription data linked to a user via recipient meta.
 	 *
 	 * Subscriptions are exported in blocks of 10 to avoid timeouts.
@@ -51,20 +58,24 @@ class WCSG_Privacy_Exporters extends WCS_Privacy_Exporters {
 
 		// Filter the properties exported so only the recipient's personal data stored on the subscription is exported.
 		add_filter( 'woocommerce_privacy_export_subscription_personal_data_props', array( __CLASS__, 'remove_purchaser_properties' ) );
+		self::$exporting_for_recipient = true;
 
-		if ( 0 < count( $subscriptions ) ) {
-			foreach ( $subscriptions as $subscription ) {
-				$data_to_export[] = array(
-					'group_id'    => 'woocommerce_gifted_subscriptions',
-					'group_label' => __( 'Subscriptions Purchased for You', 'woocommerce-subscriptions' ),
-					'item_id'     => 'subscription-' . $subscription->get_id(),
-					'data'        => self::get_subscription_personal_data( $subscription ),
-				);
+		try {
+			if ( 0 < count( $subscriptions ) ) {
+				foreach ( $subscriptions as $subscription ) {
+					$data_to_export[] = array(
+						'group_id'    => 'woocommerce_gifted_subscriptions',
+						'group_label' => __( 'Subscriptions Purchased for You', 'woocommerce-subscriptions' ),
+						'item_id'     => 'subscription-' . $subscription->get_id(),
+						'data'        => self::get_subscription_personal_data( $subscription ),
+					);
+				}
+				$done = 10 > count( $subscriptions );
 			}
-			$done = 10 > count( $subscriptions );
+		} finally {
+			self::$exporting_for_recipient = false;
+			remove_filter( 'woocommerce_privacy_export_subscription_personal_data_props', array( __CLASS__, 'remove_purchaser_properties' ) );
 		}
-
-		remove_filter( 'woocommerce_privacy_export_subscription_personal_data_props', array( __CLASS__, 'remove_purchaser_properties' ) );
 
 		return array(
 			'data' => $data_to_export,
@@ -95,6 +106,55 @@ class WCSG_Privacy_Exporters extends WCS_Privacy_Exporters {
 		}
 
 		return $exported_data_properties;
+	}
+
+	/**
+	 * Leaves the recipient's shipping address out of the purchaser's export of a gifted subscription and of its
+	 * renewal orders, once the address is withheld from them (see WCSG_Recipient_Addresses::is_shipping_address_withheld()).
+	 *
+	 * These filters are not told whose export is running. An export lists the subscriptions and orders whose customer
+	 * is the person, and those whose billing email is theirs. A renewal the recipient paid can have the recipient as
+	 * its customer and the purchaser's billing email, so the address is left out when it is withheld from either
+	 * person. The recipient's own export keeps the address on the subscriptions and orders purchased for them.
+	 *
+	 * @since 9.4.0
+	 *
+	 * @param array                    $props The properties to export, keyed by property name.
+	 * @param WC_Subscription|WC_Order $order The subscription or order being exported.
+	 * @return array
+	 */
+	public static function maybe_withhold_shipping_address( $props, $order ) {
+		if ( self::$exporting_for_recipient || ! is_array( $props ) || ! $order instanceof WC_Abstract_Order ) {
+			return $props;
+		}
+
+		foreach ( self::get_export_user_ids( $order ) as $user_id ) {
+			if ( WCSG_Recipient_Addresses::is_shipping_address_withheld( $order, $user_id ) ) {
+				unset( $props['formatted_shipping_address'], $props['shipping_phone'] );
+				break;
+			}
+		}
+
+		return $props;
+	}
+
+	/**
+	 * The users whose personal data export can include the order: its customer, and the user with its billing email
+	 * (0 when no user has it, so that an order billed to an email nobody owns is treated as anyone's export).
+	 *
+	 * @param WC_Subscription|WC_Order $order The subscription or order.
+	 * @return int[]
+	 */
+	private static function get_export_user_ids( $order ) {
+		$user_ids      = array( (int) $order->get_customer_id() );
+		$billing_email = (string) $order->get_billing_email();
+
+		if ( '' !== $billing_email ) {
+			$billing_user = get_user_by( 'email', $billing_email );
+			$user_ids[]   = $billing_user ? (int) $billing_user->ID : 0;
+		}
+
+		return array_unique( $user_ids );
 	}
 
 	/**
@@ -177,7 +237,7 @@ class WCSG_Privacy_Exporters extends WCS_Privacy_Exporters {
 	 * @since 7.8.0 - Originally implemented in WooCommerce Subscriptions Gifting 2.0.1.
 	 * @param  WC_Order $order The order object.
 	 * @param  array    $items The order line item objects which belong to the recipient in the order.
-	 * @param  bool     $export_shipping Whether to export shipping address data.
+	 * @param  bool     $export_shipping Whether to export the shipping address and shipping phone.
 	 * @return array The recipient's personal data.
 	 */
 	protected static function get_recipient_order_personal_data( $order, $items, $export_shipping ) {
@@ -189,12 +249,13 @@ class WCSG_Privacy_Exporters extends WCS_Privacy_Exporters {
 				'date_created'               => __( 'Order Date', 'woocommerce-subscriptions' ),
 				'items'                      => __( 'Items Purchased', 'woocommerce-subscriptions' ),
 				'formatted_shipping_address' => __( 'Shipping Address', 'woocommerce-subscriptions' ),
+				'shipping_phone'             => __( 'Shipping Phone Number', 'woocommerce-subscriptions' ),
 			),
 			$order
 		);
 
 		if ( ! $export_shipping ) {
-			unset( $props_to_export['formatted_shipping_address'] );
+			unset( $props_to_export['formatted_shipping_address'], $props_to_export['shipping_phone'] );
 		}
 
 		foreach ( $props_to_export as $prop => $name ) {

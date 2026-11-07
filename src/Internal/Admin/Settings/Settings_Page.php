@@ -486,7 +486,8 @@ class Settings_Page extends WC_Settings_Page {
 	 * This is the single gate that decides classic vs. modern for the whole page. WooCommerce core routes the
 	 * request to the modern renderer only when this returns a page adapter (its request context resolves to null
 	 * otherwise — see SettingsUIRequestContext::get_current_settings_ui_page()), and {@see self::output()} keys
-	 * its own branch off the same method. Gating here therefore keeps rendering and persistence in agreement.
+	 * its own branch off the same method, plus WooCommerce's own fallback conditions
+	 * ({@see self::should_render_settings_ui()}). Gating here therefore keeps rendering and persistence in agreement.
 	 *
 	 * Returns null (i.e. stays on the classic renderer) when the modern experience is not active for this store
 	 * (see {@see self::is_settings_ui_active()}), or when the running version of WooCommerce predates the
@@ -569,15 +570,19 @@ class Settings_Page extends WC_Settings_Page {
 	public function save() {}
 
 	/**
-	 * Determine whether the modern settings UI should render for the current request.
+	 * Determine whether the modern settings UI will render for the current request.
 	 *
-	 * Mirrors the gate WooCommerce core applies in WC_Settings_Page::output() so our classic/modern branch
-	 * decision matches the parent's: the feature must be enabled, an adapter must be available, and schema
-	 * generation for this page/section must not have already failed.
+	 * Mirrors the decision WC_Settings_Page::output() makes by asking WooCommerce's own request context: the
+	 * `settings-ui` feature must be on, this page must supply an adapter ({@see self::get_settings_ui_page()},
+	 * which enforces the Subscriptions opt-in), the context must consider rendering enabled, the schema must
+	 * have generated, and the extension script handles must have resolved and - from WooCommerce 11.2.0 - be
+	 * registered. Whenever WooCommerce would fall back to its classic renderer this returns false, so
+	 * {@see self::output()} renders the classic Subscriptions page instead: the modern-adapted array
+	 * ({@see Modern_Field_Adaptations}) is not fit for WC_Admin_Settings::output_fields().
 	 *
-	 * The Subscriptions opt-in (the `WCS_EXPERIMENTAL_MODERN_SETTINGS_UI` gate) is enforced through the adapter check:
-	 * {@see self::get_settings_ui_page()} returns null unless {@see self::is_settings_ui_active()} passes, so
-	 * the bare `settings-ui` feature check below is only the Core half of the mirror, not the authoritative gate.
+	 * The checks run in WooCommerce's order, so the context records the same first failure WooCommerce
+	 * would, and its logger entry carries the reason. WooCommerce's own "fell back to the legacy settings
+	 * renderer" notice is not emitted for this tab, because the parent is not called on that path.
 	 *
 	 * @return bool
 	 */
@@ -592,8 +597,28 @@ class Settings_Page extends WC_Settings_Page {
 			return false;
 		}
 
-		$section_key = '' === $current_section ? 'default' : (string) $current_section;
+		// The request context accessor is absent before WooCommerce 11.0, and from the stubs PHPStan
+		// analyses against.
+		if ( ! method_exists( $this, 'get_settings_ui_request_context' ) ) {
+			return false;
+		}
 
-		return empty( $GLOBALS['wc_settings_ui_schema_failed'][ $this->id ][ $section_key ] );
+		// Guarded like WC_Settings_Page::output(): a stale settings-ui class mid plugin update must not take
+		// the classic renderer down with it.
+		try {
+			$context = $this->get_settings_ui_request_context( is_string( $current_section ) ? $current_section : '' );
+
+			if ( ! $context || ! $context->is_rendering_enabled() || $context->has_schema_failed() || $context->has_script_handles_failed() ) {
+				return false;
+			}
+
+			if ( method_exists( $context, 'has_script_handle_loading_failed' ) && $context->has_script_handle_loading_failed() ) {
+				return false;
+			}
+		} catch ( \Throwable $e ) {
+			return false;
+		}
+
+		return true;
 	}
 }

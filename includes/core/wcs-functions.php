@@ -167,7 +167,7 @@ function wcs_create_subscription( $args = array() ) {
 		'date_created'       => $now,
 		'created_via'        => '',
 		'currency'           => get_woocommerce_currency(),
-		'prices_include_tax' => get_option( 'woocommerce_prices_include_tax' ), // we don't use wc_prices_include_tax() here because WC doesn't use it in wc_create_order(), not 100% sure why it doesn't also check the taxes are enabled, but there could forseeably be a reason
+		'prices_include_tax' => wc_prices_include_tax() ? 'yes' : 'no',
 	);
 
 	// If we are creating a subscription from an order, we use some of the order's data as defaults.

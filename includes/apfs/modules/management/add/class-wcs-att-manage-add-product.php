@@ -113,10 +113,9 @@ class WCS_ATT_Manage_Add_Product extends WCS_ATT_Abstract_Module {
 
 			$subscription_options_visible = false;
 
-			$subscription_schemes                 = WCS_ATT_Product_Schemes::get_subscription_schemes( $product );
-			$force_subscription                   = WCS_ATT_Product_Schemes::has_forced_subscription_scheme( $product );
-			$is_single_scheme_forced_subscription = $force_subscription && count( $subscription_schemes ) === 1;
-			$default_subscription_scheme_key      = apply_filters( 'wcsatt_get_default_subscription_scheme_id', WCS_ATT_Product_Schemes::get_default_subscription_scheme( $product, 'key' ), $subscription_schemes, false === $force_subscription, $product ); // Why 'false === $force_subscription'? The answer is back-compat.
+			$subscription_schemes            = WCS_ATT_Product_Schemes::get_subscription_schemes( $product );
+			$force_subscription              = WCS_ATT_Product_Schemes::has_forced_subscription_scheme( $product );
+			$default_subscription_scheme_key = apply_filters( 'wcsatt_get_default_subscription_scheme_id', WCS_ATT_Product_Schemes::get_default_subscription_scheme( $product, 'key' ), $subscription_schemes, false === $force_subscription, $product ); // Why 'false === $force_subscription'? The answer is back-compat.
 
 			if ( isset( $_REQUEST['add-to-cart'] ) ) {
 				if ( $product_id = apply_filters( 'woocommerce_add_to_cart_product_id', absint( $_REQUEST['add-to-cart'] ) ) ) {
@@ -127,7 +126,7 @@ class WCS_ATT_Manage_Add_Product extends WCS_ATT_Abstract_Module {
 			}
 
 			$default_subscription_scheme  = WCS_ATT_Product_Schemes::get_subscription_scheme( $product, 'object', $default_subscription_scheme_key ); // Again, the reason we are not using the key directly below is back-compat (the filter). Accounting for an invalid filtered value means we're probably a bit too conservative here.
-			$subscription_options_visible = $is_single_scheme_forced_subscription || ( is_object( $default_subscription_scheme ) && ! $default_subscription_scheme->requires_upfront_charge( $product, $default_subscription_scheme_key ) );
+			$subscription_options_visible = is_object( $default_subscription_scheme ) && ! $default_subscription_scheme->requires_upfront_charge( $product, $default_subscription_scheme_key );
 		}
 
 		wc_get_template(
@@ -214,7 +213,9 @@ class WCS_ATT_Manage_Add_Product extends WCS_ATT_Abstract_Module {
 		/**
 		 * 'wcsatt_subscriptions_matching_product' filter.
 		 *
-		 * Last chance to filter matched subscriptions.
+		 * Last chance to filter the subscriptions shown. This only shapes the list offered: the form handler
+		 * re-checks the posted subscription with 'WCS_ATT_Manage_Add::is_matching_subscription()', so use the
+		 * 'wcsatt_is_matching_subscription' filter to change which subscriptions are eligible.
 		 *
 		 * @param  array                $matching_subscriptions
 		 * @param  WC_Product           $product
@@ -342,6 +343,10 @@ class WCS_ATT_Manage_Add_Product extends WCS_ATT_Abstract_Module {
 			return;
 		}
 
+		// Schemes the posted subscription is expected to match, mirroring what the views hand to
+		// 'WCS_ATT_Manage_Add::get_matching_subscriptions()'. Null when the product has no plans of its own to match.
+		$matching_schemes = null;
+
 		// A subscription scheme key should be posted already if we are supposed to do any matching.
 		if ( WCS_ATT_Product::supports_feature( $product, 'subscription_scheme_options_product_single' ) ) {
 
@@ -355,10 +360,16 @@ class WCS_ATT_Manage_Add_Product extends WCS_ATT_Abstract_Module {
 				return;
 			}
 
-			// Disable syncing. If we don't do it at this point 'WCS_ATT_Manage_Add::add_cart_subscription' starts to behave in weird ways.
-			if ( $subscription_scheme_object->is_synced() ) {
-				$subscription_scheme_object->set_sync_date( 0 );
+			// The single-product view offers this option only when the plan carries no upfront charge, because this
+			// flow never collects one: a sign-up fee or a prorated first payment would simply go uncharged. Tested
+			// before syncing is disabled below, which would hide a prorated first payment.
+			if ( $subscription_scheme_object->requires_upfront_charge( $product, $subscription_scheme ) ) {
+				// translators: %s: product name.
+				wc_add_notice( sprintf( __( '&quot;%s&quot; cannot be added to an existing subscription on the plan you selected, as that plan requires a payment up front. Please purchase it separately.', 'woocommerce-subscriptions' ), $product->get_name() ), 'error' );
+				return;
 			}
+
+			$matching_schemes = array( $subscription_scheme => $subscription_scheme_object );
 
 			// Extract the scheme details from the subscription and create a dummy scheme.
 		} else {
@@ -376,6 +387,20 @@ class WCS_ATT_Manage_Add_Product extends WCS_ATT_Abstract_Module {
 			$subscription_scheme = $subscription_scheme_object->get_key();
 
 			WCS_ATT_Product_Schemes::set_subscription_schemes( $product, array( $subscription_scheme => $subscription_scheme_object ) );
+		}
+
+		// The subscriptions offered for this product and plan are only those it can genuinely be added to. That list
+		// is worked out when the page is built, so re-derive the same answer here for the subscription that was
+		// actually posted, rather than trusting the form to have stayed within it.
+		if ( ! WCS_ATT_Manage_Add::is_matching_subscription( $subscription, $matching_schemes ) ) {
+			// translators: 1: product name, 2: subscription ID.
+			wc_add_notice( sprintf( __( '&quot;%1$s&quot; cannot be added to subscription #%2$d on the plan you selected. Please choose an active subscription with a matching billing schedule, paid with a payment method that supports changes to the amount charged.', 'woocommerce-subscriptions' ), $product->get_name(), $subscription_id ), 'error' );
+			return;
+		}
+
+		// Disable syncing. If we don't do it at this point 'WCS_ATT_Manage_Add::add_cart_subscription' starts to behave in weird ways.
+		if ( $subscription_scheme_object->is_synced() ) {
+			$subscription_scheme_object->set_sync_date( 0 );
 		}
 
 		// Set scheme on product object for later reference.

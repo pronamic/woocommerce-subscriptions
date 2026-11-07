@@ -16,22 +16,30 @@ class WC_Subscriptions_Email {
 	private static int $subscription_being_reactivated_id = -1;
 
 	/**
+	 * End times, before cancellation, of pending-cancel subscriptions that are being cancelled. Keyed by subscription ID.
+	 *
+	 * @var int[]
+	 */
+	private static array $end_times_before_cancellation = [];
+
+	/**
 	 * List of all core subscription email classes.
 	 *
 	 * @var array
 	 */
 	public static $email_classes = [
-		'WCS_Email_New_Renewal_Order'              => true,
-		'WCS_Email_New_Switch_Order'               => true,
-		'WCS_Email_Processing_Renewal_Order'       => true,
-		'WCS_Email_Completed_Renewal_Order'        => true,
-		'WCS_Email_Customer_On_Hold_Renewal_Order' => true,
-		'WCS_Email_Completed_Switch_Order'         => true,
-		'WCS_Email_Customer_Renewal_Invoice'       => true,
-		'WCS_Email_Cancelled_Subscription'         => true,
-		'WCS_Email_Expired_Subscription'           => true,
-		'WCS_Email_On_Hold_Subscription'           => true,
-		'WCS_Email_Reactivated_Subscription'       => true,
+		'WCS_Email_New_Renewal_Order'               => true,
+		'WCS_Email_New_Switch_Order'                => true,
+		'WCS_Email_Processing_Renewal_Order'        => true,
+		'WCS_Email_Completed_Renewal_Order'         => true,
+		'WCS_Email_Customer_On_Hold_Renewal_Order'  => true,
+		'WCS_Email_Completed_Switch_Order'          => true,
+		'WCS_Email_Customer_Renewal_Invoice'        => true,
+		'WCS_Email_Cancelled_Subscription'          => true,
+		'WCS_Email_Customer_Cancelled_Subscription' => true,
+		'WCS_Email_Expired_Subscription'            => true,
+		'WCS_Email_On_Hold_Subscription'            => true,
+		'WCS_Email_Reactivated_Subscription'        => true,
 	];
 
 	/**
@@ -109,7 +117,8 @@ class WC_Subscriptions_Email {
 
 		add_action( 'woocommerce_before_customer_changed_subscription_to_active', __CLASS__ . '::watch_for_reactivations' );
 		add_action( 'woocommerce_customer_changed_subscription_to_active', __CLASS__ . '::maybe_send_reactivation_email' );
-		add_action( 'woocommerce_subscription_status_updated', __CLASS__ . '::send_cancelled_email', 10 );
+		add_action( 'woocommerce_subscription_pre_update_status', __CLASS__ . '::record_end_time_before_cancellation', 10, 3 );
+		add_action( 'woocommerce_subscription_status_updated', __CLASS__ . '::send_cancelled_email', 10, 3 );
 		add_action( 'woocommerce_subscription_status_expired', __CLASS__ . '::send_expired_email', 10 );
 		add_action( 'woocommerce_customer_changed_subscription_to_on-hold', __CLASS__ . '::send_on_hold_email', 10 );
 		add_action( 'woocommerce_subscriptions_switch_completed', __CLASS__ . '::send_switch_order_email', 10 );
@@ -125,11 +134,85 @@ class WC_Subscriptions_Email {
 	 * Init the mailer and call for the cancelled email notification hook.
 	 *
 	 * @param WC_Subscription $subscription The subscription being examined.
+	 * @param string          $new_status   The subscription's new status. Since 9.4.0.
+	 * @param string          $old_status   The subscription's old status. Since 9.4.0.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
-	public static function send_cancelled_email( $subscription ) {
+	public static function send_cancelled_email( $subscription, $new_status = '', $old_status = '' ) {
 		WC()->mailer();
-		do_action( 'cancelled_subscription_notification', $subscription );
+		do_action( 'cancelled_subscription_notification', $subscription, $new_status, $old_status );
+
+		// The recorded end time applies only to this status change.
+		if ( $subscription instanceof WC_Subscription ) {
+			unset( self::$end_times_before_cancellation[ $subscription->get_id() ] );
+		}
+	}
+
+	/**
+	 * Record the end time of a pending-cancel subscription that is being cancelled.
+	 *
+	 * By the time the status change hooks fire, the end date is already the time of cancellation. The customer
+	 * cancelled subscription email uses the recorded time to tell an early end from the end of the prepaid term.
+	 *
+	 * @internal This method may be moved or renamed without notice.
+	 * @since    9.4.0
+	 *
+	 * @param string|mixed          $old_status   The subscription's old status.
+	 * @param string|mixed          $new_status   The subscription's new status.
+	 * @param WC_Subscription|mixed $subscription The subscription being updated.
+	 */
+	public static function record_end_time_before_cancellation( $old_status, $new_status, $subscription ) {
+		if ( ! $subscription instanceof WC_Subscription ) {
+			return;
+		}
+
+		if ( 'pending-cancel' === $old_status && 'cancelled' === $new_status ) {
+			self::$end_times_before_cancellation[ $subscription->get_id() ] = (int) $subscription->get_time( 'end' );
+		} else {
+			unset( self::$end_times_before_cancellation[ $subscription->get_id() ] );
+		}
+	}
+
+	/**
+	 * Get the end time recorded by record_end_time_before_cancellation() for the status change in progress.
+	 *
+	 * @internal This method may be moved or renamed without notice.
+	 * @since    9.4.0
+	 *
+	 * @param int $subscription_id The subscription ID.
+	 *
+	 * @return int The end time as a timestamp, or 0 if none was recorded.
+	 */
+	public static function get_end_time_before_cancellation( int $subscription_id ): int {
+		return self::$end_times_before_cancellation[ $subscription_id ] ?? 0;
+	}
+
+	/**
+	 * Run a callback without sending the customer cancelled subscription email for one subscription.
+	 *
+	 * Use this around a status change that cancels a subscription for a reason the customer needs no email about,
+	 * such as a switch that moves all of its items to a new subscription.
+	 *
+	 * @internal This method may be moved or renamed without notice.
+	 * @since    9.4.0
+	 *
+	 * @param int      $subscription_id The subscription that must not get the email.
+	 * @param callable $callback        The code that changes the subscription's status.
+	 *
+	 * @return mixed The callback's return value.
+	 */
+	public static function run_without_customer_cancelled_email( int $subscription_id, callable $callback ) {
+		$skip = static function ( $enabled, $email_object ) use ( $subscription_id ) {
+			return ( $email_object instanceof WC_Subscription && $email_object->get_id() === $subscription_id ) ? false : $enabled;
+		};
+
+		add_filter( 'woocommerce_email_enabled_customer_cancelled_subscription', $skip, PHP_INT_MAX, 2 );
+
+		try {
+			return $callback();
+		} finally {
+			remove_filter( 'woocommerce_email_enabled_customer_cancelled_subscription', $skip, PHP_INT_MAX );
+		}
 	}
 
 	/**

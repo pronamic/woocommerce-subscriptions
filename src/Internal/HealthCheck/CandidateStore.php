@@ -43,6 +43,11 @@ class CandidateStore {
 	public const SIGNAL_TYPE_MISSING_RENEWAL = 'missing_renewal';
 
 	/**
+	 * Signal type: a future payment date has no equivalent queued action.
+	 */
+	public const SIGNAL_TYPE_MISSING_SCHEDULED_ACTION = 'missing_renewal_action';
+
+	/**
 	 * Every signal type currently emitted by the Detector. Used by the
 	 * Scope card + Tracks payload for the "sum across signals" count.
 	 *
@@ -52,6 +57,7 @@ class CandidateStore {
 		return array(
 			self::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL,
 			self::SIGNAL_TYPE_MISSING_RENEWAL,
+			self::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION,
 		);
 	}
 
@@ -346,7 +352,7 @@ class CandidateStore {
 	 *
 	 * @param int $run_id The run id.
 	 *
-	 * @return array{total: int, supports_auto_renewal: int, missing_renewal: int}
+	 * @return array{total: int, supports_auto_renewal: int, missing_renewal: int, missing_renewal_action: int}
 	 */
 	public function count_by_run_grouped( int $run_id ): array {
 		global $wpdb;
@@ -357,20 +363,23 @@ class CandidateStore {
 				"SELECT
 					COUNT(*) AS total,
 					SUM( CASE WHEN signal_type = %s THEN 1 ELSE 0 END ) AS eligible,
-					SUM( CASE WHEN signal_type = %s THEN 1 ELSE 0 END ) AS missing
+					SUM( CASE WHEN signal_type = %s THEN 1 ELSE 0 END ) AS missing,
+					SUM( CASE WHEN signal_type = %s THEN 1 ELSE 0 END ) AS missing_action
 				FROM {$wpdb->prefix}wcs_health_check_candidates
 				WHERE run_id = %d AND status = 'pending'",
 				self::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL,
 				self::SIGNAL_TYPE_MISSING_RENEWAL,
+				self::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION,
 				$run_id
 			),
 			ARRAY_A
 		);
 
 		return array(
-			'total'                                 => (int) ( $row['total'] ?? 0 ),
-			self::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL => (int) ( $row['eligible'] ?? 0 ),
-			self::SIGNAL_TYPE_MISSING_RENEWAL       => (int) ( $row['missing'] ?? 0 ),
+			'total'                                    => (int) ( $row['total'] ?? 0 ),
+			self::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL    => (int) ( $row['eligible'] ?? 0 ),
+			self::SIGNAL_TYPE_MISSING_RENEWAL          => (int) ( $row['missing'] ?? 0 ),
+			self::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION => (int) ( $row['missing_action'] ?? 0 ),
 		);
 	}
 

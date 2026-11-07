@@ -216,6 +216,8 @@ class CandidatesListTable extends WP_List_Table {
 	 */
 	public static function signal_type_for_view( string $view ): string {
 		switch ( $view ) {
+			case 'woocommerce_subscriptions_missing_scheduled_actions':
+				return CandidateStore::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION;
 			case 'missing_renewals':
 				return CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL;
 			case 'supports_auto_renewal':
@@ -309,37 +311,67 @@ class CandidatesListTable extends WP_List_Table {
 	 * @return array<string, string>
 	 */
 	protected function get_views(): array {
-		$run_id         = $this->run_store->get_latest_scan_run_id();
-		$eligible_total = 0 === $run_id ? 0 : $this->candidate_store->count_by_run_and_signal( $run_id, CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL );
-		$missing_total  = 0 === $run_id ? 0 : $this->candidate_store->count_by_run_and_signal( $run_id, CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL );
-		$all_total      = $this->cached_count_all_subscriptions();
+		$run_id               = $this->run_store->get_latest_scan_run_id();
+		$eligible_total       = 0 === $run_id ? 0 : $this->candidate_store->count_by_run_and_signal( $run_id, CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL );
+		$missing_total        = 0 === $run_id ? 0 : $this->candidate_store->count_by_run_and_signal( $run_id, CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL );
+		$missing_action_total = 0 === $run_id ? 0 : $this->candidate_store->count_by_run_and_signal( $run_id, CandidateStore::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION );
+		$missing_action_badge = $this->scan_included_missing_scheduled_actions( $run_id )
+			? (string) $missing_action_total
+			: esc_html__( 'Not scanned', 'woocommerce-subscriptions' );
+		$all_total            = $this->cached_count_all_subscriptions();
 
 		$current = $this->current_view();
 		$base    = remove_query_arg( array( 'view', 'paged', 'orderby', 'order', 's' ) );
 
 		return array(
 			'all'                   => sprintf(
-				'<a href="%1$s" class="%2$s">%3$s <span class="count">(%4$d)</span></a>',
+				'<a href="%1$s" class="%2$s"%3$s>%4$s <span class="count">(%5$d)</span></a>',
 				esc_url( add_query_arg( 'view', 'all', $base ) ),
 				'all' === $current ? 'current' : '',
+				'all' === $current ? ' aria-current="' . esc_attr( 'page' ) . '"' : '',
 				esc_html__( 'All', 'woocommerce-subscriptions' ),
 				$all_total
 			),
 			'supports_auto_renewal' => sprintf(
-				'<a href="%1$s" class="%2$s">%3$s <span class="count">(%4$d)</span></a>',
+				'<a href="%1$s" class="%2$s"%3$s>%4$s <span class="count">(%5$d)</span></a>',
 				esc_url( $base ),
 				'supports_auto_renewal' === $current ? 'current' : '',
+				'supports_auto_renewal' === $current ? ' aria-current="' . esc_attr( 'page' ) . '"' : '',
 				esc_html__( 'Supports auto-renewal', 'woocommerce-subscriptions' ),
 				$eligible_total
 			),
 			'missing_renewals'      => sprintf(
-				'<a href="%1$s" class="%2$s">%3$s <span class="count">(%4$d)</span></a>',
+				'<a href="%1$s" class="%2$s"%3$s>%4$s <span class="count">(%5$d)</span></a>',
 				esc_url( add_query_arg( 'view', 'missing_renewals', $base ) ),
 				'missing_renewals' === $current ? 'current' : '',
+				'missing_renewals' === $current ? ' aria-current="' . esc_attr( 'page' ) . '"' : '',
 				esc_html__( 'Missing renewals', 'woocommerce-subscriptions' ),
 				$missing_total
 			),
+			'woocommerce_subscriptions_missing_scheduled_actions' => sprintf(
+				'<a href="%1$s" class="%2$s"%3$s>%4$s <span class="count">(%5$s)</span></a>',
+				esc_url( add_query_arg( 'view', 'woocommerce_subscriptions_missing_scheduled_actions', $base ) ),
+				'woocommerce_subscriptions_missing_scheduled_actions' === $current ? 'current' : '',
+				'woocommerce_subscriptions_missing_scheduled_actions' === $current ? ' aria-current="' . esc_attr( 'page' ) . '"' : '',
+				esc_html__( 'Missing scheduled actions', 'woocommerce-subscriptions' ),
+				$missing_action_badge
+			),
 		);
+	}
+
+	/**
+	 * Older completed scans did not include this signal. A missing stats key
+	 * means the scan cannot support a zero-result claim for the new tab.
+	 */
+	private function scan_included_missing_scheduled_actions( int $run_id ): bool {
+		if ( 0 === $run_id ) {
+			return false;
+		}
+
+		$run   = $this->run_store->get( $run_id );
+		$stats = is_array( $run ) ? json_decode( (string) ( $run['stats_json'] ?? '' ), true ) : null;
+
+		return is_array( $stats ) && array_key_exists( 'candidates_missing_renewal_action', $stats );
 	}
 
 	/**
@@ -407,7 +439,7 @@ class CandidatesListTable extends WP_List_Table {
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$view = sanitize_key( wp_unslash( $_REQUEST['view'] ) );
-		return in_array( $view, array( 'all', 'supports_auto_renewal', 'missing_renewals' ), true ) ? $view : 'supports_auto_renewal';
+		return in_array( $view, array( 'all', 'supports_auto_renewal', 'missing_renewals', 'woocommerce_subscriptions_missing_scheduled_actions' ), true ) ? $view : 'supports_auto_renewal';
 	}
 
 	/**
@@ -824,6 +856,11 @@ class CandidatesListTable extends WP_List_Table {
 				"No scan results yet. Click 'Run now' above to audit your subscriptions, or wait for the scheduled nightly scan.",
 				'woocommerce-subscriptions'
 			);
+			return;
+		}
+
+		if ( 'woocommerce_subscriptions_missing_scheduled_actions' === $this->current_view() && ! $this->scan_included_missing_scheduled_actions( $latest_run_id ) ) {
+			esc_html_e( 'This check has not run yet. Run a new scan to check for missing scheduled actions.', 'woocommerce-subscriptions' );
 			return;
 		}
 

@@ -14,6 +14,13 @@ class WCS_Limiter {
 	/* cache the IDs of subscriptions awaiting payment for a given product in the current session */
 	protected static $order_awaiting_payment_for_product = array();
 
+	/**
+	 * Whether a verified renewal or early renewal cart is being set up.
+	 *
+	 * @var bool
+	 */
+	private static $is_setting_up_renewal_cart = false;
+
 	public static function init() {
 
 		// Add limiting subscriptions options on edit product page
@@ -24,7 +31,37 @@ class WCS_Limiter {
 			add_filter( 'woocommerce_subscription_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
 			add_filter( 'woocommerce_subscription_variation_is_purchasable', __CLASS__ . '::is_purchasable_switch', 12, 2 );
 			add_filter( 'woocommerce_valid_order_statuses_for_order_again', array( __CLASS__, 'filter_order_again_statuses_for_limited_subscriptions' ) );
+			add_action( 'wcs_before_renewal_setup_cart_subscription', array( __CLASS__, 'start_renewal_cart_setup' ) );
+			add_action( 'wcs_after_renewal_setup_cart_subscription', array( __CLASS__, 'end_renewal_cart_setup' ) );
+			add_action( 'wcs_before_early_renewal_setup_cart_subscription', array( __CLASS__, 'start_renewal_cart_setup' ) );
+			add_action( 'wcs_after_early_renewal_setup_cart_subscription', array( __CLASS__, 'end_renewal_cart_setup' ) );
 		}
+	}
+
+	/**
+	 * Marks the start of a renewal or early renewal cart setup.
+	 *
+	 * WCS_Cart_Renewal::maybe_setup_cart() and WCS_Cart_Early_Renewal::maybe_setup_cart() fire the actions only after
+	 * they have verified the request. The cart is emptied before the items being renewed are added to it, so nothing
+	 * else shows that they are being renewed.
+	 *
+	 * Purchasability cached earlier in the request is discarded, so that it is decided again for the renewal.
+	 *
+	 * @since 9.4.0
+	 */
+	public static function start_renewal_cart_setup() {
+		self::$is_setting_up_renewal_cart = true;
+		self::$is_purchasable_cache       = array();
+	}
+
+	/**
+	 * Marks the end of a renewal or early renewal cart setup, and discards the purchasability cached during it.
+	 *
+	 * @since 9.4.0
+	 */
+	public static function end_renewal_cart_setup() {
+		self::$is_setting_up_renewal_cart = false;
+		self::$is_purchasable_cache       = array();
 	}
 
 	/**
@@ -95,6 +132,39 @@ class WCS_Limiter {
 	}
 
 	/**
+	 * Checks whether the current request is an authorized request to resubscribe to a subscription that contains the product.
+	 *
+	 * The resubscribe link built by wcs_get_users_resubscribe_link() carries a nonce. WCS_Cart_Resubscribe::maybe_setup_cart()
+	 * verifies it and checks wcs_can_user_resubscribe_to() before it sets up the cart, and purchasability is decided
+	 * while that cart is still empty. The same checks apply here. The query arguments can be sent with any request, so
+	 * the subscription must also contain the product.
+	 *
+	 * @since 9.4.0
+	 *
+	 * @param WC_Product $product The product to check.
+	 * @return bool
+	 */
+	private static function is_authorized_resubscribe_request( $product ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The nonce is verified below.
+		if ( empty( $_GET['resubscribe'] ) || empty( $_GET['_wpnonce'] ) ) {
+			return false;
+		}
+
+		// sanitize_text_field() returns '' for array input, which would otherwise reach wp_verify_nonce().
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The nonce is verified below.
+		$subscription_id = absint( sanitize_text_field( wp_unslash( $_GET['resubscribe'] ) ) );
+		$nonce           = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) );
+
+		if ( ! $subscription_id || ! wp_verify_nonce( $nonce, WCS_Cart_Resubscribe::get_nonce_action( $subscription_id ) ) ) {
+			return false;
+		}
+
+		$subscription = wcs_get_subscription( $subscription_id );
+
+		return $subscription && $subscription->has_product( $product->get_id() ) && wcs_can_user_resubscribe_to( $subscription );
+	}
+
+	/**
 	 * Canonical is_purchasable method to be called by product classes.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.1
@@ -121,8 +191,7 @@ class WCS_Limiter {
 				$purchasable = false;
 
 				// Forces product to be available when processing a renewal order. Allowing people to renew private products.
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce validation is not required for this context.
-				if ( self::is_paying_for_failed_renewal_order( $parent_product ) || isset( $_GET['subscription_renewal'] ) || wcs_cart_contains_renewal() || self::session_contains_renewal( $parent_product ) ) {
+				if ( self::is_paying_for_failed_renewal_order( $parent_product ) || self::$is_setting_up_renewal_cart || wcs_cart_contains_renewal() || self::session_contains_renewal( $parent_product ) ) {
 					$purchasable = true;
 				}
 			}
@@ -144,8 +213,7 @@ class WCS_Limiter {
 				$purchasable = false;
 
 				// Forces product to be available when processing a renewal order. Allowing people to renew private products.
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce validation is not required for this context.
-				if ( self::is_paying_for_failed_renewal_order( $product ) || isset( $_GET['subscription_renewal'] ) || wcs_cart_contains_renewal() || self::session_contains_renewal( $product ) ) {
+				if ( self::is_paying_for_failed_renewal_order( $product ) || self::$is_setting_up_renewal_cart || wcs_cart_contains_renewal() || self::session_contains_renewal( $product ) ) {
 					$purchasable = true;
 				}
 			}
@@ -153,10 +221,8 @@ class WCS_Limiter {
 			// This actually means the product is limited when returning false.
 			if ( false === self::is_product_limited( $purchasable, $product ) ) {
 				$resubscribe_cart_item = wcs_cart_contains_resubscribe();
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce validation is not required for this context.
-				$is_resubscribe = ! empty( $_GET['resubscribe'] ) || false !== $resubscribe_cart_item || false !== self::session_contains_resubscribe( $product );
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce validation is not required for this context.
-				$is_renewal = isset( $_GET['subscription_renewal'] ) || wcs_cart_contains_renewal() || self::session_contains_renewal( $product );
+				$is_resubscribe        = self::is_authorized_resubscribe_request( $product ) || false !== $resubscribe_cart_item || false !== self::session_contains_resubscribe( $product );
+				$is_renewal            = self::$is_setting_up_renewal_cart || wcs_cart_contains_renewal() || self::session_contains_renewal( $product );
 
 				// Allows the product to be resubscribed but not purchased again.
 				if ( ! $is_resubscribe && ! $is_renewal ) {

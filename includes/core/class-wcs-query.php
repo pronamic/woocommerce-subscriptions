@@ -97,9 +97,17 @@ class WCS_Query extends WC_Query {
 
 		switch ( $endpoint ) {
 			case 'view-subscription':
-				$subscription = wcs_get_subscription( $wp->query_vars['view-subscription'] );
-				// translators: placeholder is a subscription ID.
-				$title = ( $subscription ) ? sprintf( _x( 'Subscription #%s', 'hash before order number', 'woocommerce-subscriptions' ), $subscription->get_order_number() ) : '';
+				$subscription = wcs_get_subscription( absint( $wp->query_vars['view-subscription'] ) );
+
+				// A subscription the current customer may not view is treated exactly like one that doesn't
+				// exist -- the page body does the same (@see WCS_Template_Loader::get_view_subscription_template()),
+				// and a title that told the two apart would confirm which IDs are subscriptions.
+				if ( $subscription && current_user_can( 'view_order', $subscription->get_id() ) ) {
+					// translators: placeholder is a subscription ID.
+					$title = sprintf( _x( 'Subscription #%s', 'hash before order number', 'woocommerce-subscriptions' ), $subscription->get_order_number() );
+				} else {
+					$title = '';
+				}
 				break;
 			case 'subscriptions':
 				if ( ! empty( $wp->query_vars['subscriptions'] ) ) {

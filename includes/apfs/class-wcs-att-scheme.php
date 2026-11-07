@@ -552,7 +552,8 @@ class WCS_ATT_Scheme implements ArrayAccess {
 				return false;
 			}
 
-			if ( 'year' === $period && ( $scheme_sync_day['day'] !== gmdate( 'd', $subscription_next_payment ) || $scheme_sync_day['month'] !== gmdate( 'm', $subscription_next_payment ) ) ) {
+			// Compare both parts as integers, whatever type they were stored as.
+			if ( 'year' === $period && ( absint( $scheme_sync_day['day'] ) !== intval( gmdate( 'j', $subscription_next_payment ) ) || absint( $scheme_sync_day['month'] ) !== intval( gmdate( 'n', $subscription_next_payment ) ) ) ) {
 				return false;
 			}
 		}

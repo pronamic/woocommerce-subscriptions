@@ -346,7 +346,17 @@ class Bootstrap {
 			return (string) __( 'No items to review.', 'woocommerce-subscriptions' );
 		}
 
-		$run      = $this->run_store->get( $run_id );
+		$run = $this->run_store->get( $run_id );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only view selection.
+		$view = isset( $_REQUEST['view'] ) && is_string( $_REQUEST['view'] ) ? sanitize_key( wp_unslash( $_REQUEST['view'] ) ) : '';
+		if ( 'woocommerce_subscriptions_missing_scheduled_actions' === $view ) {
+			$stats = is_array( $run ) ? json_decode( (string) ( $run['stats_json'] ?? '' ), true ) : null;
+			if ( ! is_array( $stats ) || ! array_key_exists( 'candidates_missing_renewal_action', $stats ) ) {
+				return (string) __( 'This check has not run yet. Run a new scan to check for missing scheduled actions.', 'woocommerce-subscriptions' );
+			}
+		}
+
 		$when_utc = is_array( $run ) ? (string) ( $run['completed_at'] ?? $run['started_at'] ?? '' ) : '';
 
 		if ( '' === $when_utc ) {

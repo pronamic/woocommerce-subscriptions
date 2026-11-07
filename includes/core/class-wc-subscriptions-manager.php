@@ -978,9 +978,13 @@ class WC_Subscriptions_Manager {
 		}
 
 		if ( $subscription->can_be_updated_to( 'cancelled' ) ) {
-
-			$subscription->update_status( 'cancelled' );
-
+			// The subscription is being removed, so the customer gets no cancellation email.
+			WC_Subscriptions_Email::run_without_customer_cancelled_email(
+				$subscription->get_id(),
+				static function () use ( $subscription ) {
+					$subscription->update_status( 'cancelled' );
+				}
+			);
 		}
 	}
 

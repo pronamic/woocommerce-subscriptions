@@ -153,6 +153,11 @@
 	border-left-color: #2271b1;
 }
 
+/* Keep the scheduling warning below WordPress's floated view links. */
+.woocommerce-subscriptions-health-check-tab .woocommerce-subscriptions-health-check-scheduling-notice {
+	clear: both;
+}
+
 /*
  * Resolve-outcome notices are injected at the page's notice anchor (see
  * health-check-admin.js `buildNotice`). On the WC Status screen (a

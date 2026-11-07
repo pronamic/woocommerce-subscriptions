@@ -83,6 +83,16 @@ Log sources, at WC's `debug` level except where noted:
 
 Every `Dedicated_Queue` entry is prefixed with `[scope=<colon-joined-groups>]` so multiple co-resident scopes (current or future) can be distinguished. The *blocked* / *deferred* shapes include the offending filter name and its value, so an operator chasing a "feature enabled, no observable effect" report has a breadcrumb. The *skipped (group absent)* / *not dispatched (group absent)* shapes appear when a feature stands down because none of its target groups have a row in the `actionscheduler_groups` table yet — expected on a fresh store, until the first subscription action is scheduled. The `warning`-level *group lookup failed* entry — emitted to the shared `woocommerce-subscriptions` log rather than a queue-specific source — distinguishes a genuine database error in that existence check from the normal first-activation case (both otherwise present as "no groups yet").
 
+`External_Trigger_Endpoint`'s two rejection shapes — *invalid token* and *disabled* — are the only entries in this namespace an unauthenticated caller can provoke, so they go through `Utilities\Throttled_Logger`, which logs one entry every five minutes. Without that, anyone who found the endpoint URL could grow the store's log one line per request. The entry that is written says that the rest are being suppressed, so one line does not mean one request. Everything else on that source requires a valid token, so the token holder sets its volume: *rate-limited* is logged for each request inside the rate-limit window, and *not dispatched* for each request until the target group exists.
+
+## The endpoint token
+
+The token is a URL-borne credential: `External_Trigger_Settings::build_url()` puts it in the `wcs_token` query parameter, because the web cron services this feature exists to serve accept a URL and nothing else. That is a deliberate tradeoff. The comparison is constant-time (`hash_equals()`), the token is 32 random alphanumeric characters, and the feature is off until a merchant turns it on — but a URL travels further than a header does. It lands in proxy, CDN and origin access logs, in browser history, and in whatever the cron service itself retains. Treat those as places the token has been disclosed.
+
+The mitigation is rotation, not secrecy. "Generate a new URL" in **WooCommerce → Settings → Subscriptions → Processing reliability** calls `External_Trigger_Settings::regenerate_token()`, which replaces the token and clears the rate-limit clock so the merchant can test the new URL immediately. The old URL stops working the moment the new one is generated, so the cron service has to be updated at the same time. Rotate on a schedule that matches how long the surrounding logs are retained, and whenever the URL has been pasted somewhere it should not have been.
+
+What possession actually buys an attacker is worth keeping in proportion: a queue run of work that was already scheduled, no more often than the rate limit allows, with no ability to schedule, read or alter anything.
+
 ## Extension points
 
 | Filter | Type | Default | Purpose |

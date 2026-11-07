@@ -135,12 +135,12 @@ class ScanProgress {
 	 * complete rather than overrunning.
 	 *
 	 * Mid-run, the number is therefore run progress, not distinct subscriptions
-	 * evaluated: at the moment the first of two checks has been past the whole
-	 * store, it reads total/2, not total. Reviewed and accepted (WOOSUBS-1908):
+	 * evaluated: at the moment the first of three checks has been past the whole
+	 * store, it reads total/3, not total. Reviewed and accepted (WOOSUBS-1908):
 	 * demonstrating steady progress that never overstates beats an exact
 	 * distinct count - the per-check alternatives either reset to zero at the
 	 * hand-off or sit at "total of total" under a "Scanning now" headline for
-	 * the second half of the run. The completed-run figure is exact either way.
+	 * the rest of the run. The completed-run figure is exact either way.
 	 *
 	 * Because both inputs are read from the store rather than accumulated, the reading
 	 * tracks a store that changes under the scan - trash a hundred subscriptions

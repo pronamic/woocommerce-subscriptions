@@ -396,7 +396,7 @@ class AjaxController {
 	 *
 	 * @param int $run_id Current scan run id.
 	 *
-	 * @return array{all: int, missing_renewal: int, supports_auto_renewal: int}
+	 * @return array{all: int, missing_renewal: int, supports_auto_renewal: int, woocommerce_subscriptions_missing_scheduled_actions: int}
 	 */
 	private function build_badge_counts( int $run_id ): array {
 		if ( $run_id <= 0 ) {
@@ -404,6 +404,7 @@ class AjaxController {
 				'all'                   => 0,
 				'missing_renewal'       => 0,
 				'supports_auto_renewal' => 0,
+				'woocommerce_subscriptions_missing_scheduled_actions' => 0,
 			);
 		}
 
@@ -412,6 +413,7 @@ class AjaxController {
 			'all'                   => (int) ( $counts['total'] ?? 0 ),
 			'missing_renewal'       => (int) ( $counts[ CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL ] ?? 0 ),
 			'supports_auto_renewal' => (int) ( $counts[ CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL ] ?? 0 ),
+			'woocommerce_subscriptions_missing_scheduled_actions' => (int) ( $counts[ CandidateStore::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION ] ?? 0 ),
 		);
 	}
 

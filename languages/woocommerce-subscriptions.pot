@@ -2,14 +2,14 @@
 # This file is distributed under the GNU General Public License v3.0.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 9.3.0\n"
+"Project-Id-Version: WooCommerce Subscriptions 9.4.1\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-06T23:12:57+00:00\n"
+"POT-Creation-Date: 2026-11-06T14:38:44+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woocommerce-subscriptions\n"
@@ -50,17 +50,17 @@ msgstr ""
 #: includes/admin/reports/class-wcs-report-subscription-events-by-date.php:586
 #: includes/apfs/admin/meta-boxes/class-wcs-att-meta-box-product-data.php:53
 #: includes/api/class-wc-rest-subscriptions-settings.php:41
-#: includes/core/admin/class-wc-subscriptions-admin.php:1232
-#: includes/core/admin/class-wc-subscriptions-admin.php:1444
+#: includes/core/admin/class-wc-subscriptions-admin.php:1217
+#: includes/core/admin/class-wc-subscriptions-admin.php:1429
 #: includes/core/admin/class-wcs-admin-system-status.php:100
 #: includes/core/admin/class-wcs-wc-admin-manager.php:41
 #: includes/core/admin/class-wcs-wc-admin-manager.php:51
 #: includes/core/admin/class-wcs-wc-admin-manager.php:93
-#: includes/core/class-wc-subscriptions-core-plugin.php:392
-#: includes/core/class-wc-subscriptions-core-plugin.php:405
-#: includes/core/class-wcs-query.php:109
-#: includes/core/class-wcs-query.php:134
-#: includes/core/class-wcs-query.php:290
+#: includes/core/class-wc-subscriptions-core-plugin.php:406
+#: includes/core/class-wc-subscriptions-core-plugin.php:419
+#: includes/core/class-wcs-query.php:117
+#: includes/core/class-wcs-query.php:142
+#: includes/core/class-wcs-query.php:298
 #: includes/core/privacy/class-wcs-privacy-exporters.php:51
 #: src/Internal/Admin/Settings/Settings_Page.php:53
 #: src/Internal/HealthCheck/StatusTab.php:150
@@ -101,17 +101,17 @@ msgid "Report Cache Enabled"
 msgstr ""
 
 #: includes/admin/reports/class-wcs-report-cache-manager.php:327
-#: includes/core/admin/class-wc-subscriptions-admin.php:2025
-#: includes/core/admin/class-wc-subscriptions-admin.php:2094
+#: includes/core/admin/class-wc-subscriptions-admin.php:2010
+#: includes/core/admin/class-wc-subscriptions-admin.php:2079
 #: includes/core/admin/class-wcs-admin-system-status.php:139
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1233
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1270
 msgid "Yes"
 msgstr ""
 
 #: includes/admin/reports/class-wcs-report-cache-manager.php:327
-#: includes/core/admin/class-wc-subscriptions-admin.php:2025
+#: includes/core/admin/class-wc-subscriptions-admin.php:2010
 #: includes/core/admin/class-wcs-admin-system-status.php:139
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1234
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1271
 msgid "No"
 msgstr ""
 
@@ -184,7 +184,7 @@ msgstr ""
 
 #: includes/admin/reports/class-wcs-report-subscription-by-customer.php:28
 #: includes/admin/reports/class-wcs-report-subscription-by-customer.php:133
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:242
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:244
 msgid "Customer"
 msgstr ""
 
@@ -1254,6 +1254,7 @@ msgid "Sign up"
 msgstr ""
 
 #: includes/apfs/display/class-wcs-att-display-product.php:869
+#: includes/apfs/modules/management/class-wcs-att-manage-switch.php:760
 msgid "Select plan"
 msgstr ""
 
@@ -1292,81 +1293,105 @@ msgid "Composite Product Configurations"
 msgstr ""
 
 #. translators: %d: subscription ID.
-#: includes/apfs/modules/management/add/class-wcs-att-manage-add-cart.php:336
-#: includes/apfs/modules/management/add/class-wcs-att-manage-add-product.php:286
+#: includes/apfs/modules/management/add/class-wcs-att-manage-add-cart.php:337
+#: includes/apfs/modules/management/add/class-wcs-att-manage-add-product.php:287
 #, php-format
 msgid "Subscription #%d cannot be edited. Please get in touch with us for assistance."
 msgstr ""
 
-#: includes/apfs/modules/management/add/class-wcs-att-manage-add-cart.php:386
+#. translators: %d: subscription ID.
+#: includes/apfs/modules/management/add/class-wcs-att-manage-add-cart.php:362
+#, php-format
+msgid "Your cart cannot be added to subscription #%d. Please choose an active subscription paid with a payment method that supports changes to the amount charged."
+msgstr ""
+
+#: includes/apfs/modules/management/add/class-wcs-att-manage-add-cart.php:398
 #, php-format
 msgid "Your cart cannot be added to subscription #%d. Please get in touch with us for assistance."
 msgstr ""
 
-#: includes/apfs/modules/management/add/class-wcs-att-manage-add-product.php:436
+#. translators: %s: product name.
+#: includes/apfs/modules/management/add/class-wcs-att-manage-add-product.php:368
+#, php-format
+msgid "&quot;%s&quot; cannot be added to an existing subscription on the plan you selected, as that plan requires a payment up front. Please purchase it separately."
+msgstr ""
+
+#. translators: 1: product name, 2: subscription ID.
+#: includes/apfs/modules/management/add/class-wcs-att-manage-add-product.php:397
+#, php-format
+msgid "&quot;%1$s&quot; cannot be added to subscription #%2$d on the plan you selected. Please choose an active subscription with a matching billing schedule, paid with a payment method that supports changes to the amount charged."
+msgstr ""
+
+#: includes/apfs/modules/management/add/class-wcs-att-manage-add-product.php:461
 #, php-format
 msgid "&quot;%s&quot; is out of stock."
 msgstr ""
 
 #. translators: 1: product name 2: quantity in stock
-#: includes/apfs/modules/management/add/class-wcs-att-manage-add-product.php:442
+#: includes/apfs/modules/management/add/class-wcs-att-manage-add-product.php:467
 #, php-format
 msgid "&quot;%1$s&quot; does not have enough stock (%2$s remaining)."
 msgstr ""
 
-#: includes/apfs/modules/management/class-wcs-att-manage-add.php:319
-#: includes/apfs/modules/management/class-wcs-att-manage-add.php:374
+#: includes/apfs/modules/management/class-wcs-att-manage-add.php:363
+#: includes/apfs/modules/management/class-wcs-att-manage-add.php:418
 #, php-format
 msgctxt "link to subscription"
 msgid "<a href=\"%1$s\">#%2$s</a>"
 msgstr ""
 
-#: includes/apfs/modules/management/class-wcs-att-manage-add.php:321
+#: includes/apfs/modules/management/class-wcs-att-manage-add.php:365
 #, php-format
 msgid "There was a problem adding \"%1$s\" to subscription %2$s. Please get in touch with us for assistance."
 msgstr ""
 
-#: includes/apfs/modules/management/class-wcs-att-manage-add.php:358
+#: includes/apfs/modules/management/class-wcs-att-manage-add.php:402
 msgid "Action failed. Please get in touch with us for assistance."
 msgstr ""
 
-#: includes/apfs/modules/management/class-wcs-att-manage-add.php:501
+#: includes/apfs/modules/management/class-wcs-att-manage-add.php:545
 #, php-format
 msgctxt "used in order note"
 msgid "Customer increased the quantity of \"%1$s\" (Product ID: #%2$d) from %3$s to %4$s."
 msgstr ""
 
-#: includes/apfs/modules/management/class-wcs-att-manage-add.php:570
+#: includes/apfs/modules/management/class-wcs-att-manage-add.php:614
 #, php-format
 msgid "There was a problem adding \"%1$s\" to subscription %2$s."
 msgstr ""
 
-#: includes/apfs/modules/management/class-wcs-att-manage-add.php:580
+#: includes/apfs/modules/management/class-wcs-att-manage-add.php:624
 #, php-format
 msgctxt "used in order note"
 msgid "Customer added \"%1$s\" (Product ID: #%2$d)."
 msgstr ""
 
-#: includes/apfs/modules/management/class-wcs-att-manage-add.php:607
+#: includes/apfs/modules/management/class-wcs-att-manage-add.php:651
 #, php-format
 msgid "You have successfully added \"%1$s\" to subscription %2$s."
 msgstr ""
 
-#: includes/apfs/modules/management/class-wcs-att-manage-add.php:609
+#: includes/apfs/modules/management/class-wcs-att-manage-add.php:653
 #, php-format
 msgid "You have successfully added the contents of your cart to subscription %s."
 msgstr ""
 
-#: includes/apfs/modules/management/class-wcs-att-manage-switch.php:447
+#: includes/apfs/modules/management/class-wcs-att-manage-switch.php:492
 msgid "Switching product options is not allowed. You may only switch to a different subscription plan."
 msgstr ""
 
-#: includes/apfs/modules/management/class-wcs-att-manage-switch.php:454
+#: includes/apfs/modules/management/class-wcs-att-manage-switch.php:499
 msgid "Switching to a different subscription plan is not allowed."
 msgstr ""
 
-#: includes/apfs/modules/management/class-wcs-att-manage-switch.php:535
-#: includes/switching/class-wc-subscriptions-switcher.php:3621
+#. translators: %1$s: product name.
+#: includes/apfs/modules/management/class-wcs-att-manage-switch.php:769
+#, php-format
+msgid "Choose a subscription plan for %1$s"
+msgstr ""
+
+#: includes/apfs/modules/management/class-wcs-att-manage-switch.php:890
+#: includes/switching/class-wc-subscriptions-switcher.php:3633
 msgctxt "add to cart button text while switching a subscription"
 msgid "Switch subscription"
 msgstr ""
@@ -1587,178 +1612,178 @@ msgstr ""
 msgid "Payment Gateway Feature Support."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:182
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:166
+#: includes/api/class-wc-rest-subscriptions-controller.php:186
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:170
 msgid "Invalid subscription ID."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:188
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:172
+#: includes/api/class-wc-rest-subscriptions-controller.php:192
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:176
 #, php-format
 msgid "Failed to load subscription object with the ID %d."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:235
-#: includes/api/class-wc-rest-subscriptions-controller.php:628
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:541
+#: includes/api/class-wc-rest-subscriptions-controller.php:239
+#: includes/api/class-wc-rest-subscriptions-controller.php:632
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:545
 msgid "Invalid order ID."
 msgstr ""
 
 #. translators: %d is the order ID.
-#: includes/api/class-wc-rest-subscriptions-controller.php:244
-#: includes/api/class-wc-rest-subscriptions-controller.php:634
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:547
+#: includes/api/class-wc-rest-subscriptions-controller.php:248
+#: includes/api/class-wc-rest-subscriptions-controller.php:638
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:551
 #, php-format
 msgid "Failed to load order object with the ID %d."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:415
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:331
+#: includes/api/class-wc-rest-subscriptions-controller.php:419
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:335
 #, php-format
 msgid "Subscription dates could not be set. Error message: %s"
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:451
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:373
-msgid "Subscription status."
-msgstr ""
-
-#: includes/api/class-wc-rest-subscriptions-controller.php:454
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:376
-msgid "Where the subscription was created."
-msgstr ""
-
 #: includes/api/class-wc-rest-subscriptions-controller.php:455
 #: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:377
-msgid "Currency the subscription was created with, in ISO format."
-msgstr ""
-
-#: includes/api/class-wc-rest-subscriptions-controller.php:456
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:378
-msgid "The date the subscription was created, in the site's timezone."
-msgstr ""
-
-#: includes/api/class-wc-rest-subscriptions-controller.php:457
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:379
-msgid "The date the subscription was created, as GMT."
+msgid "Subscription status."
 msgstr ""
 
 #: includes/api/class-wc-rest-subscriptions-controller.php:458
 #: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:380
-msgid "The date the subscription was last modified, in the site's timezone."
+msgid "Where the subscription was created."
 msgstr ""
 
 #: includes/api/class-wc-rest-subscriptions-controller.php:459
 #: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:381
-msgid "The date the subscription was last modified, as GMT."
+msgid "Currency the subscription was created with, in ISO format."
 msgstr ""
 
 #: includes/api/class-wc-rest-subscriptions-controller.php:460
 #: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:382
+msgid "The date the subscription was created, in the site's timezone."
+msgstr ""
+
+#: includes/api/class-wc-rest-subscriptions-controller.php:461
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:383
+msgid "The date the subscription was created, as GMT."
+msgstr ""
+
+#: includes/api/class-wc-rest-subscriptions-controller.php:462
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:384
+msgid "The date the subscription was last modified, in the site's timezone."
+msgstr ""
+
+#: includes/api/class-wc-rest-subscriptions-controller.php:463
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:385
+msgid "The date the subscription was last modified, as GMT."
+msgstr ""
+
+#: includes/api/class-wc-rest-subscriptions-controller.php:464
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:386
 msgid "User ID who owns the subscription."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:470
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:392
+#: includes/api/class-wc-rest-subscriptions-controller.php:474
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:396
 msgid "The status to transition a subscription to."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:476
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:517
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:398
+#: includes/api/class-wc-rest-subscriptions-controller.php:480
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:519
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:402
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:200
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:532
 msgid "The number of billing periods between subscription renewals."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:481
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:522
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:403
+#: includes/api/class-wc-rest-subscriptions-controller.php:485
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:524
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:407
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:193
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:525
 msgid "Billing period for the subscription."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:487
+#: includes/api/class-wc-rest-subscriptions-controller.php:491
 msgid "Trial period for the subscription."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:493
+#: includes/api/class-wc-rest-subscriptions-controller.php:497
 msgid "The number of times the subscription has been suspended since the last payment."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:498
+#: includes/api/class-wc-rest-subscriptions-controller.php:502
 msgid "Whether the subscription requires manual renewal."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:503
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:528
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:409
+#: includes/api/class-wc-rest-subscriptions-controller.php:507
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:530
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:413
 msgid "Subscription payment details."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:508
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:414
+#: includes/api/class-wc-rest-subscriptions-controller.php:512
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:418
 msgid "Payment method meta and token in a post_meta_key: token format."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:513
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:419
+#: includes/api/class-wc-rest-subscriptions-controller.php:517
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:423
 msgid "Payment method meta and token in a user_meta_key : token format."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:520
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:426
+#: includes/api/class-wc-rest-subscriptions-controller.php:524
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:430
 msgid "The subscription's start date, as GMT."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:525
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:431
+#: includes/api/class-wc-rest-subscriptions-controller.php:529
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:435
 msgid "The subscription's trial end date, as GMT."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:530
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:436
+#: includes/api/class-wc-rest-subscriptions-controller.php:534
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:440
 msgid "The subscription's next payment date, as GMT."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:535
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:441
+#: includes/api/class-wc-rest-subscriptions-controller.php:539
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:445
 msgid "The subscription's cancelled date, as GMT."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:540
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:446
+#: includes/api/class-wc-rest-subscriptions-controller.php:544
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:450
 msgid "The subscription's end date, as GMT."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:559
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:466
+#: includes/api/class-wc-rest-subscriptions-controller.php:563
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:470
 msgid "Limit result set to subscriptions which have specific statuses."
 msgstr ""
 
 #. translators: placeholder is the payment method ID.
-#: includes/api/class-wc-rest-subscriptions-controller.php:603
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:513
+#: includes/api/class-wc-rest-subscriptions-controller.php:607
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:517
 #, php-format
 msgid "The %s payment gateway does not support admin changing the payment method."
 msgstr ""
 
 #. translators: 1$: gateway id, 2$: error message
-#: includes/api/class-wc-rest-subscriptions-controller.php:614
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:416
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:524
+#: includes/api/class-wc-rest-subscriptions-controller.php:618
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:418
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:528
 #, php-format
 msgid "Subscription payment method could not be set to %1$s with error message: %2$s"
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:638
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:551
+#: includes/api/class-wc-rest-subscriptions-controller.php:642
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:555
 msgid "Order does not have a customer associated with it. Subscriptions require a customer."
 msgstr ""
 
-#: includes/api/class-wc-rest-subscriptions-controller.php:642
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:555
+#: includes/api/class-wc-rest-subscriptions-controller.php:646
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:559
 msgid "Order already has subscriptions associated with it."
 msgstr ""
 
@@ -1791,7 +1816,7 @@ msgid "Edit subscription failed with error: %s"
 msgstr ""
 
 #: includes/api/legacy/class-wc-api-subscriptions.php:314
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:374
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:376
 msgid "Gateway does not support admin changing the payment method on a Subscription."
 msgstr ""
 
@@ -1816,156 +1841,168 @@ msgctxt "API response confirming order note deleted from a subscription"
 msgid "Permanently deleted subscription note"
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:188
+#: includes/api/trait-wcs-rest-parent-order-permission.php:94
+msgid "Invalid parent order ID."
+msgstr ""
+
+#: includes/api/trait-wcs-rest-parent-order-permission.php:116
+msgid "Sorry, you are not allowed to change this subscription's parent order."
+msgstr ""
+
+#: includes/api/trait-wcs-rest-source-order-permission.php:50
+msgid "Sorry, you are not allowed to create subscriptions from this order."
+msgstr ""
+
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:190
 msgid "Customer ID is invalid."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:296
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:303
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:298
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:305
 msgid "Invalid subscription id."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:384
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:386
 msgid "Subscription payment method could not be set updated due to technical issues."
 msgstr ""
 
 #. translators: placeholder is an error message.
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:486
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:488
 #, php-format
 msgid "Updating subscription dates errored with message: %s"
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:511
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:513
 msgid "The status to transition the subscription to. Unlike the \"status\" param, this will calculate and update the subscription dates."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:533
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:535
 msgid "Payment gateway ID."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:540
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:542
 msgid "The subscription's start date."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:545
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:547
 msgid "The subscription's trial date"
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:550
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:552
 #: includes/core/class-wc-subscriptions-extend-store-endpoint.php:519
 msgid "The subscription's next payment date."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:555
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:557
 msgid "The subscription's end date."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:560
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:562
 msgid "The subscription's original subscription ID if this is a resubscribed subscription."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:566
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:568
 msgid "The subscription's resubscribed subscription ID."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:572
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:574
 msgid "The date the subscription's latest order was completed, in GMT."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:578
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:580
 msgid "The date the subscription's latest order was paid, in GMT."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:584
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:586
 msgid "Removed line items data."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:591
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:593
 msgid "Item ID."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:597
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:599
 msgid "Product name."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:603
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:605
 msgid "Product SKU."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:609
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:611
 msgid "Product ID."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:614
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:616
 msgid "Variation ID, if applicable."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:619
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:621
 msgid "Quantity ordered."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:624
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:626
 msgid "Tax class of product."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:630
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:632
 msgid "Product price."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:636
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:638
 msgid "Line subtotal (before discounts)."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:641
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:643
 msgid "Line subtotal tax (before discounts)."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:646
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:648
 msgid "Line total (after discounts)."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:651
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:653
 msgid "Line total tax (after discounts)."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:656
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:658
 msgid "Line taxes."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:664
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:666
 msgid "Tax rate ID."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:670
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:672
 msgid "Tax total."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:676
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:678
 msgid "Tax subtotal."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:685
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:687
 msgid "Removed line item meta data."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:693
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:695
 msgid "Meta key."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:699
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:701
 msgid "Meta label."
 msgstr ""
 
-#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:705
+#: includes/api/v1/class-wc-rest-subscriptions-v1-controller.php:707
 msgid "Meta value."
 msgstr ""
 
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:708
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:725
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:712
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:729
 msgid "There was a problem completing this request. The subscription may have been deleted by another process."
 msgstr ""
 
-#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:776
+#: includes/api/v2/class-wc-rest-subscriptions-v2-controller.php:780
 msgid "The type of order related to the subscription."
 msgstr ""
 
@@ -2002,7 +2039,7 @@ msgid "Add a Subscription Product"
 msgstr ""
 
 #: includes/class-wc-subscriptions-plugin.php:246
-#: includes/core/class-wc-subscriptions-core-plugin.php:581
+#: includes/core/class-wc-subscriptions-core-plugin.php:595
 #: includes/core/upgrades/templates/wcs-about-2-0.php:35
 #: includes/core/upgrades/templates/wcs-about.php:34
 msgid "Settings"
@@ -2079,7 +2116,7 @@ msgstr ""
 
 #: includes/class-wcs-customer-suspension-manager.php:291
 #: includes/core/admin/class-wcs-admin-post-types.php:1372
-#: includes/gifting/class-wcsg-recipient-management.php:149
+#: includes/gifting/class-wcsg-recipient-management.php:156
 msgid "Suspend"
 msgstr ""
 
@@ -2096,20 +2133,20 @@ msgstr ""
 msgid "When you add the new downloadable files to a product, subscribers will only get access to them after their next renewal is processed."
 msgstr ""
 
-#: includes/class-wcs-limited-recurring-coupon-manager.php:50
+#: includes/class-wcs-limited-recurring-coupon-manager.php:52
 msgid "Active for x payments"
 msgstr ""
 
-#: includes/class-wcs-limited-recurring-coupon-manager.php:51
+#: includes/class-wcs-limited-recurring-coupon-manager.php:53
 msgid "Unlimited payments"
 msgstr ""
 
-#: includes/class-wcs-limited-recurring-coupon-manager.php:52
+#: includes/class-wcs-limited-recurring-coupon-manager.php:54
 msgid "Coupon will be limited to the given number of payments. It will then be automatically removed from the subscription. \"Payments\" also includes the initial subscription payment."
 msgstr ""
 
 #. translators: %1$s is the coupon code, %2$d is the number of payment usages
-#: includes/class-wcs-limited-recurring-coupon-manager.php:252
+#: includes/class-wcs-limited-recurring-coupon-manager.php:254
 #, php-format
 msgid "Limited use coupon \"%1$s\" removed from subscription. It has been used %2$d time."
 msgid_plural "Limited use coupon \"%1$s\" removed from subscription. It has been used %2$d times."
@@ -2117,18 +2154,18 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d refers to the number of payments the coupon can be used for.
-#: includes/class-wcs-limited-recurring-coupon-manager.php:292
+#: includes/class-wcs-limited-recurring-coupon-manager.php:294
 #, php-format
 msgid "Active for %d payment"
 msgid_plural "Active for %d payments"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-wcs-limited-recurring-coupon-manager.php:296
+#: includes/class-wcs-limited-recurring-coupon-manager.php:298
 msgid "Active for unlimited payments"
 msgstr ""
 
-#: includes/class-wcs-limited-recurring-coupon-manager.php:393
+#: includes/class-wcs-limited-recurring-coupon-manager.php:395
 #: includes/core/class-wc-subscriptions-coupon.php:1682
 msgid "Sorry, it seems there are no available payment methods which support the recurring coupon you are using. Please contact us if you require assistance or wish to make alternate arrangements."
 msgstr ""
@@ -2414,42 +2451,42 @@ msgstr ""
 msgid "Unable to change subscription status to \"%s\". Please assign a customer to the subscription to activate it."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1057
+#: includes/core/admin/class-wc-subscriptions-admin.php:1042
 msgid "Trashing this order will also trash the subscriptions purchased with the order."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1070
+#: includes/core/admin/class-wc-subscriptions-admin.php:1055
 msgid "Enter the new period, either day, week, month or year:"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1071
+#: includes/core/admin/class-wc-subscriptions-admin.php:1056
 msgid "Enter a new length (e.g. 5):"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1072
+#: includes/core/admin/class-wc-subscriptions-admin.php:1057
 msgid "Enter a new interval as a single number (e.g. to charge every 2nd month, enter 2):"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1073
+#: includes/core/admin/class-wc-subscriptions-admin.php:1058
 msgid "Delete all variations without a subscription"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1079
+#: includes/core/admin/class-wc-subscriptions-admin.php:1064
 msgid "An error occurred determining if that variation can be deleted. Please try again."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1080
+#: includes/core/admin/class-wc-subscriptions-admin.php:1065
 msgid "That variation can not be removed because it is associated with active subscriptions. To remove this variation, please cancel and delete the subscriptions for it."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1085
+#: includes/core/admin/class-wc-subscriptions-admin.php:1070
 msgid ""
 "You are about to trash one or more orders which contain a subscription.\n"
 "\n"
 "Trashing the orders will also trash the subscriptions purchased with these orders."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1093
+#: includes/core/admin/class-wc-subscriptions-admin.php:1078
 msgid ""
 "WARNING: Bad things are about to happen!\n"
 "\n"
@@ -2458,202 +2495,202 @@ msgid ""
 "Changes to the billing period, recurring discount, recurring tax or recurring total may not be reflected in the amount charged by the payment gateway."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1094
+#: includes/core/admin/class-wc-subscriptions-admin.php:1079
 msgid "You are deleting a subscription item. You will also need to manually cancel and trash the subscription on the Manage Subscriptions screen."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1101
+#: includes/core/admin/class-wc-subscriptions-admin.php:1086
 msgid ""
 "Warning: Deleting a user will also delete the user's subscriptions. The user's orders will remain but be reassigned to the 'Guest' user.\n"
 "\n"
 "Do you want to continue to delete this user and any associated subscriptions?"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1109
+#: includes/core/admin/class-wc-subscriptions-admin.php:1094
 msgid "PayPal Standard has a number of limitations and does not support all subscription features."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1109
+#: includes/core/admin/class-wc-subscriptions-admin.php:1094
 msgid "Because of this, it is not recommended as a payment method for Subscriptions unless it is the only available option for your country."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1114
+#: includes/core/admin/class-wc-subscriptions-admin.php:1099
 #: src/Internal/Admin/Settings/Modern_Field_Adaptations.php:353
 msgid "Select at least one subscription product type."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1115
+#: includes/core/admin/class-wc-subscriptions-admin.php:1100
 #: src/Internal/Admin/Settings/Modern_Field_Adaptations.php:618
 msgid "Select at least one subscription product type to apply proration."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1118
+#: includes/core/admin/class-wc-subscriptions-admin.php:1103
 msgid "This action cannot be reversed. Are you sure you wish to erase personal data from the selected subscriptions?"
 msgstr ""
 
 #. translators: placeholders are for HTML tags. They are 1$: "<h3>", 2$: "</h3>", 3$: "<p>", 4$: "<em>", 5$: "</em>", 6$: "<em>", 7$: "</em>", 8$: "</p>"
-#: includes/core/admin/class-wc-subscriptions-admin.php:1134
+#: includes/core/admin/class-wc-subscriptions-admin.php:1119
 #, php-format
 msgctxt "used in admin pointer script params in javascript as type pointer content"
 msgid "%1$sChoose Subscription%2$s%3$sThe WooCommerce Subscriptions extension adds two new subscription product types - %4$sSimple subscription%5$s and %6$sVariable subscription%7$s.%8$s"
 msgstr ""
 
 #. translators: placeholders are for HTML tags. They are 1$: "<h3>", 2$: "</h3>", 3$: "<p>", 4$: "</p>"
-#: includes/core/admin/class-wc-subscriptions-admin.php:1136
+#: includes/core/admin/class-wc-subscriptions-admin.php:1121
 #, php-format
 msgctxt "used in admin pointer script params in javascript as price pointer content"
 msgid "%1$sSet a Price%2$s%3$sSubscription prices are a little different to other product prices. For a subscription, you can set a billing period, length, sign-up fee and free trial.%4$s"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1162
+#: includes/core/admin/class-wc-subscriptions-admin.php:1147
 msgid "Active subscriber?"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1206
+#: includes/core/admin/class-wc-subscriptions-admin.php:1191
 msgid "Manage Subscriptions"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1210
-#: includes/core/class-wc-subscriptions-core-plugin.php:401
+#: includes/core/admin/class-wc-subscriptions-admin.php:1195
+#: includes/core/class-wc-subscriptions-core-plugin.php:415
 msgid "Search Subscriptions"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1301
+#: includes/core/admin/class-wc-subscriptions-admin.php:1286
 msgid "Subscriptions settings could not be saved because the plugin's files were being updated during the request. Please save again."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1531
+#: includes/core/admin/class-wc-subscriptions-admin.php:1516
 msgctxt "options section heading"
 msgid "Miscellaneous"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1538
+#: includes/core/admin/class-wc-subscriptions-admin.php:1523
 msgid "Mixed Checkout"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1539
+#: includes/core/admin/class-wc-subscriptions-admin.php:1524
 msgid "Allow mixed cart checkouts"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1544
+#: includes/core/admin/class-wc-subscriptions-admin.php:1529
 msgid "Customers can purchase subscription products and one-time products in the same transaction."
 msgstr ""
 
 #. translators: placeholder is a number
 #. translators: placeholder is a subscription ID.
-#: includes/core/admin/class-wc-subscriptions-admin.php:1646
-#: includes/core/admin/class-wc-subscriptions-admin.php:1889
+#: includes/core/admin/class-wc-subscriptions-admin.php:1631
+#: includes/core/admin/class-wc-subscriptions-admin.php:1874
 #, php-format
 msgid "We can't find a subscription with ID #%d. Perhaps it was deleted?"
 msgstr ""
 
 #. translators: Placeholders are opening and closing link tags.
-#: includes/core/admin/class-wc-subscriptions-admin.php:1739
-#: includes/core/admin/class-wc-subscriptions-admin.php:1801
+#: includes/core/admin/class-wc-subscriptions-admin.php:1724
+#: includes/core/admin/class-wc-subscriptions-admin.php:1786
 #, php-format
 msgid "We weren't able to locate the set of report results you requested. Please regenerate the link from the %1$sSubscription Reports screen%2$s."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1857
+#: includes/core/admin/class-wc-subscriptions-admin.php:1842
 msgid "We can't find a paid subscription order for this user."
 msgstr ""
 
 #. translators: placeholders are opening link tag, ID of sub, and closing link tag
-#: includes/core/admin/class-wc-subscriptions-admin.php:1896
+#: includes/core/admin/class-wc-subscriptions-admin.php:1881
 #, php-format
 msgid "Showing orders for %1$sSubscription %2$s%3$s"
 msgstr ""
 
 #. translators: number of 1$: days, 2$: weeks, 3$: months, 4$: years
-#: includes/core/admin/class-wc-subscriptions-admin.php:1919
+#: includes/core/admin/class-wc-subscriptions-admin.php:1904
 #, php-format
 msgid "The trial period can not exceed: %1$s, %2$s, %3$s or %4$s."
 msgstr ""
 
 #. translators: placeholder is a time period (e.g. "4 weeks")
-#: includes/core/admin/class-wc-subscriptions-admin.php:1924
+#: includes/core/admin/class-wc-subscriptions-admin.php:1909
 #, php-format
 msgid "The trial period can not exceed %s."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1949
+#: includes/core/admin/class-wc-subscriptions-admin.php:1934
 msgid "Please log in to your account to view your subscriptions."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1986
+#: includes/core/admin/class-wc-subscriptions-admin.php:1971
 msgid "No subscriptions found for that customer."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:1988
+#: includes/core/admin/class-wc-subscriptions-admin.php:1973
 msgid "You do not have permission to view those subscriptions."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2024
+#: includes/core/admin/class-wc-subscriptions-admin.php:2009
 #: includes/core/admin/class-wcs-admin-system-status.php:137
 msgctxt "label that indicates whether debugging is turned on for the plugin"
 msgid "WCS_DEBUG"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2030
+#: includes/core/admin/class-wc-subscriptions-admin.php:2015
 #: includes/core/admin/class-wcs-admin-system-status.php:151
 msgctxt "Live or Staging, Label on WooCommerce -> System Status page"
 msgid "Subscriptions Mode"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2031
+#: includes/core/admin/class-wc-subscriptions-admin.php:2016
 #: includes/core/admin/class-wcs-admin-system-status.php:153
 msgctxt "refers to staging site"
 msgid "Staging"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2031
+#: includes/core/admin/class-wc-subscriptions-admin.php:2016
 #: includes/core/admin/class-wcs-admin-system-status.php:153
 msgctxt "refers to live site"
 msgid "Live"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2061
+#: includes/core/admin/class-wc-subscriptions-admin.php:2046
 msgid "Automatic Recurring Payments"
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2094
+#: includes/core/admin/class-wc-subscriptions-admin.php:2079
 msgid "Supports automatic renewal payments."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2175
+#: includes/core/admin/class-wc-subscriptions-admin.php:2160
 msgid "Subscription items can no longer be edited."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2180
+#: includes/core/admin/class-wc-subscriptions-admin.php:2165
 msgid "This subscription is no longer editable because the payment gateway does not allow modification of recurring amounts."
 msgstr ""
 
 #. translators: $1-2: opening and closing tags of a link that takes to Woo marketplace / Stripe product page
-#: includes/core/admin/class-wc-subscriptions-admin.php:2199
+#: includes/core/admin/class-wc-subscriptions-admin.php:2184
 #, php-format
 msgid "No payment gateways capable of processing automatic subscription payments are enabled. If you would like to process automatic payments, we recommend %1$sWooPayments%2$s."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2206
+#: includes/core/admin/class-wc-subscriptions-admin.php:2191
 msgid "Recurring Payments"
 msgstr ""
 
 #. translators: placeholders are opening and closing link tags
-#: includes/core/admin/class-wc-subscriptions-admin.php:2214
+#: includes/core/admin/class-wc-subscriptions-admin.php:2199
 #, php-format
 msgid "Payment gateways which don't support automatic recurring payments can be used to process %1$smanual subscription renewal payments%2$s."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2335
+#: includes/core/admin/class-wc-subscriptions-admin.php:2320
 msgid "Note that purchasing a subscription still requires an account."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2349
+#: includes/core/admin/class-wc-subscriptions-admin.php:2334
 msgid "The product type can not be changed because this product is associated with subscriptions."
 msgstr ""
 
-#: includes/core/admin/class-wc-subscriptions-admin.php:2406
-#: includes/core/admin/class-wc-subscriptions-admin.php:2407
+#: includes/core/admin/class-wc-subscriptions-admin.php:2391
+#: includes/core/admin/class-wc-subscriptions-admin.php:2392
 msgid "Allow subscription customers to create an account during checkout"
 msgstr ""
 
@@ -2725,8 +2762,8 @@ msgid ""
 msgstr ""
 
 #: includes/core/admin/class-wcs-admin-meta-boxes.php:232
-#: src/Internal/HealthCheck/RemediationAdvisor.php:269
-#: src/Internal/HealthCheck/RemediationAdvisor.php:305
+#: src/Internal/HealthCheck/RemediationAdvisor.php:299
+#: src/Internal/HealthCheck/RemediationAdvisor.php:335
 msgid "Process renewal"
 msgstr ""
 
@@ -2821,7 +2858,7 @@ msgstr ""
 #: includes/core/admin/class-wcs-admin-post-types.php:304
 #: includes/core/admin/class-wcs-admin-post-types.php:1373
 #: includes/core/admin/class-wcs-admin-post-types.php:1799
-#: includes/core/class-wc-subscriptions-manager.php:2045
+#: includes/core/class-wc-subscriptions-manager.php:2049
 #: includes/core/wcs-user-functions.php:385
 #: templates/myaccount/related-orders.php:83
 msgctxt "an action on a subscription"
@@ -2846,7 +2883,7 @@ msgstr[1] ""
 
 #: includes/core/admin/class-wcs-admin-post-types.php:452
 #: includes/core/admin/meta-boxes/views/html-related-orders-table.php:17
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:244
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:246
 #: templates/gifting/related-orders.php:24
 #: templates/gifting/related-orders.php:61
 #: templates/myaccount/my-subscriptions.php:22
@@ -2860,9 +2897,9 @@ msgid "Status"
 msgstr ""
 
 #: includes/core/admin/class-wcs-admin-post-types.php:453
-#: includes/core/class-wc-subscriptions-core-plugin.php:393
-#: includes/gifting/class-wcsg-recipient-management.php:570
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:240
+#: includes/core/class-wc-subscriptions-core-plugin.php:407
+#: includes/gifting/class-wcsg-recipient-management.php:577
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:242
 #: templates/apfs/cart/cart-add-to-subscription-list.php:34
 #: templates/emails/cancelled-subscription.php:41
 #: templates/emails/expired-subscription.php:26
@@ -3052,7 +3089,7 @@ msgstr ""
 
 #: includes/core/admin/class-wcs-admin-post-types.php:1371
 #: includes/core/wcs-user-functions.php:365
-#: includes/gifting/class-wcsg-recipient-management.php:154
+#: includes/gifting/class-wcsg-recipient-management.php:161
 #: templates/single-product/add-to-cart/subscription.php:39
 #: templates/single-product/add-to-cart/variable-subscription.php:38
 msgid "Reactivate"
@@ -3100,12 +3137,12 @@ msgid "Subscription with ID %1$d does not exist and could not be updated."
 msgstr ""
 
 #: includes/core/admin/class-wcs-admin-post-types.php:1647
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:325
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:332
 msgid "All"
 msgstr ""
 
 #: includes/core/admin/class-wcs-admin-product-import-export-manager.php:33
-#: includes/switching/class-wc-subscriptions-switcher.php:904
+#: includes/switching/class-wc-subscriptions-switcher.php:905
 #: src/Internal/Admin/Settings/Modern_Field_Adaptations.php:201
 msgid "Subscription variations"
 msgstr ""
@@ -3365,7 +3402,7 @@ msgstr ""
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:159
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:257
 #: includes/payment-retry/data-stores/class-wcs-retry-post-store.php:53
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:878
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:915
 #: build/admin.js:23
 #: build/settings-ui.js:23
 #: build/wcsg-blocks-integration.js:1
@@ -3392,7 +3429,7 @@ msgstr ""
 #: includes/core/admin/meta-boxes/class-wcs-meta-box-subscription-data.php:191
 #: includes/core/class-wcs-change-payment-method-admin.php:36
 #: includes/core/class-wcs-change-payment-method-admin.php:47
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:247
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:249
 msgid "Payment method"
 msgstr ""
 
@@ -3487,7 +3524,7 @@ msgid "Unpublished"
 msgstr ""
 
 #: includes/core/admin/meta-boxes/views/html-related-orders-table.php:14
-#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:188
+#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:248
 #: templates/gifting/related-orders.php:49
 #: templates/myaccount/related-orders.php:46
 msgid "Order Number"
@@ -3589,7 +3626,7 @@ msgstr ""
 #. translators: %s: human-readable time diff like "3 days".
 #: includes/core/class-wc-subscription.php:1402
 #: includes/core/wcs-formatting-functions.php:243
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1313
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1350
 #, php-format
 msgid "in %s"
 msgstr ""
@@ -3598,7 +3635,7 @@ msgstr ""
 #. translators: %s: human-readable time diff like "3 days".
 #: includes/core/class-wc-subscription.php:1405
 #: includes/core/wcs-formatting-functions.php:246
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1299
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1336
 #, php-format
 msgid "%s ago"
 msgstr ""
@@ -3715,37 +3752,37 @@ msgstr ""
 msgid "Backordered"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-addresses.php:100
+#: includes/core/class-wc-subscriptions-addresses.php:120
 msgid "Change address"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-addresses.php:143
+#: includes/core/class-wc-subscriptions-addresses.php:163
 msgid "Both the shipping address used for the subscription and your default shipping address for future purchases will be updated."
 msgstr ""
 
 #. translators: $1: address type (Shipping Address / Billing Address), $2: opening <strong> tag, $3: closing </strong> tag
-#: includes/core/class-wc-subscriptions-addresses.php:157
+#: includes/core/class-wc-subscriptions-addresses.php:177
 #, php-format
 msgid "Update the %1$s used for %2$sall%3$s future renewals of my active subscriptions"
 msgstr ""
 
 #. translators: $1: address type (Billing Address), $2: opening <strong> tag, $3: closing </strong> tag
-#: includes/core/class-wc-subscriptions-addresses.php:202
+#: includes/core/class-wc-subscriptions-addresses.php:222
 #, php-format
 msgid "Update the %1$s contact used for %2$sall%3$s future renewals of my active subscriptions"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-addresses.php:276
+#: includes/core/class-wc-subscriptions-addresses.php:296
 msgctxt "order note left on subscription after user action"
 msgid "Billing contact updated by the subscriber from their account page."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-addresses.php:307
+#: includes/core/class-wc-subscriptions-addresses.php:327
 msgctxt "order note left on subscription after user action"
 msgid "Billing address updated by the subscriber from their account page."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-addresses.php:308
+#: includes/core/class-wc-subscriptions-addresses.php:328
 msgctxt "order note left on subscription after user action"
 msgid "Shipping address updated by the subscriber from their account page."
 msgstr ""
@@ -3753,16 +3790,16 @@ msgstr ""
 #. translators: %s: subscription ID.
 #. translators: %s: order number.
 #. translators: placeholder is a subscription ID.
-#: includes/core/class-wc-subscriptions-addresses.php:401
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:849
-#: includes/core/class-wcs-query.php:102
+#: includes/core/class-wc-subscriptions-addresses.php:421
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:856
+#: includes/core/class-wcs-query.php:107
 #, php-format
 msgctxt "hash before order number"
 msgid "Subscription #%s"
 msgstr ""
 
 #. translators: %s: address type (eg. 'billing' or 'shipping').
-#: includes/core/class-wc-subscriptions-addresses.php:407
+#: includes/core/class-wc-subscriptions-addresses.php:427
 #, php-format
 msgctxt "change billing or shipping address"
 msgid "Change %s address"
@@ -3848,7 +3885,7 @@ msgid "Invalid recurring shipping method."
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-cart.php:2431
-#: src/Internal/HealthCheck/StatusTab.php:1170
+#: src/Internal/HealthCheck/StatusTab.php:1191
 msgid "now"
 msgstr ""
 
@@ -3944,7 +3981,7 @@ msgstr ""
 
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:146
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:301
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:396
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:403
 msgid "There was an unexpected problem with your request. Please try again."
 msgstr ""
 
@@ -3965,9 +4002,9 @@ msgid "Choose a new payment method.%s"
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:240
-#: includes/gifting/class-wcsg-cart.php:167
-#: includes/gifting/class-wcsg-checkout.php:106
-#: includes/gifting/class-wcsg-product.php:53
+#: includes/gifting/class-wcsg-cart.php:210
+#: includes/gifting/class-wcsg-checkout.php:328
+#: includes/gifting/class-wcsg-product.php:58
 msgid "There was an error with your request. Please try again."
 msgstr ""
 
@@ -3978,6 +4015,7 @@ msgid "Invalid Subscription."
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:246
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:317
 #: includes/core/class-wcs-cart-resubscribe.php:103
 #: includes/core/class-wcs-cart-resubscribe.php:155
 #: includes/core/class-wcs-user-change-status-handler.php:112
@@ -3986,7 +4024,7 @@ msgid "That doesn't appear to be one of your subscriptions."
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-change-payment-gateway.php:249
-#: includes/core/class-wcs-query.php:246
+#: includes/core/class-wcs-query.php:254
 msgid "The payment method can not be changed for that subscription."
 msgstr ""
 
@@ -4004,46 +4042,46 @@ msgctxt "label on button, imperative"
 msgid "Add payment"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:349
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:356
 msgid "Payment method updated."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:349
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:356
 msgid "Payment method added."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:413
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:415
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:420
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:422
 msgid "Payment method updated for all your current subscriptions."
 msgstr ""
 
 #. translators: 1: old payment title, 2: new payment title.
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:592
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:599
 #, php-format
 msgctxt "%1$s: old payment title, %2$s: new payment title"
 msgid "Payment method changed from \"%1$s\" to \"%2$s\" by the subscriber."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:603
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:610
 msgid "An error occurred updating your subscription's payment method. Please contact us for assistance."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:611
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:618
 #, php-format
 msgid "%1$sError:%2$s %3$s"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:871
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:878
 msgctxt "the page title of the change payment method form"
 msgid "Change payment method"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:873
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:880
 msgctxt "the page title of the add payment method form"
 msgid "Add payment method"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-change-payment-gateway.php:917
+#: includes/core/class-wc-subscriptions-change-payment-gateway.php:924
 msgid "Please log in to your account below to choose a new payment method for your subscription."
 msgstr ""
 
@@ -4078,53 +4116,53 @@ msgstr ""
 msgid "Purchasing a subscription product requires an account. Please go to the %1$sMy Account%2$s page to login or contact us if you need assistance."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:394
+#: includes/core/class-wc-subscriptions-core-plugin.php:408
 msgctxt "custom post type setting"
 msgid "Add Subscription"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:395
+#: includes/core/class-wc-subscriptions-core-plugin.php:409
 msgctxt "custom post type setting"
 msgid "Add New Subscription"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:396
+#: includes/core/class-wc-subscriptions-core-plugin.php:410
 msgctxt "custom post type setting"
 msgid "Edit"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:397
+#: includes/core/class-wc-subscriptions-core-plugin.php:411
 msgctxt "custom post type setting"
 msgid "Edit Subscription"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:398
+#: includes/core/class-wc-subscriptions-core-plugin.php:412
 msgctxt "custom post type setting"
 msgid "New Subscription"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:399
-#: includes/core/class-wc-subscriptions-core-plugin.php:400
+#: includes/core/class-wc-subscriptions-core-plugin.php:413
+#: includes/core/class-wc-subscriptions-core-plugin.php:414
 msgctxt "custom post type setting"
 msgid "View Subscription"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:403
+#: includes/core/class-wc-subscriptions-core-plugin.php:417
 msgctxt "custom post type setting"
 msgid "No Subscriptions found in trash"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:404
+#: includes/core/class-wc-subscriptions-core-plugin.php:418
 msgctxt "custom post type setting"
 msgid "Parent Subscriptions"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:407
+#: includes/core/class-wc-subscriptions-core-plugin.php:421
 msgid "This is where subscriptions are stored."
 msgstr ""
 
 #. translators: placeholder is a post count.
-#: includes/core/class-wc-subscriptions-core-plugin.php:465
+#: includes/core/class-wc-subscriptions-core-plugin.php:479
 #, php-format
 msgctxt "post status label including post count"
 msgid "Active <span class=\"count\">(%s)</span>"
@@ -4133,7 +4171,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholder is a post count.
-#: includes/core/class-wc-subscriptions-core-plugin.php:467
+#: includes/core/class-wc-subscriptions-core-plugin.php:481
 #, php-format
 msgctxt "post status label including post count"
 msgid "Switched <span class=\"count\">(%s)</span>"
@@ -4142,7 +4180,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholder is a post count.
-#: includes/core/class-wc-subscriptions-core-plugin.php:469
+#: includes/core/class-wc-subscriptions-core-plugin.php:483
 #, php-format
 msgctxt "post status label including post count"
 msgid "Expired <span class=\"count\">(%s)</span>"
@@ -4151,7 +4189,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholder is a post count.
-#: includes/core/class-wc-subscriptions-core-plugin.php:471
+#: includes/core/class-wc-subscriptions-core-plugin.php:485
 #, php-format
 msgctxt "post status label including post count"
 msgid "Pending Cancellation <span class=\"count\">(%s)</span>"
@@ -4159,22 +4197,22 @@ msgid_plural "Pending Cancellation <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:520
+#: includes/core/class-wc-subscriptions-core-plugin.php:534
 msgid "Variable Subscription"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:582
+#: includes/core/class-wc-subscriptions-core-plugin.php:596
 #: includes/core/upgrades/templates/wcs-about-2-0.php:36
 msgctxt "short for documents"
 msgid "Docs"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-core-plugin.php:583
+#: includes/core/class-wc-subscriptions-core-plugin.php:597
 msgid "Support"
 msgstr ""
 
 #. translators: placeholders are opening and closing tags. Leads to docs on upgrading WooCommerce Subscriptions
-#: includes/core/class-wc-subscriptions-core-plugin.php:606
+#: includes/core/class-wc-subscriptions-core-plugin.php:620
 #, php-format
 msgid "Warning! Version 2.0 is a major update to the WooCommerce Subscriptions extension. Before updating, please create a backup, update all WooCommerce extensions and test all plugins, custom code and payment gateways with version 2.0 on a staging site. %1$sLearn more about updating older versions of WooCommerce Subscriptions &raquo;%2$s"
 msgstr ""
@@ -4518,8 +4556,8 @@ msgid "Would you like to add a payment method now?"
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-manager.php:120
-#: includes/core/class-wc-subscriptions-manager.php:2109
-#: includes/core/class-wc-subscriptions-manager.php:2129
+#: includes/core/class-wc-subscriptions-manager.php:2113
+#: includes/core/class-wc-subscriptions-manager.php:2133
 msgctxt "used in order note as reason for why subscription status changed"
 msgid "Subscription renewal payment due:"
 msgstr ""
@@ -4589,105 +4627,105 @@ msgid "Pending subscription created."
 msgstr ""
 
 #. translators: %s is the email address of the recipient.
-#: includes/core/class-wc-subscriptions-manager.php:1085
+#: includes/core/class-wc-subscriptions-manager.php:1089
 #, php-format
 msgid "The gifted subscription moved to the purchaser after the recipient user with email address %s was deleted."
 msgstr ""
 
 #. Translators: 1: The subscription ID number. 2: The current user's username.
-#: includes/core/class-wc-subscriptions-manager.php:1105
+#: includes/core/class-wc-subscriptions-manager.php:1109
 #, php-format
 msgid "The related subscription #%1$s has been deleted after the customer was deleted by %2$s."
 msgstr ""
 
 #. Translators: Placeholder is the subscription ID number.
-#: includes/core/class-wc-subscriptions-manager.php:1108
+#: includes/core/class-wc-subscriptions-manager.php:1112
 #, php-format
 msgid "The related subscription #%s has been deleted after the customer was deleted."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-manager.php:1254
+#: includes/core/class-wc-subscriptions-manager.php:1258
 #: includes/core/wcs-functions.php:274
 msgctxt "Subscription status"
 msgid "Active"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-manager.php:1257
+#: includes/core/class-wc-subscriptions-manager.php:1261
 #: includes/core/wcs-functions.php:276
 msgctxt "Subscription status"
 msgid "Cancelled"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-manager.php:1260
+#: includes/core/class-wc-subscriptions-manager.php:1264
 #: includes/core/wcs-functions.php:278
 msgctxt "Subscription status"
 msgid "Expired"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-manager.php:1263
+#: includes/core/class-wc-subscriptions-manager.php:1267
 #: includes/core/wcs-functions.php:273
 msgctxt "Subscription status"
 msgid "Pending"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-manager.php:1266
+#: includes/core/class-wc-subscriptions-manager.php:1270
 msgctxt "Subscription status"
 msgid "Failed"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-manager.php:1270
+#: includes/core/class-wc-subscriptions-manager.php:1274
 msgctxt "Subscription status"
 msgid "On-hold"
 msgstr ""
 
 #. translators: 1$: month number (e.g. "01"), 2$: month abbreviation (e.g. "Jan")
-#: includes/core/class-wc-subscriptions-manager.php:2022
+#: includes/core/class-wc-subscriptions-manager.php:2026
 #, php-format
 msgctxt "used in a select box"
 msgid "%1$s-%2$s"
 msgstr ""
 
 #. translators: all fields are full html nodes: 1$: month input, 2$: day input, 3$: year input, 4$: hour input, 5$: minute input. Change the order if you'd like
-#: includes/core/class-wc-subscriptions-manager.php:2035
+#: includes/core/class-wc-subscriptions-manager.php:2039
 #, php-format
 msgid "%1$s%2$s, %3$s @ %4$s : %5$s"
 msgstr ""
 
 #. translators: all fields are full html nodes: 1$: month input, 2$: day input, 3$: year input. Change the order if you'd like
-#: includes/core/class-wc-subscriptions-manager.php:2039
+#: includes/core/class-wc-subscriptions-manager.php:2043
 #, php-format
 msgid "%1$s%2$s, %3$s"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-manager.php:2044
+#: includes/core/class-wc-subscriptions-manager.php:2048
 msgid "Change"
 msgstr ""
 
 #. translators: placeholder is subscription ID
-#: includes/core/class-wc-subscriptions-manager.php:2379
+#: includes/core/class-wc-subscriptions-manager.php:2383
 #, php-format
 msgid "Failed sign-up for subscription %s."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-manager.php:2470
+#: includes/core/class-wc-subscriptions-manager.php:2474
 msgid "Invalid security token, please reload the page and try again."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-manager.php:2474
+#: includes/core/class-wc-subscriptions-manager.php:2478
 msgid "Only store managers can edit payment dates."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-manager.php:2478
+#: includes/core/class-wc-subscriptions-manager.php:2482
 msgid "Please enter all date fields."
 msgstr ""
 
 #. translators: placeholder is human time diff (e.g. "3 weeks")
-#: includes/core/class-wc-subscriptions-manager.php:2497
+#: includes/core/class-wc-subscriptions-manager.php:2501
 #, php-format
 msgid "In %s"
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-manager.php:2503
+#: includes/core/class-wc-subscriptions-manager.php:2507
 msgid "Date Changed"
 msgstr ""
 
@@ -4813,15 +4851,15 @@ msgid "Apply proration to"
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-synchroniser.php:318
-#: includes/switching/class-wc-subscriptions-switcher.php:487
-#: includes/switching/class-wc-subscriptions-switcher.php:568
+#: includes/switching/class-wc-subscriptions-switcher.php:488
+#: includes/switching/class-wc-subscriptions-switcher.php:569
 #: src/Internal/Admin/Settings/Modern_Field_Adaptations.php:598
 msgid "Virtual subscription products"
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-synchroniser.php:322
-#: includes/switching/class-wc-subscriptions-switcher.php:514
-#: includes/switching/class-wc-subscriptions-switcher.php:595
+#: includes/switching/class-wc-subscriptions-switcher.php:515
+#: includes/switching/class-wc-subscriptions-switcher.php:596
 #: src/Internal/Admin/Settings/Modern_Field_Adaptations.php:604
 msgid "Physical subscription products"
 msgstr ""
@@ -4859,7 +4897,7 @@ msgid "Choose how the first charge is handled for subscription products with ali
 msgstr ""
 
 #: includes/core/class-wc-subscriptions-synchroniser.php:431
-#: includes/switching/class-wc-subscriptions-switcher.php:463
+#: includes/switching/class-wc-subscriptions-switcher.php:464
 msgid "First billing behavior"
 msgstr ""
 
@@ -4939,63 +4977,63 @@ msgid "new related order methods in WCS_Related_Order_Store"
 msgstr ""
 
 #: includes/core/class-wcs-cached-data-manager.php:228
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1177
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1214
 msgid "Weekly"
 msgstr ""
 
 #: includes/core/class-wcs-cart-initial-payment.php:87
-#: includes/core/class-wcs-cart-renewal.php:210
+#: includes/core/class-wcs-cart-renewal.php:212
 msgid "That doesn't appear to be your order."
 msgstr ""
 
-#: includes/core/class-wcs-cart-renewal.php:225
+#: includes/core/class-wcs-cart-renewal.php:227
 msgid "This order can no longer be paid because the corresponding subscription does not require payment at this time."
 msgstr ""
 
-#: includes/core/class-wcs-cart-renewal.php:246
+#: includes/core/class-wcs-cart-renewal.php:248
 msgid "Complete checkout to renew your subscription."
 msgstr ""
 
 #. translators: placeholder is an item name
-#: includes/core/class-wcs-cart-renewal.php:343
+#: includes/core/class-wcs-cart-renewal.php:345
 #, php-format
 msgid "The %s product has been deleted and can no longer be renewed. Please choose a new product or contact us for assistance."
 msgstr ""
 
 #. translators: %s is subscription's number
-#: includes/core/class-wcs-cart-renewal.php:378
+#: includes/core/class-wcs-cart-renewal.php:380
 #, php-format
 msgid "Subscription #%s has not been added to the cart."
 msgstr ""
 
 #. translators: %s is order's number
-#: includes/core/class-wcs-cart-renewal.php:381
+#: includes/core/class-wcs-cart-renewal.php:383
 #, php-format
 msgid "Order #%s has not been added to the cart."
 msgstr ""
 
-#: includes/core/class-wcs-cart-renewal.php:420
+#: includes/core/class-wcs-cart-renewal.php:422
 msgid "We couldn't find the original subscription for an item in your cart. The item was removed."
 msgid_plural "We couldn't find the original subscriptions for items in your cart. The items were removed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/core/class-wcs-cart-renewal.php:427
+#: includes/core/class-wcs-cart-renewal.php:429
 msgid "We couldn't find the original renewal order for an item in your cart. The item was removed."
 msgid_plural "We couldn't find the original renewal orders for items in your cart. The items were removed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/core/class-wcs-cart-renewal.php:968
+#: includes/core/class-wcs-cart-renewal.php:975
 msgid "All linked subscription items have been removed from the cart."
 msgstr ""
 
-#: includes/core/class-wcs-cart-renewal.php:999
+#: includes/core/class-wcs-cart-renewal.php:1006
 msgctxt "Used in WooCommerce by removed item notification: \"_All linked subscription items were_ removed. Undo?\" Filter for item title."
 msgid "All linked subscription items were"
 msgstr ""
 
-#: includes/core/class-wcs-cart-renewal.php:1903
+#: includes/core/class-wcs-cart-renewal.php:1969
 msgctxt "The place order button text while renewing a subscription"
 msgid "Renew subscription"
 msgstr ""
@@ -5024,7 +5062,7 @@ msgstr ""
 msgid "Customer resubscribed in order #%s"
 msgstr ""
 
-#: includes/core/class-wcs-cart-resubscribe.php:351
+#: includes/core/class-wcs-cart-resubscribe.php:358
 msgctxt "The place order button text while resubscribing to a subscription"
 msgid "Resubscribe"
 msgstr ""
@@ -5043,35 +5081,35 @@ msgstr ""
 msgid "Ignore this error"
 msgstr ""
 
-#: includes/core/class-wcs-limiter.php:45
+#: includes/core/class-wcs-limiter.php:82
 msgid "Limit subscription"
 msgstr ""
 
 #. translators: placeholders are opening and closing link tags
-#: includes/core/class-wcs-limiter.php:47
+#: includes/core/class-wcs-limiter.php:84
 #, php-format
 msgid "Only allow a customer to have one subscription to this product. %1$sLearn more%2$s."
 msgstr ""
 
-#: includes/core/class-wcs-limiter.php:49
+#: includes/core/class-wcs-limiter.php:86
 msgid "Do not limit"
 msgstr ""
 
-#: includes/core/class-wcs-limiter.php:50
+#: includes/core/class-wcs-limiter.php:87
 msgid "Limit to one active subscription"
 msgstr ""
 
-#: includes/core/class-wcs-limiter.php:51
+#: includes/core/class-wcs-limiter.php:88
 msgid "Limit to one of any status"
 msgstr ""
 
 #: includes/core/class-wcs-my-account-auto-renew-toggle.php:101
-#: src/Internal/HealthCheck/Detector.php:729
+#: src/Internal/HealthCheck/Detector.php:810
 msgid "Customer turned off automatic renewals via their My Account page."
 msgstr ""
 
 #: includes/core/class-wcs-my-account-auto-renew-toggle.php:126
-#: src/Internal/HealthCheck/Detector.php:730
+#: src/Internal/HealthCheck/Detector.php:811
 msgid "Customer turned on automatic renewals via their My Account page."
 msgstr ""
 
@@ -5150,32 +5188,32 @@ msgid "Invalid update type: %s. Post update types supported are \"add\" or \"del
 msgstr ""
 
 #. translators: placeholder is a page number.
-#: includes/core/class-wcs-query.php:107
+#: includes/core/class-wcs-query.php:115
 #, php-format
 msgid "Subscriptions (page %d)"
 msgstr ""
 
-#: includes/core/class-wcs-query.php:132
+#: includes/core/class-wcs-query.php:140
 msgid "My Subscription"
 msgstr ""
 
-#: includes/core/class-wcs-query.php:291
+#: includes/core/class-wcs-query.php:299
 msgid "Endpoint for the My Account &rarr; Subscriptions page"
 msgstr ""
 
-#: includes/core/class-wcs-query.php:299
+#: includes/core/class-wcs-query.php:307
 msgid "View subscription"
 msgstr ""
 
-#: includes/core/class-wcs-query.php:300
+#: includes/core/class-wcs-query.php:308
 msgid "Endpoint for the My Account &rarr; View Subscription page"
 msgstr ""
 
-#: includes/core/class-wcs-query.php:308
+#: includes/core/class-wcs-query.php:316
 msgid "Subscription payment method"
 msgstr ""
 
-#: includes/core/class-wcs-query.php:309
+#: includes/core/class-wcs-query.php:317
 msgid "Endpoint for the My Account &rarr; Change Subscription Payment Method page"
 msgstr ""
 
@@ -5572,6 +5610,29 @@ msgstr ""
 msgid "Your {site_title} subscription change from {order_date} is complete"
 msgstr ""
 
+#: includes/core/emails/class-wcs-email-customer-cancelled-subscription.php:31
+msgid "Customer Cancelled Subscription"
+msgstr ""
+
+#: includes/core/emails/class-wcs-email-customer-cancelled-subscription.php:32
+msgid "Sent to the customer when their subscription is cancelled or set to pending cancellation, and again if it then ends before its end date. It states when the cancellation was received and when the subscription ends."
+msgstr ""
+
+#: includes/core/emails/class-wcs-email-customer-cancelled-subscription.php:49
+msgid "Your {site_title} subscription has been cancelled"
+msgstr ""
+
+#: includes/core/emails/class-wcs-email-customer-cancelled-subscription.php:58
+msgid "Subscription cancelled"
+msgstr ""
+
+#. translators: 1: date, 2: time.
+#: includes/core/emails/class-wcs-email-customer-cancelled-subscription.php:193
+#, php-format
+msgctxt "date and time"
+msgid "%1$s at %2$s"
+msgstr ""
+
 #: includes/core/emails/class-wcs-email-customer-notification-auto-renewal.php:24
 msgid "Customer Notification: Automatic renewal notice"
 msgstr ""
@@ -5710,8 +5771,10 @@ msgid "Text to appear below the main email content."
 msgstr ""
 
 #: includes/core/emails/class-wcs-email-customer-notification.php:60
-#: includes/core/privacy/class-wcs-privacy.php:308
+#: includes/core/privacy/class-wcs-privacy.php:315
+#: templates/gifting/emails/purchaser-email-addresses.php:45
 #: templates/gifting/order-details-customer.php:26
+#: templates/gifting/purchaser-order-details-customer.php:32
 msgid "N/A"
 msgstr ""
 
@@ -5999,59 +6062,59 @@ msgid "It is %1$sstrongly recommended you do not change the Receiver Email addre
 msgstr ""
 
 #. translators: placeholders are opening and closing link tags. 1$-2$: to docs on woocommerce, 3$-4$ to gateway settings on the site
-#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:115
+#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:125
 #, php-format
 msgid "PayPal is inactive for subscription transactions. Please %1$sset up the PayPal IPN%2$s and %3$senter your API credentials%4$s to enable PayPal for Subscriptions."
 msgstr ""
 
 #. translators: opening/closing tags - links to documentation.
-#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:127
+#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:137
 #, php-format
 msgid "%1$sPayPal Reference Transactions are not enabled on your account%2$s, some subscription management features are not enabled. Please contact PayPal and request they %3$senable PayPal Reference Transactions%4$s on your account. %5$sCheck PayPal Account%6$s  %3$sLearn more %7$s"
 msgstr ""
 
 #. translators: opening/closing tags - links to documentation.
-#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:131
+#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:141
 #, php-format
 msgid "%1$sPayPal Reference Transactions are not enabled on your account%2$s. If you wish to use PayPal Reference Transactions with Subscriptions, please contact PayPal and request they %3$senable PayPal Reference Transactions%4$s on your account. %5$sCheck PayPal Account%6$s  %3$sLearn more %7$s"
 msgstr ""
 
 #. translators: placeholders are opening and closing strong tags.
-#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:153
+#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:163
 #, php-format
 msgid "%1$sPayPal Reference Transactions are enabled on your account%2$s. All subscription management features are now enabled. Happy selling!"
 msgstr ""
 
 #. translators: placeholders are link opening and closing tags. 1$-2$: to gateway settings, 3$-4$: support docs on woocommerce.com
-#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:164
+#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:174
 #, php-format
 msgid "There is a problem with PayPal. Your API credentials may be incorrect. Please update your %1$sAPI credentials%2$s. %3$sLearn more%4$s."
 msgstr ""
 
 #. translators: placeholders are opening and closing link tags. 1$-2$: docs on woocommerce, 3$-4$: dismiss link
-#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:177
+#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:187
 #, php-format
 msgid "There is a problem with PayPal. Your PayPal account is issuing out-of-date subscription IDs. %1$sLearn more%2$s. %3$sDismiss%4$s."
 msgstr ""
 
-#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:199
+#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:209
 msgid "Ignore this error (not recommended)"
 msgstr ""
 
-#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:204
+#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:214
 msgid "Open a ticket"
 msgstr ""
 
-#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:330
+#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:340
 msgid "PayPal Subscription ID:"
 msgstr ""
 
-#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:356
+#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:366
 msgid "Enable PayPal Standard for Subscriptions"
 msgstr ""
 
 #. translators: Placeholders are the opening and closing link tags.
-#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:364
+#: includes/core/gateways/paypal/includes/admin/class-wcs-paypal-admin.php:374
 #, php-format
 msgid "Before enabling PayPal Standard for Subscriptions, please note, when using PayPal Standard, customers are locked into using PayPal Standard for the life of their subscription, and PayPal Standard has a number of limitations. Please read the guide on %1$swhy we don't recommend PayPal Standard%2$s for Subscriptions before choosing to enable this option."
 msgstr ""
@@ -6229,19 +6292,37 @@ msgid "To see the full error, view the %1$s log file from the %2$sWooCommerce lo
 msgstr ""
 
 #. Translators: %s subscription number.
-#: includes/core/privacy/class-wcs-privacy-erasers.php:71
+#: includes/core/privacy/class-wcs-privacy-erasers.php:94
 #, php-format
 msgid "Removed personal data from subscription %s."
 msgstr ""
 
 #. Translators: %s subscription number.
-#: includes/core/privacy/class-wcs-privacy-erasers.php:75
+#: includes/core/privacy/class-wcs-privacy-erasers.php:98
 #, php-format
 msgid "Personal data within subscription %s has been retained."
 msgstr ""
 
-#: includes/core/privacy/class-wcs-privacy-erasers.php:189
+#: includes/core/privacy/class-wcs-privacy-erasers.php:265
+msgid "Personal data removed via the subscriptions bulk action."
+msgstr ""
+
+#: includes/core/privacy/class-wcs-privacy-erasers.php:268
+msgid "Personal data removed following a personal data erasure request."
+msgstr ""
+
+#: includes/core/privacy/class-wcs-privacy-erasers.php:271
+msgid "Personal data removed by the personal data retention cleanup."
+msgstr ""
+
+#: includes/core/privacy/class-wcs-privacy-erasers.php:275
 msgid "Personal data removed."
+msgstr ""
+
+#. Translators: %s source identifier passed by the code which removed the data.
+#: includes/core/privacy/class-wcs-privacy-erasers.php:279
+#, php-format
+msgid "Personal data removed (source: %s)."
 msgstr ""
 
 #: includes/core/privacy/class-wcs-privacy-exporters.php:77
@@ -6275,7 +6356,7 @@ msgstr ""
 
 #: includes/core/privacy/class-wcs-privacy-exporters.php:84
 #: includes/core/wcs-functions.php:324
-#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:191
+#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:251
 #: templates/gifting/new-recipient-account.php:39
 msgid "Shipping Address"
 msgstr ""
@@ -6325,12 +6406,12 @@ msgid "If you are using PayPal Standard or PayPal Reference transactions please 
 msgstr ""
 
 #: includes/core/privacy/class-wcs-privacy.php:136
-#: includes/core/privacy/class-wcs-privacy.php:398
+#: includes/core/privacy/class-wcs-privacy.php:405
 msgid "Cancel and remove personal data"
 msgstr ""
 
 #. translators: %d: number of subscriptions affected.
-#: includes/core/privacy/class-wcs-privacy.php:248
+#: includes/core/privacy/class-wcs-privacy.php:255
 #, php-format
 msgid "Removed personal data from %d subscription."
 msgid_plural "Removed personal data from %d subscriptions."
@@ -6338,95 +6419,95 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholders are opening and closing tags.
-#: includes/core/privacy/class-wcs-privacy.php:267
+#: includes/core/privacy/class-wcs-privacy.php:274
 #, php-format
 msgid "%1$sNote:%2$s Orders which are related to subscriptions will not be included in the orders affected by these settings."
 msgstr ""
 
-#: includes/core/privacy/class-wcs-privacy.php:287
+#: includes/core/privacy/class-wcs-privacy.php:294
 msgid "account erasure request"
 msgstr ""
 
-#: includes/core/privacy/class-wcs-privacy.php:293
+#: includes/core/privacy/class-wcs-privacy.php:300
 msgid "Remove personal data from subscriptions"
 msgstr ""
 
 #. Translators: %s URL to erasure request screen.
-#: includes/core/privacy/class-wcs-privacy.php:295
+#: includes/core/privacy/class-wcs-privacy.php:302
 #, php-format
 msgid "When handling an %s, should personal data within subscriptions be retained or removed?"
 msgstr ""
 
-#: includes/core/privacy/class-wcs-privacy.php:304
+#: includes/core/privacy/class-wcs-privacy.php:311
 msgid "Retain ended subscriptions"
 msgstr ""
 
-#: includes/core/privacy/class-wcs-privacy.php:305
+#: includes/core/privacy/class-wcs-privacy.php:312
 msgid "Retain ended subscriptions and their related orders for a specified duration before anonymizing the personal data within them."
 msgstr ""
 
-#: includes/core/privacy/class-wcs-privacy.php:349
+#: includes/core/privacy/class-wcs-privacy.php:356
 msgid "Customers with a subscription are excluded from this setting."
 msgstr ""
 
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:341
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:337
 msgid "A database upgrade is required to use Subscriptions. Upgrades from the previously installed version is no longer supported. You will need to install an older version of WooCommerce Subscriptions or WooCommerce Payments to proceed with the upgrade before you can use a newer version."
 msgstr ""
 
 #. translators: 1-2: opening/closing <strong> tags, 3: active version of Subscriptions, 4: current version of Subscriptions, 5-6: opening/closing tags linked to ticket form, 7-8: opening/closing tags linked to documentation.
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:403
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:399
 #, php-format
 msgid "%1$sWarning!%2$s It appears that you have downgraded %1$sWooCommerce Subscriptions%2$s from %3$s to %4$s. Downgrading the plugin in this way may cause issues. Please update to %3$s or higher, or %5$sopen a new support ticket%6$s for further assistance. %7$sLearn more &raquo;%8$s"
 msgstr ""
 
 #. translators: placeholder is a list of version numbers (e.g. "1.3 & 1.4 & 1.5")
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:542
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:538
 #, php-format
 msgid "Database updated to version %s"
 msgstr ""
 
 #. translators: placeholder is number of upgraded subscriptions
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:550
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:546
 #, php-format
 msgctxt "used in the subscriptions upgrader"
 msgid "Marked %s subscription products as \"sold individually\"."
 msgstr ""
 
 #. translators: 1$: number of action scheduler hooks upgraded, 2$: "{execution_time}", will be replaced on front end with actual time
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:559
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:555
 #, php-format
 msgid "Migrated %1$s subscription related hooks to the new scheduler (in %2$s seconds)."
 msgstr ""
 
 #. translators: 1$: number of subscriptions upgraded, 2$: "{execution_time}", will be replaced on front end with actual time it took
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:571
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:567
 #, php-format
 msgid "Migrated %1$s subscriptions to the new structure (in %2$s seconds)."
 msgstr ""
 
 #. translators: placeholder is "{time_left}", will be replaced on front end with actual time
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:574
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:620
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:570
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:616
 #, php-format
 msgctxt "Message that gets sent to front end."
 msgid "Estimated time left (minutes:seconds): %s"
 msgstr ""
 
 #. translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:584
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:580
 #, php-format
 msgid "Unable to upgrade subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s."
 msgstr ""
 
 #. translators: placeholder is the number of subscriptions repaired
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:599
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:595
 #, php-format
 msgctxt "Repair message that gets sent to front end."
 msgid "Repaired %d subscriptions with incorrect dates, line tax data or missing customer notes."
 msgstr ""
 
 #. translators: placeholder is number of subscriptions that were checked and did not need repairs. There's a space at the beginning!
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:605
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:601
 #, php-format
 msgctxt "Repair message that gets sent to front end."
 msgid " %d other subscription was checked and did not need any repairs."
@@ -6435,36 +6516,36 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholder is "{execution_time}", which will be replaced on front end with actual time
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:609
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:605
 #, php-format
 msgctxt "Repair message that gets sent to front end."
 msgid "(in %s seconds)"
 msgstr ""
 
 #. translators: $1: "Repaired x subs with incorrect dates...", $2: "X others were checked and no repair needed", $3: "(in X seconds)". Ordering for RTL languages.
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:612
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:608
 #, php-format
 msgctxt "The assembled repair message that gets sent to front end."
 msgid "%1$s%2$s %3$s"
 msgstr ""
 
 #. translators: 1$: error message, 2$: opening link tag, 3$: closing link tag, 4$: break tag
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:631
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:627
 #, php-format
 msgctxt "Error message that gets sent to front end when upgrading Subscriptions"
 msgid "Unable to repair subscriptions.%4$sError: %1$s%4$sPlease refresh the page and try again. If problem persists, %2$scontact support%3$s."
 msgstr ""
 
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:839
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:835
 msgid "Welcome to WooCommerce Subscriptions 2.1"
 msgstr ""
 
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:839
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:835
 msgid "About WooCommerce Subscriptions"
 msgstr ""
 
 #. translators: 1-2: opening/closing <strong> tags, 3-4: opening/closing tags linked to ticket form.
-#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:1077
+#: includes/core/upgrades/class-wc-subscriptions-upgrader.php:1073
 #, php-format
 msgid "%1$sWarning!%2$s We discovered an issue in %1$sWooCommerce Subscriptions 2.3.0 - 2.3.2%2$s that may cause your subscription renewal order and customer subscription caches to contain invalid data. For information about how to update the cached data, please %3$sopen a new support ticket%4$s."
 msgstr ""
@@ -7679,10 +7760,11 @@ msgstr ""
 
 #: includes/early-renewal/class-wcs-cart-early-renewal.php:357
 #: includes/early-renewal/class-wcs-cart-early-renewal.php:697
-#: includes/gifting/class-wcsg-recipient-management.php:161
-#: src/Internal/HealthCheck/RemediationAdvisor.php:198
-#: src/Internal/HealthCheck/RemediationAdvisor.php:273
-#: src/Internal/HealthCheck/RemediationAdvisor.php:309
+#: includes/gifting/class-wcsg-recipient-management.php:168
+#: src/Internal/HealthCheck/RemediationAdvisor.php:162
+#: src/Internal/HealthCheck/RemediationAdvisor.php:228
+#: src/Internal/HealthCheck/RemediationAdvisor.php:303
+#: src/Internal/HealthCheck/RemediationAdvisor.php:339
 #: build/admin.js:23
 #: build/admin.js:25
 #: build/settings-ui.js:23
@@ -7889,7 +7971,7 @@ msgid "This is a gift"
 msgstr ""
 
 #: includes/gifting/class-wcsg-admin.php:276
-#: includes/gifting/class-wcsg-recipient-management.php:494
+#: includes/gifting/class-wcsg-recipient-management.php:501
 msgid "Recipient:"
 msgstr ""
 
@@ -7932,15 +8014,35 @@ msgstr ""
 msgid "Overriding your %1$sstore's settings%2$s"
 msgstr ""
 
-#: includes/gifting/class-wcsg-cart.php:203
+#: includes/gifting/class-wcsg-cart.php:123
+#: includes/gifting/class-wcsg-cart.php:199
+#: includes/gifting/class-wcsg-checkout.php:317
+msgid "This item cannot be gifted."
+msgstr ""
+
+#: includes/gifting/class-wcsg-cart.php:246
 msgid "You cannot add additional products to the cart. Please pay for the subscription renewal first."
 msgstr ""
 
-#: includes/gifting/class-wcsg-checkout.php:180
+#. translators: %1$s: product name.
+#: includes/gifting/class-wcsg-cart.php:389
+#, php-format
+msgid "\"%1$s\" can no longer be bought as a gift, so its gift recipient has been removed."
+msgstr ""
+
+#: includes/gifting/class-wcsg-checkout.php:235
+msgid "This subscription was not set up as a gift because it contains an item that cannot be gifted. The gift recipient entered in the cart was discarded."
+msgstr ""
+
+#: includes/gifting/class-wcsg-checkout.php:417
+msgid "This subscription cannot be paid here. Use the payment link for its renewal order instead."
+msgstr ""
+
+#: includes/gifting/class-wcsg-checkout.php:1092
 msgid "Please enter the gift recipient’s shipping address here, or we’ll collect it directly from them when they log in."
 msgstr ""
 
-#: includes/gifting/class-wcsg-checkout.php:209
+#: includes/gifting/class-wcsg-checkout.php:1129
 #: build/wcsg-blocks-integration.js:1
 #: client/gifting/components/line-item-gift-recipient/index.js:175
 msgid "Gifting to"
@@ -7958,17 +8060,17 @@ msgstr ""
 msgid "Both the purchaser and the recipient will be able to access downloadable files from the subscription."
 msgstr ""
 
-#: includes/gifting/class-wcsg-download-handler.php:199
-#: includes/gifting/class-wcsg-recipient-management.php:418
+#: includes/gifting/class-wcsg-download-handler.php:205
+#: includes/gifting/class-wcsg-recipient-management.php:425
 msgid "Recipient"
 msgstr ""
 
-#: includes/gifting/class-wcsg-download-handler.php:199
+#: includes/gifting/class-wcsg-download-handler.php:205
 msgid "Purchaser"
 msgstr ""
 
 #. Translators: placeholder is the number of files.
-#: includes/gifting/class-wcsg-download-handler.php:357
+#: includes/gifting/class-wcsg-download-handler.php:362
 #, php-format
 msgid "File %d"
 msgstr ""
@@ -7987,18 +8089,26 @@ msgctxt "Used in email heading before line items table, placeholder is order ID"
 msgid "Order #%s"
 msgstr ""
 
+#: includes/gifting/class-wcsg-product.php:98
+msgid "This product cannot be gifted."
+msgstr ""
+
 #: includes/gifting/class-wcsg-query.php:67
 msgid "Account details"
 msgstr ""
 
+#: includes/gifting/class-wcsg-recipient-addresses.php:340
+msgid "Only the gift recipient can view the shipping address."
+msgstr ""
+
 #. Translators: 1) <strong> opening tag, 2) </strong> closing tag.
-#: includes/gifting/class-wcsg-recipient-addresses.php:80
+#: includes/gifting/class-wcsg-recipient-addresses.php:650
 #, php-format
 msgid "%1$sNote:%2$s This will not update the shipping address of subscriptions you have purchased for others."
 msgstr ""
 
 #. Translators: 1) <strong> opening tag, 2) </strong> closing tag.
-#: includes/gifting/class-wcsg-recipient-addresses.php:84
+#: includes/gifting/class-wcsg-recipient-addresses.php:654
 #, php-format
 msgid "%1$sNote:%2$s This will not update the billing address of subscriptions purchased for you by someone else."
 msgstr ""
@@ -8019,35 +8129,35 @@ msgstr ""
 msgid "Please enter a valid postcode/ZIP."
 msgstr ""
 
-#: includes/gifting/class-wcsg-recipient-details.php:215
+#: includes/gifting/class-wcsg-recipient-details.php:218
 msgid "Your account has been updated."
 msgstr ""
 
-#: includes/gifting/class-wcsg-recipient-details.php:221
+#: includes/gifting/class-wcsg-recipient-details.php:224
 msgid "There was an error with your request to update your account. Please try again."
 msgstr ""
 
-#: includes/gifting/class-wcsg-recipient-details.php:250
+#: includes/gifting/class-wcsg-recipient-details.php:253
 msgid "Set my billing address to the same as above."
 msgstr ""
 
-#: includes/gifting/class-wcsg-recipient-details.php:261
+#: includes/gifting/class-wcsg-recipient-details.php:264
 msgid "First Name"
 msgstr ""
 
-#: includes/gifting/class-wcsg-recipient-details.php:268
+#: includes/gifting/class-wcsg-recipient-details.php:271
 msgid "Last Name"
 msgstr ""
 
-#: includes/gifting/class-wcsg-recipient-management.php:489
+#: includes/gifting/class-wcsg-recipient-management.php:496
 msgid "Shipping:"
 msgstr ""
 
-#: includes/gifting/class-wcsg-recipient-management.php:556
+#: includes/gifting/class-wcsg-recipient-management.php:563
 msgid "WARNING:"
 msgstr ""
 
-#: includes/gifting/class-wcsg-recipient-management.php:557
+#: includes/gifting/class-wcsg-recipient-management.php:564
 msgid "The following recipient will be removed from their subscriptions:"
 msgid_plural "The following recipients will be removed from their subscriptions:"
 msgstr[0] ""
@@ -8131,20 +8241,24 @@ msgstr ""
 msgid "Personal data within order %s has been retained."
 msgstr ""
 
-#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:59
+#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:68
 msgid "Subscriptions Purchased for You"
 msgstr ""
 
-#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:159
+#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:219
 msgid "Orders Purchased for You"
 msgstr ""
 
-#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:189
+#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:249
 msgid "Order Date"
 msgstr ""
 
-#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:190
+#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:250
 msgid "Items Purchased"
+msgstr ""
+
+#: includes/gifting/privacy/class-wcsg-privacy-exporters.php:252
+msgid "Shipping Phone Number"
 msgstr ""
 
 #: includes/gifting/privacy/class-wcsg-privacy.php:22
@@ -8424,260 +8538,260 @@ msgstr ""
 msgid "Automatic renewal payment failed"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:231
+#: includes/switching/class-wc-subscriptions-switcher.php:232
 msgid "You have a subscription to this product. Choosing a new subscription will replace your existing subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:233
+#: includes/switching/class-wc-subscriptions-switcher.php:234
 msgid "Choose a new subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:275
-#: includes/switching/class-wc-subscriptions-switcher.php:1835
+#: includes/switching/class-wc-subscriptions-switcher.php:276
+#: includes/switching/class-wc-subscriptions-switcher.php:1841
 msgid "Your cart contained an invalid subscription switch request. It has been removed."
 msgid_plural "Your cart contained invalid subscription switch requests. They have been removed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:317
+#: includes/switching/class-wc-subscriptions-switcher.php:318
 msgid "You have already subscribed to this product and it is limited to one per customer. You can not purchase the product again."
 msgstr ""
 
 #. translators: 1$: is the "You have already subscribed to this product" notice, 2$-4$: opening/closing link tags, 3$: an order number
-#: includes/switching/class-wc-subscriptions-switcher.php:326
+#: includes/switching/class-wc-subscriptions-switcher.php:327
 #, php-format
 msgid "%1$s Complete payment on %2$sOrder %3$s%4$s to be able to change your subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:426
+#: includes/switching/class-wc-subscriptions-switcher.php:427
 msgid "The subscriber is charged the full recurring price of the new product when they switch. No adjustment is made for the unused portion of the current billing period."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:427
+#: includes/switching/class-wc-subscriptions-switcher.php:428
 msgid "When upgrading to a more expensive product, the subscriber is credited for the unused portion of the current billing period and charged the prorated price of the new product for the remaining time."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:428
+#: includes/switching/class-wc-subscriptions-switcher.php:429
 msgid "When upgrading or downgrading, the subscriber is credited for the unused portion of the current billing period and charged the prorated price of the new product for the remaining time."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:432
+#: includes/switching/class-wc-subscriptions-switcher.php:433
 msgid "The subscriber will not be charged a sign up fee when switching products."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:433
+#: includes/switching/class-wc-subscriptions-switcher.php:434
 msgid "The subscriber will be charged the full sign up fee of the new product when switching."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:434
+#: includes/switching/class-wc-subscriptions-switcher.php:435
 msgid "The subscriber is only charged the difference if the new sign up fee is higher than their current one. If the new sign up fee is lower, no credit will be applied."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:439
+#: includes/switching/class-wc-subscriptions-switcher.php:440
 msgid "When switching to a subscription that is set to expire, the subscriber completes the full number of renewals for the new subscription. Previous renewals are not counted."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:440
+#: includes/switching/class-wc-subscriptions-switcher.php:441
 msgid "When switching to a subscription that is set to expire, the renewals the subscriber has already paid count toward the new subscription, so fewer payments remain."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:445
+#: includes/switching/class-wc-subscriptions-switcher.php:446
 msgid "Switching"
 msgstr ""
 
 #. translators: %1$s: a "Learn more" documentation link.
-#: includes/switching/class-wc-subscriptions-switcher.php:449
+#: includes/switching/class-wc-subscriptions-switcher.php:450
 #, php-format
 msgid "Allow subscribers to switch products in their subscriptions. %1$s"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:476
+#: includes/switching/class-wc-subscriptions-switcher.php:477
 msgid "Charge full amount at switch"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:477
+#: includes/switching/class-wc-subscriptions-switcher.php:478
 msgid "Prorate amount on upgrades"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:478
+#: includes/switching/class-wc-subscriptions-switcher.php:479
 msgid "Prorate amount on upgrades and downgrades"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:486
+#: includes/switching/class-wc-subscriptions-switcher.php:487
 msgid "Apply proration when subscriber switches to:"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:515
+#: includes/switching/class-wc-subscriptions-switcher.php:516
 msgid "Product types not selected will not be prorated."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:527
+#: includes/switching/class-wc-subscriptions-switcher.php:528
 msgid "Signup fee behavior"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:535
+#: includes/switching/class-wc-subscriptions-switcher.php:536
 msgid "Do not charge a sign up fee"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:536
+#: includes/switching/class-wc-subscriptions-switcher.php:537
 msgid "Charge the full sign up fee"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:537
+#: includes/switching/class-wc-subscriptions-switcher.php:538
 msgid "Prorate the sign up fee"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:548
+#: includes/switching/class-wc-subscriptions-switcher.php:549
 msgid "Fixed-term behavior"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:558
+#: includes/switching/class-wc-subscriptions-switcher.php:559
 msgid "Do not prorate the subscription renewal count"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:559
+#: includes/switching/class-wc-subscriptions-switcher.php:560
 msgid "Prorate the subscription renewal count"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:567
+#: includes/switching/class-wc-subscriptions-switcher.php:568
 msgid "Apply renewals when subscriber switches to:"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:596
+#: includes/switching/class-wc-subscriptions-switcher.php:597
 msgid "Product types not selected will not have previous renewals applied."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:608
+#: includes/switching/class-wc-subscriptions-switcher.php:609
 msgid "Switch Button Text"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:609
+#: includes/switching/class-wc-subscriptions-switcher.php:610
 msgid "Customize the switch button text that appears on the subscriber's My Account page."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:613
-#: includes/switching/class-wc-subscriptions-switcher.php:983
+#: includes/switching/class-wc-subscriptions-switcher.php:614
+#: includes/switching/class-wc-subscriptions-switcher.php:984
 #: src/Internal/Admin/Settings/Modern_Field_Adaptations.php:401
 #: src/Internal/Settings/Switching_Definitions.php:140
 msgid "Switch"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:752
+#: includes/switching/class-wc-subscriptions-switcher.php:753
 msgid "Select at least one subscription product type when a switching proration option is chosen. Your previous proration setting was kept."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:887
+#: includes/switching/class-wc-subscriptions-switcher.php:888
 #: src/Internal/Admin/Settings/Modern_Field_Adaptations.php:200
 msgid "Subscription plans"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:896
+#: includes/switching/class-wc-subscriptions-switcher.php:897
 msgid "Allow Switching"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:908
+#: includes/switching/class-wc-subscriptions-switcher.php:909
 #: src/Internal/Admin/Settings/Modern_Field_Adaptations.php:202
 msgid "Grouped subscriptions"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:1489
+#: includes/switching/class-wc-subscriptions-switcher.php:1490
 msgid "Your cart contained an invalid subscription switch request. Please return to your cart and try again."
 msgstr ""
 
 #. translators: %s: order number.
-#: includes/switching/class-wc-subscriptions-switcher.php:1769
+#: includes/switching/class-wc-subscriptions-switcher.php:1770
 #, php-format
 msgid "Switch order cancelled due to a new switch order being created #%s."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2207
-#: includes/switching/class-wc-subscriptions-switcher.php:2356
+#: includes/switching/class-wc-subscriptions-switcher.php:2213
+#: includes/switching/class-wc-subscriptions-switcher.php:2362
 msgid "The subscription may have been deleted."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2219
+#: includes/switching/class-wc-subscriptions-switcher.php:2225
 msgid "You can only switch to a subscription product."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2224
+#: includes/switching/class-wc-subscriptions-switcher.php:2230
 msgid "The subscription plan for this switch is no longer available."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2231
-#: includes/switching/class-wc-subscriptions-switcher.php:2372
-#: includes/switching/class-wc-subscriptions-switcher.php:2382
+#: includes/switching/class-wc-subscriptions-switcher.php:2237
+#: includes/switching/class-wc-subscriptions-switcher.php:2378
+#: includes/switching/class-wc-subscriptions-switcher.php:2388
 msgid "We can not find your old subscription item."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2241
+#: includes/switching/class-wc-subscriptions-switcher.php:2247
 msgid "This subscription can no longer be switched."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2307
+#: includes/switching/class-wc-subscriptions-switcher.php:2313
 msgid "You can not switch to the same subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2361
+#: includes/switching/class-wc-subscriptions-switcher.php:2367
 msgid "You can not switch this subscription. It appears you do not own the subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2455
+#: includes/switching/class-wc-subscriptions-switcher.php:2461
 msgid "There was an error locating the switch details."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2804
+#: includes/switching/class-wc-subscriptions-switcher.php:2810
 msgctxt "a switch type"
 msgid "Downgrade"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2807
+#: includes/switching/class-wc-subscriptions-switcher.php:2813
 msgctxt "a switch type"
 msgid "Upgrade"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2810
+#: includes/switching/class-wc-subscriptions-switcher.php:2816
 msgctxt "a switch type"
 msgid "Crossgrade"
 msgstr ""
 
 #. translators: %1: product subtotal, %2: HTML span tag, %3: direction (upgrade, downgrade, crossgrade), %4: closing HTML span tag
-#: includes/switching/class-wc-subscriptions-switcher.php:2815
+#: includes/switching/class-wc-subscriptions-switcher.php:2821
 #, php-format
 msgctxt "product subtotal string"
 msgid "%1$s %2$s(%3$s)%4$s"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2943
+#: includes/switching/class-wc-subscriptions-switcher.php:2949
 msgid "The original subscription item being switched cannot be found."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:2945
+#: includes/switching/class-wc-subscriptions-switcher.php:2951
 msgid "The item on the switch order cannot be found."
 msgstr ""
 
 #. translators: 1$: old item, 2$: new item when switching
-#: includes/switching/class-wc-subscriptions-switcher.php:2956
+#: includes/switching/class-wc-subscriptions-switcher.php:2962
 #, php-format
 msgctxt "used in order notes"
 msgid "Customer switched from: %1$s to %2$s."
 msgstr ""
 
 #. translators: %s: new item name.
-#: includes/switching/class-wc-subscriptions-switcher.php:2959
+#: includes/switching/class-wc-subscriptions-switcher.php:2965
 #, php-format
 msgctxt "used in order notes"
 msgid "Customer added %s."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:3065
+#: includes/switching/class-wc-subscriptions-switcher.php:3075
 msgid "All items were switched to a new subscription."
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:3397
+#: includes/switching/class-wc-subscriptions-switcher.php:3409
 msgid "Switch Order"
 msgstr ""
 
-#: includes/switching/class-wc-subscriptions-switcher.php:3412
+#: includes/switching/class-wc-subscriptions-switcher.php:3424
 msgid "Switched Subscription"
 msgstr ""
 
@@ -9156,135 +9270,148 @@ msgid "Another remediation action is already in progress for this subscription. 
 msgstr ""
 
 #. translators: %s: Linked subscription id (e.g. #123).
-#: src/Internal/HealthCheck/Admin/AjaxController.php:520
+#: src/Internal/HealthCheck/Admin/AjaxController.php:522
 #, php-format
 msgid "Subscription %s was successfully updated."
 msgstr ""
 
 #. translators: %s: Linked subscription id (e.g. #123).
-#: src/Internal/HealthCheck/Admin/AjaxController.php:534
+#: src/Internal/HealthCheck/Admin/AjaxController.php:536
 #, php-format
 msgid "Subscription %s: renewal in progress. Awaiting customer payment."
 msgstr ""
 
 #. translators: %s: Linked subscription id (e.g. #123).
-#: src/Internal/HealthCheck/Admin/AjaxController.php:545
+#: src/Internal/HealthCheck/Admin/AjaxController.php:547
 #, php-format
 msgid "Subscription %s could not be updated. Please try again."
 msgstr ""
 
 #. translators: %s: Linked subscription id (e.g. #123).
-#: src/Internal/HealthCheck/Admin/AjaxController.php:556
+#: src/Internal/HealthCheck/Admin/AjaxController.php:558
 #, php-format
 msgid "Subscription %s has been updated since the last scan and is no longer flagged. The row has been removed from the list."
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:241
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:243
 msgid "Created"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:243
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:245
 msgid "Cycle"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:245
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:247
 msgid "Billing mode"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:246
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:248
 msgid "Renewal preference"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:248
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:250
 msgid "Next payment date"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:249
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:251
 msgid "Renewal order status"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:250
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:252
 msgid "Last successful payment"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:332
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:320
+msgid "Not scanned"
+msgstr ""
+
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:340
 msgid "Supports auto-renewal"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:339
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:348
 msgid "Missing renewals"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:823
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:356
+msgid "Missing scheduled actions"
+msgstr ""
+
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:855
 msgid "No scan results yet. Click 'Run now' above to audit your subscriptions, or wait for the scheduled nightly scan."
 msgstr ""
 
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:863
+#: src/Internal/HealthCheck/Bootstrap.php:356
+msgid "This check has not run yet. Run a new scan to check for missing scheduled actions."
+msgstr ""
+
 #. translators: %s: human-readable time diff.
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:839
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:876
 #, php-format
 msgid "No subscriptions match your current search or filters. The latest scan completed %s ago."
 msgstr ""
 
 #. translators: %s: human-readable time diff.
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:847
-#: src/Internal/HealthCheck/Bootstrap.php:361
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:884
+#: src/Internal/HealthCheck/Bootstrap.php:371
 #, php-format
 msgid "No subscriptions currently need review. The latest scan completed %s ago."
 msgstr ""
 
 #. translators: %d: subscription ID.
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:877
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:914
 #, php-format
 msgid "Edit subscription #%d"
 msgstr ""
 
 #. translators: %d: subscription ID.
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:895
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:932
 #, php-format
 msgid "Resolve subscription #%d"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:896
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:933
 msgid "Resolve"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1048
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1930
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1085
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1967
 msgid "Opted out"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1058
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1929
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1095
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1966
 msgid "Default"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1093
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1130
 msgid "The payment method on this subscription supports automatic renewal. Switch the billing mode to enable it."
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1100
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1905
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1137
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1942
 msgid "Manual"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1106
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1143
 msgid "Automatic"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1175
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1212
 msgid "Daily"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1179
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1216
 msgid "Monthly"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1181
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1218
 msgid "Yearly"
 msgstr ""
 
 #. translators: %d: number of days in a subscription's billing cycle.
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1190
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1227
 #, php-format
 msgid "Every %d day"
 msgid_plural "Every %d days"
@@ -9292,7 +9419,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of weeks in a subscription's billing cycle.
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1193
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1230
 #, php-format
 msgid "Every %d week"
 msgid_plural "Every %d weeks"
@@ -9300,7 +9427,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of months in a subscription's billing cycle.
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1196
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1233
 #, php-format
 msgid "Every %d month"
 msgid_plural "Every %d months"
@@ -9308,116 +9435,116 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of years in a subscription's billing cycle.
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1199
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1236
 #, php-format
 msgid "Every %d year"
 msgid_plural "Every %d years"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1225
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1262
 msgid "Not set"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1231
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1268
 msgid "Token on file:"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1283
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1320
 msgid "There is no scheduled payment date for this subscription. Process now to resume billing."
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1301
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1338
 msgid "The scheduled payment date for this subscription is in the past. Process now to resume billing."
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1752
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1789
 msgid "All statuses"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1768
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1805
 msgid "All billing modes"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1775
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1812
 msgid "All renewal order statuses"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1782
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1819
 msgid "All renewal preferences"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1788
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1825
 msgid "Filter"
 msgstr ""
 
 #. translators: %s: localised number of candidate rows checked, e.g. "500".
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1841
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1878
 #, php-format
 msgid "Filter and sort applied to the first %s candidates. Other matches may exist beyond this set."
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1890
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1927
 msgid "Active"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1891
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1916
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1928
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1953
 msgid "On hold"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1892
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1929
 msgid "Pending cancellation"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1893
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1930
 msgid "Pending"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1894
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1918
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1931
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1955
 msgid "Cancelled"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1895
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1932
 msgid "Expired"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1904
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1941
 msgid "Auto"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1914
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1951
 msgid "Pending payment"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1915
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1952
 msgid "Processing"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1917
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1954
 msgid "Completed"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1919
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1956
 msgid "Refunded"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1920
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:1957
 msgid "Failed"
 msgstr ""
 
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:2304
-#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:2308
-#: src/Internal/HealthCheck/Bootstrap.php:353
-#: src/Internal/HealthCheck/Bootstrap.php:356
-#: src/Internal/HealthCheck/StatusTab.php:1188
-#: src/Internal/HealthCheck/StatusTab.php:1192
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:2341
+#: src/Internal/HealthCheck/Admin/CandidatesListTable.php:2345
+#: src/Internal/HealthCheck/Bootstrap.php:363
+#: src/Internal/HealthCheck/Bootstrap.php:366
+#: src/Internal/HealthCheck/StatusTab.php:1209
+#: src/Internal/HealthCheck/StatusTab.php:1213
 msgid "recently"
 msgstr ""
 
 #: src/Internal/HealthCheck/Bootstrap.php:218
-#: src/Internal/HealthCheck/StatusTab.php:324
+#: src/Internal/HealthCheck/StatusTab.php:328
 msgid "Subscriptions health check"
 msgstr ""
 
@@ -9456,59 +9583,72 @@ msgstr ""
 msgid "WooCommerce Subscriptions is not available."
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:65
+#: src/Internal/HealthCheck/RemediationAdvisor.php:67
 msgid "Switch to automatic renewal"
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:67
+#: src/Internal/HealthCheck/RemediationAdvisor.php:69
 msgid "Process renewal now"
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:174
+#: src/Internal/HealthCheck/RemediationAdvisor.php:71
+#: src/Internal/HealthCheck/RemediationAdvisor.php:158
+msgid "Schedule renewal"
+msgstr ""
+
+#: src/Internal/HealthCheck/RemediationAdvisor.php:159
+msgid "This subscription has no renewal scheduled. Scheduling the renewal will restore it, so the subscription is automatically processed on its next payment date. No payment is taken now."
+msgstr ""
+
+#: src/Internal/HealthCheck/RemediationAdvisor.php:159
+msgid "Schedule the renewal?"
+msgstr ""
+
+#: src/Internal/HealthCheck/RemediationAdvisor.php:204
 msgid "This subscription's most recent renewal payment failed, and automatic renewal was previously turned off. Switching the billing mode will update the renewal setting only — it won't retry the payment. Automatic renewals will resume once the failed renewal is resolved."
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:176
-#: src/Internal/HealthCheck/RemediationAdvisor.php:180
-#: src/Internal/HealthCheck/RemediationAdvisor.php:184
-#: src/Internal/HealthCheck/RemediationAdvisor.php:188
+#: src/Internal/HealthCheck/RemediationAdvisor.php:206
+#: src/Internal/HealthCheck/RemediationAdvisor.php:210
+#: src/Internal/HealthCheck/RemediationAdvisor.php:214
+#: src/Internal/HealthCheck/RemediationAdvisor.php:218
 msgid "Switch the billing mode on this subscription?"
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:178
+#: src/Internal/HealthCheck/RemediationAdvisor.php:208
 msgid "This subscription's most recent renewal payment failed. Switching the billing mode will update the renewal setting only — it won't retry the payment. Automatic renewals will resume once the failed renewal is resolved."
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:182
+#: src/Internal/HealthCheck/RemediationAdvisor.php:212
 msgid "Automatic renewal was previously turned off on this subscription. Switching the billing mode will turn it back on and begin charging the saved payment method on the next renewal date."
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:186
+#: src/Internal/HealthCheck/RemediationAdvisor.php:216
 msgid "This subscription is set to manual renewal. Switching the billing mode will activate automatic renewal and begin charging the saved payment method on the next renewal date."
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:194
+#: src/Internal/HealthCheck/RemediationAdvisor.php:224
 msgid "Switch billing mode"
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:262
+#: src/Internal/HealthCheck/RemediationAdvisor.php:292
 msgid "This subscription has no scheduled next payment date — it won't renew or expire on its own. Processing the renewal now will send the customer a renewal invoice. Billing resumes once they pay it."
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:263
+#: src/Internal/HealthCheck/RemediationAdvisor.php:293
 msgid "This subscription has no scheduled next payment date — it won't renew or expire on its own. Processing the renewal now will charge the saved payment method and resume billing for the subscription."
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:264
-#: src/Internal/HealthCheck/RemediationAdvisor.php:300
+#: src/Internal/HealthCheck/RemediationAdvisor.php:294
+#: src/Internal/HealthCheck/RemediationAdvisor.php:330
 msgid "Process the renewal now?"
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:298
+#: src/Internal/HealthCheck/RemediationAdvisor.php:328
 msgid "This subscription's next payment date has passed but its renewal hasn't been processed. Processing the renewal now will send the customer a renewal invoice. Billing resumes once they pay it."
 msgstr ""
 
-#: src/Internal/HealthCheck/RemediationAdvisor.php:299
+#: src/Internal/HealthCheck/RemediationAdvisor.php:329
 msgid "This subscription's next payment date has passed but its renewal hasn't been processed. Processing the renewal now will charge the saved payment method and resume billing for the subscription."
 msgstr ""
 
@@ -9520,81 +9660,112 @@ msgstr ""
 msgid "%1$s of %2$s subscriptions scanned"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:312
+#: src/Internal/HealthCheck/ScheduledPaymentAction.php:86
+msgid "The subscription could not be loaded for scheduling."
+msgstr ""
+
+#: src/Internal/HealthCheck/ScheduledPaymentAction.php:90
+msgid "This subscription no longer has an eligible future payment to schedule."
+msgstr ""
+
+#: src/Internal/HealthCheck/ScheduledPaymentAction.php:96
+msgid "The payment action could not be identified."
+msgstr ""
+
+#: src/Internal/HealthCheck/ScheduledPaymentAction.php:104
+msgid "Action Scheduler is not available."
+msgstr ""
+
+#: src/Internal/HealthCheck/ScheduledPaymentAction.php:127
+#: src/Internal/HealthCheck/ScheduledPaymentAction.php:131
+msgid "The renewal action could not be scheduled. Please try again."
+msgstr ""
+
+#. translators: %s: the subscription's next payment date and time.
+#: src/Internal/HealthCheck/ScheduledPaymentAction.php:137
+#, php-format
+msgid "Health Check restored the scheduled renewal action for %s."
+msgstr ""
+
+#: src/Internal/HealthCheck/StatusTab.php:316
 msgid "Run scan"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:313
+#: src/Internal/HealthCheck/StatusTab.php:317
 msgid "Cancel scan"
 msgstr ""
 
 #. translators: %s: "Learn more." link to the Subscriptions Health Check documentation.
-#: src/Internal/HealthCheck/StatusTab.php:330
+#: src/Internal/HealthCheck/StatusTab.php:334
 #, php-format
 msgid "Scan your store's subscriptions for conditions that may need attention. %s"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:334
+#: src/Internal/HealthCheck/StatusTab.php:338
 msgid "Learn more."
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:359
+#: src/Internal/HealthCheck/StatusTab.php:363
 msgid "Scan in progress."
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:419
+#: src/Internal/HealthCheck/StatusTab.php:416
+msgid "This check is unavailable because the standard WooCommerce Subscriptions scheduler is not managing next-payment actions on this site. A custom scheduler or another integration may still schedule renewals."
+msgstr ""
+
+#: src/Internal/HealthCheck/StatusTab.php:440
 msgid "Subscriptions Health Insights"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:421
+#: src/Internal/HealthCheck/StatusTab.php:442
 msgid "Close modal panel"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:427
+#: src/Internal/HealthCheck/StatusTab.php:448
 msgid "Loading subscription details…"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:488
+#: src/Internal/HealthCheck/StatusTab.php:509
 msgid "Last scan"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:493
+#: src/Internal/HealthCheck/StatusTab.php:514
 msgid "Plugin version"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:497
+#: src/Internal/HealthCheck/StatusTab.php:518
 msgid "Scheduled subscription actions"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:584
-#: src/Internal/HealthCheck/StatusTab.php:592
+#: src/Internal/HealthCheck/StatusTab.php:605
+#: src/Internal/HealthCheck/StatusTab.php:613
 msgid "Scanning now…"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:601
+#: src/Internal/HealthCheck/StatusTab.php:622
 msgid "No scan yet"
 msgstr ""
 
 #. translators: %s: human-readable time diff like "5 minutes".
-#: src/Internal/HealthCheck/StatusTab.php:615
+#: src/Internal/HealthCheck/StatusTab.php:636
 #, php-format
 msgid "Cancelled %s ago"
 msgstr ""
 
 #. translators: %s: human-readable time diff like "5 minutes".
-#: src/Internal/HealthCheck/StatusTab.php:639
+#: src/Internal/HealthCheck/StatusTab.php:660
 #, php-format
 msgid "Failed %s ago"
 msgstr ""
 
 #. translators: %s: human-readable time diff like "5 minutes".
-#: src/Internal/HealthCheck/StatusTab.php:651
+#: src/Internal/HealthCheck/StatusTab.php:672
 #, php-format
 msgid "Completed %s ago"
 msgstr ""
 
 #. translators: %s: count of subscriptions inspected during the most recent scan.
-#: src/Internal/HealthCheck/StatusTab.php:722
+#: src/Internal/HealthCheck/StatusTab.php:743
 #, php-format
 msgid "%s subscription scanned"
 msgid_plural "%s subscriptions scanned"
@@ -9602,150 +9773,155 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: bold-wrapped count of subscriptions scanned before cancel. 2: bold-wrapped store total.
-#: src/Internal/HealthCheck/StatusTab.php:772
+#: src/Internal/HealthCheck/StatusTab.php:793
 #, php-format
 msgid "%1$s of ~%2$s scanned before cancel"
 msgstr ""
 
 #. translators: %s: bold-wrapped count of subscriptions scanned before cancel.
-#: src/Internal/HealthCheck/StatusTab.php:779
+#: src/Internal/HealthCheck/StatusTab.php:800
 #, php-format
 msgid "%s scanned before cancel"
 msgstr ""
 
 #. translators: %s: WooCommerce Subscriptions version.
-#: src/Internal/HealthCheck/StatusTab.php:803
+#: src/Internal/HealthCheck/StatusTab.php:824
 #, php-format
 msgid "WooCommerce Subscriptions %s"
 msgstr ""
 
 #. translators: %d: count of past-due Action Scheduler actions in our group. Verb agrees with count: "action" for 1, "actions" for 0 or 2+.
-#: src/Internal/HealthCheck/StatusTab.php:833
+#: src/Internal/HealthCheck/StatusTab.php:854
 #, php-format
 msgid "%d past-due action"
 msgid_plural "%d past-due actions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Internal/HealthCheck/StatusTab.php:861
+#: src/Internal/HealthCheck/StatusTab.php:882
 msgid "Go to scheduled actions"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:882
+#: src/Internal/HealthCheck/StatusTab.php:903
 msgid "Search by subscription ID or customer email"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:899
+#: src/Internal/HealthCheck/StatusTab.php:920
 msgid "Search"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:1018
+#: src/Internal/HealthCheck/StatusTab.php:1039
 msgid "A scan is already running. The new scan request was ignored."
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:1025
+#: src/Internal/HealthCheck/StatusTab.php:1046
 msgid "The scan could not be started due to a database error. Please check the logs and try again."
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:1032
+#: src/Internal/HealthCheck/StatusTab.php:1053
 msgid "Scan cancelled. Subscriptions already detected stay in the list below."
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:1039
+#: src/Internal/HealthCheck/StatusTab.php:1060
 msgid "No scan was running. Nothing to cancel."
 msgstr ""
 
 #. translators: %s: link text "WooCommerce > Settings > Subscriptions" rendered as an anchor pointing at the Health Check section of the Subscriptions settings tab.
-#: src/Internal/HealthCheck/StatusTab.php:1067
+#: src/Internal/HealthCheck/StatusTab.php:1088
 #, php-format
 msgid "The last health check scan encountered an issue. Re-enable the scan schedule in %s to try again."
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:1071
+#: src/Internal/HealthCheck/StatusTab.php:1092
 msgid "WooCommerce > Settings > Subscriptions"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:1122
+#: src/Internal/HealthCheck/StatusTab.php:1143
 msgid "Nightly scans on"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:1123
+#: src/Internal/HealthCheck/StatusTab.php:1144
 msgid "Nightly scans off"
 msgstr ""
 
 #. translators: %s: human-readable time diff like "3 hours".
-#: src/Internal/HealthCheck/StatusTab.php:1137
+#: src/Internal/HealthCheck/StatusTab.php:1158
 #, php-format
 msgid "next in %s"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:1145
+#: src/Internal/HealthCheck/StatusTab.php:1166
 msgid "Manage"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:1287
+#: src/Internal/HealthCheck/StatusTab.php:1308
 msgid "Up to date ✓"
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:1295
+#: src/Internal/HealthCheck/StatusTab.php:1316
 msgid "Newer version available."
 msgstr ""
 
-#: src/Internal/HealthCheck/StatusTab.php:1297
+#: src/Internal/HealthCheck/StatusTab.php:1318
 msgid "Update now"
 msgstr ""
 
-#: src/Internal/HealthCheck/ToolRunner.php:94
-msgid "Subscription not found."
-msgstr ""
-
-#: src/Internal/HealthCheck/ToolRunner.php:123
-msgid "This subscription has been updated since the last scan and is no longer flagged. The action was not performed."
-msgstr ""
-
-#: src/Internal/HealthCheck/ToolRunner.php:149
-msgid "An unexpected error occurred while processing this subscription. Please try again or update manually."
-msgstr ""
-
-#. translators: %d: subscription ID
-#: src/Internal/HealthCheck/ToolRunner.php:186
-#, php-format
-msgid "Subscription #%d has been resolved successfully."
-msgstr ""
-
 #. translators: %s: action name
-#: src/Internal/HealthCheck/ToolRunner.php:264
+#: src/Internal/HealthCheck/ToolRunner.php:83
+#: src/Internal/HealthCheck/ToolRunner.php:293
 #, php-format
 msgid "Unknown remediation action: %s"
 msgstr ""
 
-#: src/Internal/HealthCheck/ToolRunner.php:315
+#: src/Internal/HealthCheck/ToolRunner.php:106
+msgid "Subscription not found."
+msgstr ""
+
+#: src/Internal/HealthCheck/ToolRunner.php:135
+msgid "This subscription has been updated since the last scan and is no longer flagged. The action was not performed."
+msgstr ""
+
+#: src/Internal/HealthCheck/ToolRunner.php:149
+msgid "This action is no longer available for this subscription."
+msgstr ""
+
+#: src/Internal/HealthCheck/ToolRunner.php:175
+msgid "An unexpected error occurred while processing this subscription. Please try again or update manually."
+msgstr ""
+
+#. translators: %d: subscription ID
+#: src/Internal/HealthCheck/ToolRunner.php:212
+#, php-format
+msgid "Subscription #%d has been resolved successfully."
+msgstr ""
+
+#: src/Internal/HealthCheck/ToolRunner.php:344
 msgid "The subscription could not be updated. Please try again or update manually."
 msgstr ""
 
-#: src/Internal/HealthCheck/ToolRunner.php:325
+#: src/Internal/HealthCheck/ToolRunner.php:354
 msgid "Switched to automatic renewal via Health Check."
 msgstr ""
 
-#: src/Internal/HealthCheck/ToolRunner.php:366
+#: src/Internal/HealthCheck/ToolRunner.php:395
 msgid "Processing the renewal is only available for active or on-hold subscriptions."
 msgstr ""
 
-#: src/Internal/HealthCheck/ToolRunner.php:432
+#: src/Internal/HealthCheck/ToolRunner.php:461
 msgid "A scheduled renewal payment is already in progress for this subscription. Please wait for it to finish, then refresh the list."
 msgstr ""
 
-#: src/Internal/HealthCheck/ToolRunner.php:448
+#: src/Internal/HealthCheck/ToolRunner.php:477
 msgctxt "order note"
 msgid "Renewal processed via Health Check."
 msgstr ""
 
-#: src/Internal/HealthCheck/ToolRunner.php:468
-#: src/Internal/HealthCheck/ToolRunner.php:493
+#: src/Internal/HealthCheck/ToolRunner.php:497
+#: src/Internal/HealthCheck/ToolRunner.php:522
 msgid "The renewal could not be processed. Please review the subscription and retry from its edit screen."
 msgstr ""
 
-#: src/Internal/HealthCheck/ToolRunner.php:530
+#: src/Internal/HealthCheck/ToolRunner.php:559
 msgid "The renewal order was created but the gateway charge could not be dispatched. Please review the subscription and retry from its edit screen."
 msgstr ""
 
@@ -9825,7 +10001,7 @@ msgid_plural "Subscription options for %d products couldn't be updated."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Internal/Queue_Management/External_Trigger_Endpoint.php:95
+#: src/Internal/Queue_Management/External_Trigger_Endpoint.php:96
 msgid "Endpoint token configured in WC > Settings > Subscriptions."
 msgstr ""
 
@@ -10249,6 +10425,20 @@ msgstr ""
 msgid "-"
 msgstr ""
 
+#. translators: 1: subscription number, 2: date and time the cancellation was received, 3: date and time the subscription ends.
+#: templates/emails/customer-cancelled-subscription.php:30
+#: templates/emails/plain/customer-cancelled-subscription.php:26
+#, php-format
+msgid "We received the cancellation of subscription #%1$s on %2$s. It stays active until %3$s. No more renewal payments are scheduled."
+msgstr ""
+
+#. translators: 1: subscription number, 2: date and time the cancellation was received, 3: date and time the subscription ended.
+#: templates/emails/customer-cancelled-subscription.php:38
+#: templates/emails/plain/customer-cancelled-subscription.php:36
+#, php-format
+msgid "Subscription #%1$s was cancelled on %2$s. It ended on %3$s."
+msgstr ""
+
 #. translators: %s: Customer first name
 #: templates/emails/customer-completed-renewal-order.php:24
 #: templates/emails/customer-completed-switch-order.php:24
@@ -10488,6 +10678,7 @@ msgstr ""
 
 #. translators: %s: subscription URL
 #: templates/emails/plain/cancelled-subscription.php:45
+#: templates/emails/plain/customer-cancelled-subscription.php:49
 #: templates/emails/plain/expired-subscription.php:45
 #: templates/emails/plain/on-hold-subscription.php:40
 #: templates/emails/plain/reactivated-subscription.php:49
@@ -10763,17 +10954,28 @@ msgstr ""
 msgid "To complete your account we just need you to fill in your shipping address and you to change your password here: %s."
 msgstr ""
 
+#: templates/gifting/emails/plain/purchaser-email-addresses.php:19
+#: templates/gifting/emails/purchaser-email-addresses.php:39
+#: templates/gifting/emails/purchaser-email-addresses.php:41
+#: templates/gifting/purchaser-order-details-customer.php:29
+msgid "Billing address"
+msgstr ""
+
+#: templates/gifting/emails/plain/purchaser-email-addresses.php:43
+#: templates/gifting/emails/plain/recipient-email-address-table.php:13
+#: templates/gifting/emails/purchaser-email-addresses.php:70
+#: templates/gifting/emails/purchaser-email-addresses.php:72
+#: templates/gifting/emails/recipient-email-address-table.php:16
+#: templates/gifting/order-details-customer.php:22
+#: templates/gifting/purchaser-order-details-customer.php:50
+msgid "Shipping address"
+msgstr ""
+
 #. translators: placeholder is the name of the site.
 #: templates/gifting/emails/plain/recipient-completed-renewal-order.php:15
 #: templates/gifting/emails/recipient-completed-renewal-order.php:18
 #, php-format
 msgid "Hi there. Your subscription renewal order with %s has been completed. Your order details are shown below for your reference:"
-msgstr ""
-
-#: templates/gifting/emails/plain/recipient-email-address-table.php:13
-#: templates/gifting/emails/recipient-email-address-table.php:16
-#: templates/gifting/order-details-customer.php:22
-msgid "Shipping address"
 msgstr ""
 
 #. Translators: placeholder is the product name.

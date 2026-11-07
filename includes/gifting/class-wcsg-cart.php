@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
+
 /**
  * Class for cart integration.
  */
@@ -31,6 +33,8 @@ class WCSG_Cart {
 		add_filter( 'woocommerce_order_again_cart_item_data', __CLASS__ . '::remove_recipient_from_order_again_cart_item_meta', 10, 1 );
 
 		add_filter( 'woocommerce_checkout_create_order_line_item', __CLASS__ . '::add_recipient_to_order_line_item', 10, 4 );
+
+		add_action( 'woocommerce_check_cart_items', __CLASS__ . '::remove_disallowed_recipients' );
 
 		if ( did_action( 'woocommerce_blocks_loaded' ) ) {
 			self::register_blocks_update_callback();
@@ -71,6 +75,8 @@ class WCSG_Cart {
 	/**
 	 * Handles the blocks cart update callback.
 	 *
+	 * @throws RouteException If the cart item cannot be gifted.
+	 *
 	 * @param array $data The data from the blocks update callback.
 	 */
 	public static function handle_blocks_update_cart_item_recipient( $data ) {
@@ -87,6 +93,36 @@ class WCSG_Cart {
 
 		if ( ! isset( WC()->cart->cart_contents[ $key ] ) ) {
 			return;
+		}
+
+		// Clearing a recipient is always allowed; assigning one has to satisfy the store's giftability rules.
+		if ( '' !== $recipient && ! self::is_giftable_item( WC()->cart->cart_contents[ $key ] ) ) {
+			$renewal_order_id = WC()->cart->cart_contents[ $key ]['subscription_renewal']['renewal_order_id'] ?? 0;
+			$session          = WC()->session;
+			$draft_order_id   = $session ? $session->get( 'store_api_draft_order' ) : null;
+
+			if ( $renewal_order_id && (int) $renewal_order_id === (int) $draft_order_id && isset( $GLOBALS['wp_rest_server'] ) && $GLOBALS['wp_rest_server']->is_dispatching() ) {
+				// Compatibility workaround for Core syncing failed Store API requests (woocommerce/woocommerce#68023).
+				// Remove when the minimum supported WooCommerce includes that fix; 11.2.1 still needs this guard.
+				// Keep the renewal out of the uncalculated cart sync, then restore its payment session.
+				$restore_draft_order = static function ( $response = null ) use ( &$restore_draft_order, $session, $draft_order_id ) {
+					$session->set( 'store_api_draft_order', $draft_order_id );
+					remove_filter( 'rest_request_after_callbacks', $restore_draft_order, 1 );
+					remove_action( 'shutdown', $restore_draft_order, 1 );
+
+					return $response;
+				};
+				add_filter( 'rest_request_after_callbacks', $restore_draft_order, 1 );
+				// If REST cleanup cannot run, restore before WooCommerce saves its session at shutdown priority 20.
+				add_action( 'shutdown', $restore_draft_order, 1 );
+				$session->set( 'store_api_draft_order', null );
+			}
+
+			throw new RouteException(
+				'woocommerce_subscriptions_gifting_item_not_giftable',
+				esc_html__( 'This item cannot be gifted.', 'woocommerce-subscriptions' ),
+				400
+			);
 		}
 
 		WC()->cart->cart_contents[ $key ]['wcsg_gift_recipients_email'] = $recipient;
@@ -157,6 +193,13 @@ class WCSG_Cart {
 				foreach ( WC()->cart->cart_contents as $key => $item ) {
 					if ( isset( $_POST['recipient_email'][ $key ] ) ) {
 						$recipient_email = $_POST['recipient_email'][ $key ]; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+
+						// Clearing a recipient is always allowed; assigning one has to satisfy the store's giftability rules.
+						if ( '' !== $recipient_email && ! self::is_giftable_item( $item ) ) {
+							wc_add_notice( __( 'This item cannot be gifted.', 'woocommerce-subscriptions' ), 'error' );
+							continue;
+						}
+
 						WCS_Gifting::update_cart_item_recipient( $item, $key, $recipient_email );
 
 						// Propagate recipient to bundle/composite child items.
@@ -211,16 +254,140 @@ class WCSG_Cart {
 
 	/**
 	 * Determines if a cart item is able to be gifted.
-	 * Only subscriptions that are not a renewal, switch, or bundle/composite child are giftable.
+	 * Only subscriptions that are not a renewal, switch, or bundle/composite child are giftable, and only while gifting
+	 * is enabled for the store.
 	 *
-	 * @param array $cart_item Cart item.
+	 * This decides both whether the recipient field is shown for a cart item and whether a request may set a
+	 * recipient on it. The store-wide setting is checked here as well as in WCSG_Product::is_giftable(), because the
+	 * 'wcsg_is_giftable_product' filter can return true even when gifting is disabled for the store.
+	 *
+	 * @param array       $cart_item     Cart item.
+	 * @param array|false $cart_contents The cart items to look for a bundle or composite container in. Optional. Default
+	 *                                   is the items of WC()->cart.
 	 * @return bool Whether the cart item is giftable.
 	 */
-	public static function is_giftable_item( $cart_item ) {
-		return WCSG_Product::is_giftable( $cart_item['data'] )
+	public static function is_giftable_item( $cart_item, $cart_contents = false ) {
+		return isset( $cart_item['data'] )
+			&& $cart_item['data'] instanceof WC_Product
+			&& WCSG_Admin::is_gifting_enabled()
+			&& WCSG_Product::is_giftable( $cart_item['data'] )
 			&& ! isset( $cart_item['subscription_renewal'] )
 			&& ! isset( $cart_item['subscription_switch'] )
-			&& ! WCS_ATT_Integration_PB_CP::is_bundle_type_cart_item( $cart_item );
+			&& ! WCS_ATT_Integration_PB_CP::is_bundle_type_cart_item( $cart_item, is_array( $cart_contents ) ? $cart_contents : false );
+	}
+
+	/**
+	 * Determines whether a cart item carries a gift recipient the store allows on it.
+	 *
+	 * A giftable item may carry any recipient. A bundle or composite child is never offered a recipient of its
+	 * own: it may only carry the recipient of its container, and only while the container is giftable.
+	 *
+	 * @since 9.4.0
+	 *
+	 * @param array       $cart_item     Cart item.
+	 * @param array|false $cart_contents The cart items to look for a bundle or composite container in. Optional. Default
+	 *                                   is the items of WC()->cart.
+	 * @return bool Whether the cart item carries an allowed recipient. False if it carries none.
+	 */
+	public static function has_allowed_recipient( $cart_item, $cart_contents = false ) {
+		if ( ! is_array( $cart_item ) || empty( $cart_item['wcsg_gift_recipients_email'] ) ) {
+			return false;
+		}
+
+		if ( ! is_array( $cart_contents ) ) {
+			$cart_contents = isset( WC()->cart ) ? WC()->cart->cart_contents : array();
+		}
+
+		return self::is_giftable_item( $cart_item, $cart_contents ) || self::inherits_recipient_from_container( $cart_item, $cart_contents );
+	}
+
+	/**
+	 * Determines whether a bundle or composite child carries the same recipient as a giftable container.
+	 *
+	 * Containers can be nested, such as a bundle inside a composite, so this walks up until it finds a giftable
+	 * container. Each container on the way must carry the same recipient.
+	 *
+	 * @param array $cart_item     Cart item carrying a recipient.
+	 * @param array $cart_contents The cart items to look for the container in.
+	 * @return bool
+	 */
+	private static function inherits_recipient_from_container( $cart_item, $cart_contents ) {
+		$recipient = $cart_item['wcsg_gift_recipients_email'];
+		$visited   = array();
+
+		while ( WCS_ATT_Integration_PB_CP::is_bundle_type_cart_item( $cart_item, $cart_contents ) ) {
+			$container_key = WCS_ATT_Integration_PB_CP::get_bundle_type_cart_item_container( $cart_item, $cart_contents, true );
+
+			if ( ! is_string( $container_key ) || isset( $visited[ $container_key ] ) || ! isset( $cart_contents[ $container_key ] ) ) {
+				return false;
+			}
+
+			$visited[ $container_key ] = true;
+			$cart_item                 = $cart_contents[ $container_key ];
+
+			if ( ! isset( $cart_item['wcsg_gift_recipients_email'] ) || $recipient !== $cart_item['wcsg_gift_recipients_email'] ) {
+				return false;
+			}
+
+			if ( self::is_giftable_item( $cart_item, $cart_contents ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Removes gift recipients from cart items that may no longer carry them, and tells the shopper.
+	 *
+	 * A recipient can reach the cart without a request that sets it: resubscribing to a gift restores its recipient,
+	 * and the merchant can turn gifting off after the shopper chose a recipient. The subscription would not be a gift,
+	 * so the cart should not show it as one. WooCommerce checks the cart items on the cart and checkout pages, in the
+	 * block cart and checkout, and before it places an order, so the shopper sees this before paying. An order being
+	 * placed with such a recipient is stopped once, with an error.
+	 *
+	 * Renewals keep their recipient: it comes from the gifted subscription being renewed.
+	 *
+	 * @since 9.4.0
+	 */
+	public static function remove_disallowed_recipients() {
+		if ( ! isset( WC()->cart ) ) {
+			return;
+		}
+
+		$removed       = false;
+		$product_names = array();
+
+		foreach ( WC()->cart->cart_contents as $key => $cart_item ) {
+			if ( empty( $cart_item['wcsg_gift_recipients_email'] ) || isset( $cart_item['subscription_renewal'] ) || self::has_allowed_recipient( $cart_item ) ) {
+				continue;
+			}
+
+			unset( WC()->cart->cart_contents[ $key ]['wcsg_gift_recipients_email'] );
+			$removed = true;
+
+			// A bundle or composite child has no gift option of its own, so the notice names its container only.
+			if ( isset( $cart_item['data'] ) && $cart_item['data'] instanceof WC_Product && ! WCS_ATT_Integration_PB_CP::is_bundle_type_cart_item( $cart_item ) ) {
+				$product_names[] = $cart_item['data']->get_name();
+			}
+		}
+
+		if ( ! $removed ) {
+			return;
+		}
+
+		// Saves the cart, and groups the items into recurring carts again without the recipient.
+		WC()->cart->calculate_totals();
+
+		// The Store API passes on error notices only, and an error stops the classic checkout placing the order. On a
+		// page view an error is not needed, and on the classic checkout page it would replace the form with a generic
+		// "issues with the items in your cart" message that discards this notice.
+		$notice_type = did_action( 'woocommerce_store_api_cart_errors' ) || did_action( 'woocommerce_checkout_process' ) ? 'error' : 'notice';
+
+		foreach ( $product_names as $product_name ) {
+			// translators: %1$s: product name.
+			wc_add_notice( sprintf( __( '"%1$s" can no longer be bought as a gift, so its gift recipient has been removed.', 'woocommerce-subscriptions' ), $product_name ), $notice_type );
+		}
 	}
 
 	/**

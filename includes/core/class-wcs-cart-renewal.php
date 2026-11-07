@@ -12,6 +12,8 @@
  * @since      1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
+use Automattic\WooCommerce_Subscriptions\Internal\Utilities\Coupons;
+
 class WCS_Cart_Renewal {
 
 	/* The flag used to indicate if a cart item is a renewal */
@@ -757,6 +759,11 @@ class WCS_Cart_Renewal {
 			return $value;
 		}
 
+		// A customer the shipping address is withheld from, such as the purchaser of a gift, is not shown it here either.
+		if ( 0 === strpos( $key, 'shipping_' ) && $this->is_shipping_address_withheld( $this->get_cart_subscription(), get_current_user_id() ) ) {
+			return $value;
+		}
+
 		$address_fields = array_merge(
 			WC()->countries->get_address_fields(
 				$order->get_billing_country(),
@@ -1457,8 +1464,9 @@ class WCS_Cart_Renewal {
 	/**
 	 * When completing checkout for a subscription renewal, update the subscription's addresses from the checkout.
 	 *
-	 * The shipping address is updated for whoever pays. The billing address is updated only when the paying
-	 * customer owns the subscription, so a gift recipient's checkout leaves the purchaser's billing contact alone.
+	 * The billing address is updated only when the paying customer owns the subscription, so a gift recipient's
+	 * checkout leaves the purchaser's billing contact alone. The shipping address is updated unless it is withheld
+	 * from the paying customer (see keeps_shipping_address_at_checkout()).
 	 *
 	 * @param int $customer_id
 	 * @param array $checkout_data the posted checkout data
@@ -1476,7 +1484,15 @@ class WCS_Cart_Renewal {
 			}
 
 			$subscription_updated = false;
-			$address_types        = $this->customer_owns_subscription( $subscription, $customer_id ) ? [ 'billing', 'shipping' ] : [ 'shipping' ];
+			$address_types        = [];
+
+			if ( $this->customer_owns_subscription( $subscription, $customer_id ) ) {
+				$address_types[] = 'billing';
+			}
+
+			if ( ! $this->keeps_shipping_address_at_checkout( $subscription, $customer_id ) ) {
+				$address_types[] = 'shipping';
+			}
 
 			foreach ( $address_types as $address_type ) {
 				$checkout_fields = WC()->checkout()->get_checkout_fields( $address_type );
@@ -1500,8 +1516,9 @@ class WCS_Cart_Renewal {
 	/**
 	 * When completing a Store API checkout for a subscription renewal, update the subscription's addresses from the request.
 	 *
-	 * The shipping address is updated for whoever pays. The billing address is updated only when the paying
-	 * customer owns the subscription, so a gift recipient's checkout leaves the purchaser's billing contact alone.
+	 * The billing address is updated only when the paying customer owns the subscription, so a gift recipient's
+	 * checkout leaves the purchaser's billing contact alone. The shipping address is updated unless it is withheld
+	 * from the paying customer (see keeps_shipping_address_at_checkout()).
 	 *
 	 * @param \WC_Customer $customer
 	 * @param \WP_REST_Request $request Full details about the request.
@@ -1525,7 +1542,8 @@ class WCS_Cart_Renewal {
 				}
 			}
 
-			$update_billing = $this->customer_owns_subscription( $subscription, $customer->get_id() );
+			$update_billing  = $this->customer_owns_subscription( $subscription, $customer->get_id() );
+			$update_shipping = ! $this->keeps_shipping_address_at_checkout( $subscription, $customer->get_id() );
 
 			// Save Billing & Shipping addresses. Billing address is a required field, if shipping address (optional field) was not provided, set it to the given billing address.
 			if ( wcs_is_woocommerce_pre( '7.1' ) ) {
@@ -1533,17 +1551,65 @@ class WCS_Cart_Renewal {
 					$subscription->set_address( $request['billing_address'], 'billing' );
 				}
 
-				$subscription->set_address( $request['shipping_address'] ?? $request['billing_address'], 'shipping' );
+				if ( $update_shipping ) {
+					$subscription->set_address( $request['shipping_address'] ?? $request['billing_address'], 'shipping' );
+				}
 			} else {
 				if ( $update_billing ) {
 					$subscription->set_billing_address( $request['billing_address'] );
 				}
 
-				$subscription->set_shipping_address( $request['shipping_address'] ?? $request['billing_address'] );
+				if ( $update_shipping ) {
+					$subscription->set_shipping_address( $request['shipping_address'] ?? $request['billing_address'] );
+				}
 
 				$subscription->save();
 			}
 		}
+	}
+
+	/**
+	 * The subscription behind the cart item this class handles, if any.
+	 *
+	 * @return WC_Subscription|false
+	 */
+	private function get_cart_subscription() {
+		$cart_item = $this->cart_contains();
+
+		if ( false === $cart_item || empty( $cart_item[ $this->cart_item_key ]['subscription_id'] ) ) {
+			return false;
+		}
+
+		return wcs_get_subscription( $cart_item[ $this->cart_item_key ]['subscription_id'] );
+	}
+
+	/**
+	 * Checks whether the subscription's shipping address is withheld from the customer at the checkout.
+	 *
+	 * Gifting withholds a gifted subscription's shipping address from its purchaser once it is the recipient's own.
+	 * That customer's checkout neither shows the address nor replaces it on the subscription. The standalone
+	 * Gifting plugin's class lacks the method, so stores running it keep the previous behaviour.
+	 *
+	 * @param WC_Subscription|false $subscription The subscription in the cart.
+	 * @param int                   $customer_id  The customer at the checkout.
+	 * @return bool
+	 */
+	private function is_shipping_address_withheld( $subscription, $customer_id ) {
+		return $subscription && method_exists( 'WCSG_Recipient_Addresses', 'is_shipping_address_withheld' ) && WCSG_Recipient_Addresses::is_shipping_address_withheld( $subscription, $customer_id );
+	}
+
+	/**
+	 * Checks whether the subscription's shipping address must survive this customer's checkout.
+	 *
+	 * A withheld address is kept. A withheld subscription with no shipping country has nothing to keep, so the
+	 * address the customer enters becomes the recipient's, as for any gift whose recipient supplied none.
+	 *
+	 * @param WC_Subscription $subscription The subscription being renewed.
+	 * @param int             $customer_id  The customer at the checkout.
+	 * @return bool
+	 */
+	private function keeps_shipping_address_at_checkout( $subscription, $customer_id ) {
+		return '' !== $subscription->get_shipping_country() && $this->is_shipping_address_withheld( $subscription, $customer_id );
 	}
 
 	/**
@@ -1765,7 +1831,7 @@ class WCS_Cart_Renewal {
 		$coupons = array();
 
 		foreach ( $coupon_line_items as $coupon_item ) {
-			$coupon = new WC_Coupon( $coupon_item->get_name() );
+			$coupon = Coupons::get_by_code( $coupon_item->get_name() );
 
 			// If the coupon no longer exists, get a pseudo coupon for the discounting amount.
 			if ( ! $coupon->get_id() > 0 ) {
@@ -2160,7 +2226,7 @@ class WCS_Cart_Renewal {
 
 				foreach ( $coupon_items as $coupon_item ) {
 
-					$coupon      = new WC_Coupon( $coupon_item->get_name() );
+					$coupon      = Coupons::get_by_code( $coupon_item->get_name() );
 					$coupon_type = wcs_get_coupon_property( $coupon, 'discount_type' );
 					$coupon_code = '';
 

@@ -70,22 +70,32 @@ class WCS_PayPal_Admin {
 	/**
 	 * Handle requests to check whether a PayPal account has Reference Transactions enabled
 	 *
+	 * The check takes the capability the "Check PayPal Account" button is shown to, and the nonce issued with it.
+	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function maybe_check_account() {
-
-		if ( isset( $_GET['wcs_paypal'] ) && 'check_reference_transaction_support' === $_GET['wcs_paypal'] && wp_verify_nonce( wc_clean( wp_unslash( $_GET['_wpnonce'] ) ), __CLASS__ ) ) {
-
-			$redirect_url = remove_query_arg( array( 'wcs_paypal', '_wpnonce' ) );
-
-			if ( WCS_PayPal::are_reference_transactions_enabled( 'bypass_cache' ) ) {
-				$redirect_url = add_query_arg( array( 'wcs_paypal' => 'rt_enabled' ), $redirect_url );
-			} else {
-				$redirect_url = add_query_arg( array( 'wcs_paypal' => 'rt_not_enabled' ), $redirect_url );
-			}
-
-			wp_safe_redirect( $redirect_url );
+		// The check redirects back with wcs_paypal set to its result, so only this exact value is a check request.
+		if ( ! isset( $_GET['wcs_paypal'] ) || 'check_reference_transaction_support' !== $_GET['wcs_paypal'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
 		}
+
+		// Nonces expire while the notice stays on screen, so say why the check did not run rather than reloading
+		// the page with the same "not enabled" notice, which would look like PayPal's answer.
+		if ( ! isset( $_GET['_wpnonce'] ) || ! current_user_can( 'manage_options' ) || ! wp_verify_nonce( wc_clean( wp_unslash( $_GET['_wpnonce'] ) ), __CLASS__ ) ) {
+			wp_nonce_ays( '' );
+		}
+
+		$redirect_url = remove_query_arg( array( 'wcs_paypal', '_wpnonce' ) );
+
+		if ( WCS_PayPal::are_reference_transactions_enabled( 'bypass_cache' ) ) {
+			$redirect_url = add_query_arg( array( 'wcs_paypal' => 'rt_enabled' ), $redirect_url );
+		} else {
+			$redirect_url = add_query_arg( array( 'wcs_paypal' => 'rt_not_enabled' ), $redirect_url );
+		}
+
+		wp_safe_redirect( $redirect_url );
+		exit;
 	}
 
 	/**

@@ -1843,7 +1843,7 @@ class WCS_ATT_Integration_PB_CP {
 	 */
 	public static function bundled_item_switch_cart_data( $bundled_item_cart_data, $cart_item_data ) {
 
-		if ( ! isset( $_GET['switch-subscription'] ) ) {
+		if ( ! WCS_ATT_Manage_Switch::is_switch_request() ) {
 			return $bundled_item_cart_data;
 		}
 
@@ -1895,7 +1895,7 @@ class WCS_ATT_Integration_PB_CP {
 	 */
 	public static function composited_item_switch_cart_data( $composited_item_cart_data, $cart_item_data ) {
 
-		if ( ! isset( $_GET['switch-subscription'] ) ) {
+		if ( ! WCS_ATT_Manage_Switch::is_switch_request() ) {
 			return $composited_item_cart_data;
 		}
 
@@ -2031,11 +2031,9 @@ class WCS_ATT_Integration_PB_CP {
 		if ( self::is_bundle_type_product( $product ) ) {
 			if ( WCS_ATT_Manage_Switch::is_switch_request_for_product( $product ) ) {
 
-				if ( ! isset( $_GET['switch-subscription'] ) ) {
-					return $schemes;
-				}
-
-				$subscription = wcs_get_subscription( absint( $_GET['switch-subscription'] ) );
+				// Resolved the same way as the switch itself, so a switch arriving in the posted fields is narrowed
+				// exactly as one in the query string is, rather than offered every plan.
+				$subscription = WCS_ATT_Manage_Switch::get_subscription_being_switched();
 
 				if ( ! $subscription ) {
 					return $schemes;

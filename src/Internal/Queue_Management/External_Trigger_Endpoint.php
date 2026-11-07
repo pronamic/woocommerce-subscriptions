@@ -4,6 +4,7 @@ namespace Automattic\WooCommerce_Subscriptions\Internal\Queue_Management;
 
 use ActionScheduler_Store;
 use Automattic\WooCommerce_Subscriptions\Internal\Utilities\Request;
+use Automattic\WooCommerce_Subscriptions\Internal\Utilities\Throttled_Logger;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -120,13 +121,13 @@ class External_Trigger_Endpoint {
 	 */
 	public function handle_request( WP_REST_Request $request ): WP_REST_Response {
 		if ( ! $this->is_enabled() ) {
-			$this->log( 'External trigger rejected: feature is disabled.' );
+			$this->log_rejection( 'External trigger rejected: feature is disabled.' );
 			return new WP_REST_Response( array( 'status' => 'disabled' ), 403 );
 		}
 
 		if ( ! $this->is_token_valid( (string) $request->get_param( self::TOKEN_QUERY_PARAM ) ) ) {
 			// Do not log the provided value — log aggregators are a recipe for accidental token disclosure.
-			$this->log( 'External trigger rejected: invalid token.' );
+			$this->log_rejection( 'External trigger rejected: invalid token.' );
 			return new WP_REST_Response( array( 'status' => 'invalid_token' ), 403 );
 		}
 
@@ -293,6 +294,24 @@ class External_Trigger_Endpoint {
 	 */
 	private function schedule_shutdown_dispatch(): void {
 		add_action( 'shutdown', array( $this, 'run_dispatched_queue' ), 1 );
+	}
+
+	/**
+	 * Emit a debug-level entry for a request rejected before the caller proved anything, at most once every five
+	 * minutes.
+	 *
+	 * Anyone who knows the endpoint URL can have a request rejected — no token is needed to be turned away — so
+	 * one log line per rejection lets a stranger grow the store's log without limit. Dropping the entry instead
+	 * would take away the diagnostic a merchant needs when their web cron service is misconfigured, so it is
+	 * throttled: the first rejection in each interval is recorded and says that the rest will not be. Five minutes
+	 * is short enough that a merchant testing their web cron service sees a fresh entry between attempts.
+	 *
+	 * @param string $message
+	 *
+	 * @return void
+	 */
+	private function log_rejection( string $message ): void {
+		Throttled_Logger::log( 'external_trigger_rejection', $message, array( 'source' => self::LOG_SOURCE ) );
 	}
 
 	/**

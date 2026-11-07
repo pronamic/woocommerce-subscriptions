@@ -87,5 +87,19 @@ function wcs_is_product_limited_for_user( $product, $user_id = 0, $excluded_subs
 		}
 	}
 
-	return apply_filters( 'woocommerce_subscriptions_product_limited_for_user', $is_limited_for_user, $product, $user_id );
+	/**
+	 * Filters whether the product's subscription limit has been reached for the given user.
+	 *
+	 * @since 2.2.19
+	 * @since 9.4.0 Added the `$excluded_subscription_ids` parameter.
+	 *
+	 * @param bool       $is_limited_for_user       Whether the limit has been reached.
+	 * @param WC_Product $product                   The product being checked.
+	 * @param int        $user_id                   The ID of the user being checked.
+	 * @param int[]      $excluded_subscription_ids Subscription IDs set aside when counting towards the limit,
+	 *                                              such as one the customer is currently paying for. A callback
+	 *                                              that looks up the user's subscriptions itself should skip
+	 *                                              these too, or it counts the subscription being paid for.
+	 */
+	return apply_filters( 'woocommerce_subscriptions_product_limited_for_user', $is_limited_for_user, $product, $user_id, $excluded_subscription_ids );
 }

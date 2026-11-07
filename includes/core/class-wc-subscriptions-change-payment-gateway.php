@@ -294,7 +294,7 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			return;
 		}
 
-		$subscription_id = absint( wc_clean( wp_unslash( $_POST['woocommerce_change_payment'] ) ) );
+		$subscription_id = isset( $_POST['woocommerce_change_payment'] ) ? absint( wc_clean( wp_unslash( $_POST['woocommerce_change_payment'] ) ) ) : 0;
 		$subscription    = wcs_get_subscription( $subscription_id );
 
 		if ( ! $subscription ) {
@@ -302,12 +302,19 @@ class WC_Subscriptions_Change_Payment_Gateway {
 			return;
 		}
 
-		// The order key is this flow's authorization control (order-pay must keep working for guests). Verify it
-		// before firing the hook, so listeners never receive an unverified subscription.
+		// Verify the request before firing the hook, so listeners never receive an unverified subscription.
 		// sanitize_text_field() returns '' for array input, which hash_equals() would otherwise reject.
 		$order_key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : '';
 
 		if ( ! $subscription instanceof WC_Subscription || ! hash_equals( $subscription->get_order_key(), $order_key ) ) {
+			return;
+		}
+
+		// The order key also reaches people who must not change the payment method (a gift recipient gets it in
+		// download links), so require the capability the change payment form is gated on as well. It is granted to
+		// the subscription's customer, which is user 0 for a subscription without one, so guest order-pay still works.
+		if ( ! current_user_can( 'edit_shop_subscription_payment_method', $subscription->get_id() ) ) {
+			wc_add_notice( __( 'That doesn\'t appear to be one of your subscriptions.', 'woocommerce-subscriptions' ), 'error' );
 			return;
 		}
 

@@ -166,9 +166,14 @@ class WCS_ATT_Manage_Add extends WCS_ATT_Abstract_Module {
 				// The current plan might be null but product plans might still exist (this may happen if the currently selected plan gets deleted by the admin).
 				$available_schemes = WCS_ATT_Cart::get_subscription_schemes( $cart_item );
 
-				// If the product has plans, contribute those.
+				// If the product has plans, contribute those. The handler applies the one that matches the subscription,
+				// and adding to a subscription collects no payment, so leave out plans that require an upfront charge.
 				if ( $available_schemes ) {
-					$schemes_for_match = $available_schemes;
+					foreach ( $available_schemes as $scheme_key => $scheme ) {
+						if ( $scheme instanceof WCS_ATT_Scheme && ! $scheme->requires_upfront_charge( $cart_item['data'], $scheme_key ) ) {
+							$schemes_for_match[ $scheme_key ] = $scheme;
+						}
+					}
 				} else {
 
 					$schemes_for_match = null;
@@ -220,17 +225,70 @@ class WCS_ATT_Manage_Add extends WCS_ATT_Abstract_Module {
 	}
 
 	/**
-	 * Gets all active subscriptions of the current user matching a set of schemes.
+	 * Whether items may be added to a subscription, given a set of schemes.
 	 *
-	 * @param  array|null $schemes
-	 * @return array
+	 * This is the rule behind the list of subscriptions offered by the add-to-subscription views: the subscription
+	 * must be active, paid with a gateway that can change the amount charged, and - when schemes are supplied - on a
+	 * billing schedule one of them matches. Ownership is a separate test, see 'current_user_can_add_to_subscription'.
+	 *
+	 * The form handlers use this to re-check the subscription posted to them without querying the account again.
+	 *
+	 * @since 9.4.0
+	 *
+	 * @param  WC_Subscription|mixed          $subscription The subscription to test.
+	 * @param  WCS_ATT_Scheme|array|null      $schemes      Schemes to match against. Pass null or an empty array to match any supported subscription.
+	 * @return bool
 	 */
-	public static function get_matching_subscriptions( $schemes ) {
+	public static function is_matching_subscription( $subscription, $schemes ) {
+
+		if ( ! $subscription instanceof WC_Subscription ) {
+			return false;
+		}
 
 		// Transform input param into array for backwards compatibility.
 		if ( is_a( $schemes, 'WCS_ATT_Scheme' ) ) {
 			$schemes = array( $schemes->get_key() => $schemes );
 		}
+
+		$is_match = $subscription->has_status( 'active' ) && $subscription->payment_method_supports( 'subscription_amount_changes' );
+
+		// Schemes narrow the match; with none supplied, any supported subscription matches.
+		if ( $is_match && is_array( $schemes ) && ! empty( $schemes ) ) {
+			$is_match = false;
+
+			foreach ( $schemes as $scheme ) {
+				if ( $scheme instanceof WCS_ATT_Scheme && $scheme->matches_subscription( $subscription ) ) {
+					$is_match = true;
+					break;
+				}
+			}
+		}
+
+		/**
+		 * 'wcsatt_is_matching_subscription' filter.
+		 *
+		 * Runs both when the add-to-subscription views build their list and when a form handler re-checks the
+		 * subscription it was posted, so a callback that narrows or widens eligibility here applies to both. The
+		 * list is built from the customer's active subscriptions, so it cannot show one with another status.
+		 * The 'wcsatt_subscriptions_matching_product' and 'wcsatt_subscriptions_matching_cart' filters only shape
+		 * the list shown.
+		 *
+		 * @since 9.4.0
+		 *
+		 * @param  bool                 $is_match     Whether the subscription is one the views would offer: active, paid with a gateway that can change the amount charged, and matched by one of the schemes.
+		 * @param  WC_Subscription      $subscription The subscription tested.
+		 * @param  array|null           $schemes      Schemes matched against, keyed by scheme key. Null or empty when any supported subscription matches.
+		 */
+		return (bool) apply_filters( 'wcsatt_is_matching_subscription', $is_match, $subscription, $schemes );
+	}
+
+	/**
+	 * Gets all active subscriptions of the current user matching a set of schemes.
+	 *
+	 * @param  WCS_ATT_Scheme|array|null $schemes Schemes to match against. Pass null or an empty array to match any supported subscription.
+	 * @return array
+	 */
+	public static function get_matching_subscriptions( $schemes ) {
 
 		// Filter them by period + interval.
 		$matching_subscriptions = array();
@@ -250,21 +308,7 @@ class WCS_ATT_Manage_Add extends WCS_ATT_Abstract_Module {
 
 		foreach ( $subscriptions as $subscription_id => $subscription ) {
 
-			if ( ! $subscription->payment_method_supports( 'subscription_amount_changes' ) ) {
-				continue;
-			}
-
-			// If null, include all supported account subscriptions.
-			if ( is_array( $schemes ) && ! empty( $schemes ) ) {
-
-				foreach ( $schemes as $scheme_key => $scheme ) {
-
-					if ( $scheme->matches_subscription( $subscription ) ) {
-						$matching_subscriptions[ $subscription_id ] = $subscription;
-						break;
-					}
-				}
-			} else {
+			if ( self::is_matching_subscription( $subscription, $schemes ) ) {
 				$matching_subscriptions[ $subscription_id ] = $subscription;
 			}
 		}

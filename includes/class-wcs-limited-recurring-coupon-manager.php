@@ -8,6 +8,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Automattic\WooCommerce_Subscriptions\Internal\Utilities\Coupons;
+
 class WCS_Limited_Recurring_Coupon_Manager {
 
 	/**
@@ -84,7 +86,7 @@ class WCS_Limited_Recurring_Coupon_Manager {
 	public static function get_coupon_limit( $coupon ) {
 		// If we have a coupon code, attempt to get the coupon object.
 		if ( is_string( $coupon ) ) {
-			$coupon = new WC_Coupon( $coupon );
+			$coupon = Coupons::get_by_code( $coupon );
 		}
 
 		if ( ! $coupon instanceof WC_Coupon ) {

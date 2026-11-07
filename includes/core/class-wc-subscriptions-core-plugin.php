@@ -90,6 +90,20 @@ class WC_Subscriptions_Core_Plugin {
 	}
 
 	/**
+	 * Return the scheduler selected during initialization.
+	 *
+	 * Extensions may replace the scheduler with the woocommerce_subscriptions_scheduler filter.
+	 * Callers must inspect this instance rather than applying that filter again.
+	 *
+	 * @since 9.4.0
+	 *
+	 * @return WCS_Scheduler|null The active subscription scheduler, or null before initialization.
+	 */
+	public function get_scheduler() {
+		return $this->scheduler;
+	}
+
+	/**
 	 * Defines WC Subscriptions constants.
 	 */
 	protected function define_constants() {

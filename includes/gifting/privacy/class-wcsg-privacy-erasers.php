@@ -42,7 +42,7 @@ class WCSG_Privacy_Erasers {
 			$subscriptions = array_filter( array_map( 'wcs_get_subscription', $subscriptions ) );
 		}
 
-		return WCS_Privacy_Erasers::erase_subscription_data_and_generate_response( $subscriptions );
+		return WCS_Privacy_Erasers::erase_subscription_data_and_generate_response( $subscriptions, 10, WCS_Privacy_Erasers::SOURCE_ERASURE_REQUEST );
 	}
 
 	/**

@@ -28,10 +28,10 @@ trait Resolves_Existing_Groups {
 	 *
 	 * We query the table directly rather than through an Action Scheduler API because AS exposes no public
 	 * slug -> existence check ({@see \ActionScheduler_DBStore::get_group_ids()} is `protected`), and because the
-	 * Queue_Management features only ever engage against the stock {@see \ActionScheduler_DBStore} — the very
-	 * assumption asserted by {@see Auto_Enable::has_expected_store()}. If support for additional Action Scheduler
-	 * datastores is ever added, this direct query must be revisited: another store may not back groups with this
-	 * table (or any table) at all.
+	 * Queue_Management features only ever engage against the stock {@see \ActionScheduler_DBStore}: as of writing
+	 * it is the only store that exposes the claim-filter API they gate themselves on. If support for additional
+	 * Action Scheduler datastores is ever added, this direct query must be revisited: another store may not back
+	 * groups with this table (or any table) at all.
 	 *
 	 * @param string[] $slugs Group slugs to check.
 	 *
@@ -50,8 +50,8 @@ trait Resolves_Existing_Groups {
 
 		// The table name is a WordPress-registered identifier and `$placeholders` is a counted run of `%s`
 		// tokens bound from `$slugs` below. Querying the DBStore groups table directly is safe because the
-		// feature only ever runs against the stock store (see Auto_Enable::has_expected_store()), and the
-		// result must be live since a group may have been created moments ago.
+		// feature only ever runs against the stock store (see the docblock above), and the result must be
+		// live since a group may have been created moments ago.
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 		$existing = $wpdb->get_col(
 			$wpdb->prepare(

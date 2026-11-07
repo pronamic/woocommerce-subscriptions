@@ -143,7 +143,7 @@ class WCS_Privacy_Background_Updater {
 		foreach ( $subscriptions as $subscription ) {
 			if ( $subscription ) {
 				$this->schedule_subscription_orders_anonymization( $subscription->get_id() );
-				WCS_Privacy_Erasers::remove_subscription_personal_data( $subscription );
+				WCS_Privacy_Erasers::remove_subscription_personal_data( $subscription, WCS_Privacy_Erasers::SOURCE_RETENTION_CLEANUP );
 			}
 		}
 

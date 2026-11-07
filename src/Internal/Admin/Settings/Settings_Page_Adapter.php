@@ -43,8 +43,11 @@ class Settings_Page_Adapter extends LegacySettingsPageAdapter {
 	 * Returns the Subscriptions settings-ui extension bundle, which registers our field-component overrides with
 	 * WooCommerce's renderer (e.g. the value-dependent help on the "Billing date alignment" select). WooCommerce
 	 * core enqueues these handles only while it renders this page through the modern renderer, so the extension is
-	 * never loaded on the classic tab. The handle is registered in {@see \WCS_Admin_Assets::enqueue_scripts()};
-	 * returning it here is a no-op if the build asset is absent (the handle simply will not be registered).
+	 * never loaded on the classic tab. The handle is registered in {@see \WCS_Admin_Assets::enqueue_scripts()} only
+	 * when the build asset exists. Since WooCommerce 11.2.0 an unregistered handle makes core fall back to its
+	 * classic renderer, a decision {@see Settings_Page::should_render_settings_ui()} mirrors, so without the build
+	 * asset the tab renders the classic Subscriptions page on WooCommerce 11.2.0 and later. Earlier versions
+	 * enqueue the unregistered handle silently and print an empty mount point.
 	 *
 	 * @param string $section Section id. Empty string means the default section.
 	 * @return string[]

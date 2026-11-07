@@ -10,9 +10,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Automattic\WooCommerce_Subscriptions\Internal\Utilities\Coupons;
+
 class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 
 	use WCS_REST_Payment_Method_Meta;
+	use WCS_REST_Source_Order_Permission;
+	use WCS_REST_Parent_Order_Permission;
 
 	/**
 	 * Route base.
@@ -78,7 +82,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'create_subscriptions_from_order' ),
-					'permission_callback' => array( $this, 'create_item_permissions_check' ),
+					'permission_callback' => array( $this, 'create_subscriptions_from_order_permissions_check' ),
 					'args'                => $this->get_collection_params(),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
@@ -739,7 +743,7 @@ class WC_REST_Subscriptions_Controller extends WC_REST_Orders_Controller {
 
 				// Add coupons.
 				foreach ( $order->get_coupons() as $coupon_item ) {
-					$coupon = new WC_Coupon( $coupon_item->get_code() );
+					$coupon = Coupons::get_by_code( $coupon_item->get_code() );
 
 					try {
 						// validate_subscription_coupon_for_order will throw an exception if the coupon cannot be applied to the subscription.

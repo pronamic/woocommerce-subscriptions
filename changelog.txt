@@ -1,5 +1,51 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2026-11-06 - version 9.4.1
+* Fix: Prevent cart and checkout errors when integrations omit the customer or order object from tax and checkout hooks.
+
+2026-11-05 - version 9.4.0
+* Add: New "Customer Cancelled Subscription" email, sent when a subscription is cancelled or set to pending cancellation.
+* Add: Subscriptions health check now flags upcoming automatic renewals with no scheduled payment action and schedules the missing action for the existing due date. No payment is taken when the fix is applied.
+* Tweak: Subscriptions health check scans now start the next batch one second after the previous one completes, instead of thirty seconds. Start times still depend on Action Scheduler.
+* Tweak: Dedicated processing is no longer turned on automatically when WooCommerce Subscriptions is installed or updated from a version earlier than 8.8.0. Stores that already have it on keep it.
+* Fix: Switching between subscription plans:
+    * When switching, the product page now preselects the plan the customer is already on instead of the product's default plan.
+    * Customers can now switch to a grouped product's children sold through subscription plans. Each child links to its product page to choose a plan.
+    * Switching to a product sold through subscription plans no longer requires JavaScript. With JavaScript off, the switch was dropped and the page reported "You can only switch to a subscription product."
+* Fix: Adding a product or cart to an existing subscription now applies the same rules that decide which subscriptions are offered:
+    * A request is now refused unless the subscription is active, on a billing schedule the chosen plan matches, and paid with a payment method that supports changes to the amount charged.
+    * Plans with a sign-up fee or a prorated first payment are now refused, since this flow collects no payment and the charge went uncollected.
+    * A product with a single forced plan that carries a sign-up fee or prorated first payment no longer shows the Add to subscription option, matching every other plan.
+    * Adding the cart to a subscription is no longer offered when a cart item is on a plan with a prorated first payment, matching the existing rule for sign-up fees.
+    * A cart item with no plan selected is no longer added on a plan that carries a sign-up fee or prorated first payment.
+* Fix: Products on a plan whose Align Renewal date is a day of the year can now be added to subscriptions that renew on that day. Adding one in the admin now applies the plan's price.
+* Fix: Subscriptions created in the admin or by code no longer record prices as including tax when tax calculation is turned off. A subscription created in the admin for an existing order now follows that order's setting.
+* Fix: Paying a renewal, switching, or creating subscriptions from an order through the REST API no longer fails when a coupon on the order was deleted on a store with a persistent object cache.
+* Fix: Gift recipient shipping address privacy:
+    * Once the recipient has an account, the purchaser no longer sees their shipping address on My Account, on renewal and resubscribe orders, in order emails, or in their personal data export.
+    * Paying a renewal, renewing early, or resubscribing keeps the recipient's saved shipping address without showing or replacing it at checkout. Shipping and taxes still use that address, and orders still ship there.
+    * Updating the shipping address on all subscriptions no longer changes it on gifts the customer bought for others when My Account address links are translated.
+* Fix: Gift recipients can no longer be added to items that cannot be gifted, such as renewals, switches, products without gifting enabled, or any item while gifting is off. Previously this created a gifted subscription and a recipient account.
+* Fix: Gift recipients can no longer change the payment method on a subscription someone bought for them.
+* Fix: Downloadable product permissions on gifted subscriptions now label each file with the person who has access, and Revoke access removes the right one.
+* Fix: On PHP 7.4, a logged-out visitor passed the gift recipient check on every subscription that is not a gift, and on its renewal orders.
+* Tweak: Gift recipients' "Orders Purchased for You" personal data export now includes the shipping phone number.
+* Fix: Private subscription products can no longer be bought by anyone who is not renewing a subscription to them.
+* Fix: The View subscription page no longer reveals the subscription number in its title to a visitor who is not allowed to view it.
+* Fix: Creating subscriptions from an order through the REST API (POST wc/v2 or wc/v3 orders/<id>/subscriptions) now requires permission to edit that order.
+* Fix: Setting or changing a subscription's parent order through the REST API (wc/v1, v2 or v3) now requires permission to edit the new parent order and, where there is one, the current parent. The new parent must be an existing order.
+* Fix: Rejected requests to the web cron URL are now logged at most once every five minutes instead of once per request, so anyone who finds the URL can no longer fill the store's logs.
+* Fix: An expired "Check PayPal Account" link in the PayPal Reference Transactions notice now shows "The link you followed has expired" instead of reloading the page with the notice unchanged. The check requires an administrator, and a request without its nonce no longer logs a PHP warning.
+* Fix: The note left when a subscription's personal data is removed now names the source (bulk action, erasure request or retention cleanup) and, where there is one, the administrator, instead of an unattributed "Personal data removed." note.
+* Dev: New WCS_ATT_Manage_Add::is_matching_subscription() reports whether a subscription is one the add-to-subscription views would offer for a given set of plans, and get_matching_subscriptions() now applies it to each of the customer's subscriptions. Its result passes through the new 'wcsatt_is_matching_subscription' filter, which runs both when the list is built and when a request is handled.
+* Dev: The 'woocommerce_subscriptions_product_limited_for_user' filter now receives a fourth argument, $excluded_subscription_ids: the subscriptions set aside from the limit check because the customer is paying for them.
+* Dev: The 'subscription_renewal' and 'resubscribe' query arguments no longer make private or limited subscription products purchasable on their own. Early renewal, renewal payment and resubscribe links built by Subscriptions are unaffected.
+* Dev: The 'wcsg_is_giftable_product' filter no longer makes a product giftable while the "Enable gifting" setting is off. WCSG_Cart::is_giftable_item() and the product page gift option now check that setting as well; the 'wcsg_enable_gifting' filter turns it on in code.
+* Dev: WCS_Privacy_Erasers::remove_subscription_personal_data() and ::erase_subscription_data_and_generate_response() take an optional $source argument, which the 'woocommerce_remove_subscription_personal_data' action now passes, and the new 'woocommerce_subscriptions_privacy_remove_subscription_personal_data_note' filter customizes the note. Subclasses overriding either method must add the argument.
+* Dev: New 'woocommerce_subscriptions_can_user_edit_subscription_address' filter applies to the My Account address button, form and save handler. It receives $can_edit, $subscription, $user_id and $address_type.
+* Dev: The new 'woocommerce_subscriptions_health_check_inter_batch_delay_seconds' filter sets the delay between successful, nonempty health check scan batches, from 1 to 300 seconds. Invalid values use the one-second default.
+* Dev: WCSG_Cart::is_giftable_item() takes an optional $cart_contents argument, WCSG_Download_Handler::add_user_to_download_permission_title() takes optional $order_key and $download_id arguments, WC_Subscriptions_Addresses::add_edit_address_subscription_action() takes an optional $user_id argument, and WC_Subscriptions_Email::send_cancelled_email() takes optional $new_status and $old_status arguments. Subclasses overriding these methods must accept the added arguments. The 'cancelled_subscription_notification' action now also passes the new and old status after the subscription.
+
 2026-10-06 - version 9.3.0
 * Fix: Gifting security improvements:
     * A recipient paying a renewal or renewing early through the checkout no longer replaces the purchaser's billing name, email and address on the subscription. The shipping address still updates to what the recipient enters.

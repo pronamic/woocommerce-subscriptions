@@ -121,8 +121,8 @@ class Manager {
 
 	/**
 	 * Build the Dedicated_Queue from current option values and engage its hooks. The instance itself is not
-	 * retained here — once `setup()` is called, the instance stays alive via its bound hook callbacks, and it
-	 * detaches those itself before invoking the persistence-failure callback.
+	 * retained here — once `setup()` is called, the instance stays alive via its bound hook callbacks. Those
+	 * stay registered when the queue stands down: it sets a flag and then invokes the persistence-failure callback.
 	 *
 	 * @return void
 	 */

@@ -19,7 +19,7 @@ class WC_Subscriptions_Addresses {
 	 */
 	public static function init() {
 
-		add_filter( 'wcs_view_subscription_actions', __CLASS__ . '::add_edit_address_subscription_action', 10, 2 );
+		add_filter( 'wcs_view_subscription_actions', __CLASS__ . '::add_edit_address_subscription_action', 10, 3 );
 
 		add_action( 'template_redirect', array( __CLASS__, 'maybe_restrict_edit_address_endpoint' ) );
 
@@ -50,6 +50,7 @@ class WC_Subscriptions_Addresses {
 	 * @return bool Whether the user can edit the subscription's address.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v3.0.15
 	 * @since 9.2.0 Added the $address_type parameter.
+	 * @since 9.4.0 Added the 'woocommerce_subscriptions_can_user_edit_subscription_address' filter.
 	 */
 	private static function can_user_edit_subscription_address( $subscription, $user_id = 0, $address_type = '' ) {
 		$subscription = wcs_get_subscription( $subscription );
@@ -63,7 +64,24 @@ class WC_Subscriptions_Addresses {
 			return false;
 		}
 
-		return user_can( $user_id, 'view_order', $subscription->get_id() );
+		$can_edit = user_can( $user_id, 'view_order', $subscription->get_id() );
+
+		/**
+		 * Filters whether a user may edit a subscription's address from their account.
+		 *
+		 * This gates the "Change address" button, the edit-address endpoint, the form's prefilled values and the
+		 * save handler alike, so a callback which refuses here removes every route to the address.
+		 *
+		 * @since 9.4.0
+		 *
+		 * @param bool            $can_edit     Whether the user may edit the address.
+		 * @param WC_Subscription $subscription The subscription whose address is being edited.
+		 * @param int             $user_id      The user editing the address.
+		 * @param string          $address_type The address type being edited: 'billing', 'shipping', or '' when it
+		 *                                      could not be determined, which is treated as the more restrictive
+		 *                                      'billing' case.
+		 */
+		return (bool) apply_filters( 'woocommerce_subscriptions_can_user_edit_subscription_address', $can_edit, $subscription, $user_id, $address_type );
 	}
 
 	/**
@@ -91,10 +109,12 @@ class WC_Subscriptions_Addresses {
 	 *
 	 * @param array $actions The $subscription_id => $actions array with all actions that will be displayed for a subscription on the "My Subscriptions" table
 	 * @param \WC_Subscription $subscription the Subscription object that is being viewed.
+	 * @param int $user_id The user the actions are for. Defaults to the current user.
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.3
+	 * @since 9.4.0 Added the $user_id parameter. The button is only offered to users who may edit the shipping address.
 	 */
-	public static function add_edit_address_subscription_action( $actions, $subscription ) {
-		if ( $subscription->needs_shipping_address() && $subscription->has_status( array( 'active', 'on-hold' ) ) ) {
+	public static function add_edit_address_subscription_action( $actions, $subscription, $user_id = 0 ) {
+		if ( $subscription->needs_shipping_address() && $subscription->has_status( array( 'active', 'on-hold' ) ) && self::can_user_edit_subscription_address( $subscription, $user_id, 'shipping' ) ) {
 			$actions['change_address'] = array(
 				'url'  => esc_url( add_query_arg( array( 'subscription' => $subscription->get_id() ), wc_get_endpoint_url( 'edit-address', 'shipping' ) ) ),
 				'name' => __( 'Change address', 'woocommerce-subscriptions' ),

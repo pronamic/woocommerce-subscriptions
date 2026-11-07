@@ -21,6 +21,70 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 	const ACTION_PRIORITY = 1;
 
 	/**
+	 * Whether this scheduler's initialized policy includes a date type.
+	 *
+	 * @since 9.4.0
+	 *
+	 * @param string $date_type Subscription date type.
+	 * @return bool
+	 */
+	public function schedules_date_type( $date_type ) {
+		$date_types = $this->get_date_types_to_schedule();
+		return is_string( $date_type ) && is_array( $date_types ) && in_array( $date_type, $date_types, true );
+	}
+
+	/**
+	 * Resolve an action through the same hook and argument filters as regular scheduling.
+	 *
+	 * @since 9.4.0
+	 *
+	 * @param WC_Subscription $subscription Subscription whose event is scheduled.
+	 * @param string          $date_type    Subscription date type.
+	 * @return array{hook: string, args: array}|null
+	 */
+	public function get_scheduled_action_identity( $subscription, $date_type ) {
+		if ( ! $subscription instanceof WC_Subscription || ! is_string( $date_type ) || '' === $date_type ) {
+			return null;
+		}
+
+		$hook = $this->get_scheduled_action_hook( $subscription, $date_type );
+		if ( ! is_string( $hook ) || '' === $hook ) {
+			return null;
+		}
+
+		$args = $this->get_action_args( $date_type, $subscription );
+		if ( ! is_array( $args ) ) {
+			return null;
+		}
+
+		return array(
+			'hook' => $hook,
+			'args' => $args,
+		);
+	}
+
+	/**
+	 * Add one action without clearing any existing scheduled actions.
+	 *
+	 * The caller is responsible for checking whether an equivalent action already exists.
+	 *
+	 * @since 9.4.0
+	 * @internal This primitive does not check for an existing action and should only be used by guarded repair flows.
+	 *
+	 * @param int   $timestamp Future Unix timestamp.
+	 * @param array $identity  Action hook and arguments from get_scheduled_action_identity().
+	 * @return int Action ID, or zero when no action was stored.
+	 */
+	public function schedule_action_add_only( $timestamp, $identity ) {
+		if ( ! is_int( $timestamp ) || $timestamp <= time() || ! is_array( $identity ) || ! isset( $identity['hook'], $identity['args'] ) || ! is_string( $identity['hook'] ) || '' === $identity['hook'] || ! is_array( $identity['args'] ) ) {
+			return 0;
+		}
+
+		$action_id = $this->schedule_action( $timestamp, $identity['hook'], $identity['args'] );
+		return is_numeric( $action_id ) && (int) $action_id > 0 ? (int) $action_id : 0;
+	}
+
+	/**
 	 * An internal cache of action hooks and corresponding date types.
 	 *
 	 * This variable has been deprecated and will be removed completely in the future. You should use WCS_Action_Scheduler::get_scheduled_action_hook() and WCS_Action_Scheduler::get_date_types_to_schedule() instead.
@@ -291,11 +355,12 @@ class WCS_Action_Scheduler extends WCS_Scheduler {
 		if ( version_compare( $as_version, '3.6.0', '<' ) ) {
 			$action_id = as_schedule_single_action( $timestamp, $action_hook, $action_args, self::ACTION_GROUP );
 		} else {
-			$action_id = as_schedule_single_action( $timestamp, $action_hook, $action_args, self::ACTION_GROUP, false, $this->get_action_priority( $action_hook ) );
+			$priority  = $this->get_action_priority( $action_hook );
+			$action_id = as_schedule_single_action( $timestamp, $action_hook, $action_args, self::ACTION_GROUP, false, $priority );
 		}
 
-		// A zero action ID means Action Scheduler could not store the action. Any previously scheduled action was
-		// unscheduled before we got here, so nothing will run for this event until it is scheduled again.
+		// A zero action ID means Action Scheduler could not store the action. Regular scheduling may have
+		// unscheduled a previous action before reaching this point; add-only scheduling does not.
 		if ( empty( $action_id ) ) {
 			$this->log_unscheduled_subscription_event( self::REASON_NO_ACTION_ID, $action_hook, $action_args, $timestamp );
 		}

@@ -80,6 +80,12 @@ class Detector {
 		if ( CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL === $signal_type ) {
 			return $this->missing_renewal_candidate_ids( $after_id, $limit );
 		}
+		if ( CandidateStore::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION === $signal_type ) {
+			if ( ! ( new ScheduledPaymentAction() )->schedules_next_payment() ) {
+				return array();
+			}
+			return $this->missing_scheduled_action_candidate_ids( $after_id, $limit );
+		}
 
 		return $this->supports_auto_renewal_candidate_ids( $after_id, $limit );
 	}
@@ -147,6 +153,45 @@ class Detector {
 
 		$this->assert_shortlist_query_succeeded( 'supports-auto-renewal shortlist' );
 
+		return array_map( 'intval', (array) $rows );
+	}
+
+	/**
+	 * Shortlist active subscriptions with a future next-payment date.
+	 *
+	 * @return int[]
+	 */
+	private function missing_scheduled_action_candidate_ids( int $after_id, int $limit ): array {
+		global $wpdb;
+
+		$now = gmdate( 'Y-m-d H:i:s' );
+		if ( wcs_is_custom_order_tables_usage_enabled() ) {
+			$sql = $wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT DISTINCT o.id FROM {$wpdb->prefix}wc_orders o
+				 JOIN {$wpdb->prefix}wc_orders_meta snp ON o.id = snp.order_id AND snp.meta_key = '_schedule_next_payment'
+				 WHERE o.type = 'shop_subscription' AND o.status = 'wc-active'
+				 AND snp.meta_value > %s AND o.id > %d ORDER BY o.id ASC LIMIT %d",
+				$now,
+				$after_id,
+				$limit
+			);
+		} else {
+			$sql = $wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT DISTINCT p.ID FROM {$wpdb->posts} p
+				 JOIN {$wpdb->postmeta} snp ON p.ID = snp.post_id AND snp.meta_key = '_schedule_next_payment'
+				 WHERE p.post_type = 'shop_subscription' AND p.post_status = 'wc-active'
+				 AND snp.meta_value > %s AND p.ID > %d ORDER BY p.ID ASC LIMIT %d",
+				$now,
+				$after_id,
+				$limit
+			);
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The selected branch prepares the query.
+		$rows = $wpdb->get_col( $sql );
+		$this->assert_shortlist_query_succeeded( 'missing-scheduled-action shortlist' );
 		return array_map( 'intval', (array) $rows );
 	}
 
@@ -230,7 +275,9 @@ class Detector {
 		// Single batched scan into the `_subscription_renewal` postmeta /
 		// wc_orders_meta bucket — the structural bottleneck that no per-sub
 		// rewrite can avoid. Both classifiers read from $this->renewals_cache.
-		$this->prefetch_renewals_by_sub( array_map( 'intval', $subscription_ids ) );
+		if ( CandidateStore::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION !== $signal_type ) {
+			$this->prefetch_renewals_by_sub( array_map( 'intval', $subscription_ids ) );
+		}
 		$out = array();
 
 		foreach ( $subscription_ids as $sub_id ) {
@@ -241,6 +288,9 @@ class Detector {
 			}
 
 			switch ( $signal_type ) {
+				case CandidateStore::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION:
+					$result = $this->classify_missing_scheduled_action_one( $subscription );
+					break;
 				case CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL:
 					$result = $this->classify_missing_renewal_one( $subscription );
 					break;
@@ -275,6 +325,37 @@ class Detector {
 		return array(
 			CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL => $this->classify_missing_renewal_one( $subscription ),
 			CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL => $this->classify_supports_auto_renewal_one( $subscription ),
+			CandidateStore::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION => $this->classify_missing_scheduled_action_one( $subscription ),
+		);
+	}
+
+	/**
+	 * Recheck the live subscription and its payment queue after shortlisting.
+	 *
+	 * @return array{signals: string[], details: array<string, mixed>}|null
+	 */
+	private function classify_missing_scheduled_action_one( WC_Subscription $subscription ): ?array {
+		$payment_action = new ScheduledPaymentAction();
+		if ( ! $payment_action->is_eligible_future_payment( $subscription ) ) {
+			return null;
+		}
+
+		$identity = $payment_action->identity( $subscription );
+		if ( null === $identity || $payment_action->has_equivalent_identity( $identity ) ) {
+			return null;
+		}
+		$payment_ts = (int) $subscription->get_time( 'next_payment' );
+		$end_ts     = (int) $subscription->get_time( 'end' );
+
+		return array(
+			'signals' => array( CandidateStore::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION ),
+			'details' => array(
+				'next_payment_timestamp' => $payment_ts,
+				'end_timestamp'          => $end_ts,
+				'cycle_period'           => (string) $subscription->get_billing_period(),
+				'cycle_interval'         => (int) $subscription->get_billing_interval(),
+				'billing_mode'           => 'auto',
+			),
 		);
 	}
 

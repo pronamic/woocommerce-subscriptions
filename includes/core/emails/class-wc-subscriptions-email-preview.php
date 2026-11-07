@@ -50,6 +50,14 @@ class WC_Subscriptions_Email_Preview {
 			case 'WCS_Email_Customer_Notification_Auto_Renewal':
 				$email->set_object( $this->get_dummy_subscription() );
 				break;
+			case 'WCS_Email_Customer_Cancelled_Subscription':
+				$subscription = $this->get_dummy_subscription();
+				$subscription->set_status( 'pending-cancel' );
+				// Date objects, so that the email shows the times in the site's timezone.
+				$subscription->set_cancelled_date( wcs_get_datetime_from( time() ) );
+				$subscription->set_end_date( wcs_get_datetime_from( $subscription->get_time( 'end' ) ) );
+				$email->set_object( $subscription );
+				break;
 			case 'WCSG_Email_Recipient_New_Initial_Order':
 				$email->set_object( $this->get_dummy_subscription() );
 				$email->subscriptions = [ $this->get_dummy_subscription() ];

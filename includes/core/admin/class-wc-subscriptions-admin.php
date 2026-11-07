@@ -979,32 +979,17 @@ class WC_Subscriptions_Admin {
 	}
 
 	/**
-	 * Records the store's tax-entry mode on subscriptions created from the admin screen.
-	 *
-	 * WooCommerce sets prices_include_tax from the woocommerce_prices_include_tax option at every
-	 * other creation entry point (wc_create_order(), WC_Checkout::create_order(), the REST order
-	 * controllers, the Store API), but the admin new-order screen builds the record directly
-	 * (WC core's Automattic\WooCommerce\Internal\Admin\Orders\PageController::setup_action_new_order())
-	 * and never sets it, so it persists WC_Abstract_Order's `false` default.
-	 *
-	 * On a tax-inclusive store that false is wrong, and it propagates: wcs_create_order_from_subscription()
-	 * copies it to the parent and every renewal order, where anything keying off the flag (for
-	 * instance the renewal cart's discount tax basis) then reads the wrong value.
-	 *
-	 * Only brand new admin-created subscriptions are touched. Subscriptions built by
-	 * wcs_create_subscription() already set the flag - and deliberately inherit it from the parent
-	 * order when copying one - so overwriting an existing value would break subscriptions whose
-	 * historical tax-entry mode differs from the store's current setting.
+	 * Records the effective price tax setting on new admin-created subscriptions.
+	 * Existing subscriptions and subscriptions copied from an order keep their own setting.
 	 *
 	 * @param WC_Subscription $subscription The subscription about to be saved.
 	 */
 	public static function set_prices_include_tax_on_new_admin_subscription( $subscription ) {
-		if ( $subscription->get_id() || 'admin' !== $subscription->get_created_via() ) {
+		if ( $subscription->get_id() || $subscription->get_parent_id() || 'admin' !== $subscription->get_created_via() ) {
 			return;
 		}
 
-		// Matches how WooCommerce reads this option at its own order creation entry points.
-		$subscription->set_prices_include_tax( 'yes' === get_option( 'woocommerce_prices_include_tax' ) );
+		$subscription->set_prices_include_tax( wc_prices_include_tax() );
 	}
 
 	/**

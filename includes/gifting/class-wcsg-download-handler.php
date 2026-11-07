@@ -39,7 +39,7 @@ class WCSG_Download_Handler {
 		// Download Permission Meta Box Functions.
 		add_action( 'woocommerce_process_shop_order_meta', __CLASS__ . '::download_permissions_meta_box_save', 10, 1 );
 		add_action( 'woocommerce_admin_order_data_after_order_details', __CLASS__ . '::get_download_permissions_before_meta_box', 10, 1 );
-		add_filter( 'woocommerce_admin_download_permissions_title', __CLASS__ . '::add_user_to_download_permission_title', 10, 3 );
+		add_filter( 'woocommerce_admin_download_permissions_title', __CLASS__ . '::add_user_to_download_permission_title', 10, 5 );
 
 		// Grant access via download meta box - hooked on prior to WC_AJAX::grant_access_to_download().
 		add_action( 'wp_ajax_woocommerce_grant_access_to_download', __CLASS__ . '::ajax_grant_download_permission', 9 );
@@ -174,23 +174,29 @@ class WCSG_Download_Handler {
 	 * Formats the download permission title to also include information about the user the permission belongs to.
 	 * This is to make it clear to store managers which user's permissions are being edited.
 	 *
-	 * We also sneak in hidden fields for the user and permission ID to make sure that we can revoke or modify
-	 * permissions for a specific user, because WC doesn't use permission IDs and instead uses download IDs, which
-	 * are a hash that do not take into account user ID and duplicate permissions for the same product on the same
-	 * order for different users.
+	 * WooCommerce does not pass the row's permission ID to this filter, so the row gets the first permission for the
+	 * same product and file that has not been displayed yet. Revoke access does not use this pairing: it reads the
+	 * permission ID from the data-permission_id attribute of WooCommerce's button on the row.
 	 *
-	 * @param string $download_title The download permission title displayed in order download permission meta boxes.
-	 * @param int    $product_id     Product ID.
-	 * @param int    $order_id       Order ID.
+	 * The hidden wcsg_download_permission_ids and wcsg_download_user_ids fields output here have no reader in this
+	 * plugin on WooCommerce 3.0 and later. They are kept for third-party code that may read them.
+	 *
+	 * @param string      $download_title The download permission title displayed in order download permission meta boxes.
+	 * @param int         $product_id     Product ID.
+	 * @param int         $order_id       Order ID.
+	 * @param string|null $order_key      Order key.
+	 * @param string|null $download_id    Download ID. When it is not passed, the permission is matched on the product alone.
 	 */
-	public static function add_user_to_download_permission_title( $download_title, $product_id, $order_id ) {
+	public static function add_user_to_download_permission_title( $download_title, $product_id, $order_id, $order_key = null, $download_id = null ) {
 
 		$subscription = wcs_get_subscription( $order_id );
 
 		if ( WCS_Gifting::is_gifted_subscription( $subscription ) ) {
 
 			foreach ( self::$subscription_download_permissions as $index => $download ) {
-				if ( ! isset( $download->displayed ) ) {
+				$is_rendered_file = (int) $download->product_id === (int) $product_id && ( null === $download_id || (string) $download->download_id === (string) $download_id );
+
+				if ( $is_rendered_file && ! isset( $download->displayed ) ) {
 					?>
 					<input type="hidden" class="wcsg_download_permission_id" name="wcsg_download_permission_ids[<?php echo esc_attr( $index ); ?>]" value="<?php echo absint( $download->permission_id ); ?>" />
 					<input type="hidden" class="wcsg_download_permission_id" name="wcsg_download_user_ids[<?php echo esc_attr( $index ); ?>]" value="<?php echo absint( $download->user_id ); ?>" />
@@ -289,16 +295,15 @@ class WCSG_Download_Handler {
 	private static function get_subscription_download_permissions( $subscription_id, $order_by = 'product_id' ) {
 		global $wpdb;
 
-		// Only allow ordering by permissions_id and product_id (because we can't sanitise $order_by with $wpdb->prepare(), we need it as a column not a string).
+		// Only allow ordering by permission_id and product_id. $wpdb->prepare() would quote the column name as a string, which orders nothing, so it is interpolated instead.
 		if ( 'permission_id' !== $order_by ) {
 			$order_by = 'product_id';
 		}
 
 		return $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}woocommerce_downloadable_product_permissions WHERE order_id = %d ORDER BY %s",
-				$subscription_id,
-				$order_by
+				"SELECT * FROM {$wpdb->prefix}woocommerce_downloadable_product_permissions WHERE order_id = %d ORDER BY {$order_by}", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$subscription_id
 			)
 		);
 	}
@@ -320,7 +325,7 @@ class WCSG_Download_Handler {
 		$wpdb->hide_errors();
 
 		$order_id     = isset( $_POST['order_id'] ) ? intval( $_POST['order_id'] ) : 0;
-		$product_ids  = isset( $_POST['product_ids'] ) ? wp_unslash( $_POST['product_ids'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$product_ids  = isset( $_POST['product_ids'] ) ? array_filter( array_map( 'absint', (array) wp_unslash( $_POST['product_ids'] ) ) ) : array();
 		$loop         = isset( $_POST['loop'] ) ? intval( $_POST['loop'] ) : 0;
 		$file_counter = 0;
 
@@ -336,14 +341,14 @@ class WCSG_Download_Handler {
 				die();
 			}
 
-			if ( ! is_array( $product_ids ) ) {
-				$product_ids = array( $product_ids );
-			}
-
 			foreach ( $product_ids as $product_id ) {
-				/** @var WC_Product $product */
 				$product = wc_get_product( $product_id );
-				$files   = is_callable( array( $product, 'get_downloads' ) ) ? $product->get_downloads() : $product->get_files();
+
+				if ( ! $product ) {
+					continue;
+				}
+
+				$files = $product->get_downloads();
 
 				if ( $files ) {
 					foreach ( $files as $download_id => $file ) {
@@ -367,10 +372,15 @@ class WCSG_Download_Handler {
 				$new_download_permissions     = array_diff( array_keys( $updated_download_permissions ), array_keys( $download_permissions ) );
 
 				foreach ( $new_download_permissions as $new_download_permission_index ) {
+					$download = $updated_download_permissions[ $new_download_permission_index ];
+					$product  = wc_get_product( $download->product_id );
+
+					if ( ! $product ) {
+						continue;
+					}
 
 					++$loop;
 
-					$download   = $updated_download_permissions[ $new_download_permission_index ];
 					$file_count = $file_names[ $download->download_id ];
 
 					self::$subscription_download_permissions[ $loop ] = $download;
@@ -383,24 +393,17 @@ class WCSG_Download_Handler {
 				}
 			}
 
-			die();
+			wp_die();
 		}
 	}
 
 	/**
-	 * WooCommerce revokes download permissions based only on the product an order ID, that means when
-	 * revoking downloads on a gift subscription with permissions for both the purchaser and recipient,
-	 * it will revoke both sets of permissions instead of only the permission against which the store
-	 * manager clicked the "Revoke Access" button.
+	 * Revokes the single download permission whose Revoke access button was clicked on a gifted subscription.
 	 *
-	 * To workaround this, we add the permission ID as a hidden fields against each download permission
-	 * with @see self::add_user_to_download_permission_title(). We then trigger a custom Ajax request
-	 * that passes the permission ID to the server to make sure we only revoke only that permission.
-	 *
-	 * We also need to remove WC's handler, which is the WC_Ajax:;revoke_access_to_download() method attached
-	 * to the 'woocommerce_revoke_access_to_download' Ajax action. To do this, we have out wcsg-admin.js file
-	 * enqueued after WooCommerce's 'wc-admin-order-meta-boxes' script and then in our JavaScript call
-	 * $( '.order_download_permissions' ).off() to remove WooCommerce's Ajax method.
+	 * Gifting added this handler when WooCommerce revoked by product and order ID, which removed the purchaser's
+	 * and the recipient's access to the same file together. On the edit subscription screen, wcsg-admin.js removes
+	 * WooCommerce's click handler for the button, and posts the permission ID from the button's data-permission_id
+	 * attribute here instead. The delete is limited to the subscription being edited.
 	 *
 	 * @since 7.8.0 - Originally implemented in WooCommerce Subscriptions Gifting 1.0.
 	 */

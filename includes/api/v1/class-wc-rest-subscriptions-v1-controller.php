@@ -20,6 +20,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WC_REST_Subscriptions_V1_Controller extends WC_REST_Orders_V1_Controller {
 
+	use WCS_REST_Parent_Order_Permission;
+
 	/**
 	 * Route base.
 	 *

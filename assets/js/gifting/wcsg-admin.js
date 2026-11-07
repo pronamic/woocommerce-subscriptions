@@ -12,10 +12,7 @@ jQuery( document ).ready( function ( $ ) {
 				)
 			) {
 				var el = $( this ).parent().parent();
-				var permission_id = $( this )
-					.siblings()
-					.find( '.wcsg_download_permission_id' )
-					.val();
+				var permission_id = $( this ).data( 'permission_id' );
 				var post_id = $( '#post_ID' ).val();
 
 				if ( 0 < permission_id ) {

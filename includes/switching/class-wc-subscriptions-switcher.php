@@ -4,6 +4,7 @@ use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
 use Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Classic_Renderer;
 use Automattic\WooCommerce_Subscriptions\Internal\Admin\Settings\Settings_Layout;
 use Automattic\WooCommerce_Subscriptions\Internal\Products\Plan_Utils;
+use Automattic\WooCommerce_Subscriptions\Internal\Utilities\Coupons;
 use Automattic\WooCommerce_Subscriptions\Internal\Utilities\Request;
 use Automattic\WooCommerce_Subscriptions\Settings;
 
@@ -1794,6 +1795,11 @@ class WC_Subscriptions_Switcher {
 		$billing_address_changes  = array_diff_assoc( $order->get_address( 'billing' ), $subscription->get_address( 'billing' ) );
 		$shipping_address_changes = array_diff_assoc( $order->get_address( 'shipping' ), $subscription->get_address( 'shipping' ) );
 
+		// The purchaser of a gift cannot replace the recipient's shipping address by switching; a subscription with no shipping country has none to replace. The standalone Gifting plugin's class lacks the method.
+		if ( '' !== $subscription->get_shipping_country() && method_exists( 'WCSG_Recipient_Addresses', 'is_shipping_address_withheld' ) && WCSG_Recipient_Addresses::is_shipping_address_withheld( $subscription, $order->get_customer_id() ) ) {
+			$shipping_address_changes = array();
+		}
+
 		if ( wcs_is_woocommerce_pre( '7.1' ) ) {
 			$subscription->set_address( $billing_address_changes, 'billing' );
 			$subscription->set_address( $shipping_address_changes, 'shipping' );
@@ -1965,7 +1971,7 @@ class WC_Subscriptions_Switcher {
 	 */
 	public static function retain_coupons( $subscription ) {
 		foreach ( wcs_get_used_coupon_codes( $subscription ) as $coupon_code ) {
-			$coupon = new WC_Coupon( $coupon_code );
+			$coupon = Coupons::get_by_code( $coupon_code );
 			if ( ! WC()->cart->has_discount( $coupon_code ) && true === apply_filters( 'woocommerce_subscriptions_retain_coupon_on_switch', false, $coupon_code, $coupon, $subscription ) ) {
 				WC()->cart->add_discount( $coupon_code );
 			}
@@ -3062,7 +3068,13 @@ class WC_Subscriptions_Switcher {
 			}
 
 			if ( ! $has_added_items && $refreshed_subscription && $refreshed_subscription->has_status( 'active' ) && 0 === count( $refreshed_subscription->get_items() ) ) {
-				$refreshed_subscription->update_status( 'cancelled', __( 'All items were switched to a new subscription.', 'woocommerce-subscriptions' ) );
+				// The items continue on the new subscription, so the customer needs no cancellation email.
+				WC_Subscriptions_Email::run_without_customer_cancelled_email(
+					$refreshed_subscription->get_id(),
+					static function () use ( $refreshed_subscription ) {
+						$refreshed_subscription->update_status( 'cancelled', __( 'All items were switched to a new subscription.', 'woocommerce-subscriptions' ) );
+					}
+				);
 			}
 		}
 	}

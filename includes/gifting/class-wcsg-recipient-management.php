@@ -72,6 +72,13 @@ class WCSG_Recipient_Management {
 	 * @return array
 	 */
 	public static function grant_recipient_capabilities( $allcaps, $caps, $args ) {
+		// $args[1] is the ID of the user whose capability is being checked, who is not always the current user. User ID 0
+		// (no account, such as a logged-out visitor) is never a recipient. On PHP 7 the loose comparisons below would
+		// otherwise match it against the empty recipient of every subscription that is not a gift.
+		if ( empty( $args[1] ) ) {
+			return $allcaps;
+		}
+
 		if ( isset( $caps[0] ) ) {
 			switch ( $caps[0] ) {
 				case 'view_order':
@@ -669,6 +676,13 @@ class WCSG_Recipient_Management {
 		}
 
 		WCS_Gifting::set_recipient_user( $subscription, $recipient_user_id, 'save', 0, $order );
+		foreach ( (array) WCS_Related_Order_Store::instance()->get_related_subscription_ids( $subscription, 'resubscribe' ) as $source_id ) {
+			$source = is_numeric( $source_id ) ? wcs_get_subscription( $source_id ) : false;
+			if ( $source && $source->get_shipping_country( 'edit' ) && absint( WCS_Gifting::get_recipient_user( $source ) ) === (int) $recipient_user_id
+				&& WCSG_Recipient_Addresses::recipient_owns_shipping_address( $source, $subscription->get_customer_id(), $subscription->get_time( 'date_created' ) ) ) {
+				return;
+			}
+		}
 
 		$subscription->set_shipping_first_name( get_user_meta( $recipient_user_id, 'shipping_first_name', true ) );
 		$subscription->set_shipping_last_name( get_user_meta( $recipient_user_id, 'shipping_last_name', true ) );

@@ -211,6 +211,9 @@ class WCSG_Recipient_Details {
 				delete_user_meta( $user->ID, 'wcsg_update_account', 'true' );
 				delete_user_meta( $user->ID, 'wcsg_recipient_just_reset_password', 'true' );
 
+				// From here the shipping address on the recipient's subscriptions is theirs, not the purchaser's.
+				update_user_meta( $user->ID, 'wcsg_recipient_activated', time() );
+
 				do_action( 'wcsg_recipient_details_updated', $user->ID );
 				wc_add_notice( __( 'Your account has been updated.', 'woocommerce-subscriptions' ), 'notice' );
 

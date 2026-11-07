@@ -74,7 +74,7 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 
 		add_filter( 'woocommerce_subscription_bulk_actions', array( __CLASS__, 'add_privacy_bulk_action' ) );
 		add_action( 'load-edit.php', array( __CLASS__, 'process_bulk_action' ) );
-		add_action( 'woocommerce_remove_subscription_personal_data', array( 'WCS_Privacy_Erasers', 'remove_subscription_personal_data' ) );
+		add_action( 'woocommerce_remove_subscription_personal_data', array( 'WCS_Privacy_Erasers', 'remove_subscription_personal_data' ), 10, 2 );
 		add_action( 'woocommerce_privacy_before_remove_subscription_personal_data', array( $this->health_check_privacy_eraser, 'erase_for_subscription' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'bulk_admin_notices' ) );
 
@@ -168,8 +168,15 @@ class WCS_Privacy extends WC_Abstract_Privacy {
 				continue;
 			}
 
-			do_action( 'woocommerce_remove_subscription_personal_data', $subscription );
-			$changed++;
+			/**
+			 * Remove personal data from a subscription.
+			 *
+			 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
+			 * @param WC_Subscription $subscription The subscription to remove personal data from.
+			 * @param string          $source What triggered the removal. Added in 9.4.0.
+			 */
+			do_action( 'woocommerce_remove_subscription_personal_data', $subscription, WCS_Privacy_Erasers::SOURCE_BULK_ACTION );
+			++$changed;
 		}
 
 		$sendback_args['changed'] = $changed;

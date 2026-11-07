@@ -15,6 +15,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WCS_Privacy_Erasers {
 
 	/**
+	 * Personal data was removed by an administrator using the subscriptions list table bulk action.
+	 *
+	 * @since 9.4.0
+	 */
+	const SOURCE_BULK_ACTION = 'bulk_action';
+
+	/**
+	 * Personal data was removed while fulfilling a personal data erasure request.
+	 *
+	 * @since 9.4.0
+	 */
+	const SOURCE_ERASURE_REQUEST = 'erasure_request';
+
+	/**
+	 * Personal data was removed by the scheduled personal data retention cleanup.
+	 *
+	 * @since 9.4.0
+	 */
+	const SOURCE_RETENTION_CLEANUP = 'retention_cleanup';
+
+	/**
 	 * Finds and erases data which could be used to identify a person from subscription data associated with an email address.
 	 *
 	 * Subscriptions are erased in blocks of 10 to avoid timeouts.
@@ -42,18 +63,20 @@ class WCS_Privacy_Erasers {
 		// Use the data store get_orders() function as it supports getting subscriptions from billing email or customer ID - wcs_get_subscriptions() doesn't.
 		$subscriptions = WC_Data_Store::load( 'subscription' )->get_orders( $subscription_args );
 
-		return self::erase_subscription_data_and_generate_response( $subscriptions );
+		return self::erase_subscription_data_and_generate_response( $subscriptions, 10, self::SOURCE_ERASURE_REQUEST );
 	}
 
 	/**
 	 * Erase personal data from an array of subscriptions and generate an eraser response.
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
-	 * @param  array $subscriptions An array of WC_Subscription objects.
-	 * @param  int   $limit The number of subscriptions erased in each batch. Optional. Default is 10.
+	 * @param  array  $subscriptions An array of WC_Subscription objects.
+	 * @param  int    $limit The number of subscriptions erased in each batch. Optional. Default is 10.
+	 * @param  string $source What triggered the removal, recorded on the subscription. Optional. Default is '',
+	 *                        which records the removal without naming a source.
 	 * @return array An array of response data to return to the WP eraser.
 	 */
-	public static function erase_subscription_data_and_generate_response( $subscriptions, $limit = 10 ) {
+	public static function erase_subscription_data_and_generate_response( $subscriptions, $limit = 10, $source = '' ) {
 		$erasure_enabled = wc_string_to_bool( get_option( 'woocommerce_erasure_request_removes_subscription_data', 'no' ) );
 		$response        = array(
 			'items_removed'  => false,
@@ -65,7 +88,7 @@ class WCS_Privacy_Erasers {
 		if ( 0 < count( $subscriptions ) ) {
 			foreach ( $subscriptions as $subscription ) {
 				if ( apply_filters( 'woocommerce_privacy_erase_subscription_personal_data', $erasure_enabled, $subscription ) ) {
-					self::remove_subscription_personal_data( $subscription );
+					self::remove_subscription_personal_data( $subscription, $source );
 
 					/* Translators: %s subscription number. */
 					$response['messages'][]    = sprintf( __( 'Removed personal data from subscription %s.', 'woocommerce-subscriptions' ), $subscription->get_order_number() );
@@ -90,8 +113,14 @@ class WCS_Privacy_Erasers {
 	 *
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.20
 	 * @param WC_Subscription $subscription $subscription object.
+	 * @param string          $source What triggered the removal, recorded on the subscription. One of the
+	 *                                self::SOURCE_* values, or an identifier of the calling code's own,
+	 *                                which is named in the note and logged. Optional. Default is '',
+	 *                                which records the removal without naming a source.
 	 */
-	public static function remove_subscription_personal_data( $subscription ) {
+	public static function remove_subscription_personal_data( $subscription, $source = '' ) {
+		// The source can arrive through the 'woocommerce_remove_subscription_personal_data' action, so don't trust its type.
+		$source          = is_scalar( $source ) ? (string) $source : '';
 		$anonymized_data = array();
 
 		/**
@@ -104,7 +133,13 @@ class WCS_Privacy_Erasers {
 
 		// Cancel the subscription before removing personal data so payment gateways still have access to that data.
 		if ( $subscription->can_be_updated_to( 'cancelled' ) ) {
-			$subscription->update_status( 'cancelled' );
+			// The subscription is being anonymized, so the customer gets no cancellation email.
+			WC_Subscriptions_Email::run_without_customer_cancelled_email(
+				$subscription->get_id(),
+				static function () use ( $subscription ) {
+					$subscription->update_status( 'cancelled' );
+				}
+			);
 		}
 
 		/**
@@ -185,8 +220,17 @@ class WCS_Privacy_Erasers {
 			wc_delete_order_note( $note->id );
 		}
 
-		// Add note that this event occurred.
-		$subscription->add_order_note( __( 'Personal data removed.', 'woocommerce-subscriptions' ) );
+		// A source this class does not define reaches the note as given. Log it too, with a backtrace, so the
+		// code behind it can be identified: the note names the source but not what called this method.
+		if ( '' !== $source && ! self::is_known_source( $source ) ) {
+			wc_get_logger()->info(
+				sprintf( 'Personal data removed from subscription #%1$s with the source "%2$s", which WCS_Privacy_Erasers does not define. The subscription note records the source as given.', $subscription->get_id(), $source ),
+				array( 'backtrace' => true )
+			);
+		}
+
+		// Add note that this event occurred, recording what triggered it so the removal can be explained later.
+		$subscription->add_order_note( self::get_personal_data_removal_note( $source, $subscription ), 0, self::source_is_attributable_to_user( $source ) );
 
 		/**
 		 * Allow extensions to remove their own personal data for this subscription.
@@ -195,5 +239,88 @@ class WCS_Privacy_Erasers {
 		 * @param WC_Subscription $subscription A subscription object.
 		 */
 		do_action( 'woocommerce_privacy_remove_subscription_personal_data', $subscription );
+	}
+
+	/**
+	 * Get the note recording that personal data was removed from a subscription.
+	 *
+	 * Every removal path erases the subscription's existing notes, so this note is often the only
+	 * record left of why the data went missing. Naming the source lets a store explain the removal
+	 * when a customer asks about it later.
+	 *
+	 * A source this class does not recognise is named in the note as given, rather than falling back
+	 * to the unattributed note, so a removal triggered by code outside this class still leaves a
+	 * trail. Use the 'woocommerce_subscriptions_privacy_remove_subscription_personal_data_note' filter
+	 * to give such a source a note of its own.
+	 *
+	 * @since 9.4.0
+	 * @param string               $source What triggered the removal. One of the self::SOURCE_* values, an
+	 *                                     identifier of the calling code's own, or '' when no source was given.
+	 * @param WC_Subscription|null $subscription The subscription the data was removed from. Optional.
+	 * @return string The note to add to the subscription.
+	 */
+	protected static function get_personal_data_removal_note( $source, $subscription = null ) {
+		switch ( $source ) {
+			case self::SOURCE_BULK_ACTION:
+				$note = __( 'Personal data removed via the subscriptions bulk action.', 'woocommerce-subscriptions' );
+				break;
+			case self::SOURCE_ERASURE_REQUEST:
+				$note = __( 'Personal data removed following a personal data erasure request.', 'woocommerce-subscriptions' );
+				break;
+			case self::SOURCE_RETENTION_CLEANUP:
+				$note = __( 'Personal data removed by the personal data retention cleanup.', 'woocommerce-subscriptions' );
+				break;
+			case '':
+				// No source given. Keeps the note this method has produced since 2.2.20 for callers which pass none.
+				$note = __( 'Personal data removed.', 'woocommerce-subscriptions' );
+				break;
+			default:
+				/* Translators: %s source identifier passed by the code which removed the data. */
+				$note = sprintf( __( 'Personal data removed (source: %s).', 'woocommerce-subscriptions' ), $source );
+				break;
+		}
+
+		/**
+		 * Filter the note recording that personal data was removed from a subscription.
+		 *
+		 * Lets code which removes personal data with its own source record a note describing it.
+		 *
+		 * @since 9.4.0
+		 * @param string               $note The note to add to the subscription.
+		 * @param string               $source What triggered the removal.
+		 * @param WC_Subscription|null $subscription The subscription the data was removed from.
+		 */
+		$filtered_note = apply_filters( 'woocommerce_subscriptions_privacy_remove_subscription_personal_data_note', $note, $source, $subscription );
+
+		// A callback can return anything, and an empty note would leave no record of the removal.
+		return ( is_string( $filtered_note ) && '' !== trim( $filtered_note ) ) ? $filtered_note : $note;
+	}
+
+	/**
+	 * Determine whether a removal source should credit the note to the current user.
+	 *
+	 * Only sources an administrator triggers by hand are attributed. The retention cleanup runs on a
+	 * scheduled action which can be dispatched during any request, so attributing it would credit
+	 * whoever happened to trigger the queue. An unrecognised source is not attributed either: this
+	 * class cannot tell whether the code behind it runs in an administrator's request.
+	 *
+	 * @since 9.4.0
+	 * @param string $source What triggered the removal. One of the self::SOURCE_* values, an identifier
+	 *                       of the calling code's own, or '' when no source was given.
+	 * @return bool Whether to record the note against the current user.
+	 */
+	protected static function source_is_attributable_to_user( $source ) {
+		return in_array( $source, array( self::SOURCE_BULK_ACTION, self::SOURCE_ERASURE_REQUEST ), true );
+	}
+
+	/**
+	 * Determine whether a removal source is one this class defines.
+	 *
+	 * @since 9.4.0
+	 * @param string $source What triggered the removal.
+	 * @return bool Whether the source is one of the self::SOURCE_* values.
+	 */
+	protected static function is_known_source( $source ) {
+		return in_array( $source, array( self::SOURCE_BULK_ACTION, self::SOURCE_ERASURE_REQUEST, self::SOURCE_RETENTION_CLEANUP ), true );
 	}
 }

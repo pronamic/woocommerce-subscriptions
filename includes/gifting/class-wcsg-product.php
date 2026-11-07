@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
+
 /**
  * Class for integrating with product pages.
  */
@@ -20,6 +22,7 @@ class WCSG_Product {
 	public static function init() {
 
 		add_filter( 'woocommerce_add_cart_item_data', __CLASS__ . '::add_recipient_data', 1, 1 );
+		add_filter( 'woocommerce_add_cart_item', __CLASS__ . '::validate_recipient_on_add_to_cart', 10, 1 );
 		add_filter( 'woocommerce_get_cart_item_from_session', __CLASS__ . '::get_cart_items_from_session', 1, 2 );
 		add_filter( 'woocommerce_available_variation', __CLASS__ . '::add_gifting_to_variation_data', 10, 3 );
 
@@ -32,6 +35,8 @@ class WCSG_Product {
 	 * If the recipient email is invalid (incorrect email format or belongs to the current user) an exception is thrown
 	 * and caught by WooCommerce add to cart function - preventing the product being entered into the cart.
 	 *
+	 * Whether the item may be gifted at all is decided later, by validate_recipient_on_add_to_cart().
+	 *
 	 * @param array $cart_item_data Cart item data.
 	 * @return array New cart item data.
 	 * @throws Exception In case of error.
@@ -43,7 +48,7 @@ class WCSG_Product {
 
 				if ( WCS_Gifting::validate_recipient_emails( wp_unslash( $_POST['recipient_email'] ) ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-					$cart_item_data['wcsg_gift_recipients_email'] = sanitize_email( wp_unslash( $_POST['recipient_email'][0] ) );
+					$cart_item_data['wcsg_gift_recipients_email'] = self::get_posted_recipient();
 
 				} else {
 					// throw exception to be caught by WC add_to_cart(). validate_recipient_emails() will have added the relevant notices.
@@ -55,6 +60,60 @@ class WCSG_Product {
 		}
 
 		return $cart_item_data;
+	}
+
+	/**
+	 * Refuses to add an item to the cart with a gift recipient the store does not allow on it.
+	 *
+	 * add_recipient_data() runs before other plugins add their cart item data, so it cannot tell a switch or a
+	 * bundle child from any other item. This runs on the complete cart item instead, and so does not depend on
+	 * how a switch or bundle plugin marks the item. Only the recipient posted with this request is checked: one
+	 * restored from an existing subscription, as when resubscribing, was not chosen by the shopper.
+	 *
+	 * add_recipient_data() also gives the posted recipient to items that other plugins add while the shopper's
+	 * product is added (on 'woocommerce_add_to_cart'), such as force sells or bundle children. Those items lose the
+	 * recipient if they may not carry it, rather than being refused.
+	 *
+	 * @since 9.4.0
+	 *
+	 * @param array $cart_item The cart item being added.
+	 * @return array The cart item.
+	 * @throws RouteException If the cart item may not carry the posted recipient.
+	 */
+	public static function validate_recipient_on_add_to_cart( $cart_item ) {
+		$recipient = self::get_posted_recipient();
+
+		if ( '' === $recipient || ! is_array( $cart_item ) || ! isset( $cart_item['wcsg_gift_recipients_email'] ) || $recipient !== $cart_item['wcsg_gift_recipients_email'] ) {
+			return $cart_item;
+		}
+
+		if ( ! WCSG_Cart::has_allowed_recipient( $cart_item ) ) {
+			if ( doing_action( 'woocommerce_add_to_cart' ) ) {
+				unset( $cart_item['wcsg_gift_recipients_email'] );
+				return $cart_item;
+			}
+
+			throw new RouteException(
+				'woocommerce_subscriptions_gifting_item_not_giftable',
+				esc_html__( 'This product cannot be gifted.', 'woocommerce-subscriptions' ),
+				400
+			);
+		}
+
+		return $cart_item;
+	}
+
+	/**
+	 * Returns the gift recipient posted with an add to cart request. add_recipient_data() stores it on the cart item,
+	 * and validate_recipient_on_add_to_cart() checks the items carrying it.
+	 *
+	 * @return string The recipient email address, or an empty string if none was posted.
+	 */
+	private static function get_posted_recipient() {
+		// add_recipient_data() verifies the nonce before it attaches this value.
+		$recipient = isset( $_POST['recipient_email'][0] ) ? wp_unslash( $_POST['recipient_email'][0] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+		return is_string( $recipient ) ? sanitize_email( $recipient ) : '';
 	}
 
 	/**
@@ -77,7 +136,7 @@ class WCSG_Product {
 	 */
 	public static function add_gifting_option_product() {
 		global $product;
-		if ( self::is_giftable( $product ) && ! isset( $_GET['switch-subscription'] ) ) {
+		if ( WCSG_Admin::is_gifting_enabled() && self::is_giftable( $product ) && ! isset( $_GET['switch-subscription'] ) ) {
 			$email = '';
 			if ( ! empty( $_POST['recipient_email'][0] ) && ! empty( $_POST['_wcsgnonce'] ) && wp_verify_nonce( $_POST['_wcsgnonce'], 'wcsg_add_recipient' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 				$email = $_POST['recipient_email'][0]; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash

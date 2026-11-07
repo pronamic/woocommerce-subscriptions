@@ -204,11 +204,15 @@ class StatusTab {
 				}
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only view gate.
 				$view = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : '';
-				if ( 'missing_renewals' !== $view ) {
+				if ( ! in_array( $view, array( 'missing_renewals', 'woocommerce_subscriptions_missing_scheduled_actions' ), true ) ) {
 					return $hidden;
 				}
 				$hidden   = is_array( $hidden ) ? $hidden : array();
 				$hidden[] = 'renewal_preference';
+				if ( 'woocommerce_subscriptions_missing_scheduled_actions' === $view ) {
+					$hidden[] = 'renewal_order_status';
+					$hidden[] = 'last_payment';
+				}
 				return array_values( array_unique( $hidden ) );
 			},
 			10,
@@ -389,11 +393,28 @@ class StatusTab {
 				<input type="hidden" name="page" value="wc-status" />
 				<input type="hidden" name="tab" value="<?php echo esc_attr( self::TAB_SLUG ); ?>" />
 				<?php $table->views(); ?>
+				<?php $this->maybe_render_missing_action_scheduling_notice(); ?>
 				<?php $this->render_search_box(); ?>
 				<?php $table->display(); ?>
 			</form>
 		</div>
 		<?php $this->render_preview_modal_template(); ?>
+		<?php
+	}
+
+	/**
+	 * Explain why the missing-action scan is unavailable without stock payment scheduling.
+	 */
+	private function maybe_render_missing_action_scheduling_notice(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only view selection.
+		$view = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : '';
+		if ( 'woocommerce_subscriptions_missing_scheduled_actions' !== $view || ( new ScheduledPaymentAction() )->schedules_next_payment() ) {
+			return;
+		}
+		?>
+		<div class="notice notice-warning inline woocommerce-subscriptions-health-check-scheduling-notice">
+			<p><?php esc_html_e( 'This check is unavailable because the standard WooCommerce Subscriptions scheduler is not managing next-payment actions on this site. A custom scheduler or another integration may still schedule renewals.', 'woocommerce-subscriptions' ); ?></p>
+		</div>
 		<?php
 	}
 

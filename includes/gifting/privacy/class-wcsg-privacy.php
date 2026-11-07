@@ -44,5 +44,9 @@ class WCSG_Privacy extends WC_Abstract_Privacy {
 
 		// Remove recipient meta from a subscription when it is anonymised.
 		add_action( 'woocommerce_privacy_before_remove_subscription_personal_data', array( 'WCSG_Privacy_Erasers', 'remove_recipient_meta' ) );
+
+		// Leave the recipient's shipping address out of the purchaser's export of their subscriptions and orders.
+		add_filter( 'woocommerce_privacy_export_subscription_personal_data_props', array( 'WCSG_Privacy_Exporters', 'maybe_withhold_shipping_address' ), 10, 2 );
+		add_filter( 'woocommerce_privacy_export_order_personal_data_props', array( 'WCSG_Privacy_Exporters', 'maybe_withhold_shipping_address' ), 10, 2 );
 	}
 }

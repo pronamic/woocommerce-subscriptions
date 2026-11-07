@@ -87,15 +87,14 @@ class WCS_ATT_Manage_Add_Cart extends WCS_ATT_Abstract_Module {
 		$matching_schemes     = WCS_ATT_Manage_Add::get_schemes_matching_cart();
 		$is_feature_supported = is_null( $matching_schemes ) || ( is_array( $matching_schemes ) && ! empty( $matching_schemes ) );
 
-		// Hide the "Add to existing subscription" option when any cart item has an active
-		// subscription plan with a sign-up fee. Sign-up fees create ambiguity around whether
-		// the fee should be charged again when adding to an existing subscription, so we
-		// disable the feature entirely in this case.
+		// Hide the "Add to existing subscription" option when any cart item is on a plan that requires an upfront
+		// charge - a sign-up fee or a prorated first payment. Adding to an existing subscription collects nothing,
+		// so the charge would go uncollected; the single-product view applies the same rule per plan.
 		if ( $is_feature_supported && ! is_null( WC()->cart ) && ! empty( WC()->cart->cart_contents ) ) {
 			foreach ( WC()->cart->cart_contents as $cart_item ) {
 				$active_scheme = WCS_ATT_Product_Schemes::get_subscription_scheme( $cart_item['data'], 'object' );
 
-				if ( is_a( $active_scheme, 'WCS_ATT_Scheme' ) && $active_scheme->has_signup_fee() ) {
+				if ( is_a( $active_scheme, 'WCS_ATT_Scheme' ) && $active_scheme->requires_upfront_charge( $cart_item['data'], $active_scheme->get_key() ) ) {
 					$is_feature_supported = false;
 					break;
 				}
@@ -175,7 +174,9 @@ class WCS_ATT_Manage_Add_Cart extends WCS_ATT_Abstract_Module {
 			/**
 			 * 'wcsatt_subscriptions_matching_cart' filter.
 			 *
-			 * Last chance to filter matched subscriptions.
+			 * Last chance to filter the subscriptions shown. This only shapes the list offered: the form handler
+			 * re-checks the posted subscription with 'WCS_ATT_Manage_Add::is_matching_subscription()', so use the
+			 * 'wcsatt_is_matching_subscription' filter to change which subscriptions are eligible.
 			 *
 			 * @param  array       $matching_subscriptions
 			 * @param  array|null  $scheme Pass null to allow adding carts into all the supported account subscriptions.
@@ -350,6 +351,17 @@ class WCS_ATT_Manage_Add_Cart extends WCS_ATT_Abstract_Module {
 
 		$subscription_scheme_key = $subscription_scheme_obj->get_key();
 		$available_schemes       = WCS_ATT_Manage_Add::get_schemes_matching_cart();
+
+		// The subscriptions offered in the cart and checkout views are only those the cart can genuinely be added to.
+		// That list is worked out when the page is built, so re-derive the same answer here for the subscription that
+		// was actually posted. A cart of one-time products contributes no schemes to match, but the subscription must
+		// still be active and paid with a gateway that can change the amount charged - otherwise the store has no way
+		// of collecting the increase.
+		if ( ! WCS_ATT_Manage_Add::is_matching_subscription( $subscription, $available_schemes ) ) {
+			// translators: %d: subscription ID.
+			wc_add_notice( sprintf( __( 'Your cart cannot be added to subscription #%d. Please choose an active subscription paid with a payment method that supports changes to the amount charged.', 'woocommerce-subscriptions' ), $subscription_id ), 'error' );
+			return;
+		}
 
 		// Plans created since 9.0.0 are keyed by an id rather than by their billing schedule, so the cart's plan
 		// cannot be looked up under the dummy scheme's key. Find it by billing schedule instead, which is the test the

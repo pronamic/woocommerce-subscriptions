@@ -199,6 +199,8 @@ jQuery( function ( $ ) {
 		lastRemainingCounts = {
 			supports_auto_renewal: data.badges.supports_auto_renewal,
 			missing_renewals: data.badges.missing_renewal,
+			woocommerce_subscriptions_missing_scheduled_actions:
+				data.badges.woocommerce_subscriptions_missing_scheduled_actions,
 		};
 	}
 
@@ -214,6 +216,9 @@ jQuery( function ( $ ) {
 		}
 		if ( liClass.indexOf( 'missing_renewals' ) !== -1 ) {
 			return 'missing_renewals';
+		}
+		if ( liClass.indexOf( 'woocommerce_subscriptions_missing_scheduled_actions' ) !== -1 ) {
+			return 'woocommerce_subscriptions_missing_scheduled_actions';
 		}
 		return 'supports_auto_renewal';
 	}
@@ -545,6 +550,9 @@ jQuery( function ( $ ) {
 		if ( counts ) {
 			$( '.subsubsub .supports_auto_renewal .count' ).text( '(' + counts.supports_auto_renewal.toLocaleString() + ')' );
 			$( '.subsubsub .missing_renewals .count' ).text( '(' + counts.missing_renewals.toLocaleString() + ')' );
+			if ( typeof counts.woocommerce_subscriptions_missing_scheduled_actions === 'number' ) {
+				$( '.subsubsub .woocommerce_subscriptions_missing_scheduled_actions .count' ).text( '(' + counts.woocommerce_subscriptions_missing_scheduled_actions.toLocaleString() + ')' );
+			}
 		}
 
 		// Update the current view's pagination label. On signal-specific
@@ -556,6 +564,8 @@ jQuery( function ( $ ) {
 			paginationCount = counts.supports_auto_renewal;
 		} else if ( counts && currentView.indexOf( 'missing_renewals' ) !== -1 ) {
 			paginationCount = counts.missing_renewals;
+		} else if ( counts && currentView.indexOf( 'woocommerce_subscriptions_missing_scheduled_actions' ) !== -1 && typeof counts.woocommerce_subscriptions_missing_scheduled_actions === 'number' ) {
+			paginationCount = counts.woocommerce_subscriptions_missing_scheduled_actions;
 		}
 
 		const formatted = paginationCount.toLocaleString();

@@ -74,6 +74,18 @@ class ToolRunner {
 			)
 		);
 
+		if ( ! in_array( $action, array( RemediationAdvisor::ACTION_SWITCH_TO_AUTOMATIC, RemediationAdvisor::ACTION_PROCESS_RENEWAL_NOW, RemediationAdvisor::ACTION_SCHEDULE_RENEWAL ), true ) ) {
+			return array(
+				'resolved'    => false,
+				'outcome'     => 'failed',
+				'explanation' => sprintf(
+					/* translators: %s: action name */
+					__( 'Unknown remediation action: %s', 'woocommerce-subscriptions' ),
+					$action
+				),
+			);
+		}
+
 		$subscription = wcs_get_subscription( $subscription_id );
 		if ( ! $subscription instanceof WC_Subscription ) {
 			wc_get_logger()->error(
@@ -121,6 +133,20 @@ class ToolRunner {
 				'stale'       => true,
 				'outcome'     => 'stale',
 				'explanation' => __( 'This subscription has been updated since the last scan and is no longer flagged. The action was not performed.', 'woocommerce-subscriptions' ),
+			);
+		}
+
+		$allowed_actions = array_filter(
+			array(
+				$this->pre_dispatch_classification['primaryAction'] ?? null,
+				$this->pre_dispatch_classification['secondaryAction'] ?? null,
+			)
+		);
+		if ( ! in_array( $action, $allowed_actions, true ) ) {
+			return array(
+				'resolved'    => false,
+				'outcome'     => 'failed',
+				'explanation' => __( 'This action is no longer available for this subscription.', 'woocommerce-subscriptions' ),
 			);
 		}
 
@@ -255,6 +281,9 @@ class ToolRunner {
 
 			case RemediationAdvisor::ACTION_PROCESS_RENEWAL_NOW:
 				return $this->process_renewal( $subscription );
+
+			case RemediationAdvisor::ACTION_SCHEDULE_RENEWAL:
+				return ( new ScheduledPaymentAction() )->schedule( $subscription );
 
 			default:
 				return new \WP_Error(

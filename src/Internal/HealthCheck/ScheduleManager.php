@@ -14,12 +14,17 @@ use Throwable;
  *  - DAILY_SCAN — recurring cron; nightly trigger at 02:00 store-local.
  *    Starts a fresh scan run and enqueues the first batch.
  *  - SCAN_BATCH — single-action; processes 200 candidates keyset-paginated
- *    by id. Self-enqueues the next page with a 30s inter-batch delay. On
+ *    by id. Self-enqueues the next page with a one-second default delay. On
  *    an empty page it finalises the run (RunStore marks `completed_at`
  *    on the runs row) and stops enqueueing. On a back-off signal it
  *    re-enqueues itself in 5 minutes. On a thrown exception it records a
  *    failure and retries in 60s until the consecutive-failure threshold
  *    trips the breaker, at which point the run is failed.
+ *
+ * Three serial checks each walk up to 200 subscription ids per nonempty
+ * batch. The delay is only the earliest Action Scheduler due time: queue
+ * latency and per-batch work add to run duration. One-second pacing does
+ * not guarantee a large scan finishes before the 24-hour stale-run limit.
  *
  * The original plan included FIX_BATCH / UNDO_BATCH handlers for a
  * merchant-actioned remediation flow. Those were designed and then
@@ -65,6 +70,11 @@ class ScheduleManager {
 	public const CHECK_TYPE_MISSING_RENEWAL = 'missing_renewal';
 
 	/**
+	 * Third scan: future payments without a WCS scheduled action.
+	 */
+	public const CHECK_TYPE_MISSING_SCHEDULED_ACTION = 'woocommerce_subscriptions_missing_scheduled_action';
+
+	/**
 	 * The checks a scan run works through, in order. Each is its own
 	 * keyset walk over the whole subscriptions store, run one after the
 	 * other, so the list is both the hand-off sequence
@@ -79,6 +89,7 @@ class ScheduleManager {
 	private const CHECK_TYPE_CHAIN = array(
 		self::CHECK_TYPE_SUPPORTS_AUTO_RENEWAL,
 		self::CHECK_TYPE_MISSING_RENEWAL,
+		self::CHECK_TYPE_MISSING_SCHEDULED_ACTION,
 	);
 
 	/**
@@ -99,14 +110,21 @@ class ScheduleManager {
 	public const SCAN_BATCH_SIZE = 200;
 
 	/**
-	 * Delay between consecutive scan batches on the happy path. Gives
-	 * foreground traffic a breather between the store-wide queries.
+	 * Default delay between successful nonempty batches. This is the
+	 * earliest due time, not an Action Scheduler execution guarantee.
 	 */
-	public const INTER_BATCH_DELAY_SECONDS = 30;
+	public const INTER_BATCH_DELAY_SECONDS = 1;
 
 	/**
-	 * Delay before retrying the same batch after a caught exception —
-	 * distinct from the 30s inter-batch cadence so the retry is
+	 * Upper bound for the support-only successful-batch pacing override.
+	 * A five-minute ceiling prevents accidental day-scale pauses or
+	 * arithmetic overflow from extension-provided filter values.
+	 */
+	private const MAX_INTER_BATCH_DELAY_SECONDS = 300;
+
+	/**
+	 * Delay before retrying the same batch after a caught exception -
+	 * distinct from the successful inter-batch cadence so the retry is
 	 * identifiable in the AS queue.
 	 */
 	private const FAILURE_RETRY_DELAY_SECONDS = 60;
@@ -637,6 +655,10 @@ class ScheduleManager {
 			}
 
 			$last_id = (int) max( $ids );
+			// An extension filter can throw. Resolve it before banking success
+			// so the catch can retry this page without inflating counters or
+			// clearing the failure streak.
+			$delay = $this->inter_batch_delay_seconds();
 
 			// Bank the position this batch reached. Everything at or below
 			// `$last_id` has now been through this check, whether the
@@ -662,7 +684,7 @@ class ScheduleManager {
 			$this->circuit_breaker->reset_consecutive_failures();
 
 			$this->schedule_single_action(
-				time() + self::INTER_BATCH_DELAY_SECONDS,
+				time() + $delay,
 				self::SCAN_BATCH,
 				array( $run_id, $last_id, $check_type ),
 				self::ACTION_GROUP
@@ -694,6 +716,52 @@ class ScheduleManager {
 	}
 
 	/**
+	 * Return the validated delay for a successful nonempty scan batch.
+	 *
+	 * The `woocommerce_subscriptions_health_check_inter_batch_delay_seconds`
+	 * filter accepts an integer or an unsigned decimal integer string from
+	 * 1 to 300 seconds. Invalid results, including values too large for a
+	 * PHP integer, fall back to the one-second default. Only successful
+	 * nonempty batches consult the filter; retry and back-off delays do not.
+	 *
+	 * @since 9.4.0
+	 *
+	 * @return int Delay in seconds.
+	 */
+	private function inter_batch_delay_seconds(): int {
+		/**
+		 * Filter the delay between successful nonempty Health Check scan batches.
+		 *
+		 * @since 9.4.0
+		 *
+		 * @param int $delay Delay in seconds.
+		 */
+		$filtered = apply_filters( 'woocommerce_subscriptions_health_check_inter_batch_delay_seconds', self::INTER_BATCH_DELAY_SECONDS );
+		if ( ! is_int( $filtered ) && ( ! is_string( $filtered ) || ! ctype_digit( $filtered ) ) ) {
+			return self::INTER_BATCH_DELAY_SECONDS;
+		}
+		if ( is_string( $filtered ) ) {
+			$filtered = ltrim( $filtered, '0' );
+			if ( '' === $filtered ) {
+				return self::INTER_BATCH_DELAY_SECONDS;
+			}
+		}
+
+		$delay = filter_var(
+			$filtered,
+			FILTER_VALIDATE_INT,
+			array(
+				'options' => array(
+					'min_range' => 1,
+					'max_range' => self::MAX_INTER_BATCH_DELAY_SECONDS,
+				),
+			)
+		);
+
+		return false === $delay ? self::INTER_BATCH_DELAY_SECONDS : $delay;
+	}
+
+	/**
 	 * Map a check-type to the CandidateStore signal_type value the
 	 * detector + store write under. Keeping the two constant spaces
 	 * aligned means the chain's "what's this batch doing?" identity
@@ -706,6 +774,9 @@ class ScheduleManager {
 	private static function signal_type_for_check( string $check_type ): string {
 		if ( self::CHECK_TYPE_MISSING_RENEWAL === $check_type ) {
 			return CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL;
+		}
+		if ( self::CHECK_TYPE_MISSING_SCHEDULED_ACTION === $check_type ) {
+			return CandidateStore::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION;
 		}
 
 		return CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL;
@@ -810,11 +881,10 @@ class ScheduleManager {
 			'triggered_by'        => $triggered_by,
 		);
 
-		// Per-signal counts share the `candidates_{signal}` key shape
-		// with stats_json so downstream analytics can correlate the
-		// two without a translation table.
+		// Per-signal counts use the same keys as stats_json so downstream
+		// analytics can correlate the two without a translation table.
 		foreach ( CandidateStore::all_signal_types() as $signal_type ) {
-			$key             = 'candidates_' . $signal_type;
+			$key             = self::candidate_count_key( $signal_type );
 			$payload[ $key ] = (int) ( $stats[ $key ] ?? 0 );
 		}
 
@@ -863,7 +933,8 @@ class ScheduleManager {
 	private function collect_run_stats( int $run_id, array $reading ): array {
 		$per_signal = array();
 		foreach ( CandidateStore::all_signal_types() as $signal_type ) {
-			$per_signal[ 'candidates_' . $signal_type ] = $this->candidate_store->count_by_run_and_signal( $run_id, $signal_type );
+			$key                = self::candidate_count_key( $signal_type );
+			$per_signal[ $key ] = $this->candidate_store->count_by_run_and_signal( $run_id, $signal_type );
 		}
 
 		return array_merge(
@@ -876,6 +947,13 @@ class ScheduleManager {
 			),
 			$per_signal
 		);
+	}
+
+	/**
+	 * Keep persisted scan stats and Tracks events on the same per-signal key.
+	 */
+	private static function candidate_count_key( string $signal_type ): string {
+		return 'candidates_' . $signal_type;
 	}
 
 	/**

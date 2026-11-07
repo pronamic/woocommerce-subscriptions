@@ -31,12 +31,14 @@ use WC_Subscription;
  */
 class RemediationAdvisor {
 
-	public const CASE_S1A = 'TC-S1a';
-	public const CASE_S2A = 'TC-S2a';
-	public const CASE_S2B = 'TC-S2b';
+	public const CASE_S1A                      = 'TC-S1a';
+	public const CASE_S2A                      = 'TC-S2a';
+	public const CASE_S2B                      = 'TC-S2b';
+	public const CASE_MISSING_SCHEDULED_ACTION = 'woocommerce_subscriptions_missing_scheduled_action';
 
 	public const ACTION_SWITCH_TO_AUTOMATIC = 'switch_to_automatic_renewal';
 	public const ACTION_PROCESS_RENEWAL_NOW = 'process_renewal_now';
+	public const ACTION_SCHEDULE_RENEWAL    = 'woocommerce_subscriptions_schedule_renewal';
 
 	/**
 	 * Detector instance providing the canonical per-id classification.
@@ -65,6 +67,8 @@ class RemediationAdvisor {
 				return __( 'Switch to automatic renewal', 'woocommerce-subscriptions' );
 			case self::ACTION_PROCESS_RENEWAL_NOW:
 				return __( 'Process renewal now', 'woocommerce-subscriptions' );
+			case self::ACTION_SCHEDULE_RENEWAL:
+				return __( 'Schedule renewal', 'woocommerce-subscriptions' );
 			default:
 				return $action;
 		}
@@ -101,17 +105,23 @@ class RemediationAdvisor {
 		}
 
 		$classifications = $this->detector->classify_all_signals( $subscription );
-		$missing_renewal = $classifications[ CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL ];
-		$supports_auto   = $classifications[ CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL ];
+		$missing_renewal = $classifications[ CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL ] ?? null;
+		$supports_auto   = $classifications[ CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL ] ?? null;
+		$missing_action  = $classifications[ CandidateStore::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION ] ?? null;
 
 		// Per-view scope: zero in on a single signal. The view determines
 		// which remediation a merchant sees so that re-classify produces a
 		// `stale` outcome (signal vanished or transformed into another
 		// view's signal) rather than swapping a different remediation in.
 		if ( CandidateStore::SIGNAL_TYPE_MISSING_RENEWAL === $signal_type ) {
-			$supports_auto = null;
+			$supports_auto  = null;
+			$missing_action = null;
 		} elseif ( CandidateStore::SIGNAL_TYPE_SUPPORTS_AUTO_RENEWAL === $signal_type ) {
 			$missing_renewal = null;
+			$missing_action  = null;
+		} elseif ( CandidateStore::SIGNAL_TYPE_MISSING_SCHEDULED_ACTION === $signal_type ) {
+			$missing_renewal = null;
+			$supports_auto   = null;
 		}
 
 		$missing_state = $missing_renewal ? ( $missing_renewal['details']['next_payment_state'] ?? null ) : null;
@@ -125,12 +135,32 @@ class RemediationAdvisor {
 			$result = $this->build_for_supports_auto_renewal( $subscription, $supports_auto );
 		} elseif ( 'missing' === $missing_state ) {
 			$result = $this->build_for_missing_renewal( $subscription, $missing_renewal );
+		} elseif ( null !== $missing_action ) {
+			$result = $this->build_for_missing_scheduled_action( $subscription );
 		} else {
 			return null;
 		}
 
 		$result['subscriptionUrl'] = esc_url( $subscription->get_edit_order_url() );
 		return $result;
+	}
+
+	/**
+	 * Build the advisory for a missing future renewal action.
+	 *
+	 * @param WC_Subscription $subscription Subscription under analysis.
+	 * @return array<string, mixed> Advisory shown in the confirmation dialog.
+	 */
+	private function build_for_missing_scheduled_action( WC_Subscription $subscription ): array {
+		return array(
+			'subscriptionId'  => (int) $subscription->get_id(),
+			'case'            => self::CASE_MISSING_SCHEDULED_ACTION,
+			'title'           => __( 'Schedule renewal', 'woocommerce-subscriptions' ),
+			'explanation'     => __( 'This subscription has no renewal scheduled. Scheduling the renewal will restore it, so the subscription is automatically processed on its next payment date. No payment is taken now.', 'woocommerce-subscriptions' ) . "\n\n" . __( 'Schedule the renewal?', 'woocommerce-subscriptions' ),
+			'primaryAction'   => self::ACTION_SCHEDULE_RENEWAL,
+			'secondaryAction' => null,
+			'cancelLabel'     => __( 'Cancel', 'woocommerce-subscriptions' ),
+		);
 	}
 
 	/**

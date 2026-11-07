@@ -331,7 +331,14 @@ class WCS_Cart_Resubscribe extends WCS_Cart_Renewal {
 				if ( $subscription->has_status( 'pending-cancel' ) ) {
 					// translators: %s: order number.
 					$cancel_note = sprintf( __( 'Customer resubscribed in order #%s', 'woocommerce-subscriptions' ), $order->get_order_number() );
-					$subscription->update_status( 'cancelled', $cancel_note );
+
+					// The new subscription replaces this one, so the customer needs no cancellation email.
+					WC_Subscriptions_Email::run_without_customer_cancelled_email(
+						$subscription->get_id(),
+						static function () use ( $subscription, $cancel_note ) {
+							$subscription->update_status( 'cancelled', $cancel_note );
+						}
+					);
 				}
 			}
 		}
