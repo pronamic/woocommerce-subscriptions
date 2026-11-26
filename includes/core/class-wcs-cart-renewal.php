@@ -12,12 +12,21 @@
  * @since      1.0.0 - Migrated from WooCommerce Subscriptions v2.0
  */
 
+use Automattic\WooCommerce_Subscriptions\Internal\Checkout\Store_Api_Draft_Order_Context;
 use Automattic\WooCommerce_Subscriptions\Internal\Utilities\Coupons;
 
 class WCS_Cart_Renewal {
 
 	/* The flag used to indicate if a cart item is a renewal */
 	public $cart_item_key = 'subscription_renewal';
+
+	/**
+	 * Whether the order awaiting payment is being restored for a cart that already exists,
+	 * as opposed to being set while the cart is built from the order or submitted.
+	 *
+	 * @var bool
+	 */
+	private $is_restoring_order_awaiting_payment = false;
 
 	/**
 	 * Bootstraps the class and hooks required actions & filters.
@@ -124,6 +133,7 @@ class WCS_Cart_Renewal {
 		add_filter( 'woocommerce_get_cart_item_from_session', array( &$this, 'get_cart_item_from_session' ), 10, 3 );
 		add_action( 'woocommerce_cart_loaded_from_session', array( &$this, 'cart_items_loaded_from_session' ), 10 );
 		add_action( 'woocommerce_cart_loaded_from_session', array( $this, 'restore_order_awaiting_payment' ), 10 );
+		add_action( 'woocommerce_cart_item_removed', array( $this, 'restore_order_awaiting_payment_after_item_removed' ), 10, 2 );
 
 		// Make sure fees are added to the cart
 		add_action( 'woocommerce_cart_calculate_fees', array( &$this, 'maybe_add_fees' ), 10, 1 );
@@ -258,8 +268,11 @@ class WCS_Cart_Renewal {
 	 * Updates the WooCommerce session variables so that an order can be resumed/paid for without a new order being
 	 * created.
 	 *
-	 * @internal Core checkout uses order_awaiting_payment, Blocks checkout uses store_api_draft_order. Both validate the
-	 * cart hash to ensure the order matches the cart.
+	 * @internal Core checkout uses order_awaiting_payment, Blocks checkout uses store_api_draft_order. Classic checkout
+	 * reuses the order only when its cart hash matches the cart, so the hash is written here and again at submit
+	 * (see update_cart_hash()). Blocks checkout accepts a payable renewal through the 'checkout-draft' status filter
+	 * (see set_renewal_order_cart_hash_on_block_checkout()) and rebuilds the order's lines when the hash differs, so
+	 * restoring the session for an existing cart deliberately leaves that order's hash stale (see should_update_cart_hash_on_order()).
 	 *
 	 * @param int|WC_Order $order_id The order that is awaiting payment, or 0 to unset it.
 	 */
@@ -283,6 +296,30 @@ class WCS_Cart_Renewal {
 
 		if ( $order_id ) {
 			$this->set_cart_hash( $order );
+		}
+	}
+
+	/**
+	 * Restores the order awaiting payment session variables for a cart that already exists.
+	 *
+	 * Goes through set_order_awaiting_payment() so the session values are restored and set_cart_hash()
+	 * is still invoked, while letting set_cart_hash() know the cart was not just built from the order.
+	 *
+	 * @param int|WC_Order $order_id The order that is awaiting payment.
+	 * @param WC_Cart      $cart     The cart being restored.
+	 */
+	private function restore_order_awaiting_payment_session( $order_id, $cart ) {
+		// Loading a saved cart and undoing a removed item can both restore a renewal alongside other products.
+		if ( WC_Subscriptions_Cart_Validator::renewal_cart_has_other_items( $cart ) ) {
+			return;
+		}
+
+		$this->is_restoring_order_awaiting_payment = true;
+
+		try {
+			$this->set_order_awaiting_payment( $order_id );
+		} finally {
+			$this->is_restoring_order_awaiting_payment = false;
 		}
 	}
 
@@ -388,7 +425,41 @@ class WCS_Cart_Renewal {
 			exit;
 		}
 
+		// WooCommerce saves the cart to the customer's account when an item is added. Extensions can change
+		// items after that, e.g. Product Bundles copies this cart item data onto bundled items it has already
+		// added, so save the cart as it is now.
+		WC()->cart->persistent_cart_update();
+
 		do_action( 'woocommerce_setup_cart_for_' . $this->cart_item_key, $subscription, $cart_item_data );
+	}
+
+	/**
+	 * Tells which of the objects a renewal or resubscribe cart item depends on no longer exists.
+	 *
+	 * `cart_items_loaded_from_session()` removes such items from the cart. Other code that asks whether a cart
+	 * holds a renewal that can still be checked out uses the same test, so the two cannot drift apart.
+	 *
+	 * @internal Shared with `WC_Subscriptions_Cart_Validator`. Not intended for use outside this plugin.
+	 *
+	 * @since 9.4.2
+	 *
+	 * @param array|mixed $item_data The cart item's data under the handler's key, e.g. `subscription_renewal`.
+	 * @return string 'subscription', 'order', or an empty string when nothing is missing.
+	 */
+	public static function get_missing_cart_item_object( $item_data ) {
+		if ( ! is_array( $item_data ) ) {
+			return '';
+		}
+
+		if ( isset( $item_data['subscription_id'] ) && ! wcs_is_subscription( $item_data['subscription_id'] ) ) {
+			return 'subscription';
+		}
+
+		if ( isset( $item_data['renewal_order_id'] ) && ! wc_get_order( $item_data['renewal_order_id'] ) ) {
+			return 'order';
+		}
+
+		return '';
 	}
 
 	/**
@@ -405,16 +476,14 @@ class WCS_Cart_Renewal {
 		$removed_count_subscription = $removed_count_order = 0;
 
 		foreach ( $cart->cart_contents as $key => $item ) {
-			if ( isset( $item[ $this->cart_item_key ]['subscription_id'] ) && ! wcs_is_subscription( $item[ $this->cart_item_key ]['subscription_id'] ) ) {
+			$missing = isset( $item[ $this->cart_item_key ] ) ? self::get_missing_cart_item_object( $item[ $this->cart_item_key ] ) : '';
+
+			if ( 'subscription' === $missing ) {
 				$cart->remove_cart_item( $key );
 				$removed_count_subscription++;
-				continue;
-			}
-
-			if ( isset( $item[ $this->cart_item_key ]['renewal_order_id'] ) && ! wc_get_order( $item[ $this->cart_item_key ]['renewal_order_id'] ) ) {
+			} elseif ( 'order' === $missing ) {
 				$cart->remove_cart_item( $key );
 				$removed_count_order++;
-				continue;
 			}
 		}
 
@@ -1032,7 +1101,7 @@ class WCS_Cart_Renewal {
 
 			// restore the renewal order flag
 			if ( isset( WC()->cart->cart_contents[ $cart_item_key ][ $this->cart_item_key ]['renewal_order_id'] ) ) {
-				$this->set_order_awaiting_payment( WC()->cart->cart_contents[ $cart_item_key ][ $this->cart_item_key ]['renewal_order_id'] );
+				$this->restore_order_awaiting_payment_session( WC()->cart->cart_contents[ $cart_item_key ][ $this->cart_item_key ]['renewal_order_id'], WC()->cart );
 			}
 		}
 	}
@@ -1261,9 +1330,10 @@ class WCS_Cart_Renewal {
 	/**
 	 * Set the cart hash for legacy checkout's reuse of an order awaiting payment.
 	 *
-	 * Matching ordinary Store API renewals defer this write: core needs a stale hash
-	 * to detect and synchronize changed product lines before it saves the current hash.
-	 * Other checkout contexts retain the hash update used by WC_Checkout::create_order().
+	 * The hash is written when the cart is built from the order and when classic checkout is
+	 * submitted, which is what WC_Checkout::create_order() needs to reuse the order. It is not
+	 * written when that would mark an unsynchronized order as synchronized, see
+	 * should_update_cart_hash_on_order().
 	 *
 	 * @param WC_Order|int $order The order object or order ID.
 	 *
@@ -1279,15 +1349,8 @@ class WCS_Cart_Renewal {
 			}
 		}
 
-		// Store API uses a hash mismatch to decide whether the existing order needs its lines refreshed.
-		// Leave an ordinary payable renewal stale until core has synchronized it from the cart.
-		if ( WC()->cart instanceof WC_Cart && 'store-api' === WC()->cart->cart_context ) {
-			$cart_item  = $this->cart_contains();
-			$cart_order = is_array( $cart_item ) ? $this->get_order( $cart_item ) : false;
-
-			if ( $cart_order instanceof WC_Order && $cart_order->get_id() === $order->get_id() && $this->is_order_pay_renewal( $cart_item, $order ) ) {
-				return;
-			}
+		if ( ! $this->should_update_cart_hash_on_order( $order ) ) {
+			return;
 		}
 
 		// Use cart hash generator introduced in WooCommerce 3.6
@@ -1299,6 +1362,44 @@ class WCS_Cart_Renewal {
 
 		$order->set_cart_hash( $cart_hash );
 		$order->save();
+	}
+
+	/**
+	 * Whether the current cart's hash may be written onto the order.
+	 *
+	 * Store API checkout rebuilds an order's lines only when the order's cart hash differs from the
+	 * cart's. Writing the current hash onto an order whose lines were not rebuilt from this cart
+	 * would mark an unsynchronized order as synchronized, so a coupon shown at checkout would not
+	 * be charged.
+	 *
+	 * An ordinary payable renewal that is the cart's own order therefore keeps its stored hash in
+	 * two cases, where the cart may have changed since the order's lines were last written:
+	 * in the Store API cart context, and when the order awaiting payment is being restored for a
+	 * cart that already exists (cart loaded from the session, removed item restored).
+	 *
+	 * Every other order gets the hash written, including initial payment, resubscribe, switch and
+	 * early renewal orders in every context.
+	 *
+	 * @param WC_Abstract_Order $order The order the hash would be written onto.
+	 * @return bool False when the order's stored hash must be left as it is.
+	 */
+	private function should_update_cart_hash_on_order( $order ) {
+		if ( ! WC()->cart instanceof WC_Cart ) {
+			return true;
+		}
+
+		if ( 'store-api' !== WC()->cart->cart_context && ! $this->is_restoring_order_awaiting_payment ) {
+			return true;
+		}
+
+		$cart_item  = $this->cart_contains();
+		$cart_order = is_array( $cart_item ) ? $this->get_order( $cart_item ) : false;
+
+		$is_cart_own_payable_renewal = $cart_order instanceof WC_Order
+			&& $cart_order->get_id() === $order->get_id()
+			&& $this->is_order_pay_renewal( $cart_item, $order );
+
+		return ! $is_cart_own_payable_renewal;
 	}
 
 	/**
@@ -1421,6 +1522,16 @@ class WCS_Cart_Renewal {
 
 		$order = wc_get_order( $order_id );
 
+		if ( ! $order ) {
+			return;
+		}
+
+		// While a renewal shares the cart with other items, the order being synced is not the renewal order
+		// (see `restore_order_awaiting_payment()`), so its line items must not be linked to the renewal items.
+		if ( WC_Subscriptions_Cart_Validator::renewal_cart_has_other_items( WC()->cart ) ) {
+			return;
+		}
+
 		foreach ( $order->get_items( 'line_item' ) as $order_item_id => $order_item ) {
 
 			$cart_item_key = $order_item->get_meta( '_cart_item_key_' . $this->cart_item_key );
@@ -1444,6 +1555,12 @@ class WCS_Cart_Renewal {
 	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.2.1
 	 */
 	protected function set_cart_item_order_item_id( $cart_item_key, $order_item_id ) {
+		// The key comes from order item meta and can be left over from an earlier cart. Writing to a key
+		// that is not in the cart would create a cart item without a product.
+		if ( ! isset( WC()->cart->cart_contents[ $cart_item_key ][ $this->cart_item_key ] ) ) {
+			return;
+		}
+
 		WC()->cart->cart_contents[ $cart_item_key ][ $this->cart_item_key ]['line_item_id'] = $order_item_id;
 	}
 
@@ -2036,45 +2153,34 @@ class WCS_Cart_Renewal {
 	}
 
 	/**
-	 * Allows a renewal order to pass Block Checkout's draft order validation.
+	 * Allows the Store API to reuse the renewal order in the cart while synchronizing it.
 	 *
-	 * This function is hooked onto the 'woocommerce_order_has_status' filter, is only applied during REST API requests, only applies to the
-	 * 'checkout-draft' status (which only Block Checkout orders use) and to renewal orders that are currently being paid for in the cart.
-	 * All other order statuses, orders and scenarios remain unaffected by this function.
-	 *
-	 * This function is necessary to override the default logic in @see DraftOrderTrait::is_valid_draft_order().
-	 * This function serves a similar purpose to @see WCS_Cart_Renewal::update_cart_hash(), which handles draft order validation for the standard checkout via the 'woocommerce_create_order' filter.
-	 *
-	 * The previous implementation set the order cart hash to match the current cart in order to satisfy the second condition in
-	 * is_valid_draft_order() ($order->has_cart_hash()). However, this inadvertently prevented update_line_items_from_cart() from
-	 * refreshing the order's line items (it skips the update when hashes match), causing discounts like coupons to never sync to
-	 * the order. Instead, we satisfy the first condition in is_valid_draft_order() by returning true for 'checkout-draft', leaving
-	 * the cart hash untouched so line items are always refreshed from the cart.
+	 * DraftOrderTrait::is_valid_draft_order() accepts a checkout draft even when the cart has changed.
+	 * Leaving the cart hash untouched lets Blocks refresh line items and discounts from the current cart.
+	 * Classic checkout and gateways need the actual status when deciding whether the order can be paid.
 	 *
 	 * @param bool     $has_status Whether the order has the status.
 	 * @param WC_Order $order      The order.
 	 * @param string   $status     The status to check.
 	 *
-	 * @return bool Whether the order has the status. True for renewal orders being paid via Block Checkout, unchanged otherwise.
+	 * @return bool Whether the order has the requested status.
 	 */
 	public function set_renewal_order_cart_hash_on_block_checkout( $has_status, $order, $status ) {
-		/**
-		 * We only need to intervene when the has_status() check is for 'checkout-draft' (indicating
-		 * this is the status check in DraftOrderTrait::is_valid_draft_order()) and the order doesn't have that status. Orders
-		 * which already have the checkout-draft status don't need to be updated to bypass the checkout block logic.
-		 *
-		 * The session check enforces this function's documented precondition (it only applies during Store API checkout
-		 * requests): third-party code can call has_status( 'checkout-draft' ) in contexts where the session is not
-		 * initialized (eg while a renewal order is created during a scheduled payment), which would otherwise fatal.
-		 */
-		if ( $has_status || 'checkout-draft' !== $status || ! WC()->session ) {
+		if ( $has_status || 'checkout-draft' !== $status || ! Store_Api_Draft_Order_Context::can_reuse_renewal_order() ) {
 			return $has_status;
 		}
 
-		// If the order being validated is the renewal order in the cart, report it as having 'checkout-draft' status so
-		// is_valid_draft_order() accepts it. We intentionally avoid modifying the cart hash here — leaving it as-is ensures
-		// update_line_items_from_cart() detects a hash mismatch and refreshes line items (including any applied discounts).
-		if ( $order && $order->get_id() === (int) WC()->session->get( 'store_api_draft_order', 0 ) ) {
+		if ( ! $order instanceof WC_Order || ! WC()->session || ! WC()->cart ) {
+			return $has_status;
+		}
+
+		if ( $order->get_id() === (int) WC()->session->get( 'store_api_draft_order', 0 ) ) {
+			// Checkout rebuilds its draft order from the whole cart. While the cart also holds items that are
+			// not part of the renewal, the renewal order must not be that draft order.
+			if ( WC_Subscriptions_Cart_Validator::renewal_cart_has_other_items( WC()->cart ) ) {
+				return $has_status;
+			}
+
 			$cart_order = $this->get_order();
 
 			if ( $cart_order && $cart_order->get_id() === $order->get_id() ) {
@@ -2094,6 +2200,8 @@ class WCS_Cart_Renewal {
 	 * This function checks the cart that is being loaded from the session and if the cart contains a subscription-related order and if the
 	 * current user has permission to pay for it. If so, it restores the order awaiting payment session args.
 	 *
+	 * Nothing is restored while the cart holds a renewal together with items that are not part of it.
+	 *
 	 * @param WC_Cart $cart The cart object.
 	 */
 	public function restore_order_awaiting_payment( $cart ) {
@@ -2110,13 +2218,35 @@ class WCS_Cart_Renewal {
 
 			// If the current user has permission to pay for the order, restore the order awaiting payment session arg.
 			if ( wcs_is_order( $order ) && $this->validate_current_user( $order ) ) {
-				$this->set_order_awaiting_payment( $order );
+				$this->restore_order_awaiting_payment_session( $order, $cart );
 			}
 
 			// Once we found an order, exit even if the user doesn't have permission to pay for it.
 			return;
 
 		}
+	}
+
+	/**
+	 * Restores the order awaiting payment session args once a removed item leaves the cart with only the renewal.
+	 *
+	 * `restore_order_awaiting_payment()` leaves the session args alone while the cart holds a renewal together
+	 * with other items. The shopper can remove those items and check out in the same request (a Store API
+	 * batch), which would otherwise pay for the renewal items through a new order instead of the renewal order.
+	 *
+	 * @internal Hook callback. Not intended for use outside this plugin.
+	 *
+	 * @since 9.4.2
+	 *
+	 * @param string        $cart_item_key The key of the removed cart item.
+	 * @param WC_Cart|mixed $cart          The cart the item was removed from.
+	 */
+	public function restore_order_awaiting_payment_after_item_removed( $cart_item_key, $cart = null ) {
+		if ( 'subscription_renewal' !== $this->cart_item_key ) {
+			return;
+		}
+
+		$this->restore_order_awaiting_payment( $cart );
 	}
 
 	/* Deprecated */

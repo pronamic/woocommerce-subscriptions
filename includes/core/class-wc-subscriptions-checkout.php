@@ -48,6 +48,8 @@ class WC_Subscriptions_Checkout {
 
 		// Check the "Ship to different address" checkbox if the shipping address of the originating order is different to the billing address.
 		add_filter( 'woocommerce_ship_to_different_address_checked', array( __CLASS__, 'maybe_check_ship_to_different_address' ), 10, 1 );
+
+		\Automattic\WooCommerce_Subscriptions\Internal\Checkout\Store_Api_Draft_Order_Context::init();
 	}
 
 	/**

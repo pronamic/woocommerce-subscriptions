@@ -48,6 +48,7 @@ class ComposerStaticInit7386317e337c3b28ab5f3c870e2c0504
         'Automattic\\WooCommerce_Subscriptions\\Internal\\CLI\\Test_Data\\Generate_Command' => __DIR__ . '/../..' . '/src/Internal/CLI/Test_Data/Generate_Command.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\CLI\\Test_Data\\Generator' => __DIR__ . '/../..' . '/src/Internal/CLI/Test_Data/Generator.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\CLI\\Test_Data\\Purge_Command' => __DIR__ . '/../..' . '/src/Internal/CLI/Test_Data/Purge_Command.php',
+        'Automattic\\WooCommerce_Subscriptions\\Internal\\Checkout\\Store_Api_Draft_Order_Context' => __DIR__ . '/../..' . '/src/Internal/Checkout/Store_Api_Draft_Order_Context.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\Concurrency\\Subscription_Lock' => __DIR__ . '/../..' . '/src/Internal/Concurrency/Subscription_Lock.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\HealthCheck\\Admin\\AjaxController' => __DIR__ . '/../..' . '/src/Internal/HealthCheck/Admin/AjaxController.php',
         'Automattic\\WooCommerce_Subscriptions\\Internal\\HealthCheck\\Admin\\CandidatesListTable' => __DIR__ . '/../..' . '/src/Internal/HealthCheck/Admin/CandidatesListTable.php',

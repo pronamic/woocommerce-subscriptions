@@ -527,18 +527,13 @@ class WCS_ATT_Integration_PB_CP {
 	}
 
 	/**
-	 * WC_Product_Bundle 'contains_sub' back-compat wrapper.
+	 * Whether the bundle contains a subscription product.
 	 *
 	 * @param  WC_Product_Bundle $bundle
 	 * @return boolean
 	 */
 	private static function bundle_contains_subscription( $bundle ) {
-
-		if ( version_compare( WC_PB()->version, '5.0.0' ) < 0 ) {
-			return $bundle->contains_sub();
-		} else {
-			return $bundle->contains( 'subscriptions' );
-		}
+		return $bundle->contains( 'subscriptions' );
 	}
 
 	/**

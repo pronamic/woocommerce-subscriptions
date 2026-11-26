@@ -102,10 +102,17 @@ class WC_Subscriptions_Cart_Validator {
 	 */
 	public static function validate_cart_contents_for_mixed_checkout( $cart ) {
 
+		// A renewal mixed with anything else is never resolved here, whatever the mixed checkout setting:
+		// the cart is kept, `validate_subscription_limits()` blocks checkout and the shopper chooses
+		// what to remove.
+		if ( self::renewal_cart_has_other_items( $cart ) ) {
+			return $cart;
+		}
+
 		// When mixed checkout is enabled, the broader "different sub products in cart" reconciliation
-		// below should not run, but per-product duplicates (resubscribe/renewal + plain for the same
-		// limited product) must still be reconciled. Mixed checkout opts in to multiple subscriptions,
-		// not to violating per-product limits.
+		// below should not run, but per-product duplicates (resubscribe + plain for the same limited
+		// product) must still be reconciled. Mixed checkout opts in to multiple subscriptions, not to
+		// violating per-product limits.
 		if ( $cart->cart_contents && 'yes' === get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase', 'no' ) ) {
 			self::reconcile_same_product_duplicates( $cart );
 			return $cart;
@@ -117,10 +124,15 @@ class WC_Subscriptions_Cart_Validator {
 			return $cart;
 		}
 
-		// A renewal and a plain item for the same product are both subscription items for one product, so the
-		// loop below lets them through (e.g. a saved renewal cart merged with a guest cart on login).
+		// Reached only with mixed checkout off, for a renewal cart the first early return did not claim:
+		// a renewal with no other items, or one whose subscription or renewal order no longer exists
+		// (removed later on this hook by `WCS_Cart_Renewal::cart_items_loaded_from_session()`).
 		if ( $cart_contains_renewal ) {
 			self::reconcile_same_product_duplicates( $cart );
+
+			if ( self::has_bundle_conflict( $cart ) ) {
+				return $cart;
+			}
 		}
 
 		// Pre-compute unique subscription product IDs using product objects so that products
@@ -290,8 +302,8 @@ class WC_Subscriptions_Cart_Validator {
 	 * Acts as the last-mile defence for code paths that bypass `can_add_product_to_cart` (Store API,
 	 * programmatic `WC()->cart->add_to_cart()` from extensions, restored session carts).
 	 *
-	 * Skips the order-received page and the PayPal API handler so post-payment confirmation
-	 * and PayPal IPN callback hydration do not surface error notices. This mirrors two of the
+	 * Skips per-product limits on the order-received page and for the PayPal API handler so post-payment
+	 * confirmation and PayPal IPN callback hydration do not surface limit notices. This mirrors two of the
 	 * three context bypasses in `WCS_Limiter::is_product_limited`; the third bypass there
 	 * (`order_awaiting_payment_for_product()`) is not duplicated because Layer 3 already exempts
 	 * "control item + zero plain" carts, which is the shape produced by pay-for-order flows.
@@ -299,21 +311,31 @@ class WC_Subscriptions_Cart_Validator {
 	 * @since 8.8.0
 	 */
 	public static function validate_subscription_limits() {
-		// Mirror `WCS_Limiter::is_product_limited`'s context guards. The order-received page and
-		// PayPal IPN handlers can hydrate the cart with remnants of just-paid orders; treating
-		// those carts as conflicts would block payment confirmations.
-		if ( wcs_is_order_received_page() || wcs_is_paypal_api_page() ) {
-			return;
-		}
-
 		$cart = WC()->cart;
 
 		if ( ! $cart || empty( $cart->cart_contents ) ) {
 			return;
 		}
 
+		// The confirmation-page exemptions apply to product limits. A renewal must always be paid for on its own.
+		$has_mixed_renewal = self::renewal_cart_has_other_items( $cart );
+		if ( ! $has_mixed_renewal && ( wcs_is_order_received_page() || wcs_is_paypal_api_page() ) ) {
+			return;
+		}
+
 		$groups  = self::group_cart_items_by_product( $cart );
 		$user_id = get_current_user_id();
+
+		if ( self::has_bundle_conflict( $cart, $groups ) ) {
+			wc_add_notice( __( 'A bundle in your cart contains a product from your subscription. Remove the conflicting bundle or cancel the subscription checkout to continue.', 'woocommerce-subscriptions' ), 'error' );
+			return;
+		}
+
+		// A renewal has to be paid for on its own: checkout rebuilds the renewal order from the whole cart.
+		if ( $has_mixed_renewal ) {
+			wc_add_notice( __( 'Your cart contains a subscription renewal and other products, which have to be checked out separately. Remove the other products to continue with the renewal, or remove the renewal to continue with the other products.', 'woocommerce-subscriptions' ), 'error' );
+			return;
+		}
 
 		foreach ( $groups as $group_id => $group ) {
 			$product = $group['product'];
@@ -371,9 +393,12 @@ class WC_Subscriptions_Cart_Validator {
 	}
 
 	/**
-	 * Reconciles the cart when it contains both a control item (resubscribe or renewal) and a
-	 * plain item for the same subscription product - limited products only for resubscribes, any
-	 * product for renewals. The plain duplicate is removed and the control item is preserved.
+	 * Reconciles the cart when it contains both a resubscribe item and a plain item for the same
+	 * limited subscription product. The plain duplicate is removed and the resubscribe item is
+	 * preserved.
+	 *
+	 * A plain duplicate of a renewal is not removed: a renewal mixed with any other item is left for
+	 * the shopper to resolve, see `renewal_cart_has_other_items()`.
 	 *
 	 * Called from `validate_cart_contents_for_mixed_checkout()` in two places: for every cart when
 	 * mixed checkout is on, and only for carts containing a renewal when it is off (resubscribe
@@ -398,26 +423,24 @@ class WC_Subscriptions_Cart_Validator {
 		$removed_any = false;
 
 		foreach ( $groups as $group_id => $group ) {
-			// "Control" for Layer 2 reconciliation purposes is resubscribe + renewal only. Switch
-			// and initial-payment flows are deliberately excluded - see method-level docblock.
-			$control_keys = array_merge( $group['resubscribe'], $group['renewal'] );
-
-			if ( empty( $control_keys ) || empty( $group['plain'] ) ) {
+			if ( ! self::has_limited_resubscribe_duplicate( $group_id, $group ) ) {
 				continue;
 			}
 
-			// Mixed checkout legitimately allows multiple line items for unlimited subscription
-			// products, so a resubscribe duplicate is only reconciled when the product is limited.
-			// A renewal duplicate always is: the renewal order is rebuilt from the cart, so the
-			// plain line would be charged on it without creating a subscription.
-			if ( empty( $group['renewal'] ) && ! self::is_limited_subscription_product( $group_id ) ) {
-				continue;
-			}
-
+			$removed_from_group = false;
 			foreach ( $group['plain'] as $plain_item_key ) {
+				if ( self::is_bundled_cart_item( $cart, $plain_item_key ) ) {
+					continue;
+				}
+
 				$cart->remove_cart_item( $plain_item_key );
-				$removed_any = true;
+				$removed_from_group = true;
 			}
+
+			if ( ! $removed_from_group ) {
+				continue;
+			}
+			$removed_any = true;
 
 			$product_for_name = self::get_display_product( $group['product'] );
 			$product_name     = is_a( $product_for_name, 'WC_Product' ) ? $product_for_name->get_name() : '';
@@ -435,6 +458,131 @@ class WC_Subscriptions_Cart_Validator {
 		if ( $removed_any ) {
 			add_filter( 'woocommerce_add_to_cart_fragments', array( __CLASS__, 'add_to_cart_ajax_redirect' ) );
 		}
+	}
+
+	/**
+	 * Checks whether a bundled child duplicates a renewal or limited resubscribe item.
+	 *
+	 * @param WC_Cart $cart The shopper cart.
+	 * @param array   $groups Cart items grouped by product, if already available.
+	 * @return bool
+	 */
+	private static function has_bundle_conflict( $cart, $groups = null ) {
+		if ( ! function_exists( 'wc_pb_is_bundled_cart_item' ) ) {
+			return false;
+		}
+
+		$groups      = $groups ?? self::group_cart_items_by_product( $cart );
+		$has_renewal = (bool) array_filter( array_column( $groups, 'renewal' ) );
+
+		if ( 'yes' !== get_option( WC_Subscriptions_Admin::$option_prefix . '_multiple_purchase', 'no' ) && ! $has_renewal ) {
+			return false;
+		}
+
+		foreach ( $groups as $group_id => $group ) {
+			if ( ! self::has_renewal_or_limited_resubscribe_duplicate( $group_id, $group ) ) {
+				continue;
+			}
+
+			foreach ( $group['plain'] as $plain_item_key ) {
+				if ( self::is_bundled_cart_item( $cart, $plain_item_key ) ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Checks whether the cart holds a subscription renewal together with items that are not part of it.
+	 *
+	 * Add-to-cart validation keeps renewal carts isolated (see `can_add_product_to_cart()`), but items can
+	 * still reach one without passing through it - e.g. a renewal cart saved to the customer's account is
+	 * merged with their guest cart when they log in. Checkout rebuilds the renewal order from the whole
+	 * cart, so the extra items would be added to that order and charged with it. The cart is left as it
+	 * is, so that the shopper chooses what to keep: `validate_subscription_limits()` blocks checkout and
+	 * `WCS_Cart_Renewal` does not hand the renewal order to checkout until the cart is one or the other.
+	 *
+	 * A renewal item only counts when its subscription and renewal order still exist. Otherwise
+	 * `WCS_Cart_Renewal::cart_items_loaded_from_session()` removes it when the cart is loaded.
+	 *
+	 * The cart items are checked directly instead of calling `wcs_cart_contains_renewal()`, so that its
+	 * filter cannot turn this check off.
+	 *
+	 * @internal Shared with `WCS_Cart_Renewal`. Not intended for use outside this plugin.
+	 *
+	 * @since 9.4.2
+	 *
+	 * @param WC_Cart|mixed $cart The shopper cart.
+	 * @return bool
+	 */
+	public static function renewal_cart_has_other_items( $cart ) {
+		if ( ! $cart instanceof WC_Cart || ! is_array( $cart->cart_contents ) ) {
+			return false;
+		}
+
+		$has_renewal     = false;
+		$has_other_items = false;
+
+		foreach ( $cart->cart_contents as $item ) {
+			if ( ! isset( $item['subscription_renewal'] ) ) {
+				$has_other_items = true;
+				continue;
+			}
+
+			if ( $has_renewal ) {
+				continue;
+			}
+
+			$has_renewal = '' === WCS_Cart_Renewal::get_missing_cart_item_object( $item['subscription_renewal'] );
+		}
+
+		return $has_renewal && $has_other_items;
+	}
+
+	/**
+	 * Checks whether the group holds a plain item that duplicates a renewal or limited resubscribe item.
+	 *
+	 * Used to find bundled duplicates, see `has_bundle_conflict()`.
+	 *
+	 * @param int   $product_id The canonical product ID for the group.
+	 * @param array $group Cart items grouped by product.
+	 * @return bool
+	 */
+	private static function has_renewal_or_limited_resubscribe_duplicate( $product_id, $group ) {
+		// A renewal duplicate always counts: the renewal order is rebuilt from the cart, so the plain
+		// line would be charged on it without creating a subscription.
+		if ( ! empty( $group['plain'] ) && ! empty( $group['renewal'] ) ) {
+			return true;
+		}
+
+		return self::has_limited_resubscribe_duplicate( $product_id, $group );
+	}
+
+	/**
+	 * Checks whether the group holds a plain item that duplicates a resubscribe item for a limited product.
+	 *
+	 * Switch and initial-payment flows are deliberately excluded - see the docblock of
+	 * `reconcile_same_product_duplicates()`. Mixed checkout legitimately allows multiple line items for
+	 * unlimited subscription products, so a resubscribe duplicate only counts when the product is limited.
+	 *
+	 * @param int   $product_id The canonical product ID for the group.
+	 * @param array $group Cart items grouped by product.
+	 * @return bool
+	 */
+	private static function has_limited_resubscribe_duplicate( $product_id, $group ) {
+		return ! empty( $group['plain'] ) && ! empty( $group['resubscribe'] ) && self::is_limited_subscription_product( $product_id );
+	}
+
+	/**
+	 * Checks whether an item has a live Product Bundles parent.
+	 *
+	 * @param WC_Cart $cart The shopper cart.
+	 * @param string  $key The cart item key.
+	 * @return bool
+	 */
+	private static function is_bundled_cart_item( $cart, $key ) {
+		return isset( $cart->cart_contents[ $key ] ) && function_exists( 'wc_pb_is_bundled_cart_item' ) && wc_pb_is_bundled_cart_item( $cart->cart_contents[ $key ], $cart->cart_contents );
 	}
 
 	/**

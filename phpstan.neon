@@ -365,11 +365,6 @@ parameters:
 			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
 
 		-
-			message: "#^Call to method contains_sub\\(\\) on an unknown class WC_Product_Bundle\\.$#"
-			count: 1
-			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php
-
-		-
 			message: "#^Call to method get_product\\(\\) on an unknown class WC_Bundled_Item\\.$#"
 			count: 3
 			path: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php

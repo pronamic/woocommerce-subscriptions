@@ -1,5 +1,13 @@
 *** WooCommerce Subscriptions Changelog ***
 
+2026-11-25 - version 9.4.2
+* Fix: On WooCommerce 11.3.1 and later, customers can again pay pending renewals through classic checkout with payment methods that open the order receipt page to start payment.
+* Fix: On WooCommerce 11.3.1 and later, customers who apply a coupon while paying a pending or failed renewal in the Checkout block are now charged the discounted total after reloading or returning to checkout.
+* Fix: The Checkout block no longer shows a critical error for some renewals the customer had already opened at checkout in an earlier visit.
+* Fix: Products left in a guest cart are no longer added to a customer's unpaid renewal order when they log in while that renewal is in their saved cart. The cart is kept as it is, and checkout asks the customer to remove either the renewal or the other products before they can pay.
+* Fix: Customers whose saved cart holds a renewal or a resubscription to a limited product, plus a bundle containing that same product, no longer get a critical error on every page after logging in. Checkout now asks them to remove one of the two before they can pay.
+* Fix: Bundled and composite items in a saved renewal cart now keep their renewal prices after the customer logs out and back in, instead of showing regular prices and an error saying the subscription plan is no longer available.
+
 2026-11-06 - version 9.4.1
 * Fix: Prevent cart and checkout errors when integrations omit the customer or order object from tax and checkout hooks.
 

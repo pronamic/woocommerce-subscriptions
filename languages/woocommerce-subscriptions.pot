@@ -2,14 +2,14 @@
 # This file is distributed under the GNU General Public License v3.0.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Subscriptions 9.4.1\n"
+"Project-Id-Version: WooCommerce Subscriptions 9.4.2\n"
 "Report-Msgid-Bugs-To: https://woocommerce.com/contact-us\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-06T14:38:44+00:00\n"
+"POT-Creation-Date: 2026-11-25T15:34:05+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woocommerce-subscriptions\n"
@@ -1199,7 +1199,7 @@ msgstr ""
 
 #. translators: %s is the price html.
 #: includes/apfs/display/class-wcs-att-display-product.php:110
-#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:941
+#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:936
 #, php-format
 msgctxt "product subscription selection - negative response"
 msgid "%s one time"
@@ -1217,7 +1217,7 @@ msgstr ""
 
 #. translators: %s is the price html.
 #: includes/apfs/display/class-wcs-att-display-product.php:324
-#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:940
+#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:935
 #, php-format
 msgid "One-time for %s"
 msgstr ""
@@ -1225,8 +1225,8 @@ msgstr ""
 #. translators: %1$s is the price html, %2$s is the formatted discount.
 #. translators: %1$s is the subscription price, %2$s is the fixed discount amount.
 #: includes/apfs/display/class-wcs-att-display-product.php:501
-#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:998
-#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:1004
+#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:993
+#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:999
 #, php-format
 msgctxt "discounted dropdown option price"
 msgid "%1$s (%2$s off)"
@@ -1258,7 +1258,7 @@ msgstr ""
 msgid "Select plan"
 msgstr ""
 
-#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:998
+#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:993
 #: includes/apfs/product/class-wcs-att-product-prices.php:755
 #: includes/apfs/product/class-wcs-att-product-prices.php:763
 #, php-format
@@ -1266,29 +1266,29 @@ msgctxt "dropdown option discount"
 msgid "%s%%"
 msgstr ""
 
-#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:1000
+#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:995
 #, php-format
 msgctxt "dropdown option sale price"
 msgid "%1$s (was %2$s)"
 msgstr ""
 
-#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:1525
+#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:1520
 #, php-format
 msgctxt "used in order note"
 msgid "\"%1$s\" (Product ID: #%2$d) removal triggered by \"%3$s\" via the My Account page."
 msgstr ""
 
-#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:1580
+#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:1575
 #, php-format
 msgctxt "used in order note"
 msgid "\"%1$s\" (Product ID: #%2$d) removal un-done by \"%3$s\" via the My Account page."
 msgstr ""
 
-#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:1609
+#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:1604
 msgid "Product Bundle Configurations"
 msgstr ""
 
-#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:1623
+#: includes/apfs/integrations/class-wcs-att-integration-pb-cp.php:1618
 msgid "Composite Product Configurations"
 msgstr ""
 
@@ -2090,7 +2090,7 @@ msgstr ""
 
 #: includes/class-wcs-call-to-action-button-text-manager.php:55
 #: includes/class-wcs-call-to-action-button-text-manager.php:58
-#: includes/core/class-wc-subscriptions-checkout.php:671
+#: includes/core/class-wc-subscriptions-checkout.php:673
 msgid "Place order"
 msgstr ""
 
@@ -3748,7 +3748,7 @@ msgid "The %s date must occur after the start date."
 msgstr ""
 
 #: includes/core/class-wc-subscription.php:3028
-#: includes/core/class-wc-subscriptions-checkout.php:352
+#: includes/core/class-wc-subscriptions-checkout.php:354
 msgid "Backordered"
 msgstr ""
 
@@ -3825,43 +3825,51 @@ msgstr ""
 msgid "A subscription has been removed from your cart. Products and subscriptions can not be purchased at the same time."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-cart-validator.php:149
+#: includes/core/class-wc-subscriptions-cart-validator.php:161
 msgid "Your cart has been emptied of subscription products. Only one subscription product can be purchased at a time."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-cart-validator.php:208
+#: includes/core/class-wc-subscriptions-cart-validator.php:220
 msgid "That product can not be added to your cart as it already contains a subscription renewal."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-cart-validator.php:218
+#: includes/core/class-wc-subscriptions-cart-validator.php:230
 msgid "That product can not be added to your cart as it already contains a subscription resubscribe."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-cart-validator.php:225
+#: includes/core/class-wc-subscriptions-cart-validator.php:237
 msgid "That product can not be added to your cart as it already contains a subscription switch for the same product."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-cart-validator.php:239
+#: includes/core/class-wc-subscriptions-cart-validator.php:251
 msgid "That product can not be added to your cart because it already contains a non-subscription item for the same product. Please remove the existing item before continuing."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-cart-validator.php:248
+#: includes/core/class-wc-subscriptions-cart-validator.php:260
 msgid "That product can not be added to your cart because it can not be purchased more than once. Please remove the existing item before continuing."
 msgstr ""
 
+#: includes/core/class-wc-subscriptions-cart-validator.php:330
+msgid "A bundle in your cart contains a product from your subscription. Remove the conflicting bundle or cancel the subscription checkout to continue."
+msgstr ""
+
+#: includes/core/class-wc-subscriptions-cart-validator.php:336
+msgid "Your cart contains a subscription renewal and other products, which have to be checked out separately. Remove the other products to continue with the renewal, or remove the renewal to continue with the other products."
+msgstr ""
+
 #. translators: %s: product name
-#: includes/core/class-wc-subscriptions-cart-validator.php:365
+#: includes/core/class-wc-subscriptions-cart-validator.php:387
 #, php-format
 msgid "Only one of \"%s\" can be in the cart at a time. Please remove one to continue."
 msgstr ""
 
 #. translators: %s: product name
-#: includes/core/class-wc-subscriptions-cart-validator.php:428
+#: includes/core/class-wc-subscriptions-cart-validator.php:451
 #, php-format
 msgid "A duplicate of your subscription was removed from the cart. Only one of \"%s\" can be in the cart at a time."
 msgstr ""
 
-#: includes/core/class-wc-subscriptions-cart-validator.php:697
+#: includes/core/class-wc-subscriptions-cart-validator.php:845
 #: includes/core/class-wc-subscriptions-cart.php:1746
 msgid "That subscription product can not be added to your cart as it already contains a subscription renewal."
 msgstr ""
@@ -4086,32 +4094,32 @@ msgid "Please log in to your account below to choose a new payment method for yo
 msgstr ""
 
 #. translators: placeholder is an internal error number
-#: includes/core/class-wc-subscriptions-checkout.php:211
-#: includes/core/class-wc-subscriptions-checkout.php:399
+#: includes/core/class-wc-subscriptions-checkout.php:213
+#: includes/core/class-wc-subscriptions-checkout.php:401
 #, php-format
 msgid "Error %d: Unable to create subscription. Please try again."
 msgstr ""
 
 #. translators: placeholder is an internal error number
-#: includes/core/class-wc-subscriptions-checkout.php:228
+#: includes/core/class-wc-subscriptions-checkout.php:230
 #, php-format
 msgid "Error %d: Unable to add tax to subscription. Please try again."
 msgstr ""
 
 #. translators: placeholder is an internal error number
-#: includes/core/class-wc-subscriptions-checkout.php:240
+#: includes/core/class-wc-subscriptions-checkout.php:242
 #, php-format
 msgid "Error %d: Unable to create order. Please try again."
 msgstr ""
 
 #. Translators: Placeholders are opening and closing strong and link tags.
-#: includes/core/class-wc-subscriptions-checkout.php:528
+#: includes/core/class-wc-subscriptions-checkout.php:530
 #, php-format
 msgid "Purchasing a subscription product requires an account. Please go to the %1$sMy Account%2$s page to login or register."
 msgstr ""
 
 #. Translators: Placeholders are opening and closing strong and link tags.
-#: includes/core/class-wc-subscriptions-checkout.php:531
+#: includes/core/class-wc-subscriptions-checkout.php:533
 #, php-format
 msgid "Purchasing a subscription product requires an account. Please go to the %1$sMy Account%2$s page to login or contact us if you need assistance."
 msgstr ""
@@ -4982,58 +4990,58 @@ msgid "Weekly"
 msgstr ""
 
 #: includes/core/class-wcs-cart-initial-payment.php:87
-#: includes/core/class-wcs-cart-renewal.php:212
+#: includes/core/class-wcs-cart-renewal.php:222
 msgid "That doesn't appear to be your order."
 msgstr ""
 
-#: includes/core/class-wcs-cart-renewal.php:227
+#: includes/core/class-wcs-cart-renewal.php:237
 msgid "This order can no longer be paid because the corresponding subscription does not require payment at this time."
 msgstr ""
 
-#: includes/core/class-wcs-cart-renewal.php:248
+#: includes/core/class-wcs-cart-renewal.php:258
 msgid "Complete checkout to renew your subscription."
 msgstr ""
 
 #. translators: placeholder is an item name
-#: includes/core/class-wcs-cart-renewal.php:345
+#: includes/core/class-wcs-cart-renewal.php:382
 #, php-format
 msgid "The %s product has been deleted and can no longer be renewed. Please choose a new product or contact us for assistance."
 msgstr ""
 
 #. translators: %s is subscription's number
-#: includes/core/class-wcs-cart-renewal.php:380
+#: includes/core/class-wcs-cart-renewal.php:417
 #, php-format
 msgid "Subscription #%s has not been added to the cart."
 msgstr ""
 
 #. translators: %s is order's number
-#: includes/core/class-wcs-cart-renewal.php:383
+#: includes/core/class-wcs-cart-renewal.php:420
 #, php-format
 msgid "Order #%s has not been added to the cart."
 msgstr ""
 
-#: includes/core/class-wcs-cart-renewal.php:422
+#: includes/core/class-wcs-cart-renewal.php:491
 msgid "We couldn't find the original subscription for an item in your cart. The item was removed."
 msgid_plural "We couldn't find the original subscriptions for items in your cart. The items were removed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/core/class-wcs-cart-renewal.php:429
+#: includes/core/class-wcs-cart-renewal.php:498
 msgid "We couldn't find the original renewal order for an item in your cart. The item was removed."
 msgid_plural "We couldn't find the original renewal orders for items in your cart. The items were removed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/core/class-wcs-cart-renewal.php:975
+#: includes/core/class-wcs-cart-renewal.php:1044
 msgid "All linked subscription items have been removed from the cart."
 msgstr ""
 
-#: includes/core/class-wcs-cart-renewal.php:1006
+#: includes/core/class-wcs-cart-renewal.php:1075
 msgctxt "Used in WooCommerce by removed item notification: \"_All linked subscription items were_ removed. Undo?\" Filter for item title."
 msgid "All linked subscription items were"
 msgstr ""
 
-#: includes/core/class-wcs-cart-renewal.php:1969
+#: includes/core/class-wcs-cart-renewal.php:2086
 msgctxt "The place order button text while renewing a subscription"
 msgid "Renew subscription"
 msgstr ""

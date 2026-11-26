@@ -25,6 +25,7 @@ return array(
     'Automattic\\WooCommerce_Subscriptions\\Internal\\CLI\\Test_Data\\Generate_Command' => $baseDir . '/src/Internal/CLI/Test_Data/Generate_Command.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\CLI\\Test_Data\\Generator' => $baseDir . '/src/Internal/CLI/Test_Data/Generator.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\CLI\\Test_Data\\Purge_Command' => $baseDir . '/src/Internal/CLI/Test_Data/Purge_Command.php',
+    'Automattic\\WooCommerce_Subscriptions\\Internal\\Checkout\\Store_Api_Draft_Order_Context' => $baseDir . '/src/Internal/Checkout/Store_Api_Draft_Order_Context.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\Concurrency\\Subscription_Lock' => $baseDir . '/src/Internal/Concurrency/Subscription_Lock.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\HealthCheck\\Admin\\AjaxController' => $baseDir . '/src/Internal/HealthCheck/Admin/AjaxController.php',
     'Automattic\\WooCommerce_Subscriptions\\Internal\\HealthCheck\\Admin\\CandidatesListTable' => $baseDir . '/src/Internal/HealthCheck/Admin/CandidatesListTable.php',

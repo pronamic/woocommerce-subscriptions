@@ -5,15 +5,14 @@
  * Description: Sell products and services with recurring payments in your WooCommerce Store.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
- * Version: 9.4.1
+ * Version: 9.4.2
  * Requires Plugins: woocommerce
  *
  * Requires at least: 7.0
- * Tested up to: 7.1
  * Requires PHP: 7.4
  *
  * WC requires at least: 11.1
- * WC tested up to: 11.2
+ * WC tested up to: 11.3
  *
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -108,7 +107,7 @@ class WC_Subscriptions {
 	 *
 	 * @var string
 	 */
-	public static $version = '9.4.1'; // WRCS: DEFINED_VERSION. No RC suffix: prevent upgrades from running again at final release.
+	public static $version = '9.4.2'; // WRCS: DEFINED_VERSION. No RC suffix: prevent upgrades from running again at final release.
 
 	/** @var string */
 	public static $wc_minimum_supported_version = '7.7';
